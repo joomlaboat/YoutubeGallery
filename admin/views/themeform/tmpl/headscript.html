@@ -1,0 +1,114 @@
+<style>
+  .pagination li {
+    display: inline-block; /* to show pagination buttons horizontally */
+  }
+
+  .ygThumbnails div{
+    display: inline-block;
+  }
+
+  .ygTitle-visible  {
+    opacity: 1;    transition-duration: 0.2s; /* to show active video title slowly */
+  }
+  .ygTitle-hidden   {
+    opacity: 0;    transition-duration: 0s;
+  }
+
+  .ygDescription-visible  {
+    opacity: 1;    transition-duration: 1.0s; /* to show active video description slowly */
+  }
+  .ygDescription-hidden   {
+    opacity: 0;    transition-duration: 0s;
+  }
+
+  /* To highlight active thumbnail */
+  .ygThumb-active{
+    -webkit-box-shadow: 10px 10px 15px -6px rgba(0,0,0,0.78);
+    -moz-box-shadow: 10px 10px 15px -6px rgba(0,0,0,0.78);
+    box-shadow: 10px 10px 15px -6px rgba(0,0,0,0.78);
+    transition-duration: 0.3s;
+
+    display: -webkit-inline-box;
+    display: -moz-inline-box;
+    display: -ms-inline-flexbox;
+    display: -webkit-inline-flex;
+    display:inline-flex !important;
+
+    border:1px solid rgba(0,0,0,0.78);
+    margin:5px;
+    padding:0;
+
+    height:215px;
+    width:150px;
+
+    position: relative;
+    overflow:hidden;
+    text-align:center;
+  }
+  .ygThumb-inactive{
+    -webkit-box-shadow: 11px 10px 15px -23px rgba(0,0,0,0.78);
+    -moz-box-shadow: 11px 10px 15px -23px rgba(0,0,0,0.78);
+    box-shadow: 11px 10px 15px -23px rgba(0,0,0,0.78);
+
+    display: -webkit-inline-box;
+    display: -moz-inline-box;
+    display: -ms-inline-flexbox;
+    display: -webkit-inline-flex;
+    display:inline-flex !important;
+
+    border:1px solid rgba(0,0,0,0.30);
+    margin:5px;
+    padding:0;
+
+    height:215px;
+    width:150px;
+
+    position: relative;
+    overflow:hidden;
+    text-align:center;
+  }
+
+  /* to make sure that pagination is centered */
+  .pagination{
+    display:inline-block;
+    text-align:center !important;
+    float:none !important;
+  }
+
+  .ygThumb{
+    position:relative;
+    width:150px;
+    height:110px;
+    overflow:hidden;
+    vertical-align:middle;
+}
+
+  .ygThumb, .ygThumb img{
+  display:block;
+  }
+
+  .ygThumb img{
+    width:150px !important;
+    min-width:none !important;
+    max-width:none !important;
+    float:none !important;
+  }
+
+  .ygThumbDetails{
+    width:140px !important;
+    margin:none;
+    padding:none;
+    padding-left:5px;
+    padding-right:5px;
+    display:block !important;
+    float:none !important;
+    position:absolute;top:115px;left:0px;
+  }
+
+  .ygThumbDetails p{
+    text-align:center;
+    font-weight:bold;
+    line-height: 20px;
+    margin: 0px !important;
+}
+</style>

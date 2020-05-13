@@ -1,0 +1,146 @@
+#jform_videolist{
+		width:420px;
+}
+
+
+@media screen and (max-width: 500px) {
+	.fullViewType{
+		display: none;
+		overflow: hidden;
+		width: 0px !important;
+		min-width: none !important;
+		max-width: none !important;
+		padding: 0px !important;
+		margin: 0px !important;
+		visibility: hidden;
+		border: none !important;
+	}
+
+	.LinksTable td + td { display: none; }
+	.LinksTable td + td + td + td + td + td + td { display: block;height:100%; }
+}
+
+@media screen and (max-width: 900px) {
+	.fullView{
+		display: none;
+		overflow: hidden;
+		width: 0px !important;
+		min-width: none !important;
+		max-width: none !important;
+		padding: 0px !important;
+		margin: 0px !important;
+		visibility: hidden;
+		border: none !important;
+	}
+
+	.LinksTable td + td + td { display: none; }
+	.LinksTable td + td + td + td + td + td + td { display: block;height:100%; }
+}
+.ygToolButton{
+	min-width: 80px;
+	text-align: center;
+}
+
+.ygToolButton div{
+	display: inline-block;
+	/*margin:5px 5px 5px 5px;*/
+
+}
+
+.ygToolButton button{
+
+	margin:5px 5px 5px 5px;
+
+}
+/*
+@media screen and (min-width: 601px) {
+	.fullView{
+		display: block;
+	}
+
+}
+*/
+
+
+.LinksTable{
+width: 100%;
+}
+
+.LinksTable th{
+				border:none;
+				padding-left:10px;
+				padding-right:10px;
+}
+
+
+.LinksTable td{
+
+				border:1px solid lightgrey;
+				padding-left:10px;
+				padding-right:10px;
+				height:30px;
+                                word-break:break-all;
+}
+
+.YGDialogForm{
+				background-color: white;
+				top:0px;
+				left:30px;
+				position:absolute;
+}
+
+.YGDialogFormShadow{
+				position:absolute;
+				background-color: black;
+				filter: alpha(opacity=50);    -moz-opacity: 0.5;    -khtml-opacity: 0.5;    opacity: 0.5;
+				top:10px;
+				left:40px;
+}
+
+
+.layouteditor_modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 32000; /* Sit on top */
+    /*padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+
+
+}
+
+
+
+
+/* Modal Content */
+.layouteditor_modal-content {
+    background-color: #fefefe;
+	position: fixed; /* Stay in place */
+    top:0;
+	left:0;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+	max-width:800px;
+}
+
+/* The Close Button */
+.layouteditor_close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.layouteditor_close:hover,
+.layouteditor_close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}

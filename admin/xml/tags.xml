@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layouts>
+	<tagset name="thumbnailtags" label="Thumbnail Tags" description="Thumbnail Tags to form navigation bar items." type="customnavlayout">
+
+        <tag name="image" label="Thumbnail Image" startchar="[" endchar="]" description="Returns Thumbnail Image." />
+		  <tag name="image" label="Specific Thumbnail Image" startchar="[" endchar="]" description="Returns Specific Thumbnail Image (1 of 6)." >
+				<params>
+					<param name="option" label="Option" type="list" description="There are variouse thumbnail sized.">
+                     <option value="1" label="1" description="" />
+						   <option value="2" label="2" description="" />
+							<option value="3" label="3" description="" />
+						   <option value="4" label="4" description="" />
+							<option value="5" label="5" description="" />
+						   <option value="6" label="6" description="" />
+					</param>
+				</params>
+			</tag>
+		  <tag name="imageurl" label="" startchar="[" endchar="]" description="Returns a link to thumbnail image" />
+		  <tag name="title" label="Video Title" startchar="[" endchar="]"
+             description="Video title." >
+			<params>
+				<param name="words" label="Number of words" description="Number of words. Leave blank or 0 to not limit the title text." hidden="false" default="" type="number" min="1" max="255" />
+				<param name="chars" label="Number of chars" description="Number of chars. Leave blank or 0 to not limit the title text. Do not set both words and chars." hidden="false" default="" type="number" min="1" max="1024" />
+            </params>
+			</tag>
+
+			<tag name="description" label="Video Description" startchar="[" endchar="]"
+             description="Video description." >
+			<params>
+				<param name="words" label="Number of words" description="Number of words. Leave blank or 0 to not limit the description text." hidden="false" default="" type="number" min="1" max="255" />
+				<param name="chars" label="Number of chars" description="Number of chars. Leave blank or 0 to not limit the description text. Do not set both words and chars." hidden="false" default="" type="number" min="1" max="1024" />
+            </params>
+			</tag>
+
+			<tag name="link" label="" startchar="[" endchar="]" description="Link to the Video (on this website)" />
+			<tag name="link" label="" startchar="[" endchar="]" description="Full Link to the Video (to share on FB for example)" >
+				<params>
+					<param name="option" label="Option" type="list" description="Select one of the available options, what to return.">
+                     <option value="" label="Relative" description="Relative to the website root." />
+							<option value="full" label="Full" description="Complete link to the Video." />
+					</param>
+				</params>
+			</tag>
+			<tag name="a" label="" startchar="[" endchar="] ... HTML ... [/a]" description=">Complete anchor tag with the link and title." />
+			<tag name="publisheddate" label="" startchar="[" endchar="]" description="Publish date with custom date format." >
+				<params>
+					<param name="format" label="Format" type="string" description="PHP date format i.e. 'Y-m-d'" />
+				</params>
+			</tag>
+			<tag name="duration" label="Duration" startchar="[" endchar="]" description="Duration in Seconds" >
+				<params>
+					<param name="format" label="Format" type="string" description="PHP date time format i.e. 's'" />
+				</params>
+			</tag>
+			<tag name="viewcount" label="View Count" startchar="[" endchar="]" description="" >
+				<params>
+					<param name="separator" label="Thousands Separator" description="Example: ," default="," type="string" length="5" />
+				</params>
+			</tag>
+			<tag name="favcount" label="Favorites Count" startchar="[" endchar="]" description="" />
+			<tag name="rating_average" label="Average Rating" startchar="[" endchar="]" description="" />
+		 	<tag name="rating_max" label="Max. Rating" startchar="[" endchar="]" description="" />
+			<tag name="rating_min" label="Min. Rating" startchar="[" endchar="]" description="" />
+		  	<tag name="rating_numRaters" label="Number of Raters" startchar="[" endchar="]" description="" />
+			<tag name="likes" label="Likes" startchar="[" endchar="]" description="" />
+			<tag name="dislikes" label="Dislikes" startchar="[" endchar="]" description="" >
+				<params>
+					<param name="separator" label="Thousands Separator" description="Example: ," default="," type="string" length="5" />
+				</params>
+			</tag>
+			<tag name="commentcount" label="Number of comments" startchar="[" endchar="]" description="" >
+				<params>
+					<param name="separator" label="Thousands Separator" description="Example: ," default="," type="string" length="5" />
+				</params>
+			</tag>
+			<tag name="keywords" label="Keywords" startchar="[" endchar="]" description="" />
+			<tag name="videosource" label="Video Source" startchar="[" endchar="]" description="" />
+			<tag name="videoid" label="Video ID" startchar="[" endchar="]" description="" />
+		 	<tag name="channel" label="" startchar="[" endchar="]" description="Returns Channel details. Note: to enable it add `moredetails=true` into `Special Parameter` of Youtube Channel link." >
+				<params>
+					
+					<param name="option" label="Option" type="list" description="Select one of the available options, what to return.">
+                     <option value="username" label="User Name" description="" />
+						   <option value="title" label="Title" description="" />
+							<option value="description" label="Description" description="" />
+							<option value="subscribers" label="Subscribers" description="" />
+						   <option value="subscribed" label="Suscribed" description="" />
+							<option value="location" label="Location" description="" />
+						   <option value="commentcount" label="Comment Count" description="" />
+							<option value="viewcount" label="View Count" description="" />
+						   <option value="videocount" label="Video Count" description="" />
+
+					</param>
+					<param name="separator" label="Thousands Separator" description="Example: ," default="," type="string" length="5" />
+				</params>
+			</tag>
+			<tag name="videolist" label="Video List Details" startchar="[" endchar="]" description="Returns Video List details." >
+				<params>
+					<param name="option" label="Option" type="list" description="Select one of the available options, what to return.">
+                     <option value="title" label="Title" description="" />
+							<option value="description" label="Description" description="" />
+							<option value="author" label="Author" description="" />
+							<option value="playlist" label="Playlist" description="" />
+							<option value="watchgroup" label="Watchgroup" description="" />
+					</param>
+				</params>
+			</tag>
+
+			<tag name="social" label="Social Button" startchar="[" endchar="]" description="Render a Social Network Button" >
+				<params>
+					<param name="button" label="Button" type="list" description="Select one of the available social buttons.">
+                     <option value="facebook_share" label="Facebook Share" description="" />
+							<option value="facebook_like" label="Facebook Like" description="" />
+							<option value="twitter" label="Twitter" description="" />
+					</param>
+					<param name="parameter" label="Parameter" description="Button Label if Facebook Share. Or Language if Facebook Like. Or Twitter Account" hidden="false" default="" type="number" min="1" max="4096" />
+					<param name="width" label="Button Width" description="Button width in pixels." hidden="false" default="200" type="number" min="1" max="1000" />
+				</params>
+			</tag>
+	</tagset>
+
+	<tagset name="ifstatements" label="If Statements" description="If statements to customize the output." type="customnavlayout">
+      <tag name="if:isactive]" label="If Active" startchar="[" endchar=" ... Some HTML ... [endif:isactive]" description="If Statement, checks if value set or true." />
+		<tag name="if:odd]" label="If Odd" startchar="[" endchar=" ... Some HTML ... [endif:odd]" description="Checks if thumbnail number is odd." />
+		<tag name="if:even]" label="If Even" startchar="[" endchar=" ... Some HTML ... [endif:even]" description="Checks if thumbnail number is even." />
+		<tag name="if:inwatchgroup]" label="If in Watch Group" startchar="[" endchar=" ... [endif:inwatchgroup]" description="Current visitor is in the Watch Group." />
+	</tagset>
+
+	<tagset name="ifstatements" label="If Not Statements" description="If not, statements to customize the output." type="customnavlayout">
+      <tag name="ifnot:isactive]" label="If Not Active" startchar="[" endchar=" ... Some HTML ... [endnotif:isactive]" description="If Statement, checks if value set or true." />
+		<tag name="ifnot:odd]" label="If Not Odd" startchar="[" endchar=" ... Some HTML ... [endnotif:odd]" description="Checks if thumbnail number is odd." />
+		<tag name="ifnot:even]" label="If Not Even" startchar="[" endchar=" ... Some HTML ... [endnotif:even]" description="Checks if thumbnail number is even." />
+		<tag name="ifnot:inwatchgroup]" label="If Not in Watch Group" startchar="[" endchar=" ... [endnotif:inwatchgroup]" description="Current visitor is in the Watch Group." />
+	</tagset>
+
+   <tagset name="general" label="General" description="Tags that produce some content." type="customlayout">
+
+
+        <tag name="videoplayer" label="Video Player" startchar="[" endchar="]"
+             description="Video Player" >
+			<params>
+				<param name="width" label="Player Width" description="Player width in pixels. Leave it blanc to use Theme settings value." hidden="false" default="" type="number" min="1" max="4096" />
+				<param name="height" label="Player Height" description="Player width in pixels. Leave it blanc to use Theme settings value." hidden="false" default="" type="number" min="1" max="4096" />
+            </params>
+		</tag>
+
+		<tag name="videotitle" label="Video Title" startchar="[" endchar="]"
+             description="Active video title." >
+			<params>
+				<param name="words" label="Number of words" description="Number of words. Leave blank or 0 to not limit the title text." hidden="false" default="" type="number" min="1" max="255" />
+				<param name="chars" label="Number of chars" description="Number of chars. Leave blank or 0 to not limit the title text. Do not set both words and chars." hidden="false" default="" type="number" min="1" max="1024" />
+            </params>
+		</tag>
+
+		<tag name="videodescription" label="Video Description" startchar="[" endchar="]"
+             description="Active video description." >
+			<params>
+				<param name="words" label="Number of words" description="Number of words. Leave blank or 0 to not limit the description text." hidden="false" default="" type="number" min="1" max="255" />
+				<param name="chars" label="Number of chars" description="Number of chars. Leave blank or 0 to not limit the description text. Do not set both words and chars." hidden="false" default="" type="number" min="1" max="1024" />
+				<param name="addlinebreaks" label="Line Breaks" type="radio" description="Add Line Breaks (replace \n to HTML &#60;BR&#62; tag)" options="|No,addlinebreaks|Yes" />
+			</params>
+		</tag>
+
+        <tag name="thumbnails" label="Thumbnails" startchar="[" endchar="]"
+             description="List of thumbnails (no formating except Navigation Bar Custom Layout)" />
+
+        <tag name="navigationbar" label="Navigation Bar (a table of thumbnails)" startchar="[" endchar="]" description="Navigation Bar (a table of thumbnails)" >
+			<params>
+				<param name="columns" label="Columns" description="This will overwrite number of columns set in theme." hidden="false" default="" type="number" min="1" max="32" />
+				<param name="maxwidth" label="Max. Width" description="Navigation bar maximum width in pixels." hidden="false" default="" type="number" min="1" max="4096" />
+            </params>
+		</tag>
+
+
+        <tag name="videolist" label="Video List" startchar="[" endchar="]"
+             description="Current Video List details.">
+            <params>
+                <param name="option" label="Option" type="list" description="Select one of the available options.">
+                    <option value="title" label="Video List title"
+                            description="Returns Video List Title."/>
+                    <option value="description" label="Integer" description="Returns Video List Description."/>
+                    <option value="author" label="Author"
+                            description="Returns Video List Author (User)."/>
+                    <option value="authorurl" label="Author URL"
+                            description="Returns Video List Author URL."/>
+					<option value="image" label="Image"
+                            description="Returns Video List Image."/>
+					<option value="note" label="Note"
+                            description="Returns Video List Note."/>
+					<option value="playlist" label="Playlist"
+                            description="Returns Video List Playlist."/>
+					<option value="watchgroup" label="Watch User Group"
+                            description="Returns Video List Watch User Group"/>
+                </param>
+            </params>
+
+        </tag>
+
+		<tag name="count" label="Number of videos" startchar="[" endchar="]"
+             description="Number of videos">
+            <params>
+                <param name="option" label="Option" type="radio" description="Select one of the available options." options="|Current Page,all|All" />
+            </params>
+
+        </tag>
+
+		<tag name="pagination" label="Pagination" startchar="[" endchar="]"
+             description="Pagination" />
+
+		<tag name="instanceid" label="Instance ID" startchar="[" endchar="]"
+             description="Instance ID" />
+
+
+    </tagset>
+
+    <tagset name="theme" label="Theme Settings Tags" description="Tags that returns theme settings values."
+            priority="4" >
+		<tag name="activevideotitlestyle" label="Active Video Title CSS Style" description="Active Video Title CSS Style" startchar="[" endchar="]" />
+        <tag name="bgcolor" label="Thumbnail Background color" description="Thumbnail Background color" startchar="[" endchar="]" />
+		<tag name="color1" label="Primary Border Color" description="Primary Border Color" startchar="[" endchar="]" />
+		<tag name="color2" label="Secondary Border Color" description="Secondary Border Color" startchar="[" endchar="]" />
+		<tag name="cols" label="Number of Columns" description="Number of Columns" startchar="[" endchar="]" />
+        <tag name="cssstyle" label="CSS Style" description="CSS Style" startchar="[" endchar="]" />
+		<tag name="descr_style" label="Active Video Description CSS Style" description="Active Video Description CSS Style" startchar="[" endchar="]" />
+		<tag name="hrefaddon" label="HREF addon" description="HREF addon. Theme parameter, a text that will be added to every thunmnail link. Useful for modal popups." startchar="[" endchar="]" />
+		<tag name="linestyle" label="Line CSS Style" description="Line CSS Style" startchar="[" endchar="]" />
+		<tag name="listnamestyle" label="Video List Name CSS Style" description="Video List Name CSS Style" startchar="[" endchar="]" />
+		<tag name="mediafolder" label="Media Folder" description="Media Folder" startchar="[" endchar="]" />
+		<tag name="navbarstyle" label="Navigation bar CSS Style" description="Navigation bar CSS Style" startchar="[" endchar="]" />
+		<tag name="rel" label="Rel option to apply any shadow/lightbox" description="Rel option to apply any shadow/lightbox" startchar="[" endchar="]" />
+        <tag name="thumbnailstyle" label="Thumbnail CSS Style" description="Thumbnail CSS Style" startchar="[" endchar="]" />
+		<tag name="videoid" label="Current Video ID" description="Current Video ID" startchar="[" endchar="]" />
+		<tag name="width" label="Video Area Width" description="Video Area Width" startchar="[" endchar="]" />
+		<tag name="height" label="Video Area Height" description="Video Area Height" startchar="[" endchar="]" />
+
+    </tagset>
+
+
+</layouts>
