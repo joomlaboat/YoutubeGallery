@@ -1007,9 +1007,6 @@ class YouTubeGalleryMisc
 					$vlu=$v['value'];				
 				}
 				
-				if($vlu=='' and $option=='youtube_api_key')
-						$vlu='AIzaSyBXIwzqH-wOvZwe6F415X7cdFoQjnY1u6U';//default_key. Old key: AIzaSyDWBmEwURlnrzi76m8PxXbgyGd8OtU1qRE
-
 				return $vlu;
 	}
 
