@@ -19,6 +19,41 @@ $s=JFactory::getApplication()->input->getVar( 'search');
 <p><a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact Tech-Support)</a></p>
 
 <script>
+	function changeThumb(id,links_str,index)
+	{
+		var links=links_str.split(";");
+		var objImages=document.getElementById('thumbnails'+id);
+		var content='';
+		var image='';
+		
+		for(var i=0;i<links.length;i++)
+		{
+			var parts=links[i].split(',');
+			
+					
+			if(i==index)
+			{
+				content+=i+'  ';
+				var img=parts[0];
+				
+				var obj2=document.getElementById('thumbnail'+id);
+				obj2.innerHTML='<a href="'+img+'" target="_blank"><img src="'+img+'" style="width:200px;" /></a>';
+			}
+			else
+			{
+				//show another thumbnail image on link click
+				var link='changeThumb('+id+',\''+links_str+'\','+i+')';
+				var alt='Thumbnail';
+				
+				if(parts.length==3)
+					alt+=' '+parts[1]+'x'+parts[2];
+				
+				content+='<a href="javascript:'+link+';" alt="'+alt+'" title="'+alt+'" />'+i+'  </a>';
+			}
+		}
+		objImages.innerHTML=content;
+	}
+	
 	function getAnswerValue(p,s)
 	{
 		var ps="*"+p+"_start*=";
@@ -138,6 +173,6 @@ $s=JFactory::getApplication()->input->getVar( 'search');
 	<input type="hidden" name="listid" value="<?php echo JFactory::getApplication()->input->getInt( 'listid'); ?>" />
     <?php echo JHtml::_('form.token'); ?>
 
-	<p><?php echo JText::_('COM_YOUTUBEGALLERY_IFSTATUSOFTHEVIDEO'); ?></p>
+	<p><?php // echo JText::_('COM_YOUTUBEGALLERY_IFSTATUSOFTHEVIDEO'); ?></p>
 
 </form>

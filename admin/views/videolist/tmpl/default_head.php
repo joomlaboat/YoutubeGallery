@@ -17,6 +17,8 @@ defined('_JEXEC') or die('Restricted Access');
         <th style="text-align:center;"><?php echo JText::_('COM_YOUTUBEGALLERY_TITLE'); ?></th>
         <th style="text-align:center;"><?php echo JText::_('COM_YOUTUBEGALLERY_DESCRIPTION'); ?></th>
         <th style="text-align:center;"><?php echo JText::_('COM_YOUTUBEGALLERY_LASTUPDATETITLE'); ?></th>
+		<?php /*
         <th style="text-align:center;"><?php echo JText::_('COM_YOUTUBEGALLERY_STATUS'); ?></th>
         <th style="text-align:center;"><?php echo JText::_('COM_YOUTUBEGALLERY_ORDERING'); ?></th>
+		*/?>
 </tr>
