@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -124,15 +123,11 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
 			if(!$update_videolist)
 			{
-				$query='UPDATE #__youtubegallery_videolists SET lastplaylistupdate="'.date( 'Y-m-d H:i:s').'" WHERE id='.$linksform_row->id;
+				$query='UPDATE #__youtubegallery_videolists SET lastplaylistupdate="'.date( 'Y-m-d H:i:s').'" WHERE id='.(int)$linksform_row->id;
 				$db->setQuery($query);
 				if (!$db->query())    die( $db->stderr());
 
-
-				if($getinfomethod=='js' or $getinfomethod=='jsmanual')
-					$query='UPDATE #__youtubegallery_videos SET lastupdate="0000-00-00 00:00:00", rawdata="*youtubegallery_request*" WHERE isvideo AND listid='.$linksform_row->id;
-				else
-					$query='UPDATE #__youtubegallery_videos SET lastupdate="0000-00-00 00:00:00", rawdata="" WHERE isvideo AND listid='.$linksform_row->id;
+				$query='UPDATE #__youtubegallery_videos SET lastupdate=NULL WHERE isvideo AND listid='.(int)$linksform_row->id;
 
 				$db->setQuery($query);
 				if (!$db->query())    die( $db->stderr());

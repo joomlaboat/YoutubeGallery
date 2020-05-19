@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery for Joomla!
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -142,12 +141,12 @@ class YouTubeGalleryMisc
 	
 
 
-	function isVideo_record_exist($videosource,$videoid,$listid)
+	protected static function isVideo_record_exist($videosource,$videoid)//,$listid)
 	{
 				$db = JFactory::getDBO();
 
-				$query = 'SELECT id, allowupdates FROM #__youtubegallery_videos WHERE '.$db->quoteName('videosource').'='.$db->quote($videosource).' AND '.$db->quoteName('videoid').'='.$db->quote($videoid)
-				.' AND '.$db->quoteName('listid').'='.$listid.' LIMIT 1';
+				$query = 'SELECT id, allowupdates FROM #__youtubegallery_videos WHERE '.$db->quoteName('videosource').'='.$db->quote($videosource).' AND '.$db->quoteName('videoid').'='.$db->quote($videoid).' LIMIT 1';
+				//.' AND '.$db->quoteName('listid').'='.$listid.' LIMIT 1';
 
 				$db->setQuery($query);
 				if (!$db->query())    die( $db->stderr());
@@ -258,7 +257,7 @@ class YouTubeGalleryMisc
 			$search_query_array=explode(',',$search_query);
 
 			$search_fields_array=explode(',',$search_fields);
-			$possible_fields=array('videoid','title','description','publisheddate','keywords','channel_username','channel_title','channel_description','channel_totaluploadviews');
+			$possible_fields=array('videoid','title','description','publisheddate','keywords','channel_username','channel_title','channel_description');//,'channel_totaluploadviews');
 
 
 			$q_where=array();
@@ -404,7 +403,7 @@ class YouTubeGalleryMisc
 			if($days_diff>abs($updateperiod) or $force_update)
 			{
 
-				$this->update_cache_table($this->videolist_row,$updateperiod>0); //updateperiod>0 ? refresh : get new videos
+				$this->update_cache_table($this->videolist_row);//,$updateperiod>0); //updateperiod>0 ? refresh : get new videos
 				$this->videolist_row->lastplaylistupdate =date( 'Y-m-d H:i:s');
 
 				$db = JFactory::getDBO();
@@ -416,67 +415,147 @@ class YouTubeGalleryMisc
 
 	function update_cache_table(&$videolist_row,$update_videolist=true)
 	{
-
 				$videolist_array=YouTubeGalleryMisc::csv_explode("\n", $videolist_row->videolist, '"', true);
-
 				$firstvideo='';
-
 				$videolist=YouTubeGalleryData::formVideoList($videolist_array, $firstvideo, '');//$this->theme_row->thumbnailstyle);
-
-				$ListOfVideos=array();
-
+				
 				$db = JFactory::getDBO();
-
 				$parent_id=0;
 				$parent_details=array();
-				$this_is_a_list=false;
-				$list_count_left=0;
+//				$this_is_a_list=false;
+				//$list_count_left=0;
+				
 
+				$ListOfVideosNotToDelete=array();
+				
 				foreach($videolist as $g)
 				{
-						$g_title=str_replace('"','&quot;',$g['title']);
-						$g_description=str_replace('"','&quot;',$g['description']);
+					$ListOfVideosNotToDelete[]='(videoid!='.
+					echo '$g=';
+				print_r($g);
+				
+				
+				//	YouTubeGalleryMisc::updateDBSingleItem($g,(int)$videolist_row->id,$parent_id,$parent_details);//,$this_is_a_list);//,$list_count_left);
+				}
+				
+				die;
+				
 
-						if(isset($g['custom_title']))
-							$custom_g_title=str_replace('"','&quot;',$g['custom_title']);
-						else
-							$custom_g_title='';
 
-						if(isset($g['custom_description']))
-							$custom_g_description=str_replace('"','&quot;',$g['custom_description']);
-						else
-							$custom_g_description='';
+				if(!$update_videolist)
+				{
+					//Delete All videos of this video list that has been deleted form the list and allowed for updates.
+					//isvideo AND
 
-						$fields=array();
+					$query='DELETE FROM #__youtubegallery_videos WHERE listid='.((int)$videolist_row->id);
+					if(count($ListOfVideos)>0)
+						$query.=' AND id!='.implode(' AND id!=',$ListOfVideos);
+					
+					echo $query;
 
-						if(
-						   $g['videosource']=='youtubeuseruploads' or
-						   $g['videosource']=='youtubestandard' or
-						   $g['videosource']=='youtubeplaylist' or
-						   $g['videosource']=='youtubeshow' or
-						   $g['videosource']=='youtubeuserfavorites' or
-						   $g['videosource']=='youtubesearch' or
-						   $g['videosource']=='youtubechannel' or
-						   $g['videosource']=='vimeouservideos' or
-						   $g['videosource']=='vimeochannel' or
-						   $g['videosource']=='vimeoalbum' or
-						   $g['videosource']=='videolist' or
-						   $g['videosource']=='dailymotionplaylist'
-						   )
+	die;
+	$db->setQuery($query);
+					if (!$db->query())    die( $db->stderr());
+				}
+die;
+	}
+	
+	public static function updateDBSingleItem($g,$videolist_id,&$parent_id,&$parent_details)//,&$this_is_a_list)//,&$list_count_left)
+	{
+		$db = JFactory::getDBO();
+
+		$fields=YouTubeGalleryMisc::prepareQuerySets($g,$videolist_id,$parent_id,$parent_details);//,$this_is_a_list);//,$list_count_left);
+		echo 'print_r($fields):';
+		print_r($fields);
+		
+		$record_id=YouTubeGalleryMisc::isVideo_record_exist($g['videosource'],$g['videoid']);//,$videolist_row->id);
+
+echo '$record_id='.$record_id.'<br/>';
+
+		$query='';
+
+		if($record_id==0)
 						{
-								//parent
-								$parent_id=0;
-								$this_is_a_list=true;
-								$list_count_left=(int)$g['count'];
+								$query='INSERT #__youtubegallery_videos SET '.implode(', ', $fields).', allowupdates="1"';
+
+								$db->setQuery($query);
+								if (!$db->query())    die( $db->stderr());
+
+								$record_id_new=YouTubeGalleryMisc::isVideo_record_exist($g['videosource'],$g['videoid']);//,$videolist_row->id);
+
+								$ListOfVideos[]=$record_id_new;
+
+								if((int)$g['isvideo']==0)
+								{
+									$parent_id=$record_id_new;
+									$parent_details=$g;
+								}
 						}
-						else
+						elseif($record_id>0)
 						{
-								$this_is_a_list=false;
+
+//							if($g_title!='***Video not found***')
+	//						{
+								//Don't update info, if cannot get the info
+								$query="UPDATE #__youtubegallery_videos SET ".implode(', ', $fields).' WHERE id='.$record_id;
+
+								$db->setQuery($query);
+								if (!$db->query())    die( $db->stderr());
+
+								$ListOfVideos[]=$record_id;
+
+								if((int)$g['isvideo']==0)
+								{
+									$parent_id=$record_id;
+									$parent_details=$g;
+								}
+		//					}
 						}
 
 
-						$fields[]=$db->quoteName('listid').'='.$db->quote($videolist_row->id);
-						$fields[]=$db->quoteName('parentid').'='.$db->quote($parent_id);
+
+						//if(!$this_is_a_list)
+						//{
+								//if($list_count_left>0)
+										//$list_count_left-=1;
+
+
+								//if($list_count_left==0)
+									//$parent_id=0;
+
+						//}
+	}
+
+	protected static function prepareQuerySets($g,$videolist_id,&$parent_id,&$parent_details)//,&$this_is_a_list)//,&$list_count_left)
+	{
+		$db = JFactory::getDBO();
+		
+		
+		$g_title=str_replace('"','&quot;',$g['title']);
+		$g_description=str_replace('"','&quot;',$g['description']);
+
+		if(isset($g['custom_title']))
+			$custom_g_title=str_replace('"','&quot;',$g['custom_title']);
+		else
+			$custom_g_title='';
+
+		if(isset($g['custom_description']))
+			$custom_g_description=str_replace('"','&quot;',$g['custom_description']);
+		else
+			$custom_g_description='';
+		
+		$fields=array();
+
+						if((int)$g['isvideo']==0)
+							$parent_id=0;
+
+						if($videolist_id!=0)
+							$fields[]=$db->quoteName('listid').'='.$db->quote($videolist_id);
+						
+						
+						if($parent_id!=0)
+							$fields[]=$db->quoteName('parentid').'='.$db->quote($parent_id);
+						
 						$fields[]=$db->quoteName('videosource').'='.$db->quote($g['videosource']);
 
 						$fields[]=$db->quoteName('videoid').'='.$db->quote($g['videoid']);
@@ -523,12 +602,9 @@ class YouTubeGalleryMisc
 							$fields[]=$db->quoteName('endsecond').'="0"';
 
 						$fields[]=$db->quoteName('link').'='.$db->quote($g['link']);
-						$fields[]=$db->quoteName('ordering').'='.$db->quote($g['ordering']);
 
-						if($this_is_a_list)
-								$fields[]=$db->quoteName('lastupdate').'='.$db->quote(date( 'Y-m-d H:i:s'));
-						$fields[]=$db->quoteName('isvideo').'='.$db->quote(($this_is_a_list ? '0' : '1'));
-
+						
+						$fields[]=$db->quoteName('isvideo').'='.$db->quote($g['isvideo']);//$db->quote(($this_is_a_list ? '0' : '1'));
 
 						if(isset($g['publisheddate']))
 							$fields[]=$db->quoteName('publisheddate').'='.$db->quote($g['publisheddate']);
@@ -572,10 +648,8 @@ class YouTubeGalleryMisc
 						if(isset($g['dislikes']))
 							$fields[]=$db->quoteName('dislikes').'='.$db->quote($g['dislikes']);
 
-						if($this_is_a_list)
-						{
+						if((int)$g['isvideo']==0)
 							$parent_details=$g;
-						}
 
 						if(isset($parent_details['channel_username']))
 							$fields[]=$db->quoteName('channel_username').'='.$db->quote($parent_details['channel_username']);
@@ -603,89 +677,11 @@ class YouTubeGalleryMisc
 
 						if(isset($parent_details['channel_description']))
 							$fields[]=$db->quoteName('channel_description').'='.$db->quote($parent_details['channel_description']);
-
-							$record_id=$this->isVideo_record_exist($g['videosource'],$g['videoid'],$videolist_row->id);
-
-						$query='';
-
-
-
-						if($record_id==0)
-						{
-
-								$query='INSERT #__youtubegallery_videos SET '.implode(', ', $fields).', allowupdates="1"';
-
-
-
-								$db->setQuery($query);
-								if (!$db->query())    die( $db->stderr());
-
-								$record_id_new=$this->isVideo_record_exist($g['videosource'],$g['videoid'],$videolist_row->id);
-
-								$ListOfVideos[]=$record_id_new;
-
-								if($this_is_a_list)
-								{
-									$parent_id=$record_id_new;
-									$parent_details=$g;
-								}
-						}
-						elseif($record_id>0)
-						{
-
-							if($g_title!='***Video not found***')
-							{
-								//Don't update info, if cannot get the info
-								$query="UPDATE #__youtubegallery_videos SET ".implode(', ', $fields).' WHERE id='.$record_id;
-
-								$db->setQuery($query);
-								if (!$db->query())    die( $db->stderr());
-
-								$ListOfVideos[]=$record_id;
-
-								if($this_is_a_list)
-								{
-									$parent_id=$record_id;
-									$parent_details=$g;
-								}
-							}
-						}
-
-
-
-						if(!$this_is_a_list)
-						{
-								if($list_count_left>0)
-										$list_count_left-=1;
-
-
-								if($list_count_left==0)
-									$parent_id=0;
-
-						}
-
-				}
-
-
-
-				if(!$update_videolist)
-				{
-					//Delete All videos of this video list that has been deleted form the list and allowed for updates.
-					//isvideo AND
-
-					$query='DELETE FROM #__youtubegallery_videos WHERE listid='.((int)$videolist_row->id).' AND allowupdates=1';
-					if(count($ListOfVideos)>0)
-						$query.=' AND id!='.implode(' AND id!=',$ListOfVideos);
-
-					$db->setQuery($query);
-					if (!$db->query())    die( $db->stderr());
-				}
-
-
-
+		
+		return $fields;
 	}
 
-
+/*
 	function RefreshVideoData(&$gallery_list,$getinfomethod,$force_refresh=false,$videodescription_params)
 	{
 
@@ -827,7 +823,7 @@ class YouTubeGalleryMisc
 		}
 	}
 
-
+*/
 	
 
 

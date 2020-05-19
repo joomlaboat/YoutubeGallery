@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery for Joomla!
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -918,7 +917,7 @@ class YoutubeGalleryLayoutRenderer
 		$gallery_list=$the_gallery_list;
 		$getinfomethod=YouTubeGalleryMisc::getSettingValue('getinfomethod');
 
-		$misc->RefreshVideoData($gallery_list,$getinfomethod,false,$this->videodescription_params);
+		//$misc->RefreshVideoData($gallery_list,$getinfomethod,false,$this->videodescription_params);
 
 		$tr=0;
 		$count=0;
@@ -1041,7 +1040,7 @@ class YoutubeGalleryLayoutRenderer
 
 		$getinfomethod=YouTubeGalleryMisc::getSettingValue('getinfomethod');
 
-		$misc->RefreshVideoData($gallery_list,$getinfomethod,false,$this->videodescription_params);
+		///$misc->RefreshVideoData($gallery_list,$getinfomethod,false,$this->videodescription_params);
 
 		$tr=0;
 		$count=0;
@@ -1379,6 +1378,8 @@ class YoutubeGalleryLayoutRenderer
 
 	public static function renderThumbnailLayout($thumbnail_layout,$listitem,$aHrefLink,$aLink, $videoid,&$theme_row,$item_index,&$gallery_list,&$videolist_row)
 	{
+		$listitem=YouTubeGalleryData::updateSingleVideo($listitem);
+		
 		$fields=array('width','height','image','link','a','/a','link','title','description',
 					  'imageurl','videoid','videosource','publisheddate','duration',
 					  'rating_average','rating_max','rating_min','rating_numRaters',

@@ -34,15 +34,45 @@ class YouTubeGalleryData
 		
 	}
 	
+	public static function updateSingleVideo($listitem)
+	{
+		if($listitem['lastupdate']!='' and $listitem['lastupdate']!='0000-00-00 00:00:00')
+			return $listitem;
+	
+		$theLink=trim($listitem['link']);
+		if($theLink=='')
+			return $listitem;
+			
+		$item=array();//where to save
+		YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,$item,$listitem);
+		
+		$parent_id=0;
+		$parent_details=array();
+		$this_is_a_list=false;
+		$list_count_left=0;
+				
+		YouTubeGalleryMisc::updateDBSingleItem($item,0,$parent_id,$parent_details,$this_is_a_list,$list_count_left);
+		
+		return $item;
+	}
+	
 	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list)
 	{
 		if (!function_exists('curl_init') and !function_exists('file_get_contents'))
-			return "enable php functions: curl_init or file_get_contents";
+		{
+			$item=array('es_error'=>'Enable php functions: curl_init or file_get_contents.','es_status'=>-1);
+			$gallery_list[]=YouTubeGalleryData::parse_SingleVideo($item);
+			return false;
+		}			
 
 		if (function_exists('phpversion'))
 		{
 			if(phpversion()<5)
-				return "Update to PHP 5+";
+			{
+				$item=array('es_error'=>'Update to PHP 5+','es_status'=>-1);
+				$gallery_list[]=YouTubeGalleryData::parse_SingleVideo($item);
+				return false;
+			}
 		}
 
 		try
@@ -54,38 +84,109 @@ class YouTubeGalleryData
 
 			if(!$j)
 			{
-				$item=array('es_error'=>'Connection Error');
-				$gallery_list[]=YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($item);
-				return;
+				$item=array('es_error'=>'Connection Error','es_status'=>-1);
+				$gallery_list[]=YouTubeGalleryData::parse_SingleVideo($item);
+				return false;
 			}
 			
 			if(isset($j['es_error']))
 			{
-				$item=array('es_error'=>$j['es_error']);
-				$gallery_list[]=YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($item);
-				return;
+				$item=array('es_error'=>$j['es_error'],'es_status'=>-1);
+				$gallery_list[]=YouTubeGalleryData::parse_SingleVideo($item);
+				return false;
 			}
 			
 			foreach($j as $item)
-			{
-				$gallery_list[]=YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo((array)$item);
-			}
+				$gallery_list[]=YouTubeGalleryData::parse_SingleVideo((array)$item);
 		}
 		catch(Exception $e)
 		{
-			$item=array('error'=>'Cannot get youtube video data.');
-			$gallery_list[]=YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($item);
-			return;
+			$item=array('es_error'=>'Cannot get youtube video data.','es_status'=>-1);
+			$gallery_list[]=YouTubeGalleryData::parse_SingleVideo($item);
+			return false;
 		}
 	}
 	
-	public static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($item)
+	public static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,&$item,&$original_item)
 	{
+		if (!function_exists('curl_init') and !function_exists('file_get_contents'))
+		{
+			$es_item=array('es_error'=>'Enable php functions: curl_init or file_get_contents.','es_status'=>-1);
+			$item=YouTubeGalleryData::parse_SingleVideo($es_item);
+			return false;
+		}			
+
+		if (function_exists('phpversion'))
+		{
+			if(phpversion()<5)
+			{
+				$es_item=array('es_error'=>'Update to PHP 5+','es_status'=>-1);
+				$item=YouTubeGalleryData::parse_SingleVideo($es_item);
+				return false;
+			}
+		}
+
+		try
+		{
+			$url = 'http://api.joomlaboat.com/youtube-gallery?key=666&v=5.0.0&query='.base64_encode($theLink);
+			$htmlcode=YouTubeGalleryMisc::getURLData($url);
+
+			$j=json_decode($htmlcode);
+
+			if(!$j)
+			{
+				$es_item=array('es_error'=>'Connection Error','es_status'=>-1);
+				$item=YouTubeGalleryData::parse_SingleVideo($es_item);
+				return false;
+			}
+			
+			if(isset($j['es_error']))
+			{
+				$es_item=array('es_error'=>$j['es_error'],'es_status'=>-1);
+				$item=YouTubeGalleryData::parse_SingleVideo($es_item);
+				return false;
+			}
+			
+			if(count($j)==0)
+			{
+				$es_item=array('es_error'=>'Cannot get youtube video data. Video not found.','es_status'=>-1);
+				$item=YouTubeGalleryData::parse_SingleVideo($es_item);
+				return false;
+			}
+		
+			$new_es_item=$j[0];
+			$item=YouTubeGalleryData::parse_SingleVideo((array)$new_es_item,$original_item);
+		}
+		catch(Exception $e)
+		{
+			$es_item=array('es_error'=>'Cannot get youtube video data.','es_status'=>-1);
+			$item=YouTubeGalleryData::parse_SingleVideo($es_item);
+			return false;
+		}
+	}
+	
+	public static function parse_SingleVideo($item,$original_item=array())
+	{
+		//[channel_totaluploadviews] => 0 not used
+		
 		$blankArray=array(
+				'id' => 0,
+				'listid' => 0,
+				'parentid' => 0,
 				'videosource'=>'',
 				'videoid'=>'',
 				'alias'=>'',
 				'imageurl'=>'',
+				'isvideo'=>1,
+					
+				'custom_imageurl' => (array_key_exists('custom_imageurl',$original_item) ? $original_item['custom_imageurl'] : ''),
+				'custom_title' => (array_key_exists('custom_title',$original_item) ? $original_item['custom_title'] : ''),
+				'custom_description' => (array_key_exists('custom_description',$original_item) ? $original_item['custom_description'] : ''),
+				'specialparams' => (array_key_exists('specialparams',$original_item) ? $original_item['specialparams'] : ''),
+				'lastupdate' => (array_key_exists('lastupdate',$original_item) and $original_item['lastupdate']!='0000-00-00 00:00:00' ? $original_item['lastupdate'] : ''),
+				'link' => (array_key_exists('link',$original_item) ? $original_item['link'] : ''),
+				'startsecond' => (array_key_exists('startsecond',$original_item) ? $original_item['startsecond'] : ''),
+				'endsecond' => (array_key_exists('endsecond',$original_item) ? $original_item['endsecond'] : ''),
 				'title'=>'',
 				'description'=>'',
 				'publisheddate'=>'',
@@ -110,9 +211,11 @@ class YouTubeGalleryData
 				'channel_videocount'=>0,
 				'channel_description'=>'',
 				'status'=>0,
-				'error'=>''
+				'error'=>'',
+				'rawdata' =>'', 
+				'datalink' => ''
 				);
-		
+				
 		if(isset($item['es_error']) and $item['es_error']!='')
 		{
 			$blankArray['status']=$item['es_status'];
@@ -124,6 +227,7 @@ class YouTubeGalleryData
 		$blankArray['videoid']=$item['es_videoid'];
 		$blankArray['link']=$item['es_link'];
 		$blankArray['isvideo']=$item['es_isvideo'];
+		$blankArray['lastupdate']=$item['es_lastupdate'];
 		
 		$blankArray['title']=$item['es_title'];
 		$blankArray['description']=$item['es_description'];
@@ -141,7 +245,7 @@ class YouTubeGalleryData
 		$blankArray['rating_average']=$item['es_ratingaverage'];
 		$blankArray['rating_max']=$item['es_ratingmax'];
 		$blankArray['rating_min']=$item['es_ratingmin'];
-		$blankArray['rating_numRaters']=$item['es_ratingnumerofraters'];
+		$blankArray['rating_numRaters']=$item['es_ratingnumberofraters'];
 		
 		$blankArray['statistics_favoriteCount']=$item['es_statisticsfavoritecount'];
 		$blankArray['statistics_viewCount']=$item['es_statisticsviewcount'];
@@ -156,7 +260,7 @@ class YouTubeGalleryData
 		$blankArray['channel_videocount']=$item['es_channelvideocount'];
 		$blankArray['channel_description']=$item['es_channeldescription'];
 		//$blankArray['']=$item['es_channeltotaluploadviews'];
-		$blankArray['']=$item['es_alias'];
+		$blankArray['alias']=YouTubeGalleryMisc::get_alias($item['es_title'],$item['es_videoid']);//$item['es_alias'];
 		
 		return $blankArray;
 	}
