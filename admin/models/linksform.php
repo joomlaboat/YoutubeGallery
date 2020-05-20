@@ -125,7 +125,7 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 				$db->setQuery($query);
 				if (!$db->query())    die( $db->stderr());
 
-				$query='UPDATE #__youtubegallery_videos SET lastupdate=NULL WHERE isvideo AND listid='.(int)$linksform_row->id;
+				$query='UPDATE #__youtubegallery_videos SET lastupdate=NULL WHERE isvideo AND listid='.(int)$linksform_row->id;//to force the update
 
 				$db->setQuery($query);
 				if (!$db->query())    die( $db->stderr());

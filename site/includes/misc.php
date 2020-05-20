@@ -428,7 +428,6 @@ class YouTubeGalleryMisc
 				foreach($videolist as $g)
 				{
 					$ListOfVideosNotToDelete[]='!(videoid='.$db->quote($g['videoid']).' AND videosource='.$db->quote($g['videosource']).')';
-					print_r($g);
 					YouTubeGalleryMisc::updateDBSingleItem($g,(int)$videolist_row->id,$parent_id,$parent_details);//,$this_is_a_list);//,$list_count_left);
 				}
 		
@@ -521,6 +520,8 @@ class YouTubeGalleryMisc
 
 						$fields[]=$db->quoteName('videoid').'='.$db->quote($g['videoid']);
 
+						
+						
 						if(isset($g['datalink']))
 							$fields[]=$db->quoteName('datalink').'='.$db->quote($g['datalink']);
 
@@ -571,7 +572,12 @@ class YouTubeGalleryMisc
 							$fields[]=$db->quoteName('publisheddate').'='.$db->quote($g['publisheddate']);
 
 						if(isset($g['duration']))
+						{
 							$fields[]=$db->quoteName('duration').'='.$db->quote($g['duration']);
+							
+							if(isset($g['lastupdate']) and $g['lastupdate']!="" and $g['lastupdate']!="0000-00-00 00:00:00")
+								$fields[]=$db->quoteName('lastupdate').'='.$db->quote($g['lastupdate']);
+						}
 
 						if(isset($g['rating_average']))
 							$fields[]=$db->quoteName('rating_average').'='.$db->quote($g['rating_average']);
@@ -638,7 +644,6 @@ class YouTubeGalleryMisc
 
 						if(isset($parent_details['channel_description']))
 							$fields[]=$db->quoteName('channel_description').'='.$db->quote($parent_details['channel_description']);
-		
 		return $fields;
 	}
 

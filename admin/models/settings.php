@@ -77,7 +77,7 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 		$query=array();
 		$query[] = YoutubeGalleryModelSettings::makeQueryLine('allowsef',$allowsef);
 		$query[] = YoutubeGalleryModelSettings::makeQueryLine('joomlaboat_api_key',$joomlaboat_api_key);
-		
+				
 		foreach($query as $q)
 		{
 			$db->setQuery($q);

@@ -38,6 +38,7 @@ class YouTubeGalleryData
 	{
 		if($listitem['lastupdate']!='' and $listitem['lastupdate']!='0000-00-00 00:00:00')
 			return $listitem;
+		
 	
 		$theLink=trim($listitem['link']);
 		if($theLink=='')
@@ -53,12 +54,24 @@ class YouTubeGalleryData
 			$parent_details=array();
 			$this_is_a_list=false;
 			$list_count_left=0;
-				
 			YouTubeGalleryMisc::updateDBSingleItem($item,0,$parent_id,$parent_details,$this_is_a_list,$list_count_left);
 			return $item;
 		}
 		else
 			return $listitem;
+	}
+	
+	protected static function queryTheAPIServer($theLink)
+	{
+		$key=YouTubeGalleryMisc::getSettingValue('joomlaboat_api_key');
+		
+			if($key=='development')
+				$host='http://api.joomlaboat.com/youtube-gallery';
+			else
+				$host='https://joomlaboat.com/youtubegallery-api';
+
+			$url = $host.'?key='.$key.'&v=5.0.0&query='.base64_encode($theLink);
+			return YouTubeGalleryMisc::getURLData($url);
 	}
 	
 	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list)
@@ -82,10 +95,7 @@ class YouTubeGalleryData
 
 		try
 		{
-			$key=YouTubeGalleryMisc::getSettingValue('joomlaboat_api_key');
-			
-			$url = 'http://api.joomlaboat.com/youtube-gallery?key='.$key.'&v=5.0.0&query='.base64_encode($theLink);
-			$htmlcode=YouTubeGalleryMisc::getURLData($url);
+			$htmlcode=YouTubeGalleryData::queryTheAPIServer($theLink);
 
 			$j=json_decode($htmlcode);
 
@@ -135,10 +145,8 @@ class YouTubeGalleryData
 
 		try
 		{
-			$key=YouTubeGalleryMisc::getSettingValue('joomlaboat_api_key');
-			$url = 'http://api.joomlaboat.com/youtube-gallery?key='.$key.'&v=5.0.0&query='.base64_encode($theLink);
-			$htmlcode=YouTubeGalleryMisc::getURLData($url);
-
+			$htmlcode=YouTubeGalleryData::queryTheAPIServer($theLink);
+			
 			$j=json_decode($htmlcode);
 
 			if(!$j)
