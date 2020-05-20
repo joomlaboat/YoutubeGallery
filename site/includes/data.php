@@ -44,16 +44,21 @@ class YouTubeGalleryData
 			return $listitem;
 			
 		$item=array();//where to save
+		
 		YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,$item,$listitem);
 		
-		$parent_id=0;
-		$parent_details=array();
-		$this_is_a_list=false;
-		$list_count_left=0;
+		if((int)$item['status']==0)
+		{
+			$parent_id=0;
+			$parent_details=array();
+			$this_is_a_list=false;
+			$list_count_left=0;
 				
-		YouTubeGalleryMisc::updateDBSingleItem($item,0,$parent_id,$parent_details,$this_is_a_list,$list_count_left);
-		
-		return $item;
+			YouTubeGalleryMisc::updateDBSingleItem($item,0,$parent_id,$parent_details,$this_is_a_list,$list_count_left);
+			return $item;
+		}
+		else
+			return $listitem;
 	}
 	
 	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list)

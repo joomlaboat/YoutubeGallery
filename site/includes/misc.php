@@ -422,42 +422,24 @@ class YouTubeGalleryMisc
 				$db = JFactory::getDBO();
 				$parent_id=0;
 				$parent_details=array();
-//				$this_is_a_list=false;
-				//$list_count_left=0;
-				
 
 				$ListOfVideosNotToDelete=array();
 				
 				foreach($videolist as $g)
 				{
-					$ListOfVideosNotToDelete[]='(videoid!='.
-					echo '$g=';
-				print_r($g);
-				
-				
-				//	YouTubeGalleryMisc::updateDBSingleItem($g,(int)$videolist_row->id,$parent_id,$parent_details);//,$this_is_a_list);//,$list_count_left);
+					$ListOfVideosNotToDelete[]='!(videoid='.$db->quote($g['videoid']).' AND videosource='.$db->quote($g['videosource']).')';
+					print_r($g);
+					YouTubeGalleryMisc::updateDBSingleItem($g,(int)$videolist_row->id,$parent_id,$parent_details);//,$this_is_a_list);//,$list_count_left);
 				}
-				
-				die;
-				
+		
+				//Delete All videos of this video list that has been deleted form the list and allowed for updates.
 
-
-				if(!$update_videolist)
-				{
-					//Delete All videos of this video list that has been deleted form the list and allowed for updates.
-					//isvideo AND
-
-					$query='DELETE FROM #__youtubegallery_videos WHERE listid='.((int)$videolist_row->id);
-					if(count($ListOfVideos)>0)
-						$query.=' AND id!='.implode(' AND id!=',$ListOfVideos);
+				$query='DELETE FROM #__youtubegallery_videos WHERE listid='.(int)$videolist_row->id;
+				if(count($ListOfVideosNotToDelete)>0)
+					$query.=' AND '.implode(' AND ',$ListOfVideosNotToDelete);
 					
-					echo $query;
-
-	die;
-	$db->setQuery($query);
-					if (!$db->query())    die( $db->stderr());
-				}
-die;
+				$db->setQuery($query);
+				if (!$db->query())    die( $db->stderr());
 	}
 	
 	public static function updateDBSingleItem($g,$videolist_id,&$parent_id,&$parent_details)//,&$this_is_a_list)//,&$list_count_left)
@@ -465,12 +447,9 @@ die;
 		$db = JFactory::getDBO();
 
 		$fields=YouTubeGalleryMisc::prepareQuerySets($g,$videolist_id,$parent_id,$parent_details);//,$this_is_a_list);//,$list_count_left);
-		echo 'print_r($fields):';
-		print_r($fields);
 		
 		$record_id=YouTubeGalleryMisc::isVideo_record_exist($g['videosource'],$g['videoid']);//,$videolist_row->id);
 
-echo '$record_id='.$record_id.'<br/>';
 
 		$query='';
 
@@ -493,10 +472,6 @@ echo '$record_id='.$record_id.'<br/>';
 						}
 						elseif($record_id>0)
 						{
-
-//							if($g_title!='***Video not found***')
-	//						{
-								//Don't update info, if cannot get the info
 								$query="UPDATE #__youtubegallery_videos SET ".implode(', ', $fields).' WHERE id='.$record_id;
 
 								$db->setQuery($query);
@@ -509,21 +484,7 @@ echo '$record_id='.$record_id.'<br/>';
 									$parent_id=$record_id;
 									$parent_details=$g;
 								}
-		//					}
 						}
-
-
-
-						//if(!$this_is_a_list)
-						//{
-								//if($list_count_left>0)
-										//$list_count_left-=1;
-
-
-								//if($list_count_left==0)
-									//$parent_id=0;
-
-						//}
 	}
 
 	protected static function prepareQuerySets($g,$videolist_id,&$parent_id,&$parent_details)//,&$this_is_a_list)//,&$list_count_left)
