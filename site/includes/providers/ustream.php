@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -14,8 +13,6 @@ require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'co
 
 class VideoSource_Ustream
 {
-
-
 	public static function extractUstreamID($theLink)
 	{
 		//http://www.ustream.tv/channel/nasa-tv-wallops
@@ -27,87 +24,6 @@ class VideoSource_Ustream
 		return '';
 
 	}
-
-	public static function getVideoData($videoid,$customimage,$customtitle,$customdescription)
-	{
-
-		$theTitle='';
-		$Description='';
-		$theImage='';
-
-		$HTML_SOURCE=YouTubeGalleryMisc::getURLData('http://www.ustream.tv/recorded/'.$videoid);
-
-		if($HTML_SOURCE!='' and $HTML_SOURCE[0]=='<')
-		{
-
-
-			if($customimage!='')
-				$theImage=$customimage;
-			else
-			{
-				$theImage=VideoSource_Ustream::getValueByAlmostTag($HTML_SOURCE,'<meta property="og:image" content="');
-				$theImage=str_replace(',','%2C',$theImage);
-			}
-
-
-			if($customtitle=='')
-				$theTitle=VideoSource_Ustream::getValueByAlmostTag($HTML_SOURCE,'<meta property="og:title" content="');
-			else
-				$theTitle=$customtitle;
-
-			if($customdescription=='')
-				$Description=VideoSource_Ustream::getValueByAlmostTag($HTML_SOURCE,'<meta property="og:description" content="');
-			else
-				$Description=$customdescription;
-
-			$videodata=array(
-				'videosource'=>'ustream',
-				'videoid'=>$videoid,
-				'imageurl'=>$theImage,
-				'title'=>$theTitle,
-				'description'=>$Description,
-				'publisheddate'=>VideoSource_Ustream::getValueByAlmostTag($HTML_SOURCE,'<span data-dateformat="%F %j at %g:%i%a" data-timestamp="'),
-				'duration'=>0,
-				'rating_average'=>0,
-				'rating_max'=>0,
-				'rating_min'=>0,
-				'rating_numRaters'=>0,
-				'statistics_favoriteCount'=>0,
-				'statistics_viewCount'=>0,
-				'keywords'=>''
-			);
-
-
-			return $videodata;
-		}
-		else
-		{
-			return array(
-					'videosource'=>'collegehumor',
-					'videoid'=>$videoid,
-					'imageurl'=>$theImage,
-					'title'=>'***Video not found***',
-					'description'=>$Description
-					);
-		}
-
-	}
-
-
-	public static function getValueByAlmostTag($HTML_SOURCE,$AlmostTagStart,$AlmostTagEnd='"')
-	{
-		$vlu='';
-
-		$strPartLength=strlen($AlmostTagStart);
-		$p1=strpos($HTML_SOURCE,$AlmostTagStart);
-		if($p1>0)
-		{
-			$p2=strpos($HTML_SOURCE,$AlmostTagEnd,$p1+$strPartLength);
-			$vlu=substr($HTML_SOURCE,$p1+$strPartLength,$p2-$p1-$strPartLength);
-		}
-		return $vlu;
-	}
-
 
 	public static function renderUstreamPlayer($options, $width, $height, &$videolist_row, &$theme_row)
 	{

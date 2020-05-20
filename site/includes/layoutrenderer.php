@@ -915,9 +915,6 @@ class YoutubeGalleryLayoutRenderer
 		$catalogresult='';
 		$paginationcode='';
 		$gallery_list=$the_gallery_list;
-		$getinfomethod=YouTubeGalleryMisc::getSettingValue('getinfomethod');
-
-		//$misc->RefreshVideoData($gallery_list,$getinfomethod,false,$this->videodescription_params);
 
 		$tr=0;
 		$count=0;
@@ -1038,10 +1035,6 @@ class YoutubeGalleryLayoutRenderer
 
 		$gallery_list=$the_gallery_list;
 
-		$getinfomethod=YouTubeGalleryMisc::getSettingValue('getinfomethod');
-
-		///$misc->RefreshVideoData($gallery_list,$getinfomethod,false,$this->videodescription_params);
-
 		$tr=0;
 		$count=0;
 		$bgcolor=$theme_row->bgcolor;
@@ -1051,34 +1044,7 @@ class YoutubeGalleryLayoutRenderer
         {
 			if(strpos($listitem['title'],'***Video not found***')===false)
 			{
-
-				if($getinfomethod=='js')
-				{
-					$thumbnail_item='updater';
-
-					if($tr==0)
-						$catalogresult.='<tr style="border:none;" >';
-
-					$catalogresult.=
-						'<td style="width:'.$column_width.';vertical-align:top;text-align:center;border:none;'.($bgcolor!='' ? ' background-color: #'.$bgcolor.';' : '').'">'
-						.$thumbnail_item.'</td>';
-
-					$tr++;
-					if($tr==$number_of_columns)
-					{
-						$catalogresult.='
-								</tr>
-					';
-
-					if($count+1<count($gallery_list))
-					{
-						$catalogresult.='
-						<tr style="border:none;"><td colspan="'.$number_of_columns.'" style="border:none;" ><hr'.($theme_row->linestyle!='' ? ' style="'.$theme_row->linestyle.'" ' : '').' /></td></tr>';
-					}
-
-					$tr	=0;
-				}
-				$count++;
+                                $count++;
 			}
 			else
 			{
@@ -1174,7 +1140,6 @@ class YoutubeGalleryLayoutRenderer
 		}
 
 
-	}
 
 		if($tr>0)
 				$catalogresult.='<td style="border:none;" colspan="'.($number_of_columns-$tr).'">&nbsp;</td></tr>';
@@ -1232,16 +1197,6 @@ class YoutubeGalleryLayoutRenderer
 			$result=YoutubeGalleryLayoutRenderer::renderThumbnailLayout($thumbnail_layout,		$listitem,$aHrefLink,$aLink, $videoid,$theme_row,$item_index,$gallery_list,$videolist_row);
 		}
 
-/*
-			$result.='<div id="YoutubeGalleryThumbTitle'.$videolist_row->id.'_'.$listitem['id'].'" style="display:none;visibility:hidden;">'.$listitem['title'].'</div>';
-			$result.='<div id="YoutubeGalleryThumbDescription'.$videolist_row->id.'_'.$listitem['id'].'" style="display:none;visibility:hidden;">'.$listitem['description'].'</div>';
-			$result.='<div id="YoutubeGalleryThumbLink'.$videolist_row->id.'_'.$listitem['id'].'" style="display:none;visibility:hidden;">'.$listitem['link'].'</div>';
-			$result.='<div id="YoutubeGalleryThumbStartSecond'.$videolist_row->id.'_'.$listitem['id'].'" style="display:none;visibility:hidden;">'.$listitem['startsecond'].'</div>';
-			$result.='<div id="YoutubeGalleryThumbEndSecond'.$videolist_row->id.'_'.$listitem['id'].'" style="display:none;visibility:hidden;">'.$listitem['endsecond'].'</div>';
-
-			if($listitem['custom_imageurl']!='' and strpos($listitem['custom_imageurl'],'#')===false)
-				$result.='<div id="YoutubeGalleryThumbCustomImage'.$videolist_row->id.'_'.$listitem['id'].'" style="display:none;visibility:hidden;">'.$listitem['custom_imageurl'].'</div>';
-				*/
 		//}
 
 		return $result;

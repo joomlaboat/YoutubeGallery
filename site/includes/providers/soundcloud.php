@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -32,105 +31,6 @@ class VideoSource_SoundCloud
 
 
 	}
-
-	public static function getVideoData($videoid,$customimage,$customtitle,$customdescription)
-	{
-		//blank	array
-		$blankArray=array(
-				'videosource'=>'soundcloud',
-				'videoid'=>$videoid,
-				'imageurl'=>'',
-				'title'=>'',
-				'description'=>'',
-				'publisheddate'=>'',
-				'duration'=>0,
-				'rating_average'=>0,
-				'rating_max'=>0,
-				'rating_min'=>0,
-				'rating_numRaters'=>0,
-				'statistics_favoriteCount'=>0,
-				'statistics_viewCount'=>0,
-				'keywords'=>'',
-				'likes'=>0,
-				'dislikes'=>'',
-				'commentcount'=>'',
-				'channel_username'=>'',
-				'channel_title'=>'',
-				'channel_subscribers'=>0,
-				'channel_subscribed'=>0,
-				'channel_location'=>'',
-				'channel_commentcount'=>0,
-				'channel_viewcount'=>0,
-				'channel_videocount'=>0,
-				'channel_description'=>''
-				);
-
-		$theTitle='';
-		$Description='';
-		$theImage='';
-
-		require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-
-		$client_id = YouTubeGalleryMisc::getSettingValue('soundcloud_api_client_id');
-		$url='http://api.soundcloud.com/tracks/'.$videoid.'.json?client_id='.$client_id;
-
-		$HTML_SOURCE=YouTubeGalleryMisc::getURLData($url);
-
-		if($HTML_SOURCE=='')
-		{
-			$blankArray['title']='***Video not found***';
-			$blankArray['description']='';
-			return $blankArray;
-		}
-		//-----------------------------------------------------------------------------------------------
-
-		$strPart='{"kind":"track","id":';
-		$strPartLength=strlen($strPart);
-		$test=substr($HTML_SOURCE, 0,$strPartLength);
-		if($test!=$strPart)
-		{
-			$blankArray['title']='***Cannot Connect to SoundCloud Server***';
-			$blankArray['description']='Check your API Client ID (go to Setting).';
-			return $blankArray;
-		}
-
-		$obj = json_decode($HTML_SOURCE);
-
-
-		$blankArray['title']=$obj->title;
-
-		$blankArray['description']=$obj->description;
-		$blankArray['publisheddate']=$obj->created_at;
-		$blankArray['duration']=floor($obj->duration/1000);
-		$blankArray['keywords']=$obj->tag_list;
-		$blankArray['statistics_viewCount']=$obj->playback_count;
-		$blankArray['statistics_favoriteCount']=$obj->favoritings_count;
-		$blankArray['commentcount']=$obj->comment_count;
-		$blankArray['imageurl']=$obj->artwork_url;
-
-		$u=$obj->user;
-
-		$blankArray['channel_username']=$u->username;
-		$blankArray['channel_title']=$u->username;
-
-
-		if($customtitle!='')
-			$blankArray['title']=$customtitle;
-
-		if($customdescription!='')
-			$blankArray['description']=$customdescription;
-
-		if($customimage!='' and strpos($customimage, '#')===false)
-		{
-			$blankArray['imageurl']=$customimage;
-		}
-
-		return $blankArray;
-
-	}
-
-
-
 
 	public static function renderPlayer($options, $width, $height, &$videolist_row, &$theme_row)
 	{

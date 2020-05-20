@@ -642,152 +642,6 @@ class YouTubeGalleryMisc
 		return $fields;
 	}
 
-/*
-	function RefreshVideoData(&$gallery_list,$getinfomethod,$force_refresh=false,$videodescription_params)
-	{
-
-
-
-		$db = JFactory::getDBO();
-
-		$new_gallery_list=array();
-		$count=count($gallery_list);
-		for($i=0;$i<$count;$i++)
-		{
-			$listitem=$gallery_list[$i];
-
-			if(!$force_refresh)
-			{
-				$start  = strtotime( $listitem['lastupdate'] );
-				$end    = strtotime( date( 'Y-m-d H:i:s') );
-				$days_diff = ($end-$start)/86400;
-
-				$updateperiod=$this->videolist_row->updateperiod;
-			}
-			else
-				$updateperiod=0;
-
-
-			if($updateperiod==0)
-				$updateperiod=1;
-
-
-
-
-
-			if($getinfomethod=='js' or $getinfomethod=='jsmanual')
-			{
-				$rd=YouTubeGalleryMisc::getRawData($listitem['videoid']);
-
-				if($rd=='*youtubegallery_request*')
-					$days_dif=0;
-
-			}
-
-
-			if($force_refresh or $listitem['status']==0 or $days_diff>$updateperiod)
-			{
-
-
-
-				$listitem_temp=array();
-				$listitem_temp[]=$listitem['link'];
-				$listitem_temp[]=$listitem['custom_title'];
-				$listitem_temp[]=$listitem['custom_description'];
-				$listitem_temp[]=$listitem['custom_imageurl'];
-
-
-
-				$listitem_new=YouTubeGalleryData::GrabVideoData($listitem_temp,$listitem['videosource'],$listitem['videoid'],$getinfomethod,$this->theme_row->thumbnailstyle);
-
-				if($listitem_new['title']!='')
-					$listitem['title']=$listitem_new['title'];
-
-				if($listitem_new['description']!='')
-					$listitem['description']=$listitem_new['description'];
-
-				if($listitem_new['imageurl']!='')
-					$listitem['imageurl']=$listitem_new['imageurl'];
-
-				$fields=array();
-
-				$fields[]=$db->quoteName('title').'='.$db->quote($listitem_new['title']);
-
-				if($listitem_new['title']!='')
-					$fields[]=$db->quoteName('alias').'='.$db->quote(YouTubeGalleryMisc::get_alias($listitem_new['title'],$listitem['videoid']));
-
-				$fields[]=$db->quoteName('description').'='.$db->quote($listitem_new['description']);
-				$fields[]=$db->quoteName('imageurl').'='.$db->quote($listitem_new['imageurl']);
-				$fields[]=$db->quoteName('lastupdate').'='.$db->quote(date( 'Y-m-d H:i:s'));
-				$fields[]=$db->quoteName('status').'=200';
-
-				if(isset($listitem_new['startsecond']))
-					$fields[]=$db->quoteName('startsecond').'='.$db->quote($listitem['startsecond']);
-
-				if(isset($listitem_new['endsecond']))
-					$fields[]=$db->quoteName('endsecond').'='.$db->quote($listitem['endsecond']);
-
-				if(isset($listitem_new['publisheddate']))
-					$fields[]=$db->quoteName('publisheddate').'='.$db->quote($listitem_new['publisheddate']);
-
-				if(isset($listitem_new['duration']))
-					$fields[]=$db->quoteName('duration').'='.$db->quote($listitem_new['duration']);
-
-				if(isset($listitem_new['rating_average']))
-					$fields[]=$db->quoteName('rating_average').'='.$db->quote($listitem_new['rating_average']);
-
-				if(isset($listitem_new['rating_max']))
-					$fields[]=$db->quoteName('rating_max').'='.$db->quote($listitem_new['rating_max']);
-
-				if(isset($listitem_new['rating_min']))
-					$fields[]=$db->quoteName('rating_min').'='.$db->quote($listitem_new['rating_min']);
-
-				if(isset($listitem_new['rating_numRaters']))
-					$fields[]=$db->quoteName('rating_numRaters').'='.$db->quote($listitem_new['rating_numRaters']);
-
-				if(isset($listitem_new['statistics_favoriteCount']))
-				{
-					$fields[]=$db->quoteName('statistics_favoriteCount').'='.$db->quote($listitem_new['statistics_favoriteCount']);
-				}
-
-
-				if(isset($listitem_new['statistics_viewCount']))
-					$fields[]=$db->quoteName('statistics_viewCount').'='.$db->quote($listitem_new['statistics_viewCount']);
-
-				if(isset($listitem_new['keywords']))
-				{
-					//updated 2016/02
-					if(is_array($listitem_new['keywords']))
-						$key_words=implode(',',$listitem_new['keywords']);
-					else
-						$key_words='';
-
-					$fields[]=$db->quoteName('keywords').'='.$db->quote($key_words);
-				}
-
-				if(isset($listitem_new['likes']))
-					$fields[]=$db->quoteName('likes').'='.$db->quote($listitem_new['likes']);
-
-				if(isset($listitem_new['dislikes']))
-					$fields[]=$db->quoteName('dislikes').'='.$db->quote($listitem_new['dislikes']);
-
-				if(isset($listitem_new['commentcount']))
-					$fields[]=$db->quoteName('commentcount').'='.$db->quote($listitem_new['commentcount']);
-
-				$query="UPDATE #__youtubegallery_videos SET ".implode(', ', $fields).' WHERE id='.(int)$listitem['id'];
-
-				$db->setQuery($query);
-				if (!$db->query())    die( $db->stderr());
-
-				$gallery_list[$i]=$listitem;
-			}
-		}
-	}
-
-*/
-	
-
-
 	public static function parse_query($var)
 	{
 		$arr  = array();
@@ -833,30 +687,6 @@ class YouTubeGalleryMisc
 
 	public static function getURLData($url,$format='json')
 	{
-		$getinfomethod=YouTubeGalleryMisc::getSettingValue('getinfomethod');
-
-		if($getinfomethod=='js' or $getinfomethod=='jsmanual')
-		{
-			$db = JFactory::getDBO();
-
-				$query = 'SELECT rawdata FROM #__youtubegallery_videos WHERE INSTR(datalink,"'.$url.'") LIMIT 1';
-
-				$db->setQuery($query);
-				if (!$db->query())    die( $db->stderr());
-				$values=$db->loadAssocList();
-
-				if(count($values)==1)
-				{
-					$v=$values[0];
-					$rd=$v['rawdata'];
-					if($rd!='' and $rd!='*youtubegallery_request*')
-						return $rd;
-				}
-
-			return '';
-		}
-		else
-		{
 			$htmlcode='';
 
 			if (function_exists('curl_init'))
@@ -889,7 +719,6 @@ class YouTubeGalleryMisc
 			}
 
 			return $htmlcode;
-		}
 	}
 
 

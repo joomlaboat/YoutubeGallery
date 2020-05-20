@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -50,21 +49,6 @@ Upload it to your website root and administrator folders. Or contact your hostin
 
 
 	}
-		require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-		$api_key = YouTubeGalleryMisc::getSettingValue('youtube_api_key');
-		if($api_key=="")
-		{
-			echo '<div style="margin-bottom:10px;border-radious:5px;padding:3px;border: 1px solid red; "><p style="color:red;font-weight:bold;">Since April 2016 Youtube requires that you have you own API Key.</p>';
-			echo '
-			<p>Please click <a href="http://www.joomlaboat.com/youtube-gallery/f-a-q/why-i-see-allow-url-fopen-message?cbprofile=2" target="_blank">here</a> for step by step guide.</p>
-			<p>When you get your own Youtube API Key add it to Youtube Gallery <a href="/administrator/index.php?option=com_youtubegallery&view=settings&layout=edit">Settings</a> page<br/>
-			<i><span style="color:green;">Refresh video list and clear Joomla cache after that.</span></i>
-			</p>
-			</div>';
-		}
-
-
-
 
 		if(!class_exists("DOMDocument"))
 		{

@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -70,36 +69,16 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 
 			$jform=JFactory::getApplication()->input->getVar('jform');
 			$allowsef=trim(preg_replace("/[^0-9]/", "", $jform['allowsef']));
-			$getinfomethod='php';//trim(preg_replace("/[^a-zA-Z0-9_-]/", "", $jform['getinfomethod']));
-			$vimeo_api_client_id=trim(preg_replace("/[^a-zA-Z0-9+\/_-]/", "", JFactory::getApplication()->input->getVar('vimeo_api_client_id')));
-			$vimeo_api_client_secret=trim(preg_replace("/[^a-zA-Z0-9+\/_-]/", "", JFactory::getApplication()->input->getVar('vimeo_api_client_secret')));
-			$vimeo_api_access_token=trim(preg_replace("/[^a-zA-Z0-9+\/_-]/", "", JFactory::getApplication()->input->getVar('vimeo_api_access_token')));
-
-			$soundcloud_api_client_id=trim(preg_replace("/[^a-zA-Z0-9_-]/", "", JFactory::getApplication()->input->getVar('soundcloud_api_client_id')));
-			$soundcloud_api_client_secret=trim(preg_replace("/[^a-zA-Z0-9_-]/", "", JFactory::getApplication()->input->getVar('soundcloud_api_client_secret')));
-
-			$youtube_api_key=trim(preg_replace("/[^a-zA-Z0-9_-]/", "", JFactory::getApplication()->input->getVar('youtube_api_key')));
-
-			$errorreporting=trim(preg_replace("/[^0-9]/", "", $jform['errorreporting']));
+						
+			$joomlaboat_api_key=trim(preg_replace("/[^a-zA-Z0-9_-]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_key')));
 
 
 		$db = JFactory::getDBO();
 		$query=array();
 		$query[] = YoutubeGalleryModelSettings::makeQueryLine('allowsef',$allowsef);
-		$query[] = YoutubeGalleryModelSettings::makeQueryLine('getinfomethod',$getinfomethod);
-		$query[] = YoutubeGalleryModelSettings::makeQueryLine('vimeo_api_client_id',$vimeo_api_client_id);
-		$query[] = YoutubeGalleryModelSettings::makeQueryLine('vimeo_api_client_secret',$vimeo_api_client_secret);
-		$query[] = YoutubeGalleryModelSettings::makeQueryLine('vimeo_api_access_token',$vimeo_api_access_token);
-
-
-
-
-		$query[] = YoutubeGalleryModelSettings::makeQueryLine('soundcloud_api_client_id',$soundcloud_api_client_id);
-		$query[] = YoutubeGalleryModelSettings::makeQueryLine('soundcloud_api_client_secret',$soundcloud_api_client_secret);
-
-		$query[] = YoutubeGalleryModelSettings::makeQueryLine('youtube_api_key',$youtube_api_key);
-
-			foreach($query as $q)
+		$query[] = YoutubeGalleryModelSettings::makeQueryLine('joomlaboat_api_key',$joomlaboat_api_key);
+		
+		foreach($query as $q)
 		{
 			$db->setQuery($q);
 			if (!$db->query())    die ( $db->stderr());

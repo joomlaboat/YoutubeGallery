@@ -313,17 +313,8 @@
 				}
 
 				var theUrl='';
-				if(YGGetInfoMethod()=='php')
-				{
-					YGAddShadowLabel("Resolving link...");
-					theUrl='components/com_youtubegallery/views/linksform/tmpl/requests.php?task=resolvesoundcloudlink&url='+link+'&client_id='+client_id;
-				}
-				else
-				{
-					YGAddShadowLabel("Resolving link....");
-					theUrl='http://api.soundcloud.com/resolve.json?url='+link+'&client_id='+client_id;
-				}
-
+				YGAddShadowLabel("Resolving link...");
+				theUrl='components/com_youtubegallery/views/linksform/tmpl/requests.php?task=resolvesoundcloudlink&url='+link+'&client_id='+client_id;
 
 				var xmlHttp = new XMLHttpRequest();
 				xmlHttp.open( "GET", theUrl, false);

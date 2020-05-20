@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -29,7 +28,6 @@ class VideoSource_DailyMotion
 				if(count($a)>1)
 					return $a[1];
 			}
-			//die;
 		}
 		else
 		{
@@ -47,67 +45,6 @@ class VideoSource_DailyMotion
 		
 	}
 	
-	public static function getVideoData($videoid,$customimage,$customtitle,$customdescription)
-	{
-		$theTitle='';
-		$Description='';
-		$theImage='';
-		$fields='created_time,description,duration,rating,ratings_total,thumbnail_small_url,thumbnail_medium_url,title,views_total';
-		$HTML_SOURCE=YouTubeGalleryMisc::getURLData('https://api.dailymotion.com/video/'.$videoid.'?fields='.$fields);
-		
-		if($HTML_SOURCE!='' and $HTML_SOURCE[0]=='{')
-		{
-			$streamData = json_decode($HTML_SOURCE);
-			
-			if($customimage=='')
-				$theImage=$streamData->thumbnail_small_url;
-			else
-				$theImage=$customimage;
-		
-			if($customtitle=='')
-				$theTitle=$streamData->title;
-			else
-				$theTitle=$customtitle;
-			
-			if($customdescription=='')
-				$Description=$streamData->description;
-			else
-				$Description=$customdescription;
-		
-		$videodata=array(
-				'videosource'=>'dailymotion',
-				'videoid'=>$videoid,
-				'imageurl'=>$theImage,
-				'title'=>$theTitle,
-				'description'=>$Description,
-				'publisheddate'=>date('Y-m-d H:i:s',$streamData->created_time),
-				'duration'=>$streamData->duration,
-				'rating_average'=>$streamData->rating,
-				'rating_max'=>$streamData->ratings_total,
-				'rating_min'=>0,
-				'rating_numRaters'=>0,
-				'statistics_favoriteCount'=>0,
-				'statistics_viewCount'=>$streamData->views_total,
-				'keywords'=>''
-			);
-			
-			return $videodata;
-		}
-		else
-		{
-			return array(
-					'videosource'=>'collegehumor',
-					'videoid'=>$videoid,
-					'imageurl'=>$theImage,
-					'title'=>'***Video not found***',
-					'description'=>$Description
-					);
-		}
-	}
-
-
-
-
 	public static function renderDailyMotionPlayer($options, $width, $height, &$videolist_row, &$theme_row)
 	{		
 		$videoidkeyword='****youtubegallery-video-id****';

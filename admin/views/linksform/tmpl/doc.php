@@ -13,7 +13,6 @@ defined('_JEXEC') or die('Restricted access');
 
 require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
 $client_id = YouTubeGalleryMisc::getSettingValue('soundcloud_api_client_id');
-$getinfomethod = YouTubeGalleryMisc::getSettingValue('getinfomethod');
 
 $document = JFactory::getDocument();
 $document->addCustomTag('
@@ -21,10 +20,6 @@ $document->addCustomTag('
 				function YGGetSoundCloudClientID()
 				{
 								return "'.$client_id.'";
-				}
-				function YGGetInfoMethod()
-				{
-								return "'.$getinfomethod.'";
 				}
 </script>');
 

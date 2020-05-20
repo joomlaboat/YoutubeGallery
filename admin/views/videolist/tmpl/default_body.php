@@ -11,7 +11,6 @@
 defined('_JEXEC') or die('Restricted Access');
 
 require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-$getinfomethod=YouTubeGalleryMisc::getSettingValue('getinfomethod');
 
 $s=false;
 if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
@@ -99,41 +98,6 @@ if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
                 <td><div id="video_<?php echo $item->id;?>_title"><?php echo $item->title; ?></div></td>
                 <td><div id="video_<?php echo $item->id;?>_description"><?php echo $item->description; ?></div></td>
                 <td><div id="video_<?php echo $item->id;?>_lastupdate"><?php echo $item->lastupdate; ?></div></td>
-				
-				<?php /*
-                <td style="text-align: center;">
-
-		<?php
-
-		if($getinfomethod=='js' or $getinfomethod=='jsmanual')
-		{
-			$pair=explode(',',$item->datalink);
-			$link=$pair[0];
-
-			echo '
-		<script>
-		function UpdateVideoData_'.$item->id.'()
-		{
-			UpdateVideoData("'.$link.'","'.$item->videoid.'",'.$item->id.');
-		}
-		</script>
-		';
-			echo '<div id="video_'.$item->id.'_status"><a href="javascript:UpdateVideoData_'.$item->id.'()">Update</a></div>';
-		}
-		else
-		{
-			if($item->status==200)
-			        echo '<span style="color:green;">Ok</span>';
-			elseif($item->status==0)
-			        echo '<span style="color:black;">-</span>';
-			else
-			        echo '<span style="color:red;font-weight:bold;">Error: '.$item->status.'</span>';
-		}
-
-                ?>
-
-		</td>
-                <td><?php echo $item->ordering; ?></td> */ ?>
         </tr>
 
 

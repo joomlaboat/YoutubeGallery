@@ -82,7 +82,9 @@ class YouTubeGalleryData
 
 		try
 		{
-			$url = 'http://api.joomlaboat.com/youtube-gallery?key=666&v=5.0.0&query='.base64_encode($theLink);
+			$key=YouTubeGalleryMisc::getSettingValue('joomlaboat_api_key');
+			
+			$url = 'http://api.joomlaboat.com/youtube-gallery?key='.$key.'&v=5.0.0&query='.base64_encode($theLink);
 			$htmlcode=YouTubeGalleryMisc::getURLData($url);
 
 			$j=json_decode($htmlcode);
@@ -133,7 +135,8 @@ class YouTubeGalleryData
 
 		try
 		{
-			$url = 'http://api.joomlaboat.com/youtube-gallery?key=666&v=5.0.0&query='.base64_encode($theLink);
+			$key=YouTubeGalleryMisc::getSettingValue('joomlaboat_api_key');
+			$url = 'http://api.joomlaboat.com/youtube-gallery?key='.$key.'&v=5.0.0&query='.base64_encode($theLink);
 			$htmlcode=YouTubeGalleryMisc::getURLData($url);
 
 			$j=json_decode($htmlcode);

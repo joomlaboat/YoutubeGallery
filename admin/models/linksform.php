@@ -113,8 +113,6 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
 		$misc=new YouTubeGalleryMisc;
 
-		$getinfomethod=YouTubeGalleryMisc::getSettingValue('getinfomethod');
-
 		foreach($linksform_rows as $linksform_row)
 		{
 

@@ -30,8 +30,7 @@ if($jinput->get('ygvdata','','RAW')!='')
     $videos_rows=$db->loadAssocList();
     
     $misc=new YouTubeGalleryMisc;
-    $getinfomethod=YouTubeGalleryMisc::getSettingValue('getinfomethod');
-    $misc->RefreshVideoData($videos_rows,$getinfomethod,true);
+    $misc->RefreshVideoData($videos_rows,true);
 
     $query = 'SELECT * FROM #__youtubegallery_videos WHERE videoid="'.$videoid.'"';
     $db->setQuery($query);
