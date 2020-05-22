@@ -25,7 +25,12 @@ if ($allowsef != 1)
 <form id="adminForm" action="<?php echo JRoute::_('index.php?option=com_youtubegallery'); ?>" method="post" class="form-inline">
 	<div class="row-fluid" style="width:100%;">
 		<div class="span10 form-horizontal" style="width:100%;">
-		<p><?php echo JText::_('COM_YOUTUBEGALLERY_ACTVATION'); ?></p>
+		<p><?php 
+		
+		if($key=="")
+			echo JText::_('COM_YOUTUBEGALLERY_ACTVATION'); 
+		
+		?></p>
 			
 			<div class="control-group">
 				<div class="control-label"><?php echo JText::_('COM_YOUTUBEGALLERY_SERVER_ADDRESS'); ?></div>
