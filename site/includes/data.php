@@ -65,8 +65,11 @@ class YouTubeGalleryData
 	{
 		$key=YouTubeGalleryMisc::getSettingValue('joomlaboat_api_key');
 		
-			if($key=='development')
-				$host='http://api.joomlaboat.com/youtube-gallery';
+			if(strpos($key,'-development')!==false)
+			{
+				$key=str_replace('-development','',$key);
+				$host='https://api.joomlaboat.com/youtube-gallery';
+			}
 			else
 				$host='https://joomlaboat.com/youtubegallery-api';
 
