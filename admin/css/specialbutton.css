@@ -1,0 +1,34 @@
+.specialbutton {
+	display: inline-block;
+    margin-bottom:20px;
+}
+
+.specialbutton a {
+    -webkit-transition: all 200ms cubic-bezier(0.390, 0.500, 0.150, 1.360);
+    -moz-transition: all 200ms cubic-bezier(0.390, 0.500, 0.150, 1.360);
+    -ms-transition: all 200ms cubic-bezier(0.390, 0.500, 0.150, 1.360);
+    -o-transition: all 200ms cubic-bezier(0.390, 0.500, 0.150, 1.360);
+    transition: all 200ms cubic-bezier(0.390, 0.500, 0.150, 1.360);
+    display: inline-block;
+    /*margin: 20px auto;*/
+    max-width: 180px;
+	max-height:30px;
+    text-decoration: none;
+    border-radius: 4px;
+    padding: 15px 20px;
+	text-align: center;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.specialbutton a.button {
+    color: rgba(222, 64, 24, 1);
+    box-shadow: rgba(37, 80, 209, 0.4) 0 0px 0px 2px inset;
+}
+
+.specialbutton a.button:hover {
+    color: rgba(255, 255, 255, 1);
+
+    box-shadow: rgba(37, 80, 209, 0.7) 0 80px 0px 2px inset;
+}
+

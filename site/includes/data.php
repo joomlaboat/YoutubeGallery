@@ -61,7 +61,7 @@ class YouTubeGalleryData
 			return $listitem;
 	}
 	
-	protected static function queryTheAPIServer($theLink)
+	public static function queryTheAPIServer($theLink)
 	{
 		$key=YouTubeGalleryMisc::getSettingValue('joomlaboat_api_key');
 		
@@ -74,6 +74,7 @@ class YouTubeGalleryData
 				$host='https://joomlaboat.com/youtubegallery-api';
 
 			$url = $host.'?key='.$key.'&v=5.0.0&query='.base64_encode($theLink);
+			
 			return YouTubeGalleryMisc::getURLData($url);
 	}
 	
