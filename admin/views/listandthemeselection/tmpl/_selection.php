@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -84,7 +83,6 @@ JHTML::addIncludePath(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_S
 	
 </div>
 
-<?php if($plugin_enabled): ?>
 <div id="YGPreviewMessageBox"></div>
 <div id="YGPreviewDiv"><iframe id="YGPreview" src="" width="100%" style="width:100%;height:300px;border:1px solid lightgrey;">Preview...</iframe></div>
 
@@ -110,6 +108,3 @@ JHTML::addIncludePath(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_S
 		YG.updatePreview();
 		
 </script>
-
-
-<?php endif; ?>

@@ -21,8 +21,7 @@ defined('_JEXEC') or die('Restricted access');
 	
 	plgContentYoutubeGallery::plgYoutubeGallery($htmlresult, true);
 	
-	
-//width:100%;zoom: 0.5; 
+
 	echo '
 		<div style="width:100%;vertical-align:top;transform-origin: center top;
 	padding:0;margin:0;transform: scale(0.5);   -moz-transform: scale(0.5);">';
