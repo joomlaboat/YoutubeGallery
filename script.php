@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -16,7 +15,6 @@ class com_YoutubeGalleryInstallerScript
     {
         com_YoutubeGalleryInstallerScript::enableButtonPlugin();
     }
-    
     
     protected static function enableButtonPlugin()
     {
