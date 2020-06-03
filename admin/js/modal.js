@@ -1,6 +1,5 @@
 /**
  * Youtube Gallery Joomla! Native Component
- * @version 4.7.6
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -35,8 +34,8 @@
 	
 		onok: function ()
 		{
-			var videolist=document.getElementById("vidoelistselctor").value;
-			var theme=document.getElementById("themeselctor").value;
+			var videolist=document.getElementById("vidoelistselector").value;
+			var theme=document.getElementById("themeselector").value;
 			
 			var tag = '{youtubegalleryid='+videolist+','+theme+'}';
 			
@@ -52,29 +51,27 @@
 
 		updatePreview: function ()
 		{
-			var videolist=document.getElementById("vidoelistselctor").value;
-			var theme=document.getElementById("themeselctor").value;
+			var videolist=document.getElementById("vidoelistselector").value;
+			var theme=document.getElementById("themeselector").value;
 			
-			var html_string= "Loading...";
-			//alert("Refresh");
+			var html_string= '<span style="color:#aaaaaa;">Loading...</span>';
 			
+			document.getElementById("YGVideoLinks").src= "data:text/html;charset=utf-8," + escape(html_string);
 			document.getElementById("YGPreview").src= "data:text/html;charset=utf-8," + escape(html_string);
 			
-			var url='';
-			
 			if(videolist==0)
-			{
 				document.getElementById('yginsertbutton').disabled=true;
-				url='/administrator/index.php?option=com_youtubegallery&view=linksform&layout=edit&tmpl=component';
-			}
 			else
-			{
 				document.getElementById('yginsertbutton').disabled=false;
-				url='/administrator/index.php?option=com_youtubegallery&view=listandthemeselection&tmpl=component&task=preview&videolist='+videolist+'&theme='+theme;
-			}
-
+				
+			var videolist_url='/administrator/index.php?option=com_youtubegallery&view=linksform&layout=edit&tmpl=component&id='+videolist;
 			setTimeout(function(){
-				document.getElementById("YGPreview").src=url;
+				document.getElementById("YGVideoLinks").src=videolist_url;
+			}, 200);
+
+			var preview_url='/administrator/index.php?option=com_youtubegallery&view=listandthemeselection&tmpl=component&task=preview&videolist='+videolist+'&theme='+theme;
+			setTimeout(function(){
+				document.getElementById("YGPreview").src=preview_url;
 			}, 200);
 			
 		},
@@ -90,21 +87,28 @@
 
 		refreshFrame: function ()
 		{
+			var videolist=document.getElementById("vidoelistselector").value;
+			var themeid=document.getElementById("themeselector").value;
+			
+			
 			document.getElementById('YGPreviewMessageBox').innerHTML="Loading videos...";
+			document.getElementById('YGVideoLinksDiv').style.display="none";
 			document.getElementById('YGPreviewDiv').style.display="none";
 						
 			var url=this.frameurl;
-			
 			if(url.indexOf("?")==-1)
-				url+='?showlatestvideolist=1';
+				url+='?';
 			else
-				url+='&showlatestvideolist=1';
+				url+='&';
 			
-			//alert(url);
-				
+			if(videolist=="")
+				url+='showlatestvideolist=1';
+			else
+				url+='videolistid='+videolist;
+			
+			url+='&themeid='+themeid;
+			
 			location.href=url;
-			//setTimeout(function(){}, 1000);
-			
 		},
 
 		getQueryObject: function (q)

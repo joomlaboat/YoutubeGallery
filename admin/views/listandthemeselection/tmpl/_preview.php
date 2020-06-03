@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -15,14 +14,25 @@ defined('_JEXEC') or die('Restricted access');
 	$videolist=$input->getInt('videolist');
 	$theme=$input->getInt('theme');
 	
-	$htmlresult='{youtubegalleryid='.$videolist.','.$theme.'}';
+	if($videolist==0)
+	{
+		echo 'Video list not selected.';
+	}
+	elseif($theme==0)
+	{
+		echo 'Theme not selected.';
+	}
+	else
+	{
+		$htmlresult='{youtubegalleryid='.$videolist.','.$theme.'}';
 	
-	require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR.'youtubegallery.php');
+		require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR.'youtubegallery.php');
 	
-	plgContentYoutubeGallery::plgYoutubeGallery($htmlresult, true);
+		plgContentYoutubeGallery::plgYoutubeGallery($htmlresult, true);
 	
 
-	echo '
+		echo '
 		<div style="width:100%;vertical-align:top;transform-origin: center top;
 	padding:0;margin:0;transform: scale(0.5);   -moz-transform: scale(0.5);">';
-	echo $htmlresult.'</div>';
+		echo $htmlresult.'</div>';
+	}

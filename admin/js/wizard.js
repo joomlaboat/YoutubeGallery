@@ -1,6 +1,5 @@
 /*
  * YoutubeGallery for Joomla!
- * @version 4.4.7
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -17,6 +16,27 @@
 			var channels_youtube_title=new Array('Youtube User Uploads','Youtube Standard Feed','Youtube Playlist','Youtube User Favorites','Youtube Search','Youtube Show','Youtube Show','Youtube Channel');
 			var channels_other_title=new Array('Vimeo User Uploads','Vimeo Channel','Vimeo Album','Dailymotion Playlist');
 			var single_videos_title=new Array('Youtube','Vimeo','Own3DtvLive','Own3dtvVideo','Google','Yahoo','Break','CollegeHumor','Dailymotion','Present.me','UStream Recorded','UStream Live','SoundCloud','.flv file','Tik Tok');
+			
+			var simple_mode=false;
+
+
+			function submitSimpleForm(force_to_save)
+			{
+				if(force_to_save)
+				{
+					hideModalAddVideoForm();	
+					Joomla.submitbutton('linksform.apply');
+				}
+				else
+				{
+					var obj=document.getElementById("jform_listname");
+					if(obj && obj.value!='')
+					{
+						hideModalAddVideoForm();	
+						Joomla.submitbutton('linksform.apply');
+					}
+				}
+			}
 
 
 			function YGGetTypeTitle(link_type)
@@ -521,10 +541,17 @@
 			function YGgetBasicValues(isSingle,link,SpecialParameters,startendsecond,usergroup)
 			{
 				var title=document.getElementById("ygcustomtitle").value;
-				var description=document.getElementById("ygcustomdescription").value;
-				var image=document.getElementById("ygcustomimage").value;
-
-
+				
+				var description="";
+				var ygcustomdescription=document.getElementById("ygcustomdescription");
+				if(ygcustomdescription)
+					description=ygcustomdescription.value;
+				
+				var image="";
+				var ygcustomimage=document.getElementById("ygcustomimage");
+				if(ygcustomimage)
+					image=ygcustomimage.value;
+				
 				title=title.replace(/["']/g, "");
 				description=description.replace(/["']/g, "");
 				image=image.replace(/["']/g, "");
@@ -535,7 +562,11 @@
 				if(startendsecond)
 				{
 					startsecond=document.getElementById("startsecond").value;
-					endsecond=document.getElementById("endsecond").value;
+					
+					var endsecond_obj=document.getElementById("endsecond");
+					if(endsecond_obj)
+						endsecond=endsecond_obj.value;
+					
 					startsecond=startsecond.replace(/["']/g, "");
 					endsecond=endsecond.replace(/["']/g, "");
 					startsecond=startsecond.replace(/[^\d.]/g, "");
@@ -586,7 +617,11 @@
 
 			function YGFormatSingleLink(link,editIndex,startendsecond)
 			{
-				var usergroup=document.getElementById("ygwatchgroup").value;
+				var usergroup='';
+				var ygwatchgroup=document.getElementById("ygwatchgroup");
+				if(ygwatchgroup)
+					usergroup=ygwatchgroup.value;
+				
 				var new_link=YGgetBasicValues(true,link,'',startendsecond,usergroup);
 				YGAddFormatedLink(true,new_link,editIndex);
 				//var obj=document.getElementById("YGDialog");
@@ -597,17 +632,34 @@
 				var modal = document.getElementById('layouteditor_Modal');
 				//modal.innerHTML='';
 				modal.style.display = "none";
+				
+				if(simple_mode)
+					submitSimpleForm(true);
 			}
 
 
 			function YGFormatListLink(link,editIndex,link_type)
 			{
 				var title=document.getElementById("ygcustomtitle").value;
-				var description=document.getElementById("ygcustomdescription").value;
-				var image=document.getElementById("ygcustomimage").value;
+				
+				var description="";
+				var ygcustomdescription=document.getElementById("ygcustomdescription");
+				if(ygcustomdescription)
+					description=ygcustomdescription.value;
+				
+				var image="";
+				var ygcustomimage=document.getElementById("ygcustomimage");
+				if(ygcustomimage)
+					image=ygcustomimage.value;
+				
 				var SpecialParameters='';
 				var startendsecond=false;
-				var usergroup=document.getElementById("ygwatchgroup").value;
+				
+				var usergroup='';
+				var ygwatchgroup=document.getElementById("ygwatchgroup");
+				if(ygwatchgroup)
+					usergroup=ygwatchgroup.value;
+				
 				
 				var season="";
 				var content="";
@@ -737,19 +789,27 @@
 				FormContent+='<tr><td>Link</td><td>:</td><td style="word-break:break-all;width:380px;">'+item[0]+'</div></td></tr>';
 				FormContent+='<tr><td>Type</td><td>:</td><td><b>'+link_type_title+'</b></td></tr>';
 				FormContent+='<tr><td>Custom Title</td><td>:</td><td><input type="text" id="ygcustomtitle" class="inputbox" style="width:100%;" value="'+item[1]+'" /></td></tr>';
-				FormContent+='<tr><td>Custom Description</td><td>:</td><td><input type="text" id="ygcustomdescription" class="inputbox" style="width:100%;" value="'+item[2]+'" /></td></tr>';
-				FormContent+='<tr><td>Custom Thumbnail</td><td>:</td><td><input type="text" id="ygcustomimage" class="inputbox" style="width:100%;" value="'+item[3]+'" /></td></tr>';
+				if(!simple_mode)
+				{
+					FormContent+='<tr><td>Custom Description</td><td>:</td><td><input type="text" id="ygcustomdescription" class="inputbox" style="width:100%;" value="'+item[2]+'" /></td></tr>';
+					FormContent+='<tr><td>Custom Thumbnail</td><td>:</td><td><input type="text" id="ygcustomimage" class="inputbox" style="width:100%;" value="'+item[3]+'" /></td></tr>';
+				}
 
 				if(link_type=='youtube')
 				{
 					formHeight=340;
 					FormContent+='<tr><td>Start Second</td><td>:</td><td><input type="text" id="startsecond" class="inputbox" style="width:100%;" value="'+item[5]+'" /></td></tr>';
-					FormContent+='<tr><td>End Second</td><td>:</td><td><input type="text" id="endsecond" class="inputbox" style="width:100%;" value="'+item[6]+'" /></td></tr>';
+					
+					if(!simple_mode)
+						FormContent+='<tr><td>End Second</td><td>:</td><td><input type="text" id="endsecond" class="inputbox" style="width:100%;" value="'+item[6]+'" /></td></tr>';
 				}
 
 				formHeight+=40;
 				var d=YGGetUserGroups();
-				FormContent+='<tr><td>Watch Group</td><td>:</td><td>'+YGMakeWatchGroupBox(d,item[7])+'</td></tr>';
+				if(!simple_mode)
+				{
+					FormContent+='<tr><td>Watch Group</td><td>:</td><td>'+YGMakeWatchGroupBox(d,item[7])+'</td></tr>';
+				}
 
 				FormContent+='</tbody></table>';
 
@@ -831,9 +891,12 @@
 				FormContent+='<tr><td>Content</td><td>:</td><td>'+YGBuildSelectBox('contenttype',Values,Titles,YGGetValue(sp,'content'))+'</td></tr>';
 
 				FormContent+='<tr><td>Custom Title</td><td>:</td><td><input type="text" id="ygcustomtitle" class="inputbox" style="width:100%;" value="'+item[1]+'" /></td></tr>';
-				FormContent+='<tr><td>Custom Description</td><td>:</td><td><input type="text" id="ygcustomdescription" class="inputbox" style="width:100%;" value="'+item[2]+'" /></td></tr>';
-				FormContent+='<tr><td>Custom Thumbnail</td><td>:</td><td><input type="text" id="ygcustomimage" class="inputbox" style="width:100%;" value="'+item[3]+'" /></td></tr>';
-
+				
+				if(!simple_mode)
+				{
+					FormContent+='<tr><td>Custom Description</td><td>:</td><td><input type="text" id="ygcustomdescription" class="inputbox" style="width:100%;" value="'+item[2]+'" /></td></tr>';
+					FormContent+='<tr><td>Custom Thumbnail</td><td>:</td><td><input type="text" id="ygcustomimage" class="inputbox" style="width:100%;" value="'+item[3]+'" /></td></tr>';
+				}
 
 
 
@@ -864,11 +927,17 @@
 
 
 					FormContent+='<tr><td>Start Second</td><td>:</td><td><input type="text" id="startsecond" class="inputbox" style="width:100%;" value="'+item[5]+'" /></td></tr>';
-					FormContent+='<tr><td>End Second</td><td>:</td><td><input type="text" id="endsecond" class="inputbox" style="width:100%;" value="'+item[6]+'" /></td></tr>';
+					
+					if(!simple_mode)
+						FormContent+='<tr><td>End Second</td><td>:</td><td><input type="text" id="endsecond" class="inputbox" style="width:100%;" value="'+item[6]+'" /></td></tr>';
 
 				formHeight+=40;
 				var d=YGGetUserGroups();
-				FormContent+='<tr><td>Watch Group</td><td>:</td><td>'+YGMakeWatchGroupBox(d,item[7])+'</td></tr>';
+				
+				if(!simple_mode)
+				{
+					FormContent+='<tr><td>Watch Group</td><td>:</td><td>'+YGMakeWatchGroupBox(d,item[7])+'</td></tr>';
+				}
 
 				FormContent+='</tbody></table>';
 				FormContent+=YGAddSaveCloseButtons(item[0],editIndex,false,'youtubeshow');
@@ -892,9 +961,12 @@
 				FormContent+='<tr><td style="width:150px;">Link</td><td>:</td><td><div style="vertical-align:middle !important;word-break:break-all;width:330px;height:35px;overflow:hidden;border:1px red;">'+item[0]+'</div></td></tr>';
 				FormContent+='<tr><td>Type</td><td>:</td><td><b>'+link_type_title+'</b></td></tr>';
 				FormContent+='<tr><td>Custom Title</td><td>:</td><td><input type="text" id="ygcustomtitle" class="inputbox" style="width:100%;" value="'+item[1]+'" /></td></tr>';
-				FormContent+='<tr><td>Custom Description</td><td>:</td><td><input type="text" id="ygcustomdescription" class="inputbox" style="width:100%;" value="'+item[2]+'" /></td></tr>';
-				FormContent+='<tr><td>Custom Thumbnail</td><td>:</td><td><input type="text" id="ygcustomimage" class="inputbox" style="width:100%;" value="'+item[3]+'" /></td></tr>';
-
+				
+				if(!simple_mode)
+				{
+					FormContent+='<tr><td>Custom Description</td><td>:</td><td><input type="text" id="ygcustomdescription" class="inputbox" style="width:100%;" value="'+item[2]+'" /></td></tr>';
+					FormContent+='<tr><td>Custom Thumbnail</td><td>:</td><td><input type="text" id="ygcustomimage" class="inputbox" style="width:100%;" value="'+item[3]+'" /></td></tr>';
+				}
 				if(YGcontains(link_type,channels_youtube))
 				{
 					formHeight=530;
@@ -917,7 +989,9 @@
 
 
 					FormContent+='<tr><td>Start Second</td><td>:</td><td><input type="text" id="startsecond" class="inputbox" style="width:100%;" value="'+item[5]+'" /></td></tr>';
-					FormContent+='<tr><td>End Second</td><td>:</td><td><input type="text" id="endsecond" class="inputbox" style="width:100%;" value="'+item[6]+'" /></td></tr>';
+					
+					if(!simple_mode)
+						FormContent+='<tr><td>End Second</td><td>:</td><td><input type="text" id="endsecond" class="inputbox" style="width:100%;" value="'+item[6]+'" /></td></tr>';
 				}
 
 				if(YGcontains(link_type,channels_vimeo))
@@ -937,7 +1011,11 @@
 
 				formHeight+=40;
 				var d=YGGetUserGroups();
-				FormContent+='<tr><td>Watch Group</td><td>:</td><td>'+YGMakeWatchGroupBox(d,item[7])+'</td></tr>';
+				
+				if(!simple_mode)
+				{
+					FormContent+='<tr><td>Watch Group</td><td>:</td><td>'+YGMakeWatchGroupBox(d,item[7])+'</td></tr>';
+				}
 				FormContent+='</tbody></table>';
 				FormContent+=YGAddSaveCloseButtons(item[0],editIndex,false,link_type);
 
@@ -1007,7 +1085,7 @@ function CSVtoArray(text) {
 
 			function YGdeleteLink(index)
 			{
-				var result = confirm("Want to delete?");
+				var result = confirm("Do you want to delete?");
 				if (result==true)
 				{
 					var obj_source=document.getElementById(videolist_textarea);
@@ -1015,7 +1093,7 @@ function CSVtoArray(text) {
 					var lines = obj_source.value.split(/\r\n|\r|\n/g);
 					var newList='';
 
-					for(i=0;i<lines.length;i++)
+					for(var i=0;i<lines.length;i++)
 					{
 						if(i!=index)
 						{
@@ -1029,6 +1107,8 @@ function CSVtoArray(text) {
 					obj_source.value=newList;
 					YGUpdatelinksTable();
 
+					if(simple_mode)
+						submitSimpleForm(true);
 				}
 			}
 
@@ -1175,8 +1255,11 @@ function CSVtoArray(text) {
 
 				if(line_count==0)
 				{
-					document.getElementById("ygvideolinkstable").innerHTML="";
-					document.getElementById("ygvideolinkstablemessage").style.display="none";
+					var o1=document.getElementById("ygvideolinkstable");
+					if(o1)o1.innerHTML="";
+					
+					var o2=document.getElementById("ygvideolinkstablemessage");
+					if(o2)o2.style.display="none";
 				}
 				else
 				{

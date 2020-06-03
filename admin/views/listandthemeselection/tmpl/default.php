@@ -1,7 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -37,9 +37,14 @@ elseif($plugin['enabled']==0)
 }
 else
 {
+	
 	$videolist=$input->getInt('videolist');
-	if($input->getCmd('task')=='preview' and $videolist!=0)
+	if($input->getCmd('task')=='preview')
 		include('_preview.php');
 	else
 		include('_selection.php');
+	
+	
+	//include('_selection.php');
+	//include('_preview.php');
 }
