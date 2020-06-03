@@ -20,8 +20,8 @@ $theme='eclipse';
 $document = JFactory::getDocument();
 
 $adminpath=JURI::root(true).'/administrator/components/com_youtubegallery/';
-$document->addCustomTag('<script src="'.$adminpath.'js/ajax.js"></script>');
-$document->addCustomTag('<script src="'.$adminpath.'js/typeparams.js"></script>');
+$document->addCustomTag('<script src="'.JURI::base().'components/com_youtubegallery/js/ajax.js"></script>');
+$document->addCustomTag('<script src="'.JURI::base().'components/com_youtubegallery/js/typeparams.js"></script>');
 
 $document->addCustomTag('<script src="'.$adminpath.'js/layouteditor.js"></script>');
 $document->addCustomTag('<link href="'.$adminpath.'css/layouteditor.css" rel="stylesheet">');

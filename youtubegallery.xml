@@ -46,6 +46,7 @@
                 <filename>router.php</filename>
                 
                 <folder>includes</folder>
+		<folder>css</folder>
                 <folder>js</folder>                
                 <folder>images</folder>
                 <folder>language</folder>
@@ -83,8 +84,8 @@
 
 			<folder>controllers</folder>
 			<folder>css</folder>
+			<folder>js</folder>                
 			<folder>helpers</folder>
-			<folder>js</folder>
 			<folder>libraries</folder>
 			<folder>models</folder>
 			<folder>sql</folder>

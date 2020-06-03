@@ -64,12 +64,12 @@
 			else
 				document.getElementById('yginsertbutton').disabled=false;
 				
-			var videolist_url='/administrator/index.php?option=com_youtubegallery&view=linksform&layout=edit&tmpl=component&id='+videolist;
+			var videolist_url=ygSiteBase+'index.php?option=com_youtubegallery&view=linksform&layout=edit&tmpl=component&id='+videolist;
 			setTimeout(function(){
 				document.getElementById("YGVideoLinks").src=videolist_url;
 			}, 200);
 
-			var preview_url='/administrator/index.php?option=com_youtubegallery&view=listandthemeselection&tmpl=component&task=preview&videolist='+videolist+'&theme='+theme;
+			var preview_url=ygSiteBase+'index.php?option=com_youtubegallery&view=listandthemeselection&tmpl=component&task=preview&videolist='+videolist+'&theme='+theme;
 			setTimeout(function(){
 				document.getElementById("YGPreview").src=preview_url;
 			}, 200);

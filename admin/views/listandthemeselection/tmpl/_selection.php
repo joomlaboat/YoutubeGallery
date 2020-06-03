@@ -1,7 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -20,7 +20,7 @@ JHtml::_('behavior.core');
 JHtml::_('jquery.framework');
 
 $document = JFactory::getDocument();
-$document->addScript(JURI::root() . "/administrator/components/com_youtubegallery/js/modal.js");
+$document->addScript(JURI::base()."components/com_youtubegallery/js/modal.js");
 
 if (!empty($fieldInput)) // Media Form Field
 {
@@ -37,9 +37,12 @@ $input      = JFactory::getApplication()->input;
 $videolistid=(int)$input->getInt('videolistid');
 $themeid=(int)$input->getInt('themeid');
 
+
 JHTML::addIncludePath(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'helpers');
 ?>
-
+<script>
+ygSiteBase='<?php echo JURI::base(); ?>';
+</script>
 <div class="container-popup">
 
 	<form action="" class="form-horizontal" id="imageForm" method="post" enctype="multipart/form-data">
@@ -50,19 +53,24 @@ JHTML::addIncludePath(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_S
 
 		<div class="well">
 			<div class="row-fluid">
-				<div class="span8 control-group">
-					<div class="control-label">
-						<label for="folder"><?php echo JText::_('COM_YOUTUBEGALLERY_FIELD_VIDEOLIST_LABEL'); ?></label>
-					</div>
-					<div class="controls">
-						<?php echo JHTML::_('videolist.render','vidoelistselector',$videolistid,' onChange="YG.updatePreview();"');?>
-					</div>
+				<div class="span8">
+					<div class="control-group">
+						<div class="control-label">
+							<label for="folder"><?php echo JText::_('COM_YOUTUBEGALLERY_FIELD_VIDEOLIST_LABEL'); ?></label>
+						</div>
 					
-					<div class="control-label">
-						<label for="folder"><?php echo JText::_('COM_YOUTUBEGALLERY_THEME'); ?></label>
+						<div class="controls">
+							<?php echo JHTML::_('videolist.render','vidoelistselector',$videolistid,' onChange="YG.updatePreview();"');?>
+						</div>
 					</div>
-					<div class="controls">
-						<?php echo JHTML::_('theme.render','themeselector',$themeid,' onChange="YG.updatePreview();"');?>
+					<div class="control-group">
+				
+						<div class="control-label">
+							<label for="folder"><?php echo JText::_('COM_YOUTUBEGALLERY_THEME'); ?></label>
+						</div>
+						<div class="controls">
+							<?php echo JHTML::_('theme.render','themeselector',$themeid,' onChange="YG.updatePreview();"');?>
+						</div>
 					</div>
 					
 				</div>
@@ -97,6 +105,7 @@ JHTML::addIncludePath(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_S
 		</div>
 	</div>
 		
+</div>
 
 <script>
 	

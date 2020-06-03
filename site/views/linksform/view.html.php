@@ -1,6 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
+ * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -27,11 +28,12 @@ class YoutubeGalleryViewLinksForm extends JViewLegacy
                 $item = $this->get('Item');
 
                 // Check for errors.
-                if (count($errors = $this->get('Errors')))
-                {
-                        JFactory::getApplication()->enqueueMessage( implode('<br />', $errors), 'error');
-                        return false;
-                }
+                //if (count($errors = $this->get('Errors')))
+				//if(count($this->get('Errors')))
+                //{
+                        //JFactory::getApplication()->enqueueMessage( implode('<br />', $errors), 'error');
+                        //return false;
+                //}
 
                 // Assign the Data
                 $this->form = $form;
@@ -72,7 +74,7 @@ class YoutubeGalleryViewLinksForm extends JViewLegacy
                 $isNew = ($this->item->id < 1);
                 $document = JFactory::getDocument();
                 $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : JText::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
-                $document->addScript(JURI::base(). "components/com_youtubegallery/js/submitbutton.js");
+                $document->addScript(JURI::root() . "/administrator/components/com_youtubegallery/js/submitbutton.js");
                 
                 JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
         }

@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -110,7 +109,7 @@ class YoutubeGalleryViewThemeForm extends JViewLegacy
                 $isNew = ($this->item->id < 1);
                 $document = JFactory::getDocument();
                 $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_THEME_NEW') : JText::_('COM_YOUTUBEGALLERY_THEME_EDIT'));
-                $document->addScript(JURI::root() . "/administrator/components/com_youtubegallery/js/submitbutton.js");
+                $document->addScript(JURI::base()."components/com_youtubegallery/js/submitbutton.js");
                 
                 JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
         }

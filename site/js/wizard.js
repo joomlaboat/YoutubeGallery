@@ -18,7 +18,7 @@
 			var single_videos_title=new Array('Youtube','Vimeo','Own3DtvLive','Own3dtvVideo','Google','Yahoo','Break','CollegeHumor','Dailymotion','Present.me','UStream Recorded','UStream Live','SoundCloud','.flv file','Tik Tok');
 			
 			var simple_mode=false;
-
+			var ygSiteBase='';
 
 			function submitSimpleForm(force_to_save)
 			{
