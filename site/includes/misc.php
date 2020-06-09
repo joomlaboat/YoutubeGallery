@@ -287,6 +287,36 @@ class YouTubeGalleryMisc
 				return '';
 		}
 	}
+	
+	function checkIfLatLongAltFieldsExists()
+	{
+		$db = JFactory::getDBO();
+		$query = "SHOW COLUMNS FROM #__youtubegallery_videos";//SELECT * FROM #__youtubegallery_videos LIMIT 1";
+		$db->setQuery( $query );
+		$all = $db->loadAssocList();
+		
+		$fields=array();
+		foreach($all as $key){
+			if(!in_array($key['Field'],$fields))
+				$fields[]=$key['Field'];
+		}
+		
+		if (!in_array("latitude", $fields)) {
+			$db->setQuery("ALTER TABLE `#__youtubegallery_videos` ADD `latitude` decimal(20,7) NULL DEFAULT NULL");
+			if (!$db->query())    die( $db->stderr());
+		}
+		
+		if (!in_array("longitude", $fields)) {
+				$db->setQuery("ALTER TABLE `#__youtubegallery_videos` ADD `longitude` decimal(20,7) NULL DEFAULT NULL");
+				if (!$db->query())    die( $db->stderr());
+			}
+		
+		if (!in_array("altitude", $fields)) {
+			$db->setQuery("ALTER TABLE `#__youtubegallery_videos` ADD `altitude` int NULL DEFAULT NULL");
+			if (!$db->query())    die( $db->stderr());
+		}
+	}
+	
 
 	function getVideoList_FromCacheFromTable(&$videoid,&$total_number_of_rows,&$listIDs,$get_the_first_one=false)
 	{
@@ -363,6 +393,9 @@ class YouTubeGalleryMisc
 		if (!$db->query())    die( $db->stderr());
 
 		$videos_rows=$db->loadAssocList();
+		
+		
+		
 
 		$firstvideo='';
 
@@ -421,14 +454,14 @@ class YouTubeGalleryMisc
 				
 				$db = JFactory::getDBO();
 				$parent_id=0;
-				$parent_details=array();
+				//$parent_details=array();
 
 				$ListOfVideosNotToDelete=array();
 				
 				foreach($videolist as $g)
 				{
 					$ListOfVideosNotToDelete[]='!(videoid='.$db->quote($g['videoid']).' AND videosource='.$db->quote($g['videosource']).')';
-					YouTubeGalleryMisc::updateDBSingleItem($g,(int)$videolist_row->id,$parent_id,$parent_details);//,$this_is_a_list);//,$list_count_left);
+					YouTubeGalleryMisc::updateDBSingleItem($g,(int)$videolist_row->id,$parent_id);//,$parent_details);//,$this_is_a_list);//,$list_count_left);
 				}
 		
 				//Delete All videos of this video list that has been deleted form the list and allowed for updates.
@@ -441,11 +474,14 @@ class YouTubeGalleryMisc
 				if (!$db->query())    die( $db->stderr());
 	}
 	
-	public static function updateDBSingleItem($g,$videolist_id,&$parent_id,&$parent_details)//,&$this_is_a_list)//,&$list_count_left)
+	public static function updateDBSingleItem($g,$videolist_id,&$parent_id)//,&$parent_details)//,&$this_is_a_list)//,&$list_count_left)
 	{
+		YouTubeGalleryMisc::checkIfLatLongAltFieldsExists();
+		
+		
 		$db = JFactory::getDBO();
 
-		$fields=YouTubeGalleryMisc::prepareQuerySets($g,$videolist_id,$parent_id,$parent_details);//,$this_is_a_list);//,$list_count_left);
+		$fields=YouTubeGalleryMisc::prepareQuerySets($g,$videolist_id,$parent_id);//,$parent_details);//,$this_is_a_list);//,$list_count_left);
 		
 		$record_id=YouTubeGalleryMisc::isVideo_record_exist($g['videosource'],$g['videoid']);//,$videolist_row->id);
 
@@ -466,7 +502,7 @@ class YouTubeGalleryMisc
 								if((int)$g['isvideo']==0)
 								{
 									$parent_id=$record_id_new;
-									$parent_details=$g;
+									//$parent_details=$g;
 								}
 						}
 						elseif($record_id>0)
@@ -481,12 +517,12 @@ class YouTubeGalleryMisc
 								if((int)$g['isvideo']==0)
 								{
 									$parent_id=$record_id;
-									$parent_details=$g;
+									//$parent_details=$g;
 								}
 						}
 	}
 
-	protected static function prepareQuerySets($g,$videolist_id,&$parent_id,&$parent_details)//,&$this_is_a_list)//,&$list_count_left)
+	protected static function prepareQuerySets($g,$videolist_id,&$parent_id)//,&$parent_details)//,&$this_is_a_list)//,&$list_count_left)
 	{
 		$db = JFactory::getDBO();
 		
@@ -615,35 +651,47 @@ class YouTubeGalleryMisc
 						if(isset($g['dislikes']))
 							$fields[]=$db->quoteName('dislikes').'='.$db->quote($g['dislikes']);
 
-						if((int)$g['isvideo']==0)
-							$parent_details=$g;
+						//if((int)$g['isvideo']==0)
+							//$parent_details=$g;
 
-						if(isset($parent_details['channel_username']))
-							$fields[]=$db->quoteName('channel_username').'='.$db->quote($parent_details['channel_username']);
+						if(isset($g['channel_username']))
+							$fields[]=$db->quoteName('channel_username').'='.$db->quote($g['channel_username']);
 
-						if(isset($parent_details['channel_title']))
-							$fields[]=$db->quoteName('channel_title').'='.$db->quote($parent_details['channel_title']);
+						if(isset($g['channel_title']))
+							$fields[]=$db->quoteName('channel_title').'='.$db->quote($g['channel_title']);
 
-						if(isset($parent_details['channel_subscribers']))
-							$fields[]=$db->quoteName('channel_subscribers').'='.$db->quote($parent_details['channel_subscribers']);
+						if(isset($g['channel_subscribers']))
+							$fields[]=$db->quoteName('channel_subscribers').'='.$db->quote($g['channel_subscribers']);
 
-						if(isset($parent_details['channel_subscribed']))
-							$fields[]=$db->quoteName('channel_subscribed').'='.$db->quote($parent_details['channel_subscribed']);
+						if(isset($g['channel_subscribed']))
+							$fields[]=$db->quoteName('channel_subscribed').'='.$db->quote($g['channel_subscribed']);
 
-						if(isset($parent_details['channel_location']))
-							$fields[]=$db->quoteName('channel_location').'='.$db->quote($parent_details['channel_location']);
+						if(isset($g['channel_location']))
+							$fields[]=$db->quoteName('channel_location').'='.$db->quote($g['channel_location']);
 
-						if(isset($parent_details['channel_commentcount']))
-							$fields[]=$db->quoteName('channel_commentcount').'='.$db->quote($parent_details['channel_commentcount']);
+						if(isset($g['channel_commentcount']))
+							$fields[]=$db->quoteName('channel_commentcount').'='.$db->quote($g['channel_commentcount']);
 
-						if(isset($parent_details['channel_viewcount']))
-							$fields[]=$db->quoteName('channel_viewcount').'='.$db->quote($parent_details['channel_viewcount']);
+						if(isset($g['channel_viewcount']))
+							$fields[]=$db->quoteName('channel_viewcount').'='.$db->quote($g['channel_viewcount']);
 
-						if(isset($parent_details['channel_videocount']))
-							$fields[]=$db->quoteName('channel_videocount').'='.$db->quote($parent_details['channel_videocount']);
+						if(isset($g['channel_videocount']))
+							$fields[]=$db->quoteName('channel_videocount').'='.$db->quote($g['channel_videocount']);
 
-						if(isset($parent_details['channel_description']))
-							$fields[]=$db->quoteName('channel_description').'='.$db->quote($parent_details['channel_description']);
+						if(isset($g['channel_description']))
+							$fields[]=$db->quoteName('channel_description').'='.$db->quote($g['channel_description']);
+						
+						
+						//Add field if not found
+						
+						if(isset($g['es_latitude']))
+							$fields[]=$db->quoteName('latitude').'='.$db->quote($g['latitude']);
+
+						if(isset($g['es_longitude']))
+							$fields[]=$db->quoteName('longitude').'='.$db->quote($g['longitude']);
+
+						if(isset($g['es_altitude']))
+							$fields[]=$db->quoteName('altitude').'='.$db->quote($g['altitude']);						
 		return $fields;
 	}
 

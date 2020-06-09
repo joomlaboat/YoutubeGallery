@@ -45,6 +45,7 @@
                 <filename>controller.php</filename>
                 <filename>router.php</filename>
                 
+		<folder>controllers</folder>
                 <folder>includes</folder>
 		<folder>css</folder>
                 <folder>js</folder>                

@@ -232,8 +232,11 @@ class YouTubeGalleryData
 				'channel_description'=>'',
 				'status'=>0,
 				'error'=>'',
-				'rawdata' =>'', 
-				'datalink' => ''
+				'rawdata' =>null, 
+				'datalink' => '',
+				'latitude' => null,
+				'longitude' => null,
+				'altitude' => null
 				);
 				
 		if(isset($item['es_error']) and $item['es_error']!='')
@@ -279,7 +282,7 @@ class YouTubeGalleryData
 		$blankArray['channel_viewcount']=$item['es_channelviewcount'];
 		$blankArray['channel_videocount']=$item['es_channelvideocount'];
 		$blankArray['channel_description']=$item['es_channeldescription'];
-		//$blankArray['']=$item['es_channeltotaluploadviews'];
+		
 		$blankArray['alias']=YouTubeGalleryMisc::get_alias($item['es_title'],$item['es_videoid']);//$item['es_alias'];
 		
 		return $blankArray;
