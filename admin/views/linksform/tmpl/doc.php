@@ -1,7 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
-  * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -11,7 +11,8 @@ defined('_JEXEC') or die('Restricted access');
 
 
 require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-$client_id = YouTubeGalleryMisc::getSettingValue('soundcloud_api_client_id');
+require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
+$client_id = YouTubeGalleryDB::getSettingValue('soundcloud_api_client_id');
 
 $document = JFactory::getDocument();
 $document->addCustomTag('
@@ -21,8 +22,6 @@ $document->addCustomTag('
 								return "'.$client_id.'";
 				}
 </script>');
-
-
 
 ?>
 

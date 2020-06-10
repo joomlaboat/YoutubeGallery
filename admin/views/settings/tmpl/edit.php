@@ -15,7 +15,7 @@ $document = JFactory::getDocument();
 $document->addCustomTag('<link rel="stylesheet" href="components/com_youtubegallery/css/specialbutton.css" type="text/css" />');
 
 require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'misc.php');
-
+require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'db.php');
 
 
 

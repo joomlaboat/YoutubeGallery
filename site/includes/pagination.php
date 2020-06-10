@@ -685,8 +685,8 @@ class YGPagination extends JObject
 		}
 
 		require_once('layoutrenderer.php');
-		$URLPath=YoutubeGalleryLayoutRenderer::deleteURLQueryOption($URLPath,'videoid');
-		$URLPath=YoutubeGalleryLayoutRenderer::deleteURLQueryOption($URLPath,$this->prefix.'ygstart');
+		$URLPath=YouTubeGalleryMisc::deleteURLQueryOption($URLPath,'videoid');
+		$URLPath=YouTubeGalleryMisc::deleteURLQueryOption($URLPath,$this->prefix.'ygstart');
 
                 $computed_prefix=YGPagination::QuestionmarkOrAnd($URLPath).$this->prefix;
 

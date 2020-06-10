@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery for Joomla!
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -14,10 +13,7 @@ class YouTubeGalleryPlayers
 {
 	public static function ShowActiveVideo(&$gallery_list,$width,$height,$videoid, &$videolist_row, &$theme_row,$videosource='')
 	{
-		if($videoid=='****youtubegallery-video-id****')//****youtubegallery-video-id****
-			$VideoRow=false;
-		else
-			$VideoRow=YoutubeGalleryLayoutRenderer::getVideoRowByID($videoid,$gallery_list);
+		$VideoRow=YouTubeGalleryGalleryList::getVideoRowByID($videoid,$gallery_list);
 
 		$result='';
 
@@ -55,7 +51,7 @@ class YouTubeGalleryPlayers
 
 			$vpoptions['fullscreen']=$theme_row->fullscreen;
 
-			$list_index=YoutubeGalleryLayoutRenderer::getListIndexByVideoID($videoid,$gallery_list);
+			$list_index=YouTubeGalleryGalleryList::getListIndexByVideoID($videoid,$gallery_list);
 
 			//----------------------------------------------------------------------------
 			$includeallplayers=false;
@@ -149,7 +145,7 @@ class YouTubeGalleryPlayers
 			{
 				$result='<div id="yg_player_youtube_id-'.$videolist_row->id.'" '.$divstyle.'>';
 
-						$pl=YoutubeGalleryLayoutRenderer::getPlaylistIdsOnly($gallery_list,$videoid,'youtube');
+						$pl=YouTubeGalleryGalleryList::getPlaylistIdsOnly($gallery_list,$videoid,'youtube');
 						$shorten_pl=array();
 						$i=0;
 						foreach($pl as $p)
@@ -161,7 +157,7 @@ class YouTubeGalleryPlayers
 						}
 						$YoutubeVideoList=implode(',',$shorten_pl);
 
-						$full_pl=YoutubeGalleryLayoutRenderer::getPlaylistIdsOnly($gallery_list,'','youtube',true);
+						$full_pl=YouTubeGalleryGalleryList::getPlaylistIdsOnly($gallery_list,'','youtube',true);
 						$shorten_full_pl=array();
 						$i=0;
 						foreach($full_pl as $p)
@@ -219,71 +215,68 @@ class YouTubeGalleryPlayers
 			if($includeallplayers or $vs=='yahoo')
 			{
 				require_once('providers'.DIRECTORY_SEPARATOR.'yahoo.php');
-				$vpoptions['thumbnail']=YoutubeGalleryLayoutRenderer::getThumbnailByID($videoid,$gallery_list);
+				$vpoptions['thumbnail']=YouTubeGalleryGalleryList::getThumbnailByID($videoid,$gallery_list);
 				$result.='<div id="yg_player_yahoo_id-'.$videolist_row->id.'" '.$divstyle.'>'.VideoSource_Yahoo::renderYahooPlayer($vpoptions, $width, $height, $videolist_row, $theme_row).'</div>';
 			}
 			if($includeallplayers or $vs=='collegehumor')
 			{
 				require_once('providers'.DIRECTORY_SEPARATOR.'collegehumor.php');
-				$vpoptions['thumbnail']=YoutubeGalleryLayoutRenderer::getThumbnailByID($videoid,$gallery_list);
+				$vpoptions['thumbnail']=YouTubeGalleryGalleryList::getThumbnailByID($videoid,$gallery_list);
 				$result.='<div id="yg_player_collegehumor_id-'.$videolist_row->id.'" '.$divstyle.'>'.VideoSource_CollegeHumor::renderCollegeHumorPlayer($vpoptions, $width, $height, $videolist_row, $theme_row).'</div>';
 			}
 			if($includeallplayers or $vs=='dailymotion')
 			{
 				require_once('providers'.DIRECTORY_SEPARATOR.'dailymotion.php');
-				$vpoptions['thumbnail']=YoutubeGalleryLayoutRenderer::getThumbnailByID($videoid,$gallery_list);
+				$vpoptions['thumbnail']=YouTubeGalleryGalleryList::getThumbnailByID($videoid,$gallery_list);
 				$result.='<div id="yg_player_dailymotion_id-'.$videolist_row->id.'" '.$divstyle.'>'.VideoSource_DailyMotion::renderDailyMotionPlayer($vpoptions, $width, $height, $videolist_row, $theme_row).'</div>';
 			}
 
 			if($includeallplayers or $vs=='presentme')
 			{
 				require_once('providers'.DIRECTORY_SEPARATOR.'presentme.php');
-				$vpoptions['thumbnail']=YoutubeGalleryLayoutRenderer::getThumbnailByID($videoid,$gallery_list);
+				$vpoptions['thumbnail']=YouTubeGalleryGalleryList::getThumbnailByID($videoid,$gallery_list);
 				$result.='<div id="yg_player_presentme_id-'.$videolist_row->id.'" '.$divstyle.'>'.VideoSource_PresentMe::renderPresentMePlayer($vpoptions, $width, $height, $videolist_row, $theme_row).'</div>';
 			}
 
 			if($includeallplayers or $vs=='ustream')
 			{
 				require_once('providers'.DIRECTORY_SEPARATOR.'ustream.php');
-				$vpoptions['thumbnail']=YoutubeGalleryLayoutRenderer::getThumbnailByID($videoid,$gallery_list);
+				$vpoptions['thumbnail']=YouTubeGalleryGalleryList::getThumbnailByID($videoid,$gallery_list);
 				$result.='<div id="yg_player_ustream_id-'.$videolist_row->id.'" '.$divstyle.'>'.VideoSource_Ustream::renderUstreamPlayer($vpoptions, $width, $height, $videolist_row, $theme_row).'</div>';
 			}
 
 			if($includeallplayers or $vs=='ustreamlive')
 			{
 				require_once('providers'.DIRECTORY_SEPARATOR.'ustreamlive.php');
-				$vpoptions['thumbnail']=YoutubeGalleryLayoutRenderer::getThumbnailByID($videoid,$gallery_list);
+				$vpoptions['thumbnail']=YouTubeGalleryGalleryList::getThumbnailByID($videoid,$gallery_list);
 				$result.='<div id="yg_player_ustreamlive_id-'.$videolist_row->id.'" '.$divstyle.'>'.VideoSource_UstreamLive::renderUstreamLivePlayer($vpoptions, $width, $height, $videolist_row, $theme_row).'</div>';
 			}
 			
 			if($includeallplayers or $vs=='soundcloud')
 			{
 				require_once('providers'.DIRECTORY_SEPARATOR.'soundcloud.php');
-				$vpoptions['thumbnail']=YoutubeGalleryLayoutRenderer::getThumbnailByID($videoid,$gallery_list);
+				$vpoptions['thumbnail']=YouTubeGalleryGalleryList::getThumbnailByID($videoid,$gallery_list);
 				$result.='<div id="yg_player_soundcloud_id-'.$videolist_row->id.'" '.$divstyle.'>'.VideoSource_SoundCloud::renderPlayer($vpoptions, $width, $height, $videolist_row, $theme_row).'</div>';
 			}
 			
 			if($includeallplayers or $vs=='tiktok')
 			{
 				require_once('providers'.DIRECTORY_SEPARATOR.'tiktok.php');
-				$vpoptions['thumbnail']=YoutubeGalleryLayoutRenderer::getThumbnailByID($videoid,$gallery_list);
+				$vpoptions['thumbnail']=YouTubeGalleryGalleryList::getThumbnailByID($videoid,$gallery_list);
 				$result.='<div id="yg_player_tiktok_id-'.$videolist_row->id.'" '.$divstyle.'>'.VideoSource_TikTok::renderPlayer($vpoptions, $width, $height, $videolist_row, $theme_row).'</div>';
 			}
 
-			if($includeallplayers or $vs=='.flv')
+			if($includeallplayers)
 			{
 					if($list_index!=-1)
 					{
 						//Not Hot Switch
-						$vpoptions['thumbnail']=$gallery_list[$list_index]['imageurl'];//YoutubeGalleryLayoutRenderer::getThumbnailByID($videoid,$gallery_list);;
+						$vpoptions['thumbnail']=$gallery_list[$list_index]['imageurl'];//YouTubeGalleryGalleryList::getThumbnailByID($videoid,$gallery_list);;
 						$videolink=$gallery_list[$list_index]['link'];
 					}
 					else
 						$videolink='****youtubegallery-video-link****'; //For Hot Switch
 
-						require_once('providers'.DIRECTORY_SEPARATOR.'flv.php');
-
-						$result.='<div id="yg_player_flv_id-'.$videolist_row->id.'" '.$divstyle.'>'.VideoSource_FLV::renderFLVPlayer($vpoptions, $width, $height, $videolist_row, $theme_row, $videolink).'</div>';
 			}
 
 		}

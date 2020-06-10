@@ -111,13 +111,11 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 		if(count($linksform_rows)<1)
 			return false;
 
-		$misc=new YouTubeGalleryMisc;
-
 		foreach($linksform_rows as $linksform_row)
 		{
 
-			$misc->videolist_row = $linksform_row;
-			$misc->update_cache_table($linksform_row,$update_videolist); //false - refresh
+			$videolist_row = $linksform_row;
+			YouTubeGalleryDB::update_cache_table($linksform_row,$update_videolist); //false - refresh
 
 			if(!$update_videolist)
 			{
@@ -182,11 +180,12 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
         		return false;
         	}
 
-		require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-		$misc=new YouTubeGalleryMisc;
-		$misc->videolist_row = $linksform_row;
-		$misc->update_cache_table($linksform_row,false);
-		$linksform_row->lastplaylistupdate =date( 'Y-m-d H:i:s');
+			require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
+			require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
+			
+		
+			YouTubeGalleryDB::update_cache_table($linksform_row,false);
+		
 
         	$this->id=$linksform_row->id;
 

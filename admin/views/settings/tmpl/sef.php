@@ -9,7 +9,7 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
-$allowsef = YouTubeGalleryMisc::getSettingValue('allowsef');
+$allowsef = YouTubeGalleryDB::getSettingValue('allowsef');
 if ($allowsef != 1)
 	$allowsef = 0;
     

@@ -63,7 +63,7 @@ class YouTubeGalleryData
 	
 	public static function queryTheAPIServer($theLink)
 	{
-		$key=YouTubeGalleryMisc::getSettingValue('joomlaboat_api_key');
+		$key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 		
 			if(strpos($key,'-development')!==false)
 			{
@@ -283,7 +283,7 @@ class YouTubeGalleryData
 		$blankArray['channel_videocount']=$item['es_channelvideocount'];
 		$blankArray['channel_description']=$item['es_channeldescription'];
 		
-		$blankArray['alias']=YouTubeGalleryMisc::get_alias($item['es_title'],$item['es_videoid']);//$item['es_alias'];
+		$blankArray['alias']=YouTubeGalleryDB::get_alias($item['es_title'],$item['es_videoid']);//$item['es_alias'];
 		
 		return $blankArray;
 	}
@@ -400,9 +400,6 @@ class YouTubeGalleryData
 		//http://api.soundcloud.com/tracks/49931.json  - accepts only resolved links
 		if(!(strpos($link,'://api.soundcloud.com/tracks/')===false) )
 			return 'soundcloud';
-
-		if(!(strpos(strtolower($link),'.flv')===false))
-			return '.flv';
 
 		return '';
 	}

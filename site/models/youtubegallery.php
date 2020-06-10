@@ -19,12 +19,10 @@ jimport('joomla.application.menu' );
  */
 class YoutubeGalleryModelYoutubeGallery extends JModelItem
 {
+	
         protected $youtubegallerycode;
 
-        /**
-         * Get the message
-         * @return actual youtube galley code
-         */
+       
         public function getYoutubeGalleryCode()
         {
 		require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');

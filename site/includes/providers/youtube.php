@@ -35,6 +35,26 @@ class VideoSource_YouTube
 		}
 
 	}
+	
+	public static function getMaxResults($spq,&$option)
+	{
+		$count=0;
+		$pair=explode('&',$spq);
+		foreach($pair as $p)
+		{
+			$opt=explode('=',$p);
+			if($opt[0]=='maxResults')
+			{
+				$option=$opt[0].'='.$opt[1];
+				$count=(int)$opt[1];
+			}
+		}
+
+		if($count==0)
+			$count=50;
+
+		return $count;
+	}
 
 	public static function renderYouTubePlayer($options, $width, $height, &$videolist_row, &$theme_row)//,$startsecond,$endsecond)
 	{

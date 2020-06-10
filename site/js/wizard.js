@@ -11,7 +11,7 @@
 			var channels_youtube=new Array('youtubeuseruploads','youtubestandard','youtubeplaylist','youtubeuserfavorites','youtubesearch','youtubeshow*','youtubeshow','youtubechannel');
 			var channels_other=new Array('vimeouservideos','vimeochannel','vimeoalbum','dailymotionplaylist');
 			var channels_vimeo=new Array('vimeouservideos','vimeochannel','vimeoalbum');
-			var single_videos=new Array('youtube','vimeo','own3dtvlive','own3dtvvideo','google','yahoo','break','collegehumor','dailymotion','presentme','ustream','ustreamlive','soundcloud','.flv','tiktok');
+			var single_videos=new Array('youtube','vimeo','dailymotion','ustream','ustreamlive','soundcloud','tiktok');
 
 			var channels_youtube_title=new Array('Youtube User Uploads','Youtube Standard Feed','Youtube Playlist','Youtube User Favorites','Youtube Search','Youtube Show','Youtube Show','Youtube Channel');
 			var channels_other_title=new Array('Vimeo User Uploads','Vimeo Channel','Vimeo Album','Dailymotion Playlist');

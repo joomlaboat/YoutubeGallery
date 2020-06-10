@@ -13,7 +13,7 @@ require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARAT
              . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'data.php');
 
              
-$key=YouTubeGalleryMisc::getSettingValue('joomlaboat_api_key');
+$key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 
 if(strpos($key,'-development')!==false)
 			{
