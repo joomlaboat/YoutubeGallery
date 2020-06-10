@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -138,7 +137,7 @@ class ygExportTheme
 		$user = JFactory::getUser();
 
 		$result='<?xml version="1.0" encoding="utf-8"?>
-<extension type="file" version="2.5.0" method="install">
+<extension type="file" version="3.0" method="upgrade">
     <name>YoutubeGalleryTheme_'.$themeName.'</name>
     <version>5.0.0</version>
     <creationDate>'.$createdDate.'</creationDate>

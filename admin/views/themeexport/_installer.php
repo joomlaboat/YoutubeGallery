@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -54,10 +53,8 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 		$this->install($parent);
     }
 
-
-
 	function uninstall($parent)
-    {
+	{
 
 	}
 
@@ -66,49 +63,53 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 
 	    if(file_exists($path.DIRECTORY_SEPARATOR.'theme.txt'))
 	    {
-		require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'models'.DIRECTORY_SEPARATOR.'themeimport.php');
-		$ygmti= new YoutubeGalleryModelThemeImport;
+			require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'models'.DIRECTORY_SEPARATOR.'themeimport.php');
+			$ygmti= new YoutubeGalleryModelThemeImport;
 
-		//Ok archive is fine, looks like it is really YG theme.
-		$filedata=file_get_contents ($path.DIRECTORY_SEPARATOR.'theme.txt');
-		if($filedata=='')
-		{
-		    //Archive doesn't containe Theme Data
-		    $msg='Theme Data file is empty';
-		    echo '<h1>'.$msg.'</h1>';
-		    return;
-		}
+			//Ok archive is fine, looks like it is really YG theme.
+			$filedata=file_get_contents ($path.DIRECTORY_SEPARATOR.'theme.txt');
+			if($filedata=='')
+			{
+				//Archive doesn't containe Theme Data
+				$msg='Theme Data file is empty';
+				echo '<h1>'.$msg.'</h1>';
+				return;
+			}
 
-		$theme_row=unserialize($filedata);
+			$theme_row=unserialize($filedata);
+			
+			//Add record to database
+			$theme_row->themename=$ygmti->getThemeName(str_replace('"','',$theme_row->themename));
+			if($theme_row->themename!='')
+			{
+				if(file_exists($path.DIRECTORY_SEPARATOR.'about.txt'))
+					$theme_row->themedescription=file_get_contents ($path.DIRECTORY_SEPARATOR.'about.txt');
+				else
+					$theme_row->themedescription="";
 
-		if(file_exists($path.DIRECTORY_SEPARATOR.'about.txt'))
-		    $theme_row->themedescription=file_get_contents ($path.DIRECTORY_SEPARATOR.'about.txt');
-		else
-		    $theme_row->themedescription="";
 
+				if($theme_row->mediafolder!='')
+				{
+					//prepare media folder
+					$theme_row->mediafolder=$ygmti->prepareFolder($theme_row->mediafolder,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR);
+					echo '<p>Media Folder "'.$theme_row->mediafolder.'" created.</p>';
+					//move files
+					$ygmti->moveFiles($path,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR.$theme_row->mediafolder);
+				}
 
-		if($theme_row->mediafolder!='')
-		{
-		    //prepare media folder
-		    $theme_row->mediafolder=$ygmti->prepareFolder($theme_row->mediafolder,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR);
-		    echo '<p>Media Folder "'.$theme_row->mediafolder.'" created.</p>';
-		    //move files
-		    $ygmti->moveFiles($path,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR.$theme_row->mediafolder);
-		}
+				echo '<p>New Theme Name: '.$theme_row->themename.'</p>';
 
-		//Add record to database
-		$theme_row->themename=$ygmti->getThemeName(str_replace('"','',$theme_row->themename));
-		echo '<p>New Theme Name: '.$theme_row->themename.'</p>';
-
-		$ygmti->saveTheme($theme_row);
-		echo '<p>Theme Imported</p>';
-
+				$ygmti->saveTheme($theme_row);
+				echo '<p>Theme Imported</p>';
+			}
+			else
+				return false;
 	    }
 	    else
 	    {
-		echo '<h1>File "theme.txt" not found.</h1>';
-		$msg='Archive doesn\'t contain Gallery Data';
-		return false;
+			echo '<h1>File "theme.txt" not found.</h1>';
+			$msg='Archive doesn\'t contain Gallery Data.';
+			return false;
 	    }
 
 	}

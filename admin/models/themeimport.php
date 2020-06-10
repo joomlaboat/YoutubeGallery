@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -80,22 +79,23 @@ class YoutubeGalleryModelThemeImport extends JModelList
 
 				if(file_exists($path.$folder_name_created.DIRECTORY_SEPARATOR.'theme.txt'))
 				{
-						//Ok archive is fine, looks like it is really YG theme.
-						$filedata=file_get_contents ($path.$folder_name_created.DIRECTORY_SEPARATOR.'theme.txt');
-						if($filedata=='')
-						{
-								//Archive doesn't containe Gallery Data
-								$msg='Gallery Data file is empty';
+					//Ok archive is fine, looks like it is really YG theme.
+					$filedata=file_get_contents ($path.$folder_name_created.DIRECTORY_SEPARATOR.'theme.txt');
+					if($filedata=='')
+					{
+						//Archive doesn't containe Gallery Data
+						$msg='Gallery Data file is empty';
 
-								JFolder::delete($path.'youtubegallery');
-								return false;
-						}
+						JFolder::delete($path.'youtubegallery');
+						return false;
+					}
 
-						$theme_row=unserialize($filedata);
-
+					$theme_row=unserialize($filedata);
+						
+					$theme_row->themename=$this->getThemeName(str_replace('"','',$theme_row->themename),true);//force to install
+					if($theme_row->themename!='')
+					{
 						$theme_row->themedescription=file_get_contents ($path.$folder_name_created.DIRECTORY_SEPARATOR.'about.txt');
-
-
 
 						echo 'Theme Data Found<br/>';
 
@@ -106,25 +106,25 @@ class YoutubeGalleryModelThemeImport extends JModelList
 								echo 'Media Folder "'.$theme_row->mediafolder.'" created.<br/>';
 
 								//move files
-								$this->moveFiles('tmp'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR.$folder_name_created,'images'.DIRECTORY_SEPARATOR.$theme_row->mediafolder);
+								$this->moveFiles(
+									JPATH_SITE.DIRECTORY_SEPARATOR.'tmp'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR.$folder_name_created,
+									JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR.$theme_row->mediafolder);
 						}
+						
+						
+						JFolder::delete($path);
+
+						echo 'Theme Name: '.$theme_row->themename.'<br/>';
+
+						$this->saveTheme($theme_row);
+						echo 'Theme Imported<br/>';
+					}
 				}
 				else
 				{
-						$msg="Archive doesn't containe Gallery Data";
-						return false;
+					$msg="Archive doesn't containe Gallery Data";
+					return false;
 				}
-
-
-				JFolder::delete($path);
-
-				//Add record to database
-				$theme_row->themename=$this->getThemeName(str_replace('"','',$theme_row->themename));
-				echo 'Theme Name: '.$theme_row->themename.'<br/>';
-
-
-				$this->saveTheme($theme_row);
-				echo 'Theme Imported<br/>';
 
 				return true;
 		}
@@ -228,19 +228,26 @@ class YoutubeGalleryModelThemeImport extends JModelList
 				if (!$db->query())    die ( $db->stderr());
 		}
 
-		function getThemeName($themename)
+		function getThemeName($themename,$force=false)
 		{
-				//echo 'Get Theme Name<br/>';
-				if(!$this->checkIfThemenameExist($themename))
-						return $themename;
+			if(!$this->checkIfThemenameExist($themename))
+				return $themename;//New theme / all good
 
-				$i=0;
-				do
-				{
-					$i++;
-				}while($this->checkIfThemenameExist($themename.' ('.$i.')'));
+			//Theme already exists
+			
+			if(!$force and ($themename=='Default' or $themename=='SimpleGridJCEPopup'))
+			{
+				//Do not update default themes
+				return '';
+			}
 
-				return $themename.' ('.$i.')';
+			$i=0;
+			do
+			{
+				$i++;
+			}while($this->checkIfThemenameExist($themename.' ('.$i.')'));
+
+			return $themename.' ('.$i.')';
 		}
 
 		function checkIfThemenameExist($themename)
@@ -258,7 +265,9 @@ class YoutubeGalleryModelThemeImport extends JModelList
         {
                 $files_to_archive=array();
 
-                $sys_path=JPATH_SITE.DIRECTORY_SEPARATOR.$dirpath_from;
+				
+                //$sys_path=JPATH_SITE.DIRECTORY_SEPARATOR.$dirpath_from;
+				$sys_path=$dirpath_from;
                 if(file_exists($sys_path)===false)
                 {
                         echo '<p>Media Folder "'.$dirpath_from.' ('.$sys_path.')" not found.</p>';
@@ -269,11 +278,12 @@ class YoutubeGalleryModelThemeImport extends JModelList
 
 				while (false !== ($file = readdir($handle))) {
 
-                        if($file!='.' and $file!='..' and $file!='theme.txt' and $file!='about.txt')
+                        if($file!='.' and $file!='..' and $file!='theme.txt' and $file!='about.txt' and strpos($file,'.xml')===false and strpos($file,'.php')===false)
                         {
                                 if(!is_dir($sys_path.DIRECTORY_SEPARATOR.$file))
                                 {
-                                        $destination_file=JPATH_SITE.DIRECTORY_SEPARATOR.$dirpath_to.DIRECTORY_SEPARATOR.$file;
+                                        //$destination_file=JPATH_SITE.DIRECTORY_SEPARATOR.$dirpath_to.DIRECTORY_SEPARATOR.$file;
+										$destination_file=$dirpath_to.DIRECTORY_SEPARATOR.$file;
 
 										if(file_exists($sys_path.DIRECTORY_SEPARATOR.$file)===false)
 										{
