@@ -255,36 +255,40 @@
 	element_addClass(objname,classname)
 	{
 		var obj=document.getElementById(objname);
-		var classes=obj.className.split(" ");
-		var found=false;
-		for(var i=0;i<classes.length;i++)
+		if(obj)
 		{
-			if(classes[i]==classname)
+			var classes=obj.className.split(" ");
+			var found=false;
+			for(var i=0;i<classes.length;i++)
 			{
-				found=true;
+				if(classes[i]==classname)
+					found=true;
 			}
-		}
-
-		if(!found)
-		{
-			classes.push(classname);
-			obj.className=classes.join(" ");
+		
+			if(!found)
+			{
+				classes.push(classname);
+				obj.className=classes.join(" ");
+			}
 		}
 	}
 
 	element_removeClass(objname,classname)
 	{
 		var obj=document.getElementById(objname);
-		var classes=obj.className.split(" ");
-		var new_classes=[];
-
-		for(var i=0;i<classes.length;i++)
+		if(obj)
 		{
-			if(classes[i]!=classname)
-				new_classes.push(classes[i]);
-		}
+			var classes=obj.className.split(" ");
+			var new_classes=[];
 
-		obj.className=new_classes.join(" ");
+			for(var i=0;i<classes.length;i++)
+			{	
+				if(classes[i]!=classname)
+					new_classes.push(classes[i]);
+			}
+
+			obj.className=new_classes.join(" ");
+		}
 	}
 
 
