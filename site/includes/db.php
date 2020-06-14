@@ -9,12 +9,14 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
 
 class YouTubeGalleryDB
 {
 	var $videolist_row;
 	var $theme_row;
 
+	//
 	function getVideoListTableRow($listid)
 	{
 		$db = JFactory::getDBO();
@@ -279,7 +281,7 @@ class YouTubeGalleryDB
 		}
 	}
 	
-	function checkIfLatLongAltFieldsExists()
+	protected static function checkIfLatLongAltFieldsExists()
 	{
 		$db = JFactory::getDBO();
 		$query = "SHOW COLUMNS FROM #__youtubegallery_videos";//SELECT * FROM #__youtubegallery_videos LIMIT 1";
@@ -426,7 +428,7 @@ class YouTubeGalleryDB
 			if($days_diff>abs($updateperiod) or $force_update)
 			{
 
-				$this->update_cache_table($this->videolist_row);//,$updateperiod>0); //updateperiod>0 ? refresh : get new videos
+				YouTubeGalleryDB::update_cache_table($this->videolist_row);//,$updateperiod>0); //updateperiod>0 ? refresh : get new videos
 				$this->videolist_row->lastplaylistupdate =date( 'Y-m-d H:i:s');
 
 				$db = JFactory::getDBO();
@@ -436,7 +438,7 @@ class YouTubeGalleryDB
 			}
 	}
 
-	function update_cache_table(&$videolist_row,$update_videolist=true)
+	public static function update_cache_table(&$videolist_row,$update_videolist=true)
 	{
 				$videolist_array=YouTubeGalleryMisc::csv_explode("\n", $videolist_row->videolist, '"', true);
 				$firstvideo='';
@@ -672,16 +674,15 @@ class YouTubeGalleryDB
 							$fields[]=$db->quoteName('channel_description').'='.$db->quote($g['channel_description']);
 						
 						
-						//Add field if not found
-						
-						if(isset($g['es_latitude']))
+						if(isset($g['latitude']))
 							$fields[]=$db->quoteName('latitude').'='.$db->quote($g['latitude']);
 
-						if(isset($g['es_longitude']))
+						if(isset($g['longitude']))
 							$fields[]=$db->quoteName('longitude').'='.$db->quote($g['longitude']);
 
-						if(isset($g['es_altitude']))
-							$fields[]=$db->quoteName('altitude').'='.$db->quote($g['altitude']);						
+						if(isset($g['altitude']))
+							$fields[]=$db->quoteName('altitude').'='.$db->quote($g['altitude']);
+							
 		return $fields;
 	}
 

@@ -28,6 +28,7 @@ class YouTubeGalleryData
 			$theLink=trim($listitem[0]);
 			if($theLink!='')
 				YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink,$gallery_list);
+				
 		}
 		
 		return $gallery_list;
@@ -47,14 +48,14 @@ class YouTubeGalleryData
 		$item=array();//where to save
 		
 		YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,$item,$listitem);
-		
+
 		if((int)$item['status']==0)
 		{
 			$parent_id=0;
 			$parent_details=array();
 			$this_is_a_list=false;
 			$list_count_left=0;
-			YouTubeGalleryMisc::updateDBSingleItem($item,0,$parent_id,$parent_details,$this_is_a_list,$list_count_left);
+			YouTubeGalleryDB::updateDBSingleItem($item,0,$parent_id,$parent_details,$this_is_a_list,$list_count_left);
 			return $item;
 		}
 		else
@@ -128,7 +129,7 @@ class YouTubeGalleryData
 		}
 	}
 	
-	public static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,&$item,&$original_item)
+	protected static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,&$item,&$original_item)
 	{
 		if (!function_exists('curl_init') and !function_exists('file_get_contents'))
 		{
@@ -284,6 +285,10 @@ class YouTubeGalleryData
 		$blankArray['channel_description']=$item['es_channeldescription'];
 		
 		$blankArray['alias']=YouTubeGalleryDB::get_alias($item['es_title'],$item['es_videoid']);//$item['es_alias'];
+		
+		$blankArray['latitude']=$item['es_latitude'];
+		$blankArray['longitude']=$item['es_longitude'];
+		$blankArray['altitude']=$item['es_altitude'];
 		
 		return $blankArray;
 	}

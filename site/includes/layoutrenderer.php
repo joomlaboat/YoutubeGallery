@@ -86,7 +86,7 @@ class YoutubeGalleryLayoutRenderer
 			break;
 
 			case 'videotitle':
-				$title=str_replace('"','_quote_',YoutubeGalleryLayoutRenderer::getTitleByVideoID($videoid,$gallery_list));
+				$title=str_replace('"','_quote_',YouTubeGalleryGalleryList::getTitleByVideoID($videoid,$gallery_list));
 
 				if($params!='')
 				{
@@ -105,7 +105,7 @@ class YoutubeGalleryLayoutRenderer
 			break;
 
 			case 'videodescription':
-				$description=str_replace('"','&quot;',YoutubeGalleryLayoutRenderer::getDescriptionByVideoID($videoid,$gallery_list));
+				$description=str_replace('"','&quot;',YouTubeGalleryGalleryList::getDescriptionByVideoID($videoid,$gallery_list));
 				$description=YouTubeGalleryMisc::html2txt($description);
 
 				$videodescription_params=array();

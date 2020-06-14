@@ -12,6 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 
 class YouTubeGalleryGalleryList
 {
+	//Find video record description in array by video ID
 	public static function getDescriptionByVideoID($videoid,&$gallery_list)
 	{
 		if(isset($gallery_list) and count($gallery_list)>0)
@@ -84,6 +85,7 @@ class YouTubeGalleryGalleryList
 		return -1;
 	}
 	
+	//Find video record title in array by video ID
 	public static function getTitleByVideoID($videoid,&$gallery_list)
 	{
 		$gl_row=YouTubeGalleryGalleryList::getVideoRowByID($videoid,$gallery_list);

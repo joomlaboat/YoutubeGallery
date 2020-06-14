@@ -18,3 +18,5 @@ require_once($path.'data.php');
 require_once($path.'layoutrenderer.php');
 require_once($path.'players.php');
 require_once($path.'render.php');
+
+require_once($path.'pagination_render.php');

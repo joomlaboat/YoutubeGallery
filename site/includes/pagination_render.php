@@ -28,7 +28,7 @@ class YouTubeGalleryPagination
 
 		$limitstart = JFactory::getApplication()->input->getInt('ygstart', 0);
 
-		$pagination=YoutubeGalleryLayoutRenderer::getPagination($total_number_of_rows,$limitstart,$limit,$theme_row);
+		$pagination=YouTubeGalleryPagination::getPagination($total_number_of_rows,$limitstart,$limit,$theme_row);
 
 		$paginationcode='';
 

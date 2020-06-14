@@ -42,12 +42,12 @@ class ygExportTheme
                 }
 
                 // get the Data
-                require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-                $misc=new YouTubeGalleryMisc;
-                if(!$misc->getThemeTableRow($id))
+                require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
+                $ygDB=new YouTubeGalleryDB;
+                if(!$ygDB->getThemeTableRow($id))
                         return  '<p>No video found</p>';
 
-				$themename=$misc->theme_row->themename;
+				$themename=$ygDB->theme_row->themename;
 
                 // Prepare Folder
                 $folder_base_name=ygExportTheme::cleanThemeName($themename);
@@ -59,27 +59,27 @@ class ygExportTheme
 
 
                 //Copy Files
-                if($misc->theme_row->mediafolder!='')
-                        $files_to_archive=ygExportTheme::copyFiles('images'.DIRECTORY_SEPARATOR.str_replace('/',DIRECTORY_SEPARATOR,$misc->theme_row->mediafolder), 'tmp'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR.$folder);
+                if($ygDB->theme_row->mediafolder!='')
+                        $files_to_archive=ygExportTheme::copyFiles('images'.DIRECTORY_SEPARATOR.str_replace('/',DIRECTORY_SEPARATOR,$ygDB->theme_row->mediafolder), 'tmp'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR.$folder);
 
                 $path=JPATH_SITE.DIRECTORY_SEPARATOR.'tmp'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR;
 
 
 
                 //Save About info
-                if($misc->theme_row->themedescription!='')
+                if($ygDB->theme_row->themedescription!='')
                 {
-                        file_put_contents ($path.$folder.DIRECTORY_SEPARATOR.'about.txt',$misc->theme_row->themedescription);
+                        file_put_contents ($path.$folder.DIRECTORY_SEPARATOR.'about.txt',$ygDB->theme_row->themedescription);
                         echo 'File "about.txt" created.<br/>';
                 }
 
                 //Clean Theme Array
-                unset($misc->theme_row->id);
-                unset($misc->theme_row->themedescription);
+                unset($ygDB->theme_row->id);
+                unset($ygDB->theme_row->themedescription);
 
                 //Save Theme
 		$filename='theme.txt';
-                $save_as=serialize($misc->theme_row);
+                $save_as=serialize($ygDB->theme_row);
 		$save_as=str_replace('s:8:"readonly";s:1:"0";','s:8:"readonly";s:1:"1";',$save_as);
                 file_put_contents ($path.$folder.DIRECTORY_SEPARATOR.$filename,$save_as);
                 echo 'File "'.$filename.'" created.<br/>';

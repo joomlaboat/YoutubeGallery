@@ -1,7 +1,6 @@
 <?php
 /**
  * Youtube Gallery Joomla! 3.0 Native Component
- * @version 5.0.0
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -17,7 +16,7 @@ if($jinput->get('ygvdata','','RAW')!='')
 	$jinput=JFactory::getApplication()->input;
     $video_data=$jinput->get('ygvdata','','RAW');
 
-    require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
+    require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
 
     $video_data=str_replace('"','\"',$video_data);
 
@@ -29,8 +28,8 @@ if($jinput->get('ygvdata','','RAW')!='')
     if (!$db->query())    die( $db->stderr());
     $videos_rows=$db->loadAssocList();
     
-    $misc=new YouTubeGalleryMisc;
-    $misc->RefreshVideoData($videos_rows,true);
+    $ygDB=new YouTubeGalleryDB;
+    $ygDB->RefreshVideoData($videos_rows,true);
 
     $query = 'SELECT * FROM #__youtubegallery_videos WHERE videoid="'.$videoid.'"';
     $db->setQuery($query);

@@ -117,6 +117,10 @@
 					<param name="width" label="Button Width" description="Button width in pixels." hidden="false" default="200" type="number" min="1" max="1000" />
 				</params>
 			</tag>
+			<tag name="latitude" label="Latitude" startchar="[" endchar="]" description="Record details: Latitude" />
+			<tag name="longitude" label="Longitude" startchar="[" endchar="]" description="Record details: Longitude" />
+			<tag name="altitude" label="Altitude" startchar="[" endchar="]" description="Record details: Altitude" />
+
 	</tagset>
 
 	<tagset name="ifstatements" label="If Statements" description="If statements to customize the output." type="customnavlayout">

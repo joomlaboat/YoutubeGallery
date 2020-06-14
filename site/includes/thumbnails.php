@@ -19,14 +19,13 @@ class YoutubeGalleryLayoutThumbnails
 					  'imageurl','videoid','videosource','publisheddate','duration',
 					  'rating_average','rating_max','rating_min','rating_numRaters',
 					  'statistics_favoriteCount','viewcount','favcount','keywords','isactive','commentcount','likes','dislikes','channel','social',
-					  'odd','even','videolist','inwatchgroup'
+					  'odd','even','videolist','inwatchgroup','latitude','longitude','altitude'
 					  );
-
 
 		$tableFields=array('title','description',
 					  'imageurl','videoid','videosource','publisheddate','duration',
 					  'rating_average','rating_max','rating_min','rating_numRaters',
-					  'keywords','commentcount','likes','dislikes');
+					  'keywords','commentcount','likes','dislikes','latitude','longitude','altitude');
 
 
 		foreach($fields as $fld)
@@ -229,6 +228,18 @@ class YoutubeGalleryLayoutThumbnails
 
 			break;
 
+			case 'latitude':
+				$vlu=$listitem['latitude'];
+			break;
+			
+			case 'longitude':
+				$vlu=$listitem['longitude'];
+			break;
+			
+			case 'altitude':
+				$vlu=$listitem['altitude'];
+			break;
+
 			case 'channel':
 
 				if($options!='')
@@ -363,7 +374,7 @@ class YoutubeGalleryLayoutThumbnails
 		{
 			if($fld==$tf)
 			{
-				if($listitem[$tf]=='')
+				if($listitem[$tf]=='' or $listitem[$tf]==0)
 					return true;
 				else
 					return false;

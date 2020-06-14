@@ -56,7 +56,7 @@ class YoutubeGalleryViewThemeForm extends JViewLegacy
 
 		function getTags()
 		{
-			$file=JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'xml'.DIRECTORY_SEPARATOR.'tags.xml';
+			$file=JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'xml'.DIRECTORY_SEPARATOR.'tags506.xml';
 
 			if(!file_exists($file))
 			{
