@@ -97,10 +97,10 @@ var youtubeplayer'.$videolist_row->id.' = new YoutubeGalleryPlayerObject('
 		youtubeplayer'.$videolist_row->id.'.Player[i]=player_code;
 	}
 ';//</script>
-
-		if($theme_row->playvideo==1)
+		$videoid=JFactory::getApplication()->input->getCmd('videoid');
+		if($theme_row->playvideo==1 or $videoid!='')
 		{
-			$videoid=JFactory::getApplication()->input->getCmd('videoid');
+			
 
 
 			$hotrefreshscript.='

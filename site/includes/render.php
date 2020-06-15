@@ -12,6 +12,9 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.view');
 
+require_once('db.php');
+require_once('misc.php');
+require_once('gallery_list.php');
 require_once('layoutrenderer.php');
 
 class YouTubeGalleryRenderer
@@ -31,11 +34,11 @@ class YouTubeGalleryRenderer
 		//Head Script
 		YouTubeGalleryRenderer::setHeadScript($theme_row,$videolist_row->id,$width,$height);
 		
-		if($theme_row->openinnewwindow==4 or $theme_row->openinnewwindow==5)
-		{
+		//if($theme_row->openinnewwindow==4 or $theme_row->openinnewwindow==5)
+		//{
 			require_once('hotplayer.php');
 			YoutubeGalleryHotPlayer::addHotReloadScript($gallery_list,$width,$height,$videolist_row, $theme_row);
-		}
+		//}
 		
 		$result='
 <a name="youtubegallery"></a>

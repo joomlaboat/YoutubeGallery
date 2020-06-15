@@ -230,7 +230,7 @@
 		{
 			var obj_name="YoutubeGallery_VideoRecords_"+this.videolistid+"";
 			var obj=document.getElementById(obj_name);
-			
+			alert(obj.innerHTML);
 			try {
 				this.videorecords=JSON.parse(obj.innerHTML);
 			} catch (e) {
@@ -319,14 +319,22 @@
 
 	HotVideoSwitch(videolistid,videoid,videosource,id)
 	{
+		this.updateVideoRecords();
+		
 		var i=this.VideoSources.indexOf(videosource);
+		alert(i);
 
 		var playercode="";
 		if(i!=-1)
 			playercode=this.Player[i];
+		
+		alert(playercode);
 
 		playercode=playercode.replace("****youtubegallery-video-id****",videoid);
 		var rec=this.findVideoRecordByID(videoid);
+		
+		alert(rec);
+		
 		if(rec==null)
 			return;
 
@@ -357,6 +365,8 @@
 		
 		playercode=playercode.replace("****scriptbegin****","<script ");
 		playercode=playercode.replace("****scriptend****","</script>");
+		
+		alert(playercode);
 					
 
 		var ygsc=document.getElementById("YoutubeGallerySecondaryContainer"+this.videolistid+"");
@@ -403,6 +413,7 @@
 		var dObj=document.getElementById(description_obj_name);
 
 		var t=this;
+		alert("DescriptionObject:"+tObj);
 
 		if(tObj)
 		{

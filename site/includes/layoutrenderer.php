@@ -197,6 +197,7 @@ class YoutubeGalleryLayoutRenderer
 			break;
 
 			case 'pagination':
+				require_once('pagination_render.php');
 				return YouTubeGalleryPagination::Pagination($theme_row,$gallery_list,$width,$total_number_of_rows);
 
 				break;
@@ -286,32 +287,32 @@ class YoutubeGalleryLayoutRenderer
 
 
 			case 'videolist':
-				if($videolist_row->listname=='')
-					return true;
-				else
+			//	if($videolist_row->listname=='')
+				//	return true;
+				//else
 					return false;
 			break;
 
 			case 'listname':
-				if($videolist_row->listname=='')
-					return true;
-				else
+				//if($videolist_row->listname=='')
+					//return true;
+				//else
 					return false;
 			break;
 
 			case 'videotitle':
-				$title=YouTubeGalleryGalleryList::getTitleByVideoID($videoid,$gallery_list);
-				if($title=='')
-					return true;
-				else
+				//$title=YouTubeGalleryGalleryList::getTitleByVideoID($videoid,$gallery_list);
+				//if($title=='')
+					//return true;
+				//else
 					return false;
 			break;
 
 			case 'videodescription':
-				$description=YouTubeGalleryGalleryList::getDescriptionByVideoID($videoid,$gallery_list);
-				if($description=='')
-					return true;
-				else
+				//$description=YouTubeGalleryGalleryList::getDescriptionByVideoID($videoid,$gallery_list);
+				//if($description=='')
+					//return true;
+				//else
 					return false;
 			break;
 
