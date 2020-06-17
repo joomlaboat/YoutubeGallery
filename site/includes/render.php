@@ -49,7 +49,7 @@ class YouTubeGalleryRenderer
 		
 		$jinput=JFactory::getApplication()->input;
 		if($theme_row->rel!='' and $jinput->getCmd('tmpl')!='')
-			$layoutcode='ONLY VIDEO PLAYER[videoplayer]'; // Shadow box
+			$layoutcode='[videoplayer]'; // Shadow box
 		else
 			$layoutcode=$theme_row->customlayout;
 
@@ -117,6 +117,7 @@ class YouTubeGalleryRenderer
 		{
 			$mainframe = JFactory::getApplication();
 			$sitename =$mainframe->getCfg('sitename');
+
 
 
 			$title=$VideoRow['title'];

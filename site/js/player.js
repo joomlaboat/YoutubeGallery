@@ -155,9 +155,15 @@
 
 			FindNextVideo()
 			{
+				if(this.PlayList.length==1 && this.PlayList[0]=='')
+				{
+					//alert("Video not found");
+					return;
+				}
 				
 				if(!this.iframeAPIloaded)
 				{
+					//alert("iframeAPIloaded not loaded");
 					if(this.iframeAPIloadedCheckCount<5)
 						setTimeout(this.FindNextVideo(), 500);
 						
@@ -170,6 +176,7 @@
 				var d=0;
 				var v=this.CurrentVideoID;
 				var l=this.PlayList.length;
+				
 				var g=null;
 				for(var i=0;i<l;i++)
 				{
@@ -230,7 +237,7 @@
 		{
 			var obj_name="YoutubeGallery_VideoRecords_"+this.videolistid+"";
 			var obj=document.getElementById(obj_name);
-			alert(obj.innerHTML);
+			
 			try {
 				this.videorecords=JSON.parse(obj.innerHTML);
 			} catch (e) {
@@ -322,18 +329,13 @@
 		this.updateVideoRecords();
 		
 		var i=this.VideoSources.indexOf(videosource);
-		alert(i);
 
 		var playercode="";
 		if(i!=-1)
 			playercode=this.Player[i];
 		
-		alert(playercode);
-
 		playercode=playercode.replace("****youtubegallery-video-id****",videoid);
 		var rec=this.findVideoRecordByID(videoid);
-		
-		alert(rec);
 		
 		if(rec==null)
 			return;
@@ -366,8 +368,6 @@
 		playercode=playercode.replace("****scriptbegin****","<script ");
 		playercode=playercode.replace("****scriptend****","</script>");
 		
-		alert(playercode);
-					
 
 		var ygsc=document.getElementById("YoutubeGallerySecondaryContainer"+this.videolistid+"");
 		ygsc.innerHTML=playercode;
@@ -375,7 +375,6 @@
 
 		if(playercode.indexOf("<!--DYNAMIC PLAYER-->")!=-1)
 		{
-			//alert('DYNAMIC PLAYER');
 			this.ApiStart=rec.startsecond;
 			this.ApiEnd=rec.endsecond;
 
@@ -390,7 +389,6 @@
 			}
 			else
 			{
-				alert("Start normal player");
 				eval("this.youtubegallery_updateplayer_"+videosource+"(videoid,true)");
 			}
 		}
@@ -413,7 +411,6 @@
 		var dObj=document.getElementById(description_obj_name);
 
 		var t=this;
-		alert("DescriptionObject:"+tObj);
 
 		if(tObj)
 		{

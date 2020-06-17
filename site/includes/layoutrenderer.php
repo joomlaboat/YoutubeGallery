@@ -173,9 +173,7 @@ class YoutubeGalleryLayoutRenderer
 				}
 				$result='<div id="YoutubeGallery_VideoRecords_'.$videolist_row->id.'" style="display:none;">'.json_encode($new_gallery_list).'</div>';
 				
-				echo 'RENDERIGN THE PLAYER';
-				
-				return $result.'RTP<div id="YoutubeGallerySecondaryContainer'.$videolist_row->id.'" style="'.$containerStyle.'"></div>';
+				return $result.'<div id="YoutubeGallerySecondaryContainer'.$videolist_row->id.'" style="'.$containerStyle.'"></div>';
 			break;
 
 			case 'navigationbar': //Obselete

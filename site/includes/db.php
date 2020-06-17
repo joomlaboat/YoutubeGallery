@@ -9,6 +9,7 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+
 require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
 
 class YouTubeGalleryDB
@@ -161,6 +162,7 @@ class YouTubeGalleryDB
 
 	function getVideoList_FromCache_From_Table(&$videoid,&$total_number_of_rows,$get_the_first_one=false)
 	{
+		
 		$listIDs=array();
 		$listIDs[]=$this->videolist_row->id;
 
@@ -179,7 +181,7 @@ class YouTubeGalleryDB
 		$db->setQuery($query);
 		if (!$db->query())    die( $db->stderr());
 		$videos_lists=$db->loadAssocList();
-
+		
 		if(count($videos_lists)>0)
 		{
 			foreach($videos_lists as $v)
@@ -371,7 +373,7 @@ class YouTubeGalleryDB
 			$orderby='ordering';
 
 		$query = 'SELECT * FROM #__youtubegallery_videos WHERE '.implode(' AND ', $where).' GROUP BY videoid ORDER BY '.$orderby;
-
+		
 		$db->setQuery($query);
 		if (!$db->query())    die( $db->stderr());
 
@@ -386,18 +388,18 @@ class YouTubeGalleryDB
 
 		$videos_rows=$db->loadAssocList();
 		
-		
-		
-
 		$firstvideo='';
 
-		if($firstvideo=='' and count($videos_rows)>0)
+		if(count($videos_rows)>0)//$firstvideo=='' and 
 		{
 			$videos_row=$videos_rows[0];
 			$firstvideo=$videos_row['videoid'];
 
 
 		}
+		
+		
+		
 		if($videoid!='')
 		{
 

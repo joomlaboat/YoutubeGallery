@@ -30,7 +30,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 		$app	= JFactory::getApplication();
 		$params	= $app->getParams();
 
-                if (!isset($this->youtubegallerycode))
+				if (!isset($this->youtubegallerycode))
                 {
 						if($jinput->getInt('listid'))
 						{
@@ -72,7 +72,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
                                 JFactory::getApplication()->enqueueMessage(JText::_( 'COM_YOUTUBEGALLERY_ERROR_VIDEOLIST_NOT_SET' ), 'error');
                                 return '';
                         }
-			elseif($themeid==0 and $listid!=0)
+						elseif($themeid==0 and $listid!=0)
                         {
                                 JFactory::getApplication()->enqueueMessage(JText::_( 'COM_YOUTUBEGALLERY_ERROR_THEME_NOT_SET' ), 'error');
                                 return '';
@@ -87,7 +87,8 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
 								$videoid=JFactory::getApplication()->input->getCmd('videoid');
 
-
+								if($ygDB->theme_row->playvideo==1 and $videoid!='')
+									$ygDB->theme_row->autoplay=1;
 								
 
 								$ygDB=new YouTubeGalleryDB;
@@ -108,8 +109,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
 
 
-								if($ygDB->theme_row->playvideo==1 and $videoid!='')
-										$ygDB->theme_row->autoplay=1;
+								
 
                                 $videoid_new=$videoid;
                                 if($jinput->getInt('yg_api')==1)
