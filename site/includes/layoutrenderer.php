@@ -17,6 +17,7 @@ class YoutubeGalleryLayoutRenderer
 {
 	function getValue($fld, $params, &$videolist_row, &$theme_row, $gallery_list, $width, $height, $videoid, $AllowPagination, $total_number_of_rows,$custom_itemid=0)//,$title
 	{
+		
 		$videodescription_params=array();
 
 		$fields_theme=array('bgcolor','cssstyle','navbarstyle','thumbnailstyle','linestyle','listnamestyle','activevideotitlestyle',

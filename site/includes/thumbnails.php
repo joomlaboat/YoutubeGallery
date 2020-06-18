@@ -15,8 +15,8 @@ class YoutubeGalleryLayoutThumbnails
 	{
 		$listitem=YouTubeGalleryData::updateSingleVideo($listitem);
 		
-		$fields=array('width','height','image','link','a','/a','link','title','description',
-					  'imageurl','videoid','videosource','publisheddate','duration',
+		$fields=array('width','height','imageurl','image','link','a','/a','link','title','description',
+					  'videoid','videosource','publisheddate','duration',
 					  'rating_average','rating_max','rating_min','rating_numRaters',
 					  'statistics_favoriteCount','viewcount','favcount','keywords','isactive','commentcount','likes','dislikes','channel','social',
 					  'odd','even','videolist','inwatchgroup','latitude','longitude','altitude'
@@ -30,7 +30,6 @@ class YoutubeGalleryLayoutThumbnails
 
 		foreach($fields as $fld)
 		{
-
 			$imageFound=(strlen($listitem['imageurl'])>0);// or strlen($listitem['custom_imageurl'])>0);
 
 			$isEmpty=YoutubeGalleryLayoutThumbnails::isThumbnailDataEmpty($fld,$listitem,$tableFields,$imageFound, $videoid, $item_index,$videolist_row);
@@ -38,11 +37,14 @@ class YoutubeGalleryLayoutThumbnails
 			$ValueOptions=array();
 			$ValueList=YoutubeGalleryMisc::getListToReplace($fld,$ValueOptions,$thumbnail_layout,'[]');
 
+			
+					
 			$ifname='[if:'.$fld.']';
 			$endifname='[endif:'.$fld.']';
 
 			if($isEmpty)
 			{
+
 				foreach($ValueList as $ValueListItem)
 					$thumbnail_layout=str_replace($ValueListItem,'',$thumbnail_layout);
 
@@ -75,6 +77,7 @@ class YoutubeGalleryLayoutThumbnails
 				foreach($ValueOptions as $ValueOption)
 				{
 					$options=$ValueOptions[$i];
+
 					$vlu=YoutubeGalleryLayoutThumbnails::getTumbnailData($fld, $aHrefLink, $aLink, $listitem, $tableFields,$options,$theme_row,$gallery_list,$videolist_row); //NEW
 					$thumbnail_layout=str_replace($ValueList[$i],$vlu,$thumbnail_layout);
 					$i++;
@@ -149,12 +152,13 @@ class YoutubeGalleryLayoutThumbnails
 					$vlu=300;
 			break;
 
-			case 'image':
-				$vlu=YoutubeGalleryLayoutThumbnails::PrepareImageTag($listitem,$options,$theme_row,true);
-			break;
-
 			case 'imageurl':
 				$vlu=YoutubeGalleryLayoutThumbnails::PrepareImageTag($listitem,$options,$theme_row,false);
+			
+			break;
+
+			case 'image':
+				$vlu=YoutubeGalleryLayoutThumbnails::PrepareImageTag($listitem,$options,$theme_row,true);
 			break;
 
 			case 'title':
@@ -374,7 +378,7 @@ class YoutubeGalleryLayoutThumbnails
 		{
 			if($fld==$tf)
 			{
-				if($listitem[$tf]=='' or $listitem[$tf]==0)
+				if($listitem[$tf]=='' or (is_numeric($listitem[$tf]) and $listitem[$tf]==0))
 					return true;
 				else
 					return false;
@@ -829,7 +833,7 @@ class YoutubeGalleryLayoutThumbnails
 		}
 		else
 		{
-					$images=explode(',',$listitem['imageurl']);
+					$images=explode(';',$listitem['imageurl']);
 					$index=0;
 					if($options!='')
 					{
@@ -838,25 +842,32 @@ class YoutubeGalleryLayoutThumbnails
 							$index=0;
 						if($index>=count($images))
 							$index=count($images)-1;
-						$imagelink= $images[$index];
+						
+						$imagelink_array=explode(',',$images[$index]);
+						$imagelink= $imagelink_array[0];
 					}
 					else
 					{
-
-						if(!(strpos($listitem['custom_imageurl'],'#')===false))
+						if($listitem['custom_imageurl']!='')
 						{
-							$index=(int)(str_replace('#','',$listitem['custom_imageurl']));
-							if($index<0)
-								$index=0;
-							if($index>=count($images))
-								$index=count($images)-1;
+							if(!(strpos($listitem['custom_imageurl'],'#')===false))
+							{	
+								$index=(int)(str_replace('#','',$listitem['custom_imageurl']));
+								if($index<0)
+									$index=0;
+								if($index>=count($images))
+									$index=count($images)-1;
+							}
+							else
+								$imagelink = $listitem['custom_imageurl'];
 						}
 						else
-							$imagelink = $listitem['custom_imageurl'];
-
+						{
+							$imagelink_array=explode(',',$images[$index]);
+							$imagelink= $imagelink_array[0];
+						}
 					}
-					$imagelink= $images[$index];
-
+				
 				if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
 						$imagelink=str_replace('http://','https://',$imagelink);
 					else
