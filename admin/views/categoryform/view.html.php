@@ -1,7 +1,6 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
- * @version 5.0.0
  * @author Ivan Komlev< <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -73,7 +72,7 @@ class YoutubeGalleryViewCategoryForm extends JViewLegacy
                 $isNew = ($this->item->id < 1);
                 $document = JFactory::getDocument();
                 $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_NEW_CATEGORY') : JText::_('COM_YOUTUBEGALLERY_EDIT_CATEGORY'));
-                $document->addScript(JURI::base()."components/com_youtubegallery/js/submitbutton.js");
+                $document->addScript(JURI::root()."components/com_youtubegallery/js/submitbutton.js");
                 JText::script('COM_YOUTUBEGALLERY_CATEGORYFORM_ERROR_UNACCEPTABLE');
         }
 }

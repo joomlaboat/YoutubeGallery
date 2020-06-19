@@ -109,7 +109,7 @@ class YoutubeGalleryViewThemeForm extends JViewLegacy
                 $isNew = ($this->item->id < 1);
                 $document = JFactory::getDocument();
                 $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_THEME_NEW') : JText::_('COM_YOUTUBEGALLERY_THEME_EDIT'));
-                $document->addScript(JURI::base()."components/com_youtubegallery/js/submitbutton.js");
+                $document->addScript(JURI::root()."components/com_youtubegallery/js/submitbutton.js");
                 
                 JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
         }

@@ -12,8 +12,8 @@ JHtml::_('behavior.formvalidation');
 JHtml::_('behavior.tooltip');
 
 $document = JFactory::getDocument();
-$document->addCustomTag('<link rel="stylesheet" href="'.JURI::base().'components/com_youtubegallery/css/wizard.css" type="text/css" />');
-$document->addCustomTag('<script src="'.JURI::base().'components/com_youtubegallery/js/wizard.js"></script>');
+$document->addCustomTag('<link rel="stylesheet" href="'.JURI::root().'components/com_youtubegallery/css/wizard.css" type="text/css" />');
+$document->addCustomTag('<script src="'.JURI::root().'components/com_youtubegallery/js/wizard.js"></script>');
 
 $input      = JFactory::getApplication()->input;
 

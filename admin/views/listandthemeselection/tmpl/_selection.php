@@ -20,7 +20,7 @@ JHtml::_('behavior.core');
 JHtml::_('jquery.framework');
 
 $document = JFactory::getDocument();
-$document->addScript(JURI::base()."components/com_youtubegallery/js/modal.js");
+$document->addScript(JURI::root()."components/com_youtubegallery/js/modal.js");
 
 if (!empty($fieldInput)) // Media Form Field
 {
@@ -41,7 +41,7 @@ $themeid=(int)$input->getInt('themeid');
 JHTML::addIncludePath(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'helpers');
 ?>
 <script>
-ygSiteBase='<?php echo JURI::base(); ?>';
+ygSiteBase='<?php echo JURI::root(); ?>';
 </script>
 <div class="container-popup">
 

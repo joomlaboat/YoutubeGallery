@@ -133,13 +133,13 @@ class ygExportTheme
 	static protected function saveXMLFile($themeName,$themetitle)
 	{
 		$createdDate=date('F Y');
-		$b=JURI::base();
+		$b=JURI::root();
 		$user = JFactory::getUser();
 
 		$result='<?xml version="1.0" encoding="utf-8"?>
 <extension type="file" version="3.0" method="upgrade">
     <name>YoutubeGalleryTheme_'.$themeName.'</name>
-    <version>5.0.0</version>
+    <version>5.0.8</version>
     <creationDate>'.$createdDate.'</creationDate>
     <author>'.$user->name.'</author>
     <authorEmail>'.$user->email.'</authorEmail>

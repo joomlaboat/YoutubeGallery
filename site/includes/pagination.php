@@ -581,7 +581,7 @@ class YGPagination extends JObject
 
                 $WebsiteRoot='';
 
-                    $WebsiteRoot=JURI::base();
+                    $WebsiteRoot=JURI::root();
 
                     $u = JURI::getInstance();
                     $uri=$u->toString();

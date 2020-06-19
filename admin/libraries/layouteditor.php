@@ -1,18 +1,11 @@
 <?php
-/*----------------------------------------------------------------------------------|  www.vdm.io  |----/
-				JoomlaBoat.com
-/-------------------------------------------------------------------------------------------------------/
+/**
+ * YoutubeGallery Joomla! Native Component
+ * @author Ivan Komlev< <support@joomlaboat.com>
+ * @link http://www.joomlaboat.com
+ * @GNU General Public License
+ **/
 
-	@version		5.0.0
-	@build			19th July, 2018
-	@created		24th May, 2018
-	@package		YoutubeGallery
-	@subpackage		leyouteditor.php
-	@author			Ivan Komlev <https://joomlaboat.com>
-	@copyright		Copyright (C) 2018. All Rights Reserved
-	@license		GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
-
-/------------------------------------------------------------------------------------------------------*/
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
@@ -20,8 +13,8 @@ $theme='eclipse';
 $document = JFactory::getDocument();
 
 $adminpath=JURI::root(true).'/administrator/components/com_youtubegallery/';
-$document->addCustomTag('<script src="'.JURI::base().'components/com_youtubegallery/js/ajax.js"></script>');
-$document->addCustomTag('<script src="'.JURI::base().'components/com_youtubegallery/js/typeparams.js"></script>');
+$document->addCustomTag('<script src="'.JURI::root().'components/com_youtubegallery/js/ajax.js"></script>');
+$document->addCustomTag('<script src="'.JURI::root().'components/com_youtubegallery/js/typeparams.js"></script>');
 
 $document->addCustomTag('<script src="'.$adminpath.'js/layouteditor.js"></script>');
 $document->addCustomTag('<link href="'.$adminpath.'css/layouteditor.css" rel="stylesheet">');
