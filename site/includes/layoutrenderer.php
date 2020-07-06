@@ -383,7 +383,7 @@ class YoutubeGalleryLayoutRenderer
 		if(strpos($htmlresult,'[videoplayer')===false and $theme_row->rel=='')
 		{
 			//[videoplayer] tag
-			$htmlresult='Forgot The player:[videoplayer]'.$htmlresult;// if [videoplayer] tag forgotten
+			$htmlresult='[videoplayer]'.$htmlresult;// if [videoplayer] tag forgotten
 		}
 
 		if(strpos($htmlresult,'[pagination')===false)
