@@ -156,7 +156,7 @@ class YoutubeGalleryLayoutRenderer
 					$description=str_replace("@",'_email_',$description);
 					
 					if($params!='')
-						$description=YouTubeGalleryText::PrepareDescription($description, $videodescription_params);
+						$description=YouTubeGalleryMisc::PrepareDescription($description, $videodescription_params);
 					
 					$listitem['description']=$description;
 
