@@ -329,7 +329,7 @@ class YouTubeGalleryDB
 			$w=array();
 			foreach($listIDs as $l)
 			{
-				$w[]=$db->quoteName('listid').'='.$db->quote($l);
+				$w[]=$db->quoteName('listid').'='.(int)$l;//$db->quote($l);
 			}
 			$where[]='('.implode(' OR ',$w).')';
 		}
@@ -372,12 +372,15 @@ class YouTubeGalleryDB
 		else
 			$orderby='ordering';
 
-		$query = 'SELECT * FROM #__youtubegallery_videos WHERE '.implode(' AND ', $where).' GROUP BY videoid ORDER BY '.$orderby;
+		$query = 'SELECT *,IF(custom_title!="", custom_title, title) AS title,IF(custom_description!="", custom_description, description) AS description FROM #__youtubegallery_videos WHERE '.implode(' AND ', $where).' ORDER BY '.$orderby;// GROUP BY videoid 
 		
 		$db->setQuery($query);
 		if (!$db->query())    die( $db->stderr());
 
 		$total_number_of_rows = $db->getNumRows();
+
+		if($limitstart>$total_number_of_rows)
+			$limitstart=0;
 
 		if($limit==0)
 			$db->setQuery($query);

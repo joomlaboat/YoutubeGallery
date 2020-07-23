@@ -650,6 +650,7 @@ class YoutubeGalleryLayoutThumbnails
 		}
 
 		$bgcolor=$theme_row->bgcolor;
+		$thumbnail_item='';
 
         foreach($gallery_list as $listitem)
         {

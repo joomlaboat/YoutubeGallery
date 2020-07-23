@@ -144,9 +144,6 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 										$videoid=$videoid_new;
 								}
 
-
-
-
         			$gallerymodule=$renderer->render(
 										$videolist,
 										$ygDB->videolist_row,

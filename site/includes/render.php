@@ -19,8 +19,6 @@ require_once('layoutrenderer.php');
 
 class YouTubeGalleryRenderer
 {
-	//function __construct() {}
-
 	function render(&$gallery_list,	&$videolist_row, &$theme_row, $total_number_of_rows, $videoid,$custom_itemid=0)
 	{
 		$width=$theme_row->width;
