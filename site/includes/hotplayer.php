@@ -29,8 +29,13 @@ class YoutubeGalleryHotPlayer
 			}
 
 			$document = JFactory::getDocument();
-			$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player.js');
-						
+			
+			if(YouTubeGalleryMisc::check_user_agent_for_ie())
+				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_ie.js');//Thankx to https://babeljs.io/
+			else
+				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player.js');
+			
+			
 			$autoplay=((int)$theme_row->autoplay==1 ? 'true' : 'false');
 			
 			$allowplaylist=((int)$theme_row->allowplaylist==1 or $theme_row->repeat==1 ? 'true' : 'false'); //to loop video or to play the next one
