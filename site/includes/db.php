@@ -1,7 +1,7 @@
 <?php
 /**
  * YoutubeGallery for Joomla!
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -136,11 +136,11 @@ class YouTubeGalleryDB
 	}
 
 
-	protected static function isVideo_record_exist($videosource,$videoid)//,$listid)
+	protected static function isVideo_record_exist($videosource,$listid,$videoid)
 	{
 				$db = JFactory::getDBO();
 
-				$query = 'SELECT id, allowupdates FROM #__youtubegallery_videos WHERE '.$db->quoteName('videosource').'='.$db->quote($videosource).' AND '.$db->quoteName('videoid').'='.$db->quote($videoid).' LIMIT 1';
+				$query = 'SELECT id, allowupdates FROM #__youtubegallery_videos WHERE listid='.(int)$listid.' AND '.$db->quoteName('videosource').'='.$db->quote($videosource).' AND '.$db->quoteName('videoid').'='.$db->quote($videoid).' LIMIT 1';
 				//.' AND '.$db->quoteName('listid').'='.$listid.' LIMIT 1';
 
 				$db->setQuery($query);
@@ -475,13 +475,9 @@ class YouTubeGalleryDB
 	{
 		YouTubeGalleryDB::checkIfLatLongAltFieldsExists();
 		
-		
 		$db = JFactory::getDBO();
-
 		$fields=YouTubeGalleryDB::prepareQuerySets($g,$videolist_id,$parent_id);//,$parent_details);//,$this_is_a_list);//,$list_count_left);
-		
-		$record_id=YouTubeGalleryDB::isVideo_record_exist($g['videosource'],$g['videoid']);//,$videolist_row->id);
-
+		$record_id=YouTubeGalleryDB::isVideo_record_exist($g['videosource'],$videolist_id,$g['videoid']);
 
 		$query='';
 
@@ -491,16 +487,13 @@ class YouTubeGalleryDB
 
 								$db->setQuery($query);
 								if (!$db->query())    die( $db->stderr());
-
-								$record_id_new=YouTubeGalleryDB::isVideo_record_exist($g['videosource'],$g['videoid']);//,$videolist_row->id);
+								
+								$record_id_new = $db->insertid();
 
 								$ListOfVideos[]=$record_id_new;
 
 								if((int)$g['isvideo']==0)
-								{
 									$parent_id=$record_id_new;
-									//$parent_details=$g;
-								}
 						}
 						elseif($record_id>0)
 						{
@@ -694,22 +687,26 @@ class YouTubeGalleryDB
 
 	public static function getSettingValue($option)
 	{
-				$db = JFactory::getDBO();
+		$db = JFactory::getDBO();
 
-				$query = 'SELECT '.$db->quoteName('value').' FROM #__youtubegallery_settings WHERE '.$db->quoteName('option').'='.$db->quote($option).' LIMIT 1';
+		$query = 'SELECT '.$db->quoteName('value').' FROM #__youtubegallery_settings WHERE '.$db->quoteName('option').'='.$db->quote($option).' LIMIT 1';
 
-				$db->setQuery($query);
-				if (!$db->query())    die( $db->stderr());
-					$values=$db->loadAssocList();
+		$db->setQuery($query);
+		if (!$db->query())    die( $db->stderr());
+			$values=$db->loadAssocList();
 
-				$vlu="";
-				if(count($values)>0)
-				{
-					$v=$values[0];
-					$vlu=$v['value'];				
-				}
+		$vlu="";
+		if(count($values)>0)
+		{
+			$v=$values[0];
+			$vlu=$v['value'];				
+		}
 				
-				return $vlu;
+				
+		if($option=='joomlaboat_api_host' and $vlu=='')
+			$vlu='https://joomlaboat.com/youtubegallery-api';
+
+		return $vlu;
 	}
 
 

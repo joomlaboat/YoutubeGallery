@@ -14,18 +14,11 @@ require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARAT
 
              
 $key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
-
-if(strpos($key,'-development')!==false)
-			{
-				//$key=str_replace('-development','',$key);
-				$host='https://api.joomlaboat.com/youtube-gallery';
-			}
-			else
-				$host='https://joomlaboat.com/youtubegallery-api';
+$host=YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
 
 try
 {
-    $htmlcode=YouTubeGalleryData::queryTheAPIServer('connection-test');
+    $htmlcode=YouTubeGalleryData::queryTheAPIServer('connection-test',$host);
 
 	$j=json_decode($htmlcode);
 
@@ -68,7 +61,7 @@ try
 	}
     else
     {
-        print_r($j);
+        //print_r($j);
     }
 }
 catch(Exception $e)
@@ -78,10 +71,16 @@ catch(Exception $e)
 		?>
 			<div class="control-group">
 				<div class="control-label"><?php echo JText::_('COM_YOUTUBEGALLERY_SERVER_ADDRESS'); ?></div>
-				<div class="controls"><input type="text" readonly value="<?php echo $_SERVER['SERVER_ADDR']; ?>" /></div>
+				<div class="controls"><input type="text" readonly style="width:300px;" value="<?php echo $_SERVER['SERVER_ADDR']; ?>" /></div>
+			</div>
+			
+			
+			<div class="control-group">
+				<div class="control-label"><?php echo JText::_('COM_YOUTUBEGALLERY_JOOMLABOAT_YOUTUBE_HOST'); ?></div>
+				<div class="controls"><input type="text" name="joomlaboat_api_host" style="width:300px;" value="<?php echo $host; ?>" /></div>
 			</div>
 			
 			<div class="control-group">
 				<div class="control-label"><?php echo JText::_('COM_YOUTUBEGALLERY_JOOMLABOAT_YOUTUBE_KEY'); ?></div>
-				<div class="controls"><input name="joomlaboat_api_key" style="width:300px;" value="<?php echo $key; ?>" /></div>
+				<div class="controls"><input type="text" name="joomlaboat_api_key" style="width:300px;" value="<?php echo $key; ?>" /></div>
 			</div>

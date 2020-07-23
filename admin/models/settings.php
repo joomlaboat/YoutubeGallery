@@ -58,24 +58,25 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 
 	static protected function makeQueryLine($field,$value)
 	{
+		$db = JFactory::getDBO();
+		
 		return 'INSERT INTO #__youtubegallery_settings (`option`, `value`)
-		VALUES ("'.$field.'", "'.$value.'")
-		ON DUPLICATE KEY UPDATE `option`="'.$field.'", `value`="'.$value.'"';
+		VALUES ('.$db->quote($field).', '.$db->quote($value).')
+		ON DUPLICATE KEY UPDATE `option`='.$db->quote($field).', `value`='.$db->quote($value);
 	}
 
+    function store()
+    {
+		$jform=JFactory::getApplication()->input->getVar('jform');
+		$allowsef=trim(preg_replace("/[^0-9]/", "", $jform['allowsef']));
 
-        function store()
-        {
-
-			$jform=JFactory::getApplication()->input->getVar('jform');
-			$allowsef=trim(preg_replace("/[^0-9]/", "", $jform['allowsef']));
-						
-			$joomlaboat_api_key=trim(preg_replace("/[^a-zA-Z0-9_-]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_key')));
-
+		$joomlaboat_api_host=trim(preg_replace("/[^^a-zA-Z0-9\-#@:_(),.!@\/]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_host')));
+		$joomlaboat_api_key=trim(preg_replace("/[^a-zA-Z0-9_-]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_key')));
 
 		$db = JFactory::getDBO();
 		$query=array();
 		$query[] = YoutubeGalleryModelSettings::makeQueryLine('allowsef',$allowsef);
+		$query[] = YoutubeGalleryModelSettings::makeQueryLine('joomlaboat_api_host',$joomlaboat_api_host);
 		$query[] = YoutubeGalleryModelSettings::makeQueryLine('joomlaboat_api_key',$joomlaboat_api_key);
 				
 		foreach($query as $q)
@@ -84,7 +85,5 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 			if (!$db->query())    die ( $db->stderr());
 		}
 		return true;
-
-        }
-
+    }
 }

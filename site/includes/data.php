@@ -85,21 +85,16 @@ class YouTubeGalleryData
 			return $listitem;
 	}
 	
-	public static function queryTheAPIServer($theLink)
+	public static function queryTheAPIServer($theLink,$host='')
 	{
+		if($host=='')
+			$host=YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
+		
 		$key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 		
-			if(strpos($key,'-development')!==false)
-			{
-				$key=str_replace('-development','',$key);
-				$host='https://api.joomlaboat.com/youtube-gallery';
-			}
-			else
-				$host='https://joomlaboat.com/youtubegallery-api';
-
-			$url = $host.'?key='.$key.'&v=5.0.0&query='.base64_encode($theLink);
+		$url = $host.'?key='.$key.'&v=5.0.0&query='.base64_encode($theLink);
 			
-			return YouTubeGalleryMisc::getURLData($url);
+		return YouTubeGalleryMisc::getURLData($url);
 	}
 	
 	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list,&$original_item)
