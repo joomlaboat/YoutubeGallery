@@ -13,7 +13,7 @@ class YoutubeGalleryLayoutThumbnails
 {
 	public static function renderThumbnailLayout($thumbnail_layout,$listitem,$aHrefLink,$aLink, $videoid,&$theme_row,$item_index,&$gallery_list,&$videolist_row)
 	{
-		$listitem=YouTubeGalleryData::updateSingleVideo($listitem);
+		$listitem=YouTubeGalleryData::updateSingleVideo($listitem,$videolist_row->id);
 		
 		$fields=array('width','height','imageurl','image','link','a','/a','link','title','description',
 					  'videoid','videosource','publisheddate','duration',
@@ -162,6 +162,7 @@ class YoutubeGalleryLayoutThumbnails
 			break;
 
 			case 'title':
+
 				$vlu= str_replace('"','&quot;',$listitem['title']);
 				$vlu=YouTubeGalleryMisc::html2txt($vlu);
 

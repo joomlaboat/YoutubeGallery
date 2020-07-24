@@ -372,7 +372,8 @@ class YouTubeGalleryDB
 		else
 			$orderby='ordering';
 
-		$query = 'SELECT *,IF(custom_title!="", custom_title, title) AS title,IF(custom_description!="", custom_description, description) AS description FROM #__youtubegallery_videos WHERE '.implode(' AND ', $where).' ORDER BY '.$orderby;// GROUP BY videoid 
+		$query = 'SELECT *,IF(custom_title!="", custom_title, title) AS title,IF(custom_description!="", custom_description, description) AS description'
+			.' FROM #__youtubegallery_videos WHERE '.implode(' AND ', $where).' ORDER BY '.$orderby;// GROUP BY videoid 
 		
 		$db->setQuery($query);
 		if (!$db->query())    die( $db->stderr());
@@ -400,7 +401,6 @@ class YouTubeGalleryDB
 
 
 		}
-		
 		
 		
 		if($videoid!='')
@@ -601,8 +601,8 @@ class YouTubeGalleryDB
 						{
 							$fields[]=$db->quoteName('duration').'='.$db->quote($g['duration']);
 							
-							if(isset($g['lastupdate']) and $g['lastupdate']!="" and $g['lastupdate']!="0000-00-00 00:00:00")
-								$fields[]=$db->quoteName('lastupdate').'='.$db->quote($g['lastupdate']);
+							//if(isset($g['lastupdate']) and $g['lastupdate']!="" and $g['lastupdate']!="0000-00-00 00:00:00")
+								$fields[]=$db->quoteName('lastupdate').'=NOW()';//.$db->quote($g['lastupdate']);
 						}
 
 						if(isset($g['rating_average']))
@@ -680,7 +680,10 @@ class YouTubeGalleryDB
 
 						if(isset($g['altitude']))
 							$fields[]=$db->quoteName('altitude').'='.$db->quote($g['altitude']);
-							
+						
+						if(isset($g['ordering']))
+							$fields[]=$db->quoteName('ordering').'='.$db->quote($g['ordering']);
+				
 		return $fields;
 	}
 
@@ -767,12 +770,14 @@ class YouTubeGalleryDB
 		//Check DB
 		$db = JFactory::getDBO();
 
-		$query = 'SELECT * FROM #__youtubegallery_videos WHERE videoid="'.$videoid.'" LIMIT 1';
+		$query = 'SELECT *,IF(custom_title!="", custom_title, title) AS title,IF(custom_description!="", custom_description, description) AS description'
+			.' FROM #__youtubegallery_videos'
+			.' WHERE videoid='.$db->quote($videoid).' LIMIT 1';
 
 		$db->setQuery($query);
 		if (!$db->query())    die( $db->stderr());
 		$values=$db->loadAssocList();
-
+		
 		if(count($values)==0)
 			return false;
 

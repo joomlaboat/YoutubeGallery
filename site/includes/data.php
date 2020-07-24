@@ -14,6 +14,7 @@ class YouTubeGalleryData
 	public static function formVideoList($rawList,&$firstvideo,$thumbnailstyle)
 	{
 		$gallery_list=array();
+		$ordering=0;
 		
 		foreach($rawList as $b)
 		{
@@ -50,54 +51,59 @@ class YouTubeGalleryData
 				if(isset($listitem[7]))
 					$item['watchgroup']=$listitem[7];
 				
-				
-				YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink,$gallery_list,$item);
+				YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink,$gallery_list,$item,$ordering);
 			}
-				
 		}
 		
 		return $gallery_list;
 	}
 	
-	public static function updateSingleVideo($listitem)
+	public static function updateSingleVideo($listitem,$videolist_id)
 	{
-		if($listitem['lastupdate']!='' and $listitem['lastupdate']!='0000-00-00 00:00:00')
-			return $listitem;
-
+		if($listitem['lastupdate']!='' and $listitem['lastupdate']!='0000-00-00 00:00:00' and ($listitem['isvideo']==1 and $listitem['duration']!=0))
+			return $listitem; //no need to update. But this should count the update period. In future version
+		
 		$theLink=trim($listitem['link']);
 		if($theLink=='')
 			return $listitem;
 			
 		$item=array();//where to save
 		
-		YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,$item,$listitem);
-
+		YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,$item,$listitem,$force=true);//force the update
+		
 		if((int)$item['status']==0)
 		{
 			$parent_id=0;
-			$parent_details=array();
-			$this_is_a_list=false;
-			$list_count_left=0;
-			YouTubeGalleryDB::updateDBSingleItem($item,0,$parent_id,$parent_details,$this_is_a_list,$list_count_left);
+			YouTubeGalleryDB::updateDBSingleItem($item,$videolist_id,$parent_id);//,$parent_details,$this_is_a_list,$list_count_left);
+			
+			if($listitem['custom_title'])
+				$item['title']=$listitem['custom_title'];
+			
+			if($listitem['custom_description'])
+				$item['description']=$listitem['custom_description'];
+			
+			
 			return $item;
 		}
 		else
 			return $listitem;
 	}
 	
-	public static function queryTheAPIServer($theLink,$host='')
+	public static function queryTheAPIServer($theLink,$host='',$force=false)
 	{
 		if($host=='')
 			$host=YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
 		
 		$key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 		
-		$url = $host.'?key='.$key.'&v=5.0.0&query='.base64_encode($theLink);
-			
+		$url = $host.'?key='.$key.'&v=5.1.5&query='.base64_encode($theLink);
+		if($force)
+			$url.='&force=1';//to force the update
+		
 		return YouTubeGalleryMisc::getURLData($url);
 	}
 	
-	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list,&$original_item)
+	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list,&$original_item,&$ordering)
 	{
 		$item=array();
 		if (!function_exists('curl_init') and !function_exists('file_get_contents'))
@@ -145,7 +151,11 @@ class YouTubeGalleryData
 			}
 			
 			foreach($j as $item)
+			{
+				$original_item['ordering']=$ordering;
 				$gallery_list[]=YouTubeGalleryData::parse_SingleVideo((array)$item,$original_item);
+				$ordering++;
+			}
 			
 		}
 		catch(Exception $e)
@@ -156,9 +166,10 @@ class YouTubeGalleryData
 			$gallery_list[]=YouTubeGalleryData::parse_SingleVideo($item);
 			return false;
 		}
+		
 	}
 	
-	protected static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,&$item,&$original_item)
+	protected static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,&$item,&$original_item,$force=false)
 	{
 		if (!function_exists('curl_init') and !function_exists('file_get_contents'))
 		{
@@ -179,7 +190,7 @@ class YouTubeGalleryData
 
 		try
 		{
-			$htmlcode=YouTubeGalleryData::queryTheAPIServer($theLink);
+			$htmlcode=YouTubeGalleryData::queryTheAPIServer($theLink,'',$force);
 			
 			$j=json_decode($htmlcode);
 
@@ -266,7 +277,8 @@ class YouTubeGalleryData
 				'datalink' => '',
 				'latitude' => null,
 				'longitude' => null,
-				'altitude' => null
+				'altitude' => null,
+				'ordering' => (array_key_exists('ordering',$original_item) ? $original_item['ordering'] : 0)
 				);
 				
 		if(isset($item['es_error']) and $item['es_error']!='')

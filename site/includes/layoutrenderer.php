@@ -183,6 +183,7 @@ class YoutubeGalleryLayoutRenderer
 			break;
 
 			case 'thumbnails':
+			
 				require_once('thumbnails.php');
 				return YoutubeGalleryLayoutThumbnails::NavigationList($gallery_list, $videolist_row, $theme_row, $AllowPagination, $videoid,$custom_itemid);
 			break;
