@@ -6,8 +6,8 @@
         <authorUrl>https://joomlaboat.com</authorUrl>
 	<license>GNU General Public License</license>
         <copyright>Copyright (C) Ivan Komlev. All rights reserved.</copyright>
-        <creationDate>July, 2020</creationDate>
-        <version>5.1.5</version>
+        <creationDate>August, 2020</creationDate>
+        <version>5.1.7</version>
         <description>COM_YOUTUBEGALLERY_DESCRIPTION</description>
           
         <install> <!-- Runs on install -->

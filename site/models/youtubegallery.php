@@ -1,7 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -19,16 +19,17 @@ jimport('joomla.application.menu' );
 class YoutubeGalleryModelYoutubeGallery extends JModelItem
 {
         protected $youtubegallerycode;
+		var $params;
        
         public function getYoutubeGalleryCode()
         {
-                require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
-		require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'render.php');
-		$jinput=JFactory::getApplication()->input;
-		$result='';
+            require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
+			require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'render.php');
+			$jinput=JFactory::getApplication()->input;
+			$result='';
 
-		$app	= JFactory::getApplication();
-		$params	= $app->getParams();
+			$app	= JFactory::getApplication();
+			$this->params	= $app->getParams();
 
 				if (!isset($this->youtubegallerycode))
                 {
@@ -52,18 +53,18 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 						}
 						else
 						{
-								$listid=(int)$params->get( 'listid' );
+								$listid=(int)$this->params->get( 'listid' );
 								//Get Theme
-								$m_themeid=(int)$params->get( 'mobilethemeid' );
+								$m_themeid=(int)$this->params->get( 'mobilethemeid' );
 								if($m_themeid!=0)
 								{
 									if(YouTubeGalleryMisc::check_user_agent('mobile'))
 										$themeid=$m_themeid;
 									else
-										$themeid=(int)$params->get( 'themeid' );
+										$themeid=(int)$this->params->get( 'themeid' );
 								}
 								else
-									$themeid=(int)$params->get( 'themeid' );
+									$themeid=(int)$this->params->get( 'themeid' );
 						}
 
 
@@ -87,10 +88,6 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
 								$videoid=JFactory::getApplication()->input->getCmd('videoid');
 
-								if($ygDB->theme_row->playvideo==1 and $videoid!='')
-									$ygDB->theme_row->autoplay=1;
-								
-
 								$ygDB=new YouTubeGalleryDB;
 
 								if(!$ygDB->getVideoListTableRow($listid))
@@ -98,6 +95,10 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
 								if(!$ygDB->getThemeTableRow($themeid))
 										return  '<p>No video found</p>';
+									
+								if($ygDB->theme_row->playvideo==1 and $videoid!='')
+									$ygDB->theme_row->autoplay=1;
+									
 
 								$renderer= new YouTubeGalleryRenderer;
 
@@ -153,7 +154,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 				);
 
 
-                                $align=$params->get( 'align' );
+                                $align=$this->params->get( 'align' );
 
 
                                 switch($align)
@@ -189,7 +190,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
 
 
-				if($params->get( 'allowcontentplugins' ))
+				if($this->params->get( 'allowcontentplugins' ))
 				{
 								$o = new stdClass();
 								$o->text=$this->youtubegallerycode;
@@ -198,7 +199,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
 								JPluginHelper::importPlugin('content');
 
-								$r = $dispatcher->trigger('onContentPrepare', array ('com_content.article', &$o, &$params_, 0));
+								$r = $dispatcher->trigger('onContentPrepare', array ('com_content.article', &$o, &$this->params_, 0));
 
 								$this->youtubegallerycode=$o->text;
 				}
