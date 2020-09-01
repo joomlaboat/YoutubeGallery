@@ -129,10 +129,12 @@ class YouTubeGalleryData
 		try
 		{
 			$htmlcode=YouTubeGalleryData::queryTheAPIServer($theLink);
+			
+			echo $htmlcode;
 
-			$j=json_decode($htmlcode);
-
-			if(!$j)
+			$j_=json_decode($htmlcode);
+			
+			if(!$j_)
 			{
 				$item['es_error']='Connection Error';
 				$item['es_status']=-1;
@@ -140,6 +142,8 @@ class YouTubeGalleryData
 				$gallery_list[]=YouTubeGalleryData::parse_SingleVideo($item);
 				return false;
 			}
+			
+			$j=(array)$j_;
 			
 			if(isset($j['es_error']))
 			{

@@ -54,6 +54,9 @@
 			cols="150"
                         default="7"
                 >
+			<option value="0.00347">Check for New Videos Every 5 Minutes</option>						
+			<option value="0.01025">Check for New Videos Every 15 Minutes</option>			
+			<option value="0.0205">Check for New Videos Every 30 Minutes</option>
                         <option value="0.041">Check for New Videos Every Hour</option>
                         <option value="0.125">Check for New Videos Every 3 Hours</option>
                         <option value="0.25">Check for New Videos Every 6 Hours</option>
