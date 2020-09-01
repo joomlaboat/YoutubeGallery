@@ -11,7 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 
 class YouTubeGalleryData
 {
-	public static function formVideoList($rawList,&$firstvideo,$thumbnailstyle)
+	public static function formVideoList(&$videolist_row,$rawList,&$firstvideo,$thumbnailstyle)
 	{
 		$gallery_list=array();
 		$ordering=0;
@@ -51,15 +51,17 @@ class YouTubeGalleryData
 				if(isset($listitem[7]))
 					$item['watchgroup']=$listitem[7];
 				
-				YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink,$gallery_list,$item,$ordering);
+				YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink,$gallery_list,$item,$ordering,$videolist_row);
 			}
 		}
 		
 		return $gallery_list;
 	}
 	
-	public static function updateSingleVideo($listitem,$videolist_id)
+	public static function updateSingleVideo($listitem,&$videolist_row)
 	{
+		$videolist_id=$videolist_row->id;
+		
 		if($listitem['lastupdate']!='' and $listitem['lastupdate']!='0000-00-00 00:00:00' and ($listitem['isvideo']==1 and $listitem['duration']!=0))
 			return $listitem; //no need to update. But this should count the update period. In future version
 		
@@ -103,8 +105,14 @@ class YouTubeGalleryData
 		return YouTubeGalleryMisc::getURLData($url);
 	}
 	
-	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list,&$original_item,&$ordering)
+	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list,&$original_item,&$ordering,$videolist_row)
 	{
+		$updateperiod=60*24*($videolist_row->updateperiod)*60;
+		$Playlist_lastupdate=YouTubeGalleryDB::Playlist_lastupdate($theLink);
+		$diff = strtotime(date('Y-m-d H:i:s')) - strtotime($Playlist_lastupdate);
+		
+		$force=$diff>$updateperiod;
+		
 		$item=array();
 		if (!function_exists('curl_init') and !function_exists('file_get_contents'))
 		{
@@ -128,9 +136,7 @@ class YouTubeGalleryData
 
 		try
 		{
-			$htmlcode=YouTubeGalleryData::queryTheAPIServer($theLink);
-			
-			echo $htmlcode;
+			$htmlcode=YouTubeGalleryData::queryTheAPIServer($theLink,'',$force);
 
 			$j_=json_decode($htmlcode);
 			

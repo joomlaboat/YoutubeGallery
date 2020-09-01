@@ -17,7 +17,6 @@ class YouTubeGalleryDB
 	var $videolist_row;
 	var $theme_row;
 
-	//
 	function getVideoListTableRow($listid)
 	{
 		$db = JFactory::getDBO();
@@ -159,6 +158,22 @@ class YouTubeGalleryDB
 				return $videos_row['id'];
 	}
 
+
+public static function Playlist_lastupdate($theLink)
+	{
+		$db = JFactory::getDBO();
+		$query = 'SELECT lastupdate FROM #__youtubegallery_videos WHERE link='.$db->quote($theLink).' LIMIT 1';
+
+		$db->setQuery($query);
+		if (!$db->query())    die( $db->stderr());
+
+		$videos_rows=$db->loadAssocList();
+				
+		if(count($videos_rows))
+			return $videos_rows[0]['lastupdate'];
+				
+		return 0;
+	}
 
 	function getVideoList_FromCache_From_Table(&$videoid,&$total_number_of_rows,$get_the_first_one=false)
 	{
@@ -447,7 +462,7 @@ class YouTubeGalleryDB
 	{
 				$videolist_array=YouTubeGalleryMisc::csv_explode("\n", $videolist_row->videolist, '"', true);
 				$firstvideo='';
-				$videolist=YouTubeGalleryData::formVideoList($videolist_array, $firstvideo, '');//$this->theme_row->thumbnailstyle);
+				$videolist=YouTubeGalleryData::formVideoList($videolist_row,$videolist_array, $firstvideo, '');//$this->theme_row->thumbnailstyle);
 				
 				$db = JFactory::getDBO();
 				$parent_id=0;
