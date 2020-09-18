@@ -11,7 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 
 class YouTubeGalleryData
 {
-	public static function formVideoList(&$videolist_row,$rawList,&$firstvideo,$thumbnailstyle)
+	public static function formVideoList(&$videolist_row,$rawList,&$firstvideo,$thumbnailstyle,$force=false)
 	{
 		$gallery_list=array();
 		$ordering=0;
@@ -51,7 +51,7 @@ class YouTubeGalleryData
 				if(isset($listitem[7]))
 					$item['watchgroup']=$listitem[7];
 				
-				YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink,$gallery_list,$item,$ordering,$videolist_row);
+				YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink,$gallery_list,$item,$ordering,$videolist_row,$force);
 			}
 		}
 		
@@ -105,13 +105,13 @@ class YouTubeGalleryData
 		return YouTubeGalleryMisc::getURLData($url);
 	}
 	
-	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list,&$original_item,&$ordering,$videolist_row)
+	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list,&$original_item,&$ordering,$videolist_row,$force=false)
 	{
 		$updateperiod=60*24*($videolist_row->updateperiod)*60;
 		$Playlist_lastupdate=YouTubeGalleryDB::Playlist_lastupdate($theLink);
 		$diff = strtotime(date('Y-m-d H:i:s')) - strtotime($Playlist_lastupdate);
 		
-		$force=$diff>$updateperiod;
+		$force=$force or $diff>$updateperiod;
 		
 		$item=array();
 		if (!function_exists('curl_init') and !function_exists('file_get_contents'))

@@ -448,7 +448,7 @@ public static function Playlist_lastupdate($theLink)
 			if($days_diff>abs($updateperiod) or $force_update)
 			{
 
-				YouTubeGalleryDB::update_cache_table($this->videolist_row);//,$updateperiod>0); //updateperiod>0 ? refresh : get new videos
+				YouTubeGalleryDB::update_cache_table($this->videolist_row,true);//,$updateperiod>0); //updateperiod>0 ? refresh : get new videos
 				$this->videolist_row->lastplaylistupdate =date( 'Y-m-d H:i:s');
 
 				$db = JFactory::getDBO();
@@ -458,11 +458,11 @@ public static function Playlist_lastupdate($theLink)
 			}
 	}
 
-	public static function update_cache_table(&$videolist_row,$update_videolist=true)
+	public static function update_cache_table(&$videolist_row,$update_videolist=false)
 	{
 				$videolist_array=YouTubeGalleryMisc::csv_explode("\n", $videolist_row->videolist, '"', true);
 				$firstvideo='';
-				$videolist=YouTubeGalleryData::formVideoList($videolist_row,$videolist_array, $firstvideo, '');//$this->theme_row->thumbnailstyle);
+				$videolist=YouTubeGalleryData::formVideoList($videolist_row,$videolist_array, $firstvideo, '',$update_videolist);//$this->theme_row->thumbnailstyle);
 				
 				$db = JFactory::getDBO();
 				$parent_id=0;
