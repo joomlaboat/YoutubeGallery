@@ -505,6 +505,42 @@ class YouTubeGalleryMisc
 
 		return implode('&amp;',$a);
 	}
+	
+	
+	function prepareDescriptions($gallery_list)
+	{
+			//-------------------- prepare description
+				$params='';
+				$new_gallery_list=array();
+				$videodescription_params=explode(',',$params);
+				
+				foreach($gallery_list as $listitem)
+				{
+					$description=$listitem['description'];
+					$description=str_replace('&quot;','_quote_',$description);
+					$description=str_replace('"','_quote_',$description);
+					$description=str_replace("'",'_quote_',$description);
+					$description=str_replace("@",'_email_',$description);
+					
+					if($params!='')
+						$description=YouTubeGalleryMisc::PrepareDescription($description, $videodescription_params);
+					
+					$listitem['description']=$description;
+
+					$title=$listitem['title'];
+					$title=str_replace('&quot;','_quote_',$title);
+					$title=str_replace('"','_quote_',$title);
+					$listitem['title']=str_replace("'",'_quote_',$title);
+					
+					$title=$listitem['custom_title'];
+					$title=str_replace('&quot;','_quote_',$title);
+					$title=str_replace('"','_quote_',$title);
+					$listitem['custom_title']=str_replace("'",'_quote_',$title);
+					
+					$new_gallery_list[]=$listitem;
+				}
+			return $new_gallery_list;
+	}
 
 }
 

@@ -141,8 +141,14 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
         this.iframeAPIloadedCheckCount++;
         return false;
       }
+	  
+	 if(this.PlayList.length==0)
+	 {
+		setTimeout(this.FindNextVideo(), 500);
+		return false;
+	}
 
-      this.updateVideoRecords();
+      //this.updateVideoRecords();
       var d = 0;
       var v = this.CurrentVideoID;
       var l = this.PlayList.length;
@@ -174,8 +180,14 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
         this.iframeAPIloadedCheckCount++;
         return false;
       }
+	  
+	  	if(this.PlayList.length==0)
+		{
+			setTimeout(this.FindCurrentVideo(), 500);
+			return false;
+		}
 
-      this.updateVideoRecords();
+      //this.updateVideoRecords();
       var l = this.PlayList.length;
 
       for (var i = 0; i < l; i++) {
@@ -191,6 +203,19 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "loadVideoRecords",
+    value: function loadVideoRecords() {
+		var xmlHttp = new XMLHttpRequest();
+
+		let url='/index.php?option=com_youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
+
+		xmlHttp.open( "GET", url, false);
+		xmlHttp.send(null);
+		var r=xmlHttp.responseText;
+
+		this.videorecords=JSON && JSON.parse(r) || $.parseJSON(r);
+    }
+  },/* {
     key: "updateVideoRecords",
     value: function updateVideoRecords() {
       if (this.videorecords.length == 0) {
@@ -205,7 +230,7 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
         }
       }
     }
-  }, {
+  }, */{
     key: "findVideoRecordByID",
     value: function findVideoRecordByID(videoid) {
       for (var i = 0; i < this.videorecords.length; i++) {

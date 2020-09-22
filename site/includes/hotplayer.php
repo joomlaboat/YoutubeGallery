@@ -17,6 +17,9 @@ class YoutubeGalleryHotPlayer
 {
 	public static function addHotReloadScript(&$gallery_list,$width,$height,&$videolist_row, &$theme_row)
 	{
+			$jinput=JFactory::getApplication()->input;
+			$ygstart=$jinput->getInt('ygstart');
+				
 			$vs=array();
 			foreach($gallery_list as $g)
 			{
@@ -31,9 +34,9 @@ class YoutubeGalleryHotPlayer
 			$document = JFactory::getDocument();
 			
 			if(YouTubeGalleryMisc::check_user_agent_for_ie())
-				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_ie.js');//Thankx to https://babeljs.io/
+				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_ie_522.js');//Thankx to https://babeljs.io/
 			else
-				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player.js');
+				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_522.js');
 			
 			
 			$autoplay=((int)$theme_row->autoplay==1 ? 'true' : 'false');
@@ -68,6 +71,7 @@ var youtubeplayer'.$videolist_row->id.' = new YoutubeGalleryPlayerObject('
 	}
 
 	youtubeplayer'.$videolist_row->id.'.videolistid="'.$videolist_row->id.'";
+	youtubeplayer'.$videolist_row->id.'.themeid="'.$theme_row->id.'";
 
 
 	youtubeplayer'.$videolist_row->id.'.VideoSources=["'.implode('", "',$vs).'"];
@@ -101,6 +105,12 @@ var youtubeplayer'.$videolist_row->id.' = new YoutubeGalleryPlayerObject('
 		player_code=player_code.replace(\'_quote_\',\'\\\'\');
 		youtubeplayer'.$videolist_row->id.'.Player[i]=player_code;
 	}
+	
+	
+	window.addEventListener( "load", function( event ) {
+		youtubeplayer'.$videolist_row->id.'.loadVideoRecords('.$ygstart.');
+	});
+	
 ';//</script>
 		$videoid=JFactory::getApplication()->input->getCmd('videoid');
 		if($theme_row->playvideo==1 or $videoid!='')
@@ -117,12 +127,16 @@ var youtubeplayer'.$videolist_row->id.' = new YoutubeGalleryPlayerObject('
 		{
 			$hotrefreshscript.='
 			
+			
+			
 			setTimeout(youtubeplayer'.$videolist_row->id.'.FindNextVideo(), 500);
 ';
 		}
 		else
 		{
 			$hotrefreshscript.='
+			
+			
 			setTimeout(youtubeplayer'.$videolist_row->id.'.FindCurrentVideo(), 500);
 ';
 		}

@@ -70,18 +70,45 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
                         if($listid==0 and $themeid!=0)
                         {
-                                JFactory::getApplication()->enqueueMessage(JText::_( 'COM_YOUTUBEGALLERY_ERROR_VIDEOLIST_NOT_SET' ), 'error');
-                                return '';
+								if($jinput->getInt('yg_api')==1)
+								{
+									$response=array('error'=>JText::_( 'COM_YOUTUBEGALLERY_ERROR_VIDEOLIST_NOT_SET' ));
+									echo json_encode($response);
+									die;
+								}
+								else
+								{
+									JFactory::getApplication()->enqueueMessage(JText::_( 'COM_YOUTUBEGALLERY_ERROR_VIDEOLIST_NOT_SET' ), 'error');
+									return '';
+								}
                         }
 						elseif($themeid==0 and $listid!=0)
                         {
+							if($jinput->getInt('yg_api')==1)
+							{
+								$response=array('error'=>JText::_( 'COM_YOUTUBEGALLERY_ERROR_THEME_NOT_SET' ));
+								echo json_encode($response);
+								die;
+							}
+							else
+							{
                                 JFactory::getApplication()->enqueueMessage(JText::_( 'COM_YOUTUBEGALLERY_ERROR_THEME_NOT_SET' ), 'error');
                                 return '';
+							}
                         }
                         elseif($themeid==0 and $listid==0)
                         {
+							if($jinput->getInt('yg_api')==1)
+							{
+								$response=array('error'=>JText::_( 'COM_YOUTUBEGALLERY_ERROR_VIDEOLIST_AND_THEME_NOT_SET' ));
+								echo json_encode($response);
+								die;
+							}
+							else
+							{
                                 JFactory::getApplication()->enqueueMessage(JText::_( 'COM_YOUTUBEGALLERY_ERROR_VIDEOLIST_AND_THEME_NOT_SET' ), 'error');
                                 return '';
+							}
                         }
 
 
@@ -116,17 +143,17 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
                                 if($jinput->getInt('yg_api')==1)
                                 {
                                         $videolist=$ygDB->getVideoList_FromCache_From_Table($videoid_new,$total_number_of_rows,false);
-                                        $result=json_encode($videolist);
+										$videolist=YouTubeGalleryMisc::prepareDescriptions($videolist);
 
                                         if (ob_get_contents())
                                         	ob_end_clean();
 
-                                        header('Content-Disposition: attachment; filename="youtubegallery_api.json"');
-                                        header('Content-Type: application/json; charset=utf-8');
-                                        header("Pragma: no-cache");
-                                        header("Expires: 0");
+                                        //header('Content-Disposition: attachment; filename="youtubegallery_api.json"');
+                                        //header('Content-Type: application/json; charset=utf-8');
+                                        //header("Pragma: no-cache");
+                                        //header("Expires: 0");
 
-                                        echo $result;
+                                        echo json_encode($videolist);
                                         die;
 
                                         return '';

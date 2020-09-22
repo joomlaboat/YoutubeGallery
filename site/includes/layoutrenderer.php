@@ -143,6 +143,7 @@ class YoutubeGalleryLayoutRenderer
 					$containerStyle.='display:block;';
 
 				//-------------------- prepare description
+				/*
 				$new_gallery_list=array();
 				$videodescription_params=explode(',',$params);
 				
@@ -172,8 +173,9 @@ class YoutubeGalleryLayoutRenderer
 					$new_gallery_list[]=$listitem;
 				}
 				$result='<div id="YoutubeGallery_VideoRecords_'.$videolist_row->id.'" style="display:none;">'.json_encode($new_gallery_list).'</div>';
+				*/
 				
-				return $result.'<div id="YoutubeGallerySecondaryContainer'.$videolist_row->id.'" style="'.$containerStyle.'"></div>';
+				return '<div id="YoutubeGallerySecondaryContainer'.$videolist_row->id.'" style="'.$containerStyle.'"></div>';
 			break;
 
 			case 'navigationbar': //Obselete
