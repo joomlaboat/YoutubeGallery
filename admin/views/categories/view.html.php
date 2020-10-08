@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -40,13 +39,18 @@ class YoutubeGalleryViewCategories extends JViewLegacy
                 $this->items = $items;
                 $this->pagination = $pagination;
 
+				$this->canDo = YoutubeGalleryHelper::getActions('categories');
+				
+				$this->canCreate = $this->canDo->get('categories.create');
+				$this->canDelete = $this->canDo->get('categories.delete');
+				$this->canEdit = $this->canDo->get('categories.edit');
+				$this->canUpdate = $this->canDo->get('categories.update');
+
+
                 // Set the toolbar
                 $this->addToolBar();
 
-
                 // Display the template
-
-
                 parent::display($tpl);
         }
 
@@ -58,10 +62,17 @@ class YoutubeGalleryViewCategories extends JViewLegacy
                 JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_CATEGORIES'));
 
 
-                JToolBarHelper::addNew('categoryform.add');
-                JToolBarHelper::editList('categoryform.edit');
-                JToolBarHelper::custom( 'categories.copyItem', 'copy.png', 'copy_f2.png', 'Copy', true);
-                JToolBarHelper::deleteList('', 'categories.delete');
+				if($this->canCreate)
+					JToolBarHelper::addNew('categoryform.add');
+				
+				if($this->canEdit)
+					JToolBarHelper::editList('categoryform.edit');
+				
+				if($this->canCreate)
+					JToolBarHelper::custom( 'categories.copyItem', 'copy.png', 'copy_f2.png', 'Copy', true);
+				
+				if($this->canDelete)
+					JToolBarHelper::deleteList('', 'categories.delete');
 
         }
 }     //class

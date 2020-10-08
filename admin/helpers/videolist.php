@@ -1,10 +1,9 @@
- <?php
+<?php
 /**
- * Custom Tables Joomla! 3.x Native Component
- * @version 1.2.6
- * @author Ivan komlev <support@joomlaboat.com>
+ * Youtube Gallery Joomla! Native Component
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
- * @license GNU/GPL
+ * @GNU General Public License
  **/
 
 // Check to ensure this file is included in Joomla!

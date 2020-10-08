@@ -18,23 +18,29 @@ defined('_JEXEC') or die('Restricted Access');
 
         <tr class="row<?php echo $i % 2; ?>">
                 <td>
+					<?php if($this->canEdit): ?>
                         <a href="<?php echo $link2edit; ?>"><?php echo $item->id; ?></a>
+					<?php else: ?>
+						<?php echo $item->id; ?>
+					<?php endif; ?>
                 </td>
                 <td>
                         <?php echo JHtml::_('grid.id', $i, $item->id); ?>
                 </td>
                 <td>
+				
+					<?php if($this->canEdit): ?>
                         <a href="<?php echo $link2edit; ?>"><?php echo $item->listname; ?></a>
-                </td>
-                
-                
-                <td>
-                        <?php echo $item->categoryname; ?>
+					<?php else: ?>
+						<?php echo $item->listname; ?>
+					<?php endif; ?>
                 </td>
                 
                 <td>
-                        
-                        
+                    <?php echo $item->categoryname; ?>
+                </td>
+                
+                <td>
                         <span style="">
                                 
                                 <?php
@@ -53,7 +59,7 @@ defined('_JEXEC') or die('Restricted Access');
                 </td>
                 
                 <td>
-                        <a href="<?php echo $link2videolist; ?>"><?php echo $item->number_of_videos; ?></a>
+                    <a href="<?php echo $link2videolist; ?>"><?php echo $item->number_of_videos; ?></a>
                 </td>
 
                 

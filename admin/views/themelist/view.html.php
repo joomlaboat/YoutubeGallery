@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -30,6 +29,13 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
                 $this->items = $items;
                 $this->pagination = $pagination;
 
+				$this->canDo = YoutubeGalleryHelper::getActions('themelist');
+				
+				$this->canCreate = $this->canDo->get('themelist.create');
+				$this->canDelete = $this->canDo->get('themelist.delete');
+				$this->canEdit = $this->canDo->get('themelist.edit');
+				$this->canUpdate = $this->canDo->get('themelist.update');
+
                 // Set the toolbar
                 $this->addToolBar();
 
@@ -54,14 +60,20 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
         {
                 JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_THEMELIST'));
 
+				if($this->canCreate)
+					JToolBarHelper::addNew('themeform.add');
+				
+				if($this->canEdit)
+					JToolBarHelper::editList('themeform.edit');
+				
+				if($this->canCreate)
+					JToolBarHelper::custom( 'themelist.copyItem', 'copy.png', 'copy_f2.png', 'Copy', true);
+				
+				if($this->canCreate)
+					JToolBarHelper::custom( 'themelist.uploadItem', 'upload.png', 'upload_f2.png', 'Import', false);
 
-                JToolBarHelper::addNew('themeform.add');
-                JToolBarHelper::editList('themeform.edit');
-                JToolBarHelper::custom( 'themelist.copyItem', 'copy.png', 'copy_f2.png', 'Copy', true);
-				JToolBarHelper::custom( 'themelist.uploadItem', 'upload.png', 'upload_f2.png', 'Import', false);
-
-                JToolBarHelper::deleteList('', 'themelist.delete');
-
+				if($this->canDelete)
+					JToolBarHelper::deleteList('', 'themelist.delete');
         }
 
         function array_insert(&$array, $insert, $position = -1)
@@ -86,5 +98,4 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
                 ksort($array);
                 return true;
         }
-
 }

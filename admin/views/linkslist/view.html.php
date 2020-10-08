@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -39,6 +38,13 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
                 $this->pagination = $pagination;
 
                 // Set the toolbar
+				$this->canDo = YoutubeGalleryHelper::getActions('linkslist');
+				
+				$this->canCreate = $this->canDo->get('linkslist.create');
+				$this->canDelete = $this->canDo->get('linkslist.delete');
+				$this->canEdit = $this->canDo->get('linkslist.edit');
+				$this->canUpdate = $this->canDo->get('linkslist.update');
+				
                 $this->addToolBar();
 
                 $context= 'com_youtubegallery.linkslist.';
@@ -48,16 +54,13 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 
                 $lists['search']=$search;
 
-
                 $filter_category= $mainframe->getUserStateFromRequest($context."filter_category",'filter_category','',	'integer' );
-
 
                 $available_categories=$this->getAllCategories();
                 $javascript = 'onchange="document.adminForm.submit();"';
                 $lists['categories']=JHTML::_('select.genericlist', $available_categories, 'filter_category', $javascript ,'id','categoryname', $filter_category);
 
                 $this->assignRef('lists', $lists);
-
 
                 // Display the template
                 parent::display($tpl);
@@ -68,18 +71,27 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
         */
         protected function addToolBar()
         {
-                JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_LINKSLIST'));
+            JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_LINKSLIST'));
 
-
+			if ($this->canCreate)
                 JToolBarHelper::addNew('linksform.add');
-                JToolBarHelper::editList('linksform.edit');
-                JToolBarHelper::custom( 'linkslist.copyItem', 'copy.png', 'copy_f2.png', 'Copy', true);
-		JToolBarHelper::custom( 'linkslist.updateItem', 'refresh.png', 'refresh_f2.png', 'Update', true);
-		JToolBarHelper::custom( 'linkslist.refreshItem', 'purge.png', 'purge_f2.png', 'Refresh', true);
+            
+			if($this->canEdit)
+				JToolBarHelper::editList('linksform.edit');
+			
+			if ($this->canCreate)
+				JToolBarHelper::custom( 'linkslist.copyItem', 'copy.png', 'copy_f2.png', 'Copy', true);
+		
+			if($this->canUpdate)
+			{
+				JToolBarHelper::custom( 'linkslist.updateItem', 'refresh.png', 'refresh_f2.png', 'Update', true);
+				JToolBarHelper::custom( 'linkslist.refreshItem', 'refresh.png', 'refresh_f2.png', 'Refresh', true);
+			}
+			
+			if($this->canDelete)			
                 JToolBarHelper::deleteList('', 'linkslist.delete');
 
         }
-
 
        	function getAllCategories()
         {
@@ -114,5 +126,4 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
                 ksort($array);
                 return true;
         }
-
 }//class

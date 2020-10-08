@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -63,7 +62,17 @@ class YoutubeGalleryControllerThemeList extends JControllerAdmin
 
 		public function delete()
 		{
-
+			$canDoThemeList = YoutubeGalleryHelper::getActions('themelist');
+			$canViewThemeList = $canDoThemeList->get('themelist.view');
+		
+			if(!$canViewThemeList)
+			{
+				$link='index.php?option=com_youtubegallery&view=linkslist';
+				$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+				$this->setRedirect($link, $msg, 'error');
+				return false;
+			}
+			
 				// Check for request forgeries
 				JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
@@ -83,6 +92,16 @@ class YoutubeGalleryControllerThemeList extends JControllerAdmin
 
 		public function remove_confirmed()
 		{
+			$canDoThemeList = YoutubeGalleryHelper::getActions('themelist');
+			$canViewThemeList = $canDoThemeList->get('themelist.view');
+		
+			if(!$canViewThemeList)
+			{
+				$link='index.php?option=com_youtubegallery&view=linkslist';
+				$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+				$this->setRedirect($link, $msg, 'error');
+				return false;
+			}
 
 				// Get some variables from the request
 				$cid	= JFactory::getApplication()->input->getVar( 'cid', array(), 'post', 'array' );
@@ -109,6 +128,17 @@ class YoutubeGalleryControllerThemeList extends JControllerAdmin
 
 		public function copyItem()
 		{
+			
+			$canDoThemeList = YoutubeGalleryHelper::getActions('themelist');
+			$canViewThemeList = $canDoThemeList->get('themelist.view');
+		
+			if(!$canViewThemeList)
+			{
+				$link='index.php?option=com_youtubegallery&view=linkslist';
+				$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+				$this->setRedirect($link, $msg, 'error');
+				return false;
+			}
 
 				$cid = JFactory::getApplication()->input->getVar( 'cid', array(), 'post', 'array' );
 
@@ -134,6 +164,17 @@ class YoutubeGalleryControllerThemeList extends JControllerAdmin
 
 		public function uploadItem()
 		{
+			$canDoThemeList = YoutubeGalleryHelper::getActions('themelist');
+			$canViewThemeList = $canDoThemeList->get('themelist.view');
+		
+			if(!$canViewThemeList)
+			{
+				$link='index.php?option=com_youtubegallery&view=linkslist';
+				$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+				$this->setRedirect($link, $msg, 'error');
+				return false;
+			}
+		
 				$link 	= 'index.php?option=com_youtubegallery&view=themeimport';
 
 				$this->setRedirect($link, '');

@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -12,15 +11,32 @@ defined('_JEXEC') or die('Restricted access');
  
 // import Joomla controllerform library
 jimport('joomla.application.component.controllerform');
+require_once(JPATH_ADMINISTRATOR.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'helpers'.DIRECTORY_SEPARATOR.'youtubegallery.php');
 
 /**
  * YoutubeGallery - LinksForm Controller
  */
+ 
+ 
 class YoutubeGalleryControllerSettings extends JControllerForm
 {
     function display($cachable = false, $urlparams = array())
 	{
 		$jinput = JFactory::getApplication()->input;
+		
+		$canDoSettings = YoutubeGalleryHelper::getActions('settings');
+		$canViewSettings = $canDoSettings->get('settings.view');
+		
+		if(!$canViewSettings)
+		{
+			$link='index.php?option=com_youtubegallery&view=linkslist';
+			$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+			$this->setRedirect($link, $msg, 'error');
+			return true;
+		}
+		
+		
+		
 		$task=$jinput->post->get('task','');
 		
 	
@@ -59,10 +75,20 @@ class YoutubeGalleryControllerSettings extends JControllerForm
 		}
 		
 	}
-
        
 	function save($key = NULL, $urlVar = NULL)
 	{
+		$canDoSettings = YoutubeGalleryHelper::getActions('settings');
+		$canViewSettings = $canDoSettings->get('settings.view');
+		
+		if(!$canViewSettings)
+		{
+			$link='index.php?option=com_youtubegallery&view=linkslist';
+			$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+			$this->setRedirect($link, $msg, 'error');
+			return false;
+		}
+		
 
 		$task = JFactory::getApplication()->input->getVar( 'task');
 		
@@ -95,7 +121,6 @@ class YoutubeGalleryControllerSettings extends JControllerForm
 		}
 		else
 		{
-			  //die;
 			$link 	= 'index.php?option=com_youtubegallery&view=settings&layout=edit';
 			$msg = JText::_( 'COM_YOUTUBEGALLERY_SETTINGS_WAS_UNABLE_TO_SAVE');
 			$this->setRedirect($link, $msg, 'error');
@@ -107,5 +132,4 @@ class YoutubeGalleryControllerSettings extends JControllerForm
 	{
 		$this->setRedirect( 'index.php?option=com_youtubegallery&view=linkslist');
 	}
-
 }

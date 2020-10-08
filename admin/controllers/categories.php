@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -55,13 +54,24 @@ class YoutubeGalleryControllerCategories extends JControllerForm
 
 		public function getModel($name = 'Categories', $prefix = 'YoutubeGalleryModel', $config = array()) 
 		{
-		        $model = parent::getModel($name, $prefix, array('ignore_request' => true));
+			    $model = parent::getModel($name, $prefix, array('ignore_request' => true));
 		        return $model;
 		}
         
  
 		public function delete()
 		{
+			$canDoThemeList = YoutubeGalleryHelper::getActions('categories');
+			$canViewThemeList = $canDoThemeList->get('categories.view');
+		
+			if(!$canViewThemeList)
+			{
+				$link='index.php?option=com_youtubegallery&view=linkslist';
+				$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+				$this->setRedirect($link, $msg, 'error');
+				return false;
+			}
+			
 				JFactory::getApplication()->input->setVar( 'view', 'categories');
 
 				// Check for request forgeries
@@ -80,6 +90,16 @@ class YoutubeGalleryControllerCategories extends JControllerForm
 	
 		public function remove_confirmed()
 		{
+			$canDoThemeList = YoutubeGalleryHelper::getActions('categories');
+			$canViewThemeList = $canDoThemeList->get('categories.view');
+		
+			if(!$canViewThemeList)
+			{
+				$link='index.php?option=com_youtubegallery&view=linkslist';
+				$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+				$this->setRedirect($link, $msg, 'error');
+				return false;
+			}
 		
 				// Get some variables from the request
 				$cid	= JFactory::getApplication()->input->getVar( 'cid', array(), 'post', 'array' );
@@ -105,6 +125,16 @@ class YoutubeGalleryControllerCategories extends JControllerForm
 		
 		public function copyItem()
 		{
+			$canDoCategories = YoutubeGalleryHelper::getActions('categories');
+			$canViewCategories = $canDoCategories->get('categories.view');
+		
+			if(!$canViewCategories)
+			{
+				$link='index.php?option=com_youtubegallery&view=linkslist';
+				$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+				$this->setRedirect($link, $msg, 'error');
+				return false;
+			}
 				
 				$cid = JFactory::getApplication()->input->getVar( 'cid', array(), 'post', 'array' );
 	    
@@ -123,5 +153,4 @@ class YoutubeGalleryControllerCategories extends JControllerForm
 				$link 	= 'index.php?option=com_youtubegallery&view=categories';
 				$this->setRedirect($link, $msg);
 		}
-
 }

@@ -1,8 +1,7 @@
 <?php
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
- * @version 5.0.0
- * @author Ivan Komlev< <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
  **/
@@ -17,7 +16,11 @@ defined('_JEXEC') or die('Restricted Access');
 
         <tr class="row<?php echo $i % 2; ?>">
                 <td>
+					<?php if($this->canEdit): ?>
                         <a href="<?php echo $link2edit; ?>"><?php echo $item->id; ?></a>
+					<?php else: ?>
+						<?php echo $item->id; ?>
+					<?php endif; ?>
                 </td>
 
                 <td class="center">
@@ -25,8 +28,11 @@ defined('_JEXEC') or die('Restricted Access');
                 </td>
 					
                 <td>
+					<?php if($this->canEdit): ?>
                         <a href="<?php echo $link2edit; ?>"><?php echo $item->treename; ?></a>
+					<?php else: ?>
+						<?php echo $item->treename; ?>
+					<?php endif; ?>
                 </td>
-                
         </tr>
 <?php endforeach; ?>

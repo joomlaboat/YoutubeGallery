@@ -6,8 +6,8 @@
         <authorUrl>https://joomlaboat.com</authorUrl>
 	<license>GNU General Public License</license>
         <copyright>Copyright (C) Ivan Komlev. All rights reserved.</copyright>
-        <creationDate>September, 2020</creationDate>
-        <version>5.2.2</version>
+        <creationDate>October, 2020</creationDate>
+        <version>5.2.3</version>
         <description>COM_YOUTUBEGALLERY_DESCRIPTION</description>
           
         <install> <!-- Runs on install -->
@@ -78,8 +78,11 @@
                 <files folder="admin">
                         <!-- Admin Main File Copy Section -->
                         <filename>index.html</filename>
-                        <filename>youtubegallery.php</filename>
-                        <filename>controller.php</filename>
+			<filename>controller.php</filename>                        
+			<filename>youtubegallery.php</filename>
+                        
+			<filename>access.xml</filename>
+                        <filename>config.xml</filename>
 
 			<folder>controllers</folder>
 			<folder>css</folder>
