@@ -7,7 +7,7 @@
 	<license>GNU General Public License</license>
         <copyright>Copyright (C) Ivan Komlev. All rights reserved.</copyright>
         <creationDate>October, 2020</creationDate>
-        <version>5.2.3</version>
+        <version>5.2.4</version>
         <description>COM_YOUTUBEGALLERY_DESCRIPTION</description>
           
         <install> <!-- Runs on install -->

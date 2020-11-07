@@ -507,7 +507,7 @@ class YouTubeGalleryMisc
 	}
 	
 	
-	function prepareDescriptions($gallery_list)
+	public static function prepareDescriptions($gallery_list)
 	{
 			//-------------------- prepare description
 				$params='';

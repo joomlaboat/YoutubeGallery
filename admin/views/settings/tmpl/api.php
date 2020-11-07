@@ -16,6 +16,8 @@ require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARAT
 $key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 $host=YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
 
+$activated=false;
+
 try
 {
     $htmlcode=YouTubeGalleryData::queryTheAPIServer('connection-test',$host);
@@ -52,6 +54,7 @@ try
                 $date=$j['date'];
                 
             echo '<p style="color:darkgreen;">'.JText::_('COM_YOUTUBEGALLERY_ACTVATED').' '.$date.'</p>';
+			$activated=true;
         }
         elseif((int)$j['keytype']==3)
             echo '<p style="color:red;">'.JText::_('COM_YOUTUBEGALLERY_WRONG_KEY').'</p>';
@@ -74,10 +77,9 @@ catch(Exception $e)
 				<div class="controls"><input type="text" readonly style="width:300px;" value="<?php echo $_SERVER['SERVER_ADDR']; ?>" /></div>
 			</div>
 			
-			
 			<div class="control-group">
 				<div class="control-label"><?php echo JText::_('COM_YOUTUBEGALLERY_JOOMLABOAT_YOUTUBE_HOST'); ?></div>
-				<div class="controls"><input type="text" name="joomlaboat_api_host" style="width:300px;" value="<?php echo $host; ?>" /></div>
+				<div class="controls"><input type="text" name="joomlaboat_api_host" style="width:300px;" value="<?php echo $host; ?>"<?php echo ((!$activated and $host=='https://joomlaboat.com/youtubegallery-api') ? ' readonly="READONLY"' : ''); ?> /></div>
 			</div>
 			
 			<div class="control-group">
