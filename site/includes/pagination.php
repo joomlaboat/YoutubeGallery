@@ -22,6 +22,10 @@
  * @subpackage  HTML
  * @since       11.1
  */
+ 
+// no direct access
+defined('_JEXEC') or die('Restricted access');
+ 
 class YGPagination extends JObject
 {
 	/**

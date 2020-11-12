@@ -98,6 +98,7 @@ class YouTubeGalleryData
 		
 		$key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 		
+		//its very important to encode the youtube link.
 		$url = $host.'?key='.$key.'&v=5.1.5&query='.base64_encode($theLink);
 		if($force)
 			$url.='&force=1';//to force the update
