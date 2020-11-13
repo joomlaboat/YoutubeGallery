@@ -70,8 +70,8 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 		$jform=JFactory::getApplication()->input->getVar('jform');
 		$allowsef=trim(preg_replace("/[^0-9]/", "", $jform['allowsef']));
 
-		$joomlaboat_api_host=trim(preg_replace("/[^^a-zA-Z0-9\-#@:_(),.!@\/]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_host')));
-		$joomlaboat_api_key=trim(preg_replace("/[^a-zA-Z0-9_-]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_key')));
+		$joomlaboat_api_host=trim(preg_replace("/[^^a-zA-Z0-9~\-#@:_(),.!@\/]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_host')));
+		$joomlaboat_api_key=trim(preg_replace("/[^a-zA-Z0-9~_-]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_key')));
 
 		$db = JFactory::getDBO();
 		$query=array();
