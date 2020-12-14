@@ -351,27 +351,46 @@ class YouTubeGalleryMisc
 	
 	public static function getURLData($url,$format='json')
 	{
-			$htmlcode='';
-
 			if (function_exists('curl_init'))
 			{
 				$ch = curl_init();
-				$timeout = 150;
-				curl_setopt($ch, CURLOPT_URL, $url);
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-
-				if($format=='json')
-				{
-					curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
-				}
-
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_VERBOSE, true);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_ACCEPT_ENCODING, 'gzip, deflate, br');
+				
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+				'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+				'accept-language:en-US,en;q=0.9',
+				'cache-control: max-age=0',
+				'sec-fetch-dest: document',
+				'sec-fetch-mode: navigate',
+				'sec-fetch-site: none',
+				'sec-fetch-user: ?1',
+				'upgrade-insecure-requests: 1'));
+				
+				curl_setopt($ch, CURLOPT_USERAGENT, 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36');
+				curl_setopt($ch, CURLOPT_URL,$url);
+				
+				//if($format=='json')
+				//{
+					//curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+				//}
+				
 				$htmlcode = curl_exec($ch);
+				if($htmlcode === FALSE) {
+					$application = JFactory::getApplication();
+					$application->enqueueMessage(curl_error($ch), 'error');
+
+					return '';
+				}
+				
 				curl_close($ch);
+				return $htmlcode;
 			}
 			elseif (ini_get('allow_url_fopen') == true)
 			{
-				$htmlcode = file_get_contents($url);
+				return file_get_contents($url);
 			}
 			else
 			{
@@ -381,8 +400,6 @@ class YouTubeGalleryMisc
 
 				return '';
 			}
-
-			return $htmlcode;
 	}
 	
 	/* USER-AGENTS ================================================== */
