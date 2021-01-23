@@ -93,23 +93,39 @@ class YouTubeGalleryData
 	
 	public static function queryTheAPIServer($theLink,$host='',$force=false)
 	{
-		if($host=='')
-			$host=YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
-		
-		$key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
-		
-		//its very important to encode the youtube link.
-		if(strpos($host,'?')===false)
-			$url=$host.'?';
+		//Check if YouTubeGallery API installed
+		$file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegalleryapi' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'misc.php';
+		if (file_exists($file))
+		{
+			require_once ($file);
+			
+			$y = new YouTubeGalleryAPIMisc;
+            
+			$isnew = 0;
+			$active_key = true;
+			
+			return json_encode($y->checkLink($theLink, $isnew, $active_key, $force_update = $force));
+		}
 		else
-			$url=$host.'&';
+		{
+			if($host=='')
+				$host=YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
 		
-		$url .= 'key='.$key.'&v=5.2.7&query='.base64_encode($theLink);
+			$key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 		
-		if($force)
-			$url.='&force=1';//to force the update
+			//its very important to encode the youtube link.
+			if(strpos($host,'?')===false)
+				$url=$host.'?';
+			else
+				$url=$host.'&';
 		
-		return YouTubeGalleryMisc::getURLData($url);
+			$url .= 'key='.$key.'&v=5.2.7&query='.base64_encode($theLink);
+		
+			if($force)
+				$url.='&force=1';//to force the update
+		
+			return YouTubeGalleryMisc::getURLData($url);
+		}
 	}
 	
 	public static function queryJoomlaBoatYoutubeGalleryAPI($theLink,&$gallery_list,&$original_item,&$ordering,$videolist_row,$force=false)
