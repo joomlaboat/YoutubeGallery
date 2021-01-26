@@ -34,9 +34,9 @@ class YoutubeGalleryHotPlayer
 			$document = JFactory::getDocument();
 			
 			if(YouTubeGalleryMisc::check_user_agent_for_ie())
-				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_ie_522.js');//Thankx to https://babeljs.io/
+				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_ie_529.js');//Thankx to https://babeljs.io/
 			else
-				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_522.js');
+				$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_529.js');
 			
 			
 			$autoplay=((int)$theme_row->autoplay==1 ? 'true' : 'false');
@@ -63,6 +63,8 @@ var youtubeplayer'.$videolist_row->id.' = new YoutubeGalleryPlayerObject('
 			.$theme_row->muteonplay.','
 			.$autoplay.','
 			.$allowplaylist.');
+			
+	youtubeplayer'.$videolist_row->id.'.WebsiteRoot="'.JURI::root(true).'";
 
 
 	function onYouTubeIframeAPIReady () {

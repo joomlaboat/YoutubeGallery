@@ -16,6 +16,8 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
   function YoutubeGalleryPlayerObject(width_, height_, playerapiid_, initial_volume_, mute_on_play_, auto_play_, allowplaylist_) {
     _classCallCheck(this, YoutubeGalleryPlayerObject);
 
+	this.WebsiteRoot="";
+
     this.iframeAPIloaded = false;
     this.iframeAPIloadedCheckCount = 0;
     this.videorecords = [];
@@ -207,7 +209,7 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
     value: function loadVideoRecords() {
 		var xmlHttp = new XMLHttpRequest();
 
-		let url='/index.php?option=com_youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
+		let url=this.WebsiteRoot + '/index.php?option=com_youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
 
 		xmlHttp.open( "GET", url, false);
 		xmlHttp.send(null);

@@ -10,6 +10,9 @@
 	{
 		constructor(width_,height_,playerapiid_,initial_volume_,mute_on_play_,auto_play_,allowplaylist_)
 		{
+			
+			this.WebsiteRoot="";
+			
 			this.iframeAPIloaded=false;
 			this.iframeAPIloadedCheckCount=0;
 			this.videorecords=[];
@@ -249,7 +252,8 @@
 	{
 		var xmlHttp = new XMLHttpRequest();
 
-		let url='/index.php?option=com_youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
+		
+		let url=this.WebsiteRoot + '/index.php?option=com_youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
 
 		xmlHttp.open( "GET", url, false);
 		xmlHttp.send(null);
@@ -257,24 +261,6 @@
 
 		this.videorecords=JSON && JSON.parse(r) || $.parseJSON(r);
 	}
-	/*
-	updateVideoRecords()
-	{
-		if(this.videorecords.length==0)
-		{
-			var obj_name="YoutubeGallery_VideoRecords_"+this.videolistid+"";
-			var obj=document.getElementById(obj_name);
-			
-			try {
-				this.videorecords=JSON.parse(obj.innerHTML);
-			} catch (e) {
-				alert("Response is not JSON: "+obj.innerHTML);
-				return false;
-			}
-			
-		}
-	}
-	*/
 
 	findVideoRecordByID(videoid)
 	{
