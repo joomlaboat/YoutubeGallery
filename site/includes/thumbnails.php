@@ -44,7 +44,6 @@ class YoutubeGalleryLayoutThumbnails
 
 			if($isEmpty)
 			{
-
 				foreach($ValueList as $ValueListItem)
 					$thumbnail_layout=str_replace($ValueListItem,'',$thumbnail_layout);
 
@@ -124,11 +123,9 @@ class YoutubeGalleryLayoutThumbnails
 					$i++;
 				}
 			}
-
 		}//foreach($fields as $fld)
 
 		return $thumbnail_layout;
-
 	}
 
 	
@@ -516,7 +513,6 @@ class YoutubeGalleryLayoutThumbnails
 				$URLPath=substr($URLPath,0,$p);
 		}
 
-
 		$URLPathSecondPart='';
 
 		if($URLPath!='')
@@ -531,7 +527,6 @@ class YoutubeGalleryLayoutThumbnails
 
 
 		}//if($URLPath!='')
-
 
 		if($custom_itemid!=0)
 		{
@@ -555,7 +550,6 @@ class YoutubeGalleryLayoutThumbnails
 
 		}
 		/////////////////////////////////
-
 
 		if(JFactory::getApplication()->input->getCmd('option')=='com_youtubegallery' and JFactory::getApplication()->input->getCmd('view')==$theview )
 		{
@@ -657,19 +651,12 @@ class YoutubeGalleryLayoutThumbnails
         {
 			if(strpos($listitem['title'],'***Video not found***')===false)
 			{
-
-
-
 				$aLinkURL='';
-
-
 
 				if(!$isForShadowBox and ($theme_row->openinnewwindow==4 or $theme_row->openinnewwindow==5))
 					$aLink='javascript:youtubeplayer'.$videolist_row->id.'.HotVideoSwitch(\''.$videolist_row->id.'\',\''.$listitem['videoid'].'\',\''.$listitem['videosource'].'\','.$listitem['id'].')';
 				else
 					$aLink=YoutubeGalleryLayoutThumbnails::makeLink($listitem, $theme_row->rel, $aLinkURL, $videolist_row->id, $theme_row->id,$custom_itemid);
-
-
 
 				if($isForShadowBox and $theme_row->rel!='')// and $theme_row->openinnewwindow!=4 and $theme_row->openinnewwindow!=5)
 						$aLink.='&tmpl=component';
@@ -693,7 +680,6 @@ class YoutubeGalleryLayoutThumbnails
 					}
 				}
 
-
 				if($theme_row->openinnewwindow!=4 and $theme_row->openinnewwindow!=5)
 				{
 					if(strpos($aLink,'&amp;')===false)
@@ -713,7 +699,7 @@ class YoutubeGalleryLayoutThumbnails
 						if($theme_row->rel=='jce')
 							$aHrefLink='<a href="'.$aLink.'" class="modal">';
 						else
-							$aHrefLink='<a href="'.$aLink.'" rel="'.$theme_row->rel.'"';
+							$aHrefLink='<a href="'.$aLink.'" rel="'.$theme_row->rel.'">';
 
 					}
 				
@@ -749,9 +735,7 @@ class YoutubeGalleryLayoutThumbnails
 	{
 		$result='';
 
-
 		$thumbnail_layout='';
-
 
 		//------------------------------- title
 		$thumbtitle='';
@@ -765,9 +749,6 @@ class YoutubeGalleryLayoutThumbnails
 		}
 
 		//------------------------------- add title and description hidden div containers if needed
-
-
-
 
 		//------------------------------- end of image tag
 
@@ -787,15 +768,11 @@ class YoutubeGalleryLayoutThumbnails
 			$result=YoutubeGalleryLayoutThumbnails::renderThumbnailLayout($thumbnail_layout,		$listitem,$aHrefLink,$aLink, $videoid,$theme_row,$item_index,$gallery_list,$videolist_row);
 		}
 
-		//}
-
 		return $result;
-
 	}
 	
 	public static function PrepareImageTag(&$listitem,$options,&$theme_row,$as_tag=true)
 	{
-
 		$imagetag='';
 
 		//image title
@@ -899,10 +876,7 @@ class YoutubeGalleryLayoutThumbnails
 
 					$document->addCustomTag('<link rel="image_src" href="'.$imagelink.'" />'); //all thumbnails
 				}
-
 		}
-
 		return $imagetag;
 	}
-
 }

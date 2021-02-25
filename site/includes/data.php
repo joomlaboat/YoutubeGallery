@@ -95,6 +95,7 @@ class YouTubeGalleryData
 	{
 		//Check if YouTubeGallery API installed
 		$file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegalleryapi' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'misc.php';
+		
 		if (file_exists($file))
 		{
 			require_once ($file);
@@ -124,7 +125,8 @@ class YouTubeGalleryData
 			if($force)
 				$url.='&force=1';//to force the update
 		
-			return YouTubeGalleryMisc::getURLData($url);
+			$urldata=YouTubeGalleryMisc::getURLData($url);
+			return $urldata;
 		}
 	}
 	
