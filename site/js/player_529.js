@@ -251,14 +251,12 @@
 	loadVideoRecords(ygstart)
 	{
 		var xmlHttp = new XMLHttpRequest();
-
-		
+	
 		let url=this.WebsiteRoot + '/index.php?option=com_youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
 
 		xmlHttp.open( "GET", url, false);
 		xmlHttp.send(null);
 		var r=xmlHttp.responseText;
-
 		this.videorecords=JSON && JSON.parse(r) || $.parseJSON(r);
 	}
 

@@ -18,7 +18,7 @@ class YoutubeGalleryHotPlayer
 	public static function addHotReloadScript(&$gallery_list,$width,$height,&$videolist_row, &$theme_row)
 	{
 			$jinput=JFactory::getApplication()->input;
-			$ygstart=$jinput->getInt('ygstart');
+			$ygstart=$jinput->getInt('ygstart',0);
 				
 			$vs=array();
 			foreach($gallery_list as $g)

@@ -40,16 +40,16 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
 
 								//Get Theme
-								$m_themeid=(int)JFactory::getApplication()->input->getInt('mobilethemeid');
+								$m_themeid=(int)$jinput->getInt('mobilethemeid');
 								if($m_themeid!=0)
 								{
 									if(YouTubeGalleryMisc::check_user_agent('mobile'))
 										$themeid=$m_themeid;
 									else
-										$themeid=(int)JFactory::getApplication()->input->getInt('themeid');
+										$themeid=(int)$jinput->getInt('themeid');
 								}
 								else
-									$themeid=(int)JFactory::getApplication()->input->getInt('themeid');
+									$themeid=(int)$jinput->getInt('themeid');
 						}
 						else
 						{
@@ -113,15 +113,16 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
 
 
-								$videoid=JFactory::getApplication()->input->getCmd('videoid');
+								$videoid=$jinput->getCmd('videoid');
 
 								$ygDB=new YouTubeGalleryDB;
 
 								if(!$ygDB->getVideoListTableRow($listid))
 										return '<p>No video found</p>';
 
+								
 								if(!$ygDB->getThemeTableRow($themeid))
-										return  '<p>No video found</p>';
+										return  '<p>No theme found</p>';
 									
 								if($ygDB->theme_row->playvideo==1 and $videoid!='')
 									$ygDB->theme_row->autoplay=1;
@@ -129,15 +130,9 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 
 								$renderer= new YouTubeGalleryRenderer;
 
-
                                 $total_number_of_rows=0;
 
-
 								$ygDB->update_playlist();
-
-
-
-								
 
                                 $videoid_new=$videoid;
                                 if($jinput->getInt('yg_api')==1)

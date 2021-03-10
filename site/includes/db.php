@@ -329,7 +329,8 @@ public static function Playlist_lastupdate($theLink)
 	
 	function getVideoList_FromCacheFromTable(&$videoid,&$total_number_of_rows,&$listIDs,$get_the_first_one=false)
 	{
-
+		$jinput=JFactory::getApplication()->input;
+		
 		$db = JFactory::getDBO();
 		$where=array();
 
@@ -361,22 +362,8 @@ public static function Playlist_lastupdate($theLink)
 			$limitstart=0;
 			$limit=1;
 		}
-		if($get_the_first_one)
-		{
-			// Get only one video - the first video.
-			$limitstart=0;
-			$limit=1;
-		}
-		else
-		{
-			if(((int)$this->theme_row->customlimit)==0)
-				$limit=0; // UNLIMITED
-			else
-				$limit = (int)$this->theme_row->customlimit;
-
-			$limitstart = JFactory::getApplication()->input->getInt('ygstart', 0);
-		}
-
+		
+		
 		if($this->theme_row->orderby!='')
 		{
 			if($this->theme_row->orderby=='randomization')
@@ -386,7 +373,32 @@ public static function Playlist_lastupdate($theLink)
 		}
 		else
 			$orderby='ordering';
+		
+		if($get_the_first_one)
+		{
+			// Get only one video - the first video.
+			$limitstart=0;
+			$limit=1;
+		}
+		else
+		{
+			if($jinput->getInt('yg_api')==1 and $orderby=='RAND()')
+			{
+				$limit=0; // UNLIMITED
+				$limitstart = 0;
+			}
+			else
+			{
+				if(((int)$this->theme_row->customlimit)==0)
+					$limit=0; // UNLIMITED
+				else
+					$limit = (int)$this->theme_row->customlimit;
 
+				$limitstart = $jinput->getInt('ygstart', 0);
+			}
+		}
+		
+			
 		$query = 'SELECT *,IF(custom_title!="", custom_title, title) AS title,IF(custom_description!="", custom_description, description) AS description'
 			.' FROM #__youtubegallery_videos WHERE '.implode(' AND ', $where).' ORDER BY '.$orderby;// GROUP BY videoid 
 		
