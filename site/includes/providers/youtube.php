@@ -58,7 +58,6 @@ class VideoSource_YouTube
 
 	public static function renderYouTubePlayer($options, $width, $height, &$videolist_row, &$theme_row)//,$startsecond,$endsecond)
 	{
-
 		$videoidkeyword='****youtubegallery-video-id****';
 
 		VideoSource_YouTube::ygPlayerTypeController($options, $theme_row);
@@ -102,10 +101,7 @@ class VideoSource_YouTube
 		}
 
 		YouTubeGalleryMisc::ApplyPlayerParameters($settings,$youtubeparams);
-
 		$settingline=YouTubeGalleryMisc::CreateParamLine($settings);
-
-
 
 		if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
 			$http='https://';
@@ -130,7 +126,6 @@ class VideoSource_YouTube
 
 		$settings[]=array('hl','en');
 
-
 		if($options['fullscreen']!=0)
 			$settings[]=array('fs','1');
 		else
@@ -154,15 +149,7 @@ class VideoSource_YouTube
 			$settings[]=array('controls',$options['controls']);
 			if($options['controls']==0)
 				$settings[]=array('version',3);
-
 		}
-		//--------------
-		//if($options['playertype']!=2)
-		//{
-			//$settings[]=array('start',((int)$startsecond));
-			//$settings[]=array('end',((int)$endsecond));
-		//}
-
 
 		if($options['playertype']==2)
 		{
@@ -170,8 +157,6 @@ class VideoSource_YouTube
 			$settings[]=array('playerapiid','ygplayerapiid_'.$playerapiid);
 			$settings[]=array('enablejsapi','1');
 		}
-
-
 		return $settings;
 	}
 
@@ -234,27 +219,22 @@ class VideoSource_YouTube
 			if(YouTubeGalleryMisc::check_user_agent_for_ie())
 				$options['playertype']=1; //Disable API for IE (so sad!)
 		}
-
 	}
 
 
-
 	protected static function ygHTML5PlayerAPI($width,$height,$youtubeserver,$videoidkeyword,$settingline,
-											   &$options,$vlid,$playerid,&$theme_row,&$full_playlist,$initial_volume,$playerapiid,$withFlash=false)
+		&$options,$vlid,$playerid,&$theme_row,&$full_playlist,$initial_volume,$playerapiid,$withFlash=false)
 	{
-			$showHeadScript=false;
+		$showHeadScript=false;
 
-			/*$result='<iframe id="'.$playerapiid.'api" type="text/html" width="640" height="390"
-  src="http://www.youtube.com/embed/M7lc1UVf-VE?enablejsapi=1&origin=http://example.com"
-  frameborder="0"></iframe>';*/
-			$result='<div id="'.$playerapiid.'api"></div><!--DYNAMIC PLAYER-->';
+		$result='<div id="'.$playerapiid.'api"></div><!--DYNAMIC PLAYER-->';
 
-			$showHeadScript=true;
+		$showHeadScript=true;
 
-			if($showHeadScript)
-				$result.=VideoSource_YouTube::ygHTML5PlayerAPIHead($width,$height,$youtubeserver,$videoidkeyword,
-																   $settingline,$options,$vlid,$playerid,
-																   $theme_row,$full_playlist,$initial_volume,$playerapiid,$withFlash);
+		if($showHeadScript)
+			$result.=VideoSource_YouTube::ygHTML5PlayerAPIHead($width,$height,$youtubeserver,$videoidkeyword,
+				$settingline,$options,$vlid,$playerid,
+				$theme_row,$full_playlist,$initial_volume,$playerapiid,$withFlash);
 
 			return $result;
 	}
@@ -285,11 +265,5 @@ class VideoSource_YouTube
 
 		$document = JFactory::getDocument();
 		$document->addScriptDeclaration($result_head);
-
 	}
-
-
-
-
-
 }
