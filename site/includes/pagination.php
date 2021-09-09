@@ -783,6 +783,7 @@ class YGPagination extends JObject
 
 	    $db->setQuery('SELECT id FROM #__youtubegallery_videos WHERE alias="'.$alias.'" LIMIT 1');
 
+		$db->execute();
             if($db->getNumRows()==1)
                 return true;
 

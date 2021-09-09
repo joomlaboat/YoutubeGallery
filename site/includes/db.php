@@ -395,7 +395,7 @@ public static function Playlist_lastupdate($theLink)
 			.' FROM #__youtubegallery_videos WHERE '.implode(' AND ', $where).' ORDER BY '.$orderby;// GROUP BY videoid 
 		
 		$db->setQuery($query);
-
+		$db->execute();
 		$total_number_of_rows = $db->getNumRows();
 
 		if($limitstart>$total_number_of_rows)

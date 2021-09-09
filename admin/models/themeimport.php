@@ -256,7 +256,7 @@ class YoutubeGalleryModelThemeImport extends JModelList
 
 			$query = 'SELECT id FROM #__youtubegallery_themes WHERE '.$db->quoteName('themename').'='.$db->quote($themename).' LIMIT 1';
 			$db->setQuery($query);
-
+			$db->execute();
 			return $db->getNumRows()>0;
 		}
 
