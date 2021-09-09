@@ -45,10 +45,8 @@ class YouTubeGalleryDB
 		$query .= ' LIMIT 1';
 
 		$db->setQuery($query);
-		if (!$db->query())    die ( $db->stderr());
 
 		$videolist_rows = $db->loadObjectList();
-
 
 
 		if(count($videolist_rows)==0)
@@ -70,9 +68,7 @@ class YouTubeGalleryDB
 		volume, orderby, customnavlayout, responsive, mediafolder, readonly, headscript, themedescription, nocookie, changepagetitle
 		FROM #__youtubegallery_themes WHERE id='.(int)$themeid.' LIMIT 1';
 
-
 		$db->setQuery($query);
-		if (!$db->query())    die ( $db->stderr());
 
 		$theme_rows = $db->loadObjectList();
 
@@ -92,7 +88,6 @@ class YouTubeGalleryDB
 		$query = 'SELECT rawdata FROM #__youtubegallery_videos WHERE videoid='.$db->quote($videoid).' LIMIT 1';
 
 		$db->setQuery($query);
-		if (!$db->query())    die( $db->stderr());
 
 		$values=$db->loadAssocList();
 
@@ -115,9 +110,7 @@ class YouTubeGalleryDB
 			$query = 'UPDATE #__youtubegallery_videos SET '.$db->quoteName('rawdata').'='.$db->quote($value).' WHERE '.$db->quoteName('videoid').'='.$db->quote($videoid);
 
 			$db->setQuery($query);
-			if (!$db->query())    die ( $db->stderr());
-
-
+			$db->execute();
 		}
 
 	}
@@ -129,7 +122,7 @@ class YouTubeGalleryDB
 			$db = JFactory::getDBO();
 			$query = 'UPDATE #__youtubegallery_videos SET '.$db->quoteName('rawdata').'='.$db->quote($videoData).' WHERE '.$db->quoteName('videoid').'='.$db->quote($videoid);
 			$db->setQuery($query);
-			if (!$db->query())    die ( $db->stderr());
+			$db->execute();
 		}
 
 	}
@@ -143,7 +136,7 @@ class YouTubeGalleryDB
 				//.' AND '.$db->quoteName('listid').'='.$listid.' LIMIT 1';
 
 				$db->setQuery($query);
-				if (!$db->query())    die( $db->stderr());
+				$db->execute();
 
 				$videos_rows=$db->loadAssocList();
 
@@ -165,7 +158,6 @@ public static function Playlist_lastupdate($theLink)
 		$query = 'SELECT lastupdate FROM #__youtubegallery_videos WHERE link='.$db->quote($theLink).' LIMIT 1';
 
 		$db->setQuery($query);
-		if (!$db->query())    die( $db->stderr());
 
 		$videos_rows=$db->loadAssocList();
 				
@@ -194,7 +186,7 @@ public static function Playlist_lastupdate($theLink)
 		$query = 'SELECT videoid FROM #__youtubegallery_videos WHERE '.implode(' AND ', $where);
 
 		$db->setQuery($query);
-		if (!$db->query())    die( $db->stderr());
+
 		$videos_lists=$db->loadAssocList();
 		
 		if(count($videos_lists)>0)
@@ -216,7 +208,7 @@ public static function Playlist_lastupdate($theLink)
 
 					$query = 'SELECT id FROM #__youtubegallery_videolists WHERE catid='.$catid;
 					$db->setQuery($query);
-					if (!$db->query())    die( $db->stderr());
+
 					$videos_lists_=$db->loadAssocList();
 
 					foreach($videos_lists_ as $vl)
@@ -236,7 +228,7 @@ public static function Playlist_lastupdate($theLink)
 
 
 					$db->setQuery($query);
-					if (!$db->query())    die( $db->stderr());
+
 					$videos_lists_=$db->loadAssocList();
 
 					foreach($videos_lists_ as $vl)
@@ -313,17 +305,17 @@ public static function Playlist_lastupdate($theLink)
 		
 		if (!in_array("latitude", $fields)) {
 			$db->setQuery("ALTER TABLE `#__youtubegallery_videos` ADD `latitude` decimal(20,7) NULL DEFAULT NULL");
-			if (!$db->query())    die( $db->stderr());
+			$db->execute();
 		}
 		
 		if (!in_array("longitude", $fields)) {
 				$db->setQuery("ALTER TABLE `#__youtubegallery_videos` ADD `longitude` decimal(20,7) NULL DEFAULT NULL");
-				if (!$db->query())    die( $db->stderr());
+				$db->execute();
 			}
 		
 		if (!in_array("altitude", $fields)) {
 			$db->setQuery("ALTER TABLE `#__youtubegallery_videos` ADD `altitude` int NULL DEFAULT NULL");
-			if (!$db->query())    die( $db->stderr());
+			$db->execute();
 		}
 	}
 	
@@ -403,7 +395,6 @@ public static function Playlist_lastupdate($theLink)
 			.' FROM #__youtubegallery_videos WHERE '.implode(' AND ', $where).' ORDER BY '.$orderby;// GROUP BY videoid 
 		
 		$db->setQuery($query);
-		if (!$db->query())    die( $db->stderr());
 
 		$total_number_of_rows = $db->getNumRows();
 
@@ -414,8 +405,6 @@ public static function Playlist_lastupdate($theLink)
 			$db->setQuery($query);
 		else
 			$db->setQuery($query, $limitstart, $limit);
-
-		if (!$db->query())    die( $db->stderr());
 
 		$videos_rows=$db->loadAssocList();
 		
@@ -466,7 +455,7 @@ public static function Playlist_lastupdate($theLink)
 				$db = JFactory::getDBO();
 				$query = 'UPDATE #__youtubegallery_videolists SET '.$db->quoteName('lastplaylistupdate').'='.$db->quote($this->videolist_row->lastplaylistupdate).' WHERE id='.(int)$this->videolist_row->id;
 				$db->setQuery($query);
-				if (!$db->query())    die( $db->stderr());
+				$db->execute();
 			}
 	}
 
@@ -495,7 +484,7 @@ public static function Playlist_lastupdate($theLink)
 					$query.=' AND '.implode(' AND ',$ListOfVideosNotToDelete);
 					
 				$db->setQuery($query);
-				if (!$db->query())    die( $db->stderr());
+				$db->execute();
 	}
 	
 	public static function updateDBSingleItem($g,$videolist_id,&$parent_id)//,&$parent_details)//,&$this_is_a_list)//,&$list_count_left)
@@ -513,7 +502,7 @@ public static function Playlist_lastupdate($theLink)
 								$query='INSERT #__youtubegallery_videos SET '.implode(', ', $fields).', allowupdates="1"';
 
 								$db->setQuery($query);
-								if (!$db->query())    die( $db->stderr());
+								$db->execute();
 								
 								$record_id_new = $db->insertid();
 
@@ -527,7 +516,7 @@ public static function Playlist_lastupdate($theLink)
 								$query="UPDATE #__youtubegallery_videos SET ".implode(', ', $fields).' WHERE id='.$record_id;
 
 								$db->setQuery($query);
-								if (!$db->query())    die( $db->stderr());
+								$db->execute();
 
 								$ListOfVideos[]=$record_id;
 
@@ -722,8 +711,8 @@ public static function Playlist_lastupdate($theLink)
 		$query = 'SELECT '.$db->quoteName('value').' FROM #__youtubegallery_settings WHERE '.$db->quoteName('option').'='.$db->quote($option).' LIMIT 1';
 
 		$db->setQuery($query);
-		if (!$db->query())    die( $db->stderr());
-			$values=$db->loadAssocList();
+		
+		$values=$db->loadAssocList();
 
 		$vlu="";
 		if(count($values)>0)
@@ -752,8 +741,7 @@ public static function Playlist_lastupdate($theLink)
 
 				$db->setQuery('SELECT '.$db->quoteName('alias').' FROM #__youtubegallery_videos WHERE '.$db->quoteName('alias').'='.$db->quote($alias));
 
-				if (!$db->query())    die ('yg get_alias err:'. $db->stderr());
-					$rows = $db->loadObjectList();
+				$rows = $db->loadObjectList();
 
 			  	if(count($rows)>1)
 					$alias.="_".$videoid;
@@ -776,7 +764,7 @@ public static function Playlist_lastupdate($theLink)
 		$db = JFactory::getDBO();
 
 		$db->setQuery('SELECT '.$db->quoteName('videoid').' FROM #__youtubegallery_videos WHERE '.$db->quoteName('alias').'='.$db->quote($alias).' LIMIT 1');
-		if (!$db->query())    die ('yg router.php 2 err:'. $db->stderr());
+
 		$rows = $db->loadObjectList();
 
 		if(count($rows)==0)
@@ -802,7 +790,7 @@ public static function Playlist_lastupdate($theLink)
 			.' WHERE videoid='.$db->quote($videoid).' LIMIT 1';
 
 		$db->setQuery($query);
-		if (!$db->query())    die( $db->stderr());
+
 		$values=$db->loadAssocList();
 		
 		if(count($values)==0)

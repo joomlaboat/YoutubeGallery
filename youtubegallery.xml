@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="2.5" method="upgrade">
         <name>COM_YOUTUBEGALLERY</name>
+	<creationDate>August, 2021</creationDate>
 	<author>JoomlaBoat.com</author>
         <authorEmail>support@joomlaboat.com</authorEmail>
         <authorUrl>https://joomlaboat.com</authorUrl>
+	<copyright>Copyright (C) Ivan Komlev. All rights reserved.</copyright>
 	<license>GNU General Public License</license>
-        <copyright>Copyright (C) Ivan Komlev. All rights reserved.</copyright>
-        <creationDate>March, 2021</creationDate>
         <version>5.3.1</version>
         <description>COM_YOUTUBEGALLERY_DESCRIPTION</description>
           

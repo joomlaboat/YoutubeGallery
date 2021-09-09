@@ -18,12 +18,12 @@ class YoutubeGalleryViewThemeExport extends JViewLegacy
 {
 
 		public function display($tpl = null)
-	        {
-	                echo '<div style="width:100%;position:relative;min-height:200px;"><p style="color:grey;">';
+	    {
+	        echo '<div style="width:100%;position:relative;min-height:200px;"><p style="color:grey;">';
 
 			ygExportTheme::addToolBar();
-			$theme_zip_file=ygExportTheme::d();
-			$this->assignRef('theme_zip_file', $theme_zip_file);
+			$this->theme_zip_file=ygExportTheme::d();
+			
 			parent::display($tpl);
 			echo '</div>';
 		}
@@ -139,7 +139,7 @@ class ygExportTheme
 		$result='<?xml version="1.0" encoding="utf-8"?>
 <extension type="file" version="3.0" method="upgrade">
     <name>YoutubeGalleryTheme_'.$themeName.'</name>
-    <version>5.0.8</version>
+    <version>5.3.2</version>
     <creationDate>'.$createdDate.'</creationDate>
     <author>'.$user->name.'</author>
     <authorEmail>'.$user->email.'</authorEmail>

@@ -42,7 +42,6 @@ class JFormFieldCategoryParent extends JFormFieldList
                 $query='SELECT id,categoryname,parentid FROM #__youtubegallery_categories';
                 $db->setQuery((string)$query);
 
-                if (!$db->query())    die( $db->stderr());
                 $messages = $db->loadObjectList();
 
 
@@ -82,7 +81,6 @@ class JFormFieldCategoryParent extends JFormFieldList
                 $query->from('#__youtubegallery_categories');
                 $query->where('parentid='.$parentid);
                 $db->setQuery((string)$query);
-                if (!$db->query())    die( $db->stderr());
 
                 $rows = $db->loadObjectList();
                 foreach($rows as $row)

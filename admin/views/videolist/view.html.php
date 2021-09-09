@@ -37,9 +37,7 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
                 $search			= $mainframe->getUserStateFromRequest($context."search",'search','',	'string' );
                 $search			= JString::strtolower( $search );
 
-                $lists['search']=$search;
-
-                $this->assignRef('lists', $lists);
+                $this->lists['search']=$search;
 
                 // Display the template
                 parent::display($tpl);

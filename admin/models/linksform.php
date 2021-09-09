@@ -105,7 +105,6 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 			$query->where(implode(' OR ',$where));
 
 		$db->setQuery($query);
-		if (!$db->query())    die( $db->stderr());
 
 		$linksform_rows=$db->loadObjectList();
 		if(count($linksform_rows)<1)
@@ -121,12 +120,12 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 			{
 				$query='UPDATE #__youtubegallery_videolists SET lastplaylistupdate="'.date( 'Y-m-d H:i:s').'" WHERE id='.(int)$linksform_row->id;
 				$db->setQuery($query);
-				if (!$db->query())    die( $db->stderr());
+				$db->execute();
 
 				$query='UPDATE #__youtubegallery_videos SET lastupdate=NULL WHERE isvideo AND listid='.(int)$linksform_row->id;//to force the update
 
 				$db->setQuery($query);
-				if (!$db->query())    die( $db->stderr());
+				$db->execute();
 			}
 		}
 		
@@ -207,7 +206,7 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 				$query='DELETE FROM #__youtubegallery_videos WHERE listid='.(int)$cid;
 
 				$db->setQuery($query);
-				if (!$db->query())    die( $db->stderr());
+				$db->execute();
 
 				if (!$linksform_row->delete( $cid ))
 					return false;

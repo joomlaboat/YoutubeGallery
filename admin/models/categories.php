@@ -97,7 +97,6 @@ class YoutubeGalleryModelCategories extends JModelList
 
 
 				$db->setQuery( $query );
-				if (!$db->query())    die( $db->stderr());
 
 				$rows = $db->loadObjectList();
 				$children = array();
@@ -297,7 +296,7 @@ $jinput->get->set('hidemainmenu',true);
 				$query->where('catid='.$catid);
                 $db->setQuery((string)$query);
                 $rows = $db->loadObjectList();
-                if (!$db->query())    die( $db->stderr());
+
 
 				if(count($rows)==0)
 						return array();
@@ -314,7 +313,7 @@ $jinput->get->set('hidemainmenu',true);
 				$query->where('id='.$id);
                 $db->setQuery((string)$query);
                 $rows = $db->loadObjectList();
-                if (!$db->query())    die( $db->stderr());
+
 
 				if(count($rows)==0)
 						return array();
@@ -333,7 +332,6 @@ $jinput->get->set('hidemainmenu',true);
                 $query->from('#__youtubegallery_categories');
                 $query->where('parentid='.$parentid);
                 $db->setQuery((string)$query);
-                if (!$db->query())    die( $db->stderr());
 
                 $rows = $db->loadObjectList();
                 foreach($rows as $row)

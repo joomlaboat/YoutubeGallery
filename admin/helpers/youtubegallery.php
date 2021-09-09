@@ -17,6 +17,7 @@ abstract class YoutubeGalleryHelper
 	/**
 	*	Get the actions permissions
 	**/
+	/*
 	public static function getActions($view,&$record = null,$views = null)
 	{
 		jimport('joomla.access.access');
@@ -205,7 +206,7 @@ abstract class YoutubeGalleryHelper
 		}
 		return $result;
 	}
-	
+	*/
 	
 	public static function safeString($string, $type = 'L', $spacer = '_', $replaceNumbers = true)
 	{

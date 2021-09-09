@@ -83,7 +83,7 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 		foreach($query as $q)
 		{
 			$db->setQuery($q);
-			if (!$db->query())    die ( $db->stderr());
+			$db->execute();
 		}
 		return true;
     }

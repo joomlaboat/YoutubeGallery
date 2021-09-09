@@ -25,7 +25,7 @@ if($jinput->get('ygvdata','','RAW')!='')
     $db = JFactory::getDBO();
     $query = 'SELECT * FROM #__youtubegallery_videos WHERE videoid="'.$videoid.'"';
     $db->setQuery($query);
-    if (!$db->query())    die( $db->stderr());
+
     $videos_rows=$db->loadAssocList();
     
     $ygDB=new YouTubeGalleryDB;
@@ -33,7 +33,7 @@ if($jinput->get('ygvdata','','RAW')!='')
 
     $query = 'SELECT * FROM #__youtubegallery_videos WHERE videoid="'.$videoid.'"';
     $db->setQuery($query);
-    if (!$db->query())    die( $db->stderr());
+
     $videos_rows=$db->loadAssocList();
 
     if(count($videos_rows)!=0)
@@ -48,9 +48,3 @@ if($jinput->get('ygvdata','','RAW')!='')
 }
 else
     echo 'Data not set.';
-    
-    //echo 'Data Size 1: '.strlen($video_data);
-//echo 'Update Data View:<br/>
-//'.$video_data;
-?>
-

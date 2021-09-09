@@ -225,7 +225,7 @@ class YoutubeGalleryModelThemeImport extends JModelList
 				$db = JFactory::getDBO();
 
 				$db->setQuery($query);
-				if (!$db->query())    die ( $db->stderr());
+				$db->execute();
 		}
 
 		function getThemeName($themename,$force=false)
@@ -256,7 +256,6 @@ class YoutubeGalleryModelThemeImport extends JModelList
 
 			$query = 'SELECT id FROM #__youtubegallery_themes WHERE '.$db->quoteName('themename').'='.$db->quote($themename).' LIMIT 1';
 			$db->setQuery($query);
-			if (!$db->query())    die ( $db->stderr());
 
 			return $db->getNumRows()>0;
 		}

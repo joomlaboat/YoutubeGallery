@@ -44,14 +44,9 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
                 $search			= $mainframe->getUserStateFromRequest($context."search",'search','',	'string' );
                 $search			= JString::strtolower( $search );
 
-                $lists['search']=$search;
-
-
+                $this->lists['search']=$search;
 
                 $javascript = 'onchange="document.adminForm.submit();"';
-
-
-                $this->assignRef('lists', $lists);
 
                 parent::display($tpl);
         }

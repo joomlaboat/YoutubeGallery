@@ -783,8 +783,6 @@ class YGPagination extends JObject
 
 	    $db->setQuery('SELECT id FROM #__youtubegallery_videos WHERE alias="'.$alias.'" LIMIT 1');
 
-	    if (!$db->query())    die ('yg pagination alias check err:'. $db->stderr());
-
             if($db->getNumRows()==1)
                 return true;
 

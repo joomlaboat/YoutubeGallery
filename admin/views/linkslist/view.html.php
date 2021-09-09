@@ -52,15 +52,13 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
                 $search			= $mainframe->getUserStateFromRequest($context."search",'search','',	'string' );
                 $search			= JString::strtolower( $search );
 
-                $lists['search']=$search;
+                $this->lists['search']=$search;
 
                 $filter_category= $mainframe->getUserStateFromRequest($context."filter_category",'filter_category','',	'integer' );
 
                 $available_categories=$this->getAllCategories();
                 $javascript = 'onchange="document.adminForm.submit();"';
-                $lists['categories']=JHTML::_('select.genericlist', $available_categories, 'filter_category', $javascript ,'id','categoryname', $filter_category);
-
-                $this->assignRef('lists', $lists);
+                $this->lists['categories']=JHTML::_('select.genericlist', $available_categories, 'filter_category', $javascript ,'id','categoryname', $filter_category);
 
                 // Display the template
                 parent::display($tpl);

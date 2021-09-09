@@ -35,7 +35,7 @@ class YoutubegalleryViewListandthemeselection extends JViewLegacy
           $query = 'SELECT extension_id, enabled FROM #__extensions WHERE '.$db->quoteName('type').'="plugin" AND folder="content" AND '.$db->quoteName('element').'="youtubegallery" LIMIT 1';
 				
          $db->setQuery( $query );
-         if (!$db->query())    die( $db->stderr());
+
          $plugins = $db->loadAssocList();
          
          if(count($plugins)==0)
@@ -56,7 +56,7 @@ class YoutubegalleryViewListandthemeselection extends JViewLegacy
           
 				
          $db->setQuery( $query );
-         if (!$db->query())    die( $db->stderr());
+         $db->execute();
         
                 
         }

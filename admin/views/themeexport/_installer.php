@@ -22,7 +22,7 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 		//delete extension - type="file"
 		$db = JFactory::getDbo();
 		$db->setQuery('DELETE FROM #__extensions WHERE name = "YoutubeGalleryTheme_'.$themeName.'" ');
-		if (!$db->query())    die( $db->stderr());
+		$db->execute();
 	}
 
         function install($parent)
