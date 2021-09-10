@@ -420,7 +420,7 @@ class YGPagination extends JObject
 		$selected = $this->_viewall ? 0 : $this->limit;
 
 		// Build the select list.
-		if ($app->isAdmin()) {
+		if($app->isClient('administrator')){
 			$html = JHtml::_('select.genericlist',  $limits, $this->prefix . 'limit', 'class="inputbox" size="1" onchange="Joomla.submitform();"', 'value', 'text', $selected);
 		}
 		else {
@@ -532,21 +532,7 @@ class YGPagination extends JObject
 	 */
 	protected function _item_active(&$item)
 	{
-		/*
-		$app = JFactory::getApplication();
-		if ($app->isAdmin())
-		{
-			if ($item->base > 0) {
-				return "<a title=\"".$item->text."\" onclick=\"document.adminForm." . $this->prefix . "limitstart.value=".$item->base."; Joomla.submitform();return false;\">".$item->text."</a>";
-			}
-			else {
-				return "<a title=\"".$item->text."\" onclick=\"document.adminForm." . $this->prefix . "limitstart.value=0; Joomla.submitform();return false;\">".$item->text."</a>";
-			}
-		}
-		else {
-			*/
-			return "<a title=\"".$item->text."\" href=\"".$item->link."\" class=\"pagenav\">".$item->text."</a>";
-		//}
+		return "<a title=\"".$item->text."\" href=\"".$item->link."\" class=\"pagenav\">".$item->text."</a>";
 	}
 
 	/*
@@ -559,13 +545,7 @@ class YGPagination extends JObject
 	 */
 	protected function _item_inactive(&$item)
 	{
-		//$app = JFactory::getApplication();
-		//i//f ($app->isAdmin()) {
-		//	return "<span>".$item->text."</span>";
-	//	}
-//		else {
-			return "<span class=\"pagenav\">".$item->text."</span>";
-		//}
+		return "<span class=\"pagenav\">".$item->text."</span>";
 	}
 
 	/**
