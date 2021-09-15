@@ -29,9 +29,17 @@ defined('_JEXEC') or die('Restricted Access');
 					
                 <td>
 					<?php if($this->canEdit): ?>
-                        <a href="<?php echo $link2edit; ?>"><?php echo $item->treename; ?></a>
+                        <a href="<?php echo $link2edit; ?>">
+							<?php 
+								//echo $item->treename; 
+								echo $item->es_categoryname; 
+							?>
+						</a>
 					<?php else: ?>
-						<?php echo $item->treename; ?>
+						<?php 
+							//echo $item->treename; 
+							echo $item->es_categoryname; 
+						?>
 					<?php endif; ?>
                 </td>
         </tr>

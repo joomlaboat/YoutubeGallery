@@ -25,20 +25,20 @@ if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
                 <td>
 
 		<?php
-			if($item->isvideo)
+			if($item->es_isvideo)
 			{
 
-			$images=explode(';',$item->imageurl);
-			if(count($images)>0 and $item->imageurl!='')
+			$images=explode(';',$item->es_imageurl);
+			if(count($images)>0 and $item->es_imageurl!='')
 			{
 
 				$index=0;
-				if($item->custom_imageurl!='')
+				if($item->es_customimageurl!='')
 				{
 					//this allows to select an image
 					if(!(strpos($item->custom_imageurl,'#')===false))
 					{
-						$index=(int)(str_replace('#','',$item->custom_imageurl));
+						$index=(int)(str_replace('#','',$item->es_customimageurl));
 						if($index<0)
 							$index=0;
 						if($index>=count($images))
@@ -47,7 +47,7 @@ if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
 						$img_=$images[$index];
 					}
 					else
-						$img_=$item->custom_imageurl;
+						$img_=$item->es_customimageurl;
 				}
 				else
 					$img_=$images[0];
@@ -77,7 +77,7 @@ if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
 					else
 					{
 						//show another thumbnail image on link click
-						$link='changeThumb('.$item->id.',\''.$item->imageurl.'\','.$i.')';//document.getElementById(\'thumbnail'.$item->id.'\').src=\''.$img.'\'';
+						$link='changeThumb('.$item->id.',\''.$item->es_imageurl.'\','.$i.')';
 						$alt='Thumbnail '.$parts[1].'x'.$parts[2];
 						echo '<a href="javascript:'.$link.';" alt="'.$alt.'" title="'.$alt.'" />'.$i.'  </a>';
 					}
@@ -90,11 +90,11 @@ if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
 				echo 'Playlist/Videolist';
 		?>
 		</td>
-                <td><a href="<?php echo $item->link; ?>" target="_blank"><?php echo $item->videosource; ?></a></td>
-                <td><a href="<?php echo $item->link; ?>" target="_blank"><?php echo $item->videoid; ?></a></td>
-                <td><div id="video_<?php echo $item->id;?>_title"><?php echo $item->title; ?></div></td>
-                <td><div id="video_<?php echo $item->id;?>_description"><?php echo $item->description; ?></div></td>
-                <td><div id="video_<?php echo $item->id;?>_lastupdate"><?php echo $item->lastupdate; ?></div></td>
+                <td><a href="<?php echo $item->link; ?>" target="_blank"><?php echo $item->es_videosource; ?></a></td>
+                <td><a href="<?php echo $item->link; ?>" target="_blank"><?php echo $item->es_videoid; ?></a></td>
+                <td><div id="video_<?php echo $item->id;?>_title"><?php echo $item->es_title; ?></div></td>
+                <td><div id="video_<?php echo $item->id;?>_description"><?php echo $item->es_description; ?></div></td>
+                <td><div id="video_<?php echo $item->id;?>_lastupdate"><?php echo $item->es_lastupdate; ?></div></td>
         </tr>
 
 

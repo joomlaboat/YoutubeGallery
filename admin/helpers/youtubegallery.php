@@ -16,6 +16,19 @@ use Joomla\Utilities\ArrayHelper;
  */
 abstract class YoutubeGalleryHelper
 {
+	public static function addSubmenu($submenu)
+	{
+		// load user for access menus
+		$user = JFactory::getUser();
+		// load the submenus to sidebar
+
+		JSubMenuHelper::addEntry(JText::_('Video Lists'), 'index.php?option=com_youtubegallery&view=linkslist', $submenu === 'linkslist');
+		JSubMenuHelper::addEntry(JText::_('Themes'), 'index.php?option=com_youtubegallery&view=themelist', $submenu === 'themelist');
+		JSubMenuHelper::addEntry(JText::_('Categories'), 'index.php?option=com_youtubegallery&view=categories', $submenu === 'categories');
+		JSubMenuHelper::addEntry(JText::_('Settings'), 'index.php?option=com_youtubegallery&view=settings&layout=edit', $submenu === 'settingst');
+	
+	}
+	
 	public function setRecordStatus($task, $viewLabel,$tableShortName)
 	{
 		if($task == 'publish')

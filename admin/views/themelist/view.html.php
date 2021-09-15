@@ -39,10 +39,10 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
 		$version = new Version;
 		$this->version = (int)$version->getShortVersion();
 		
-		if ($this->getLayout() !== 'modal')
+		if ($this->getLayout() !== 'modal' and $this->version < 4)
 		{
 			// Include helper submenu
-			//YoutubeGalleryHelper::addSubmenu('themelist');
+			YoutubeGalleryHelper::addSubmenu('themelist');
 		}
 		
 		
@@ -137,13 +137,6 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
 			$childBar->unpublish('themelist.unpublish')->listCheck(true);
 		}
 		
-		/*
-		if ($this->canDo->get('core.admin'))
-		{
-			$childBar->checkin('listoflayouts.checkin');
-		}
-		*/
-
 		if(($this->canState && $this->canDelete))
 		{
 			if ($this->state->get('filter.published') != ContentComponent::CONDITION_TRASHED)
@@ -160,6 +153,26 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
 			}
 		}
 	}
+	
+	protected function addToolBar_3()
+        {
+                JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_THEMELIST'));
+
+				if($this->canCreate)
+					JToolBarHelper::addNew('themeform.add');
+				
+				if($this->canEdit)
+					JToolBarHelper::editList('themeform.edit');
+				
+				if($this->canCreate)
+					JToolBarHelper::custom( 'themelist.copyItem', 'copy.png', 'copy_f2.png', 'Copy', true);
+				
+				if($this->canCreate)
+					JToolBarHelper::custom( 'themelist.uploadItem', 'upload.png', 'upload_f2.png', 'Import', false);
+
+				if($this->canDelete)
+					JToolBarHelper::deleteList('', 'themelist.delete');
+        }
 	
 	protected function setDocument()
 	{

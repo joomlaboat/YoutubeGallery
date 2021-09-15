@@ -35,7 +35,7 @@ echo '
 	</script>
 ';
 
-$textarea_box=$this->form->getInput('videolist');
+$textarea_box=$this->form->getInput('es_videolist');
 ?>
 	
 
@@ -55,8 +55,8 @@ $textarea_box=$this->form->getInput('videolist');
 			
 				<?php if($id==0): ?>
 				<div style="text-align:center;">
-					<?php echo $this->form->getLabel('listname'); ?><br/>
-					<?php echo $this->form->getInput('listname'); ?>
+					<?php echo $this->form->getLabel('es_listname'); ?><br/>
+					<?php echo $this->form->getInput('es_listname'); ?>
 					<br/>
 					<button onclick="submitSimpleForm(false);" class="btn btn-small button-save">
 						<span class="icon-save" aria-hidden="true"></span>Create Video List</button>
@@ -68,8 +68,8 @@ $textarea_box=$this->form->getInput('videolist');
 	
 			<div class="form-horizontal">
 				<div class="control-group">
-					<div class="control-label"><?php echo $this->form->getLabel('listname'); ?></div>
-					<div class="controls radio btn-group"><?php echo $this->form->getInput('listname'); ?></div>
+					<div class="control-label"><?php echo $this->form->getLabel('es_listname'); ?></div>
+					<div class="controls radio btn-group"><?php echo $this->form->getInput('es_listname'); ?></div>
 				</div>
 			</div>
 			<?php endif; ?>

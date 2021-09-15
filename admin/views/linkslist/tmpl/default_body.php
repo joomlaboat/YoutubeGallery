@@ -45,12 +45,12 @@ defined('_JEXEC') or die('Restricted Access');
                                 
                                 <?php
                                 
-                                if($item->updateperiod>=1)
-                                        echo JText::sprintf(JText::_('COM_YOUTUBEGALLERY_LASTUPDATE'),$item->lastplaylistupdate,$item->updateperiod);
+                                if($item->es_updateperiod>=1)
+                                        echo JText::sprintf(JText::_('COM_YOUTUBEGALLERY_LASTUPDATE'),$item->es_lastplaylistupdate,$item->es_updateperiod);
                                 else
                                 {
-                                        $hours=round((24*$item->updateperiod),0);
-                                        echo JText::sprintf(JText::_('COM_YOUTUBEGALLERY_LASTUPDATE_HOURS'),$item->lastplaylistupdate,$hours);
+                                        $hours=round((24*$item->es_updateperiod),0);
+                                        echo JText::sprintf(JText::_('COM_YOUTUBEGALLERY_LASTUPDATE_HOURS'),$item->es_lastplaylistupdate,$hours);
                                 }
                                 
                                 ?>

@@ -28,7 +28,7 @@ $pro='';
 	</div>
 
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('es_useglass'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_useglass').$pro; ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_useglass'); ?></div><div class="controls"><?php echo $this->form->getInput('es_useglass').$pro; ?></div>
 	</div>
 
 	<div class="control-group">
@@ -44,14 +44,13 @@ $pro='';
 	</div>
 
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('es_responsive'); ?></div><div class="controls"><?php echo $this->form->getInput('es_responsive').$pro; ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_responsive'); ?></div>
+		<div class="controls"><?php echo $this->form->getInput('es_responsive').$pro; ?></div>
 	</div>
 
 	<div class="control-group">
 		<div class="control-label"><?php echo $this->form->getLabel('es_nocookie'); ?></div>
-		<div>
-			<div class="controls radio btn-group"><?php echo $this->form->getInput('es_nocookie'); ?></div><?php echo $pro; ?>
-		</div>
+		<div class="controls"><?php echo $this->form->getInput('es_nocookie'); ?></div><?php echo $pro; ?>
 	</div>
 
 	<div class="control-group">

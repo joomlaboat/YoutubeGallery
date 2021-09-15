@@ -39,10 +39,10 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
 		$app = JFactory::getApplication();
 		$this->listid = $app->input->getInt('listid',0);
 		
-		if ($this->getLayout() !== 'modal')
+		if ($this->getLayout() !== 'modal' and $this->version < 4)
 		{
 			// Include helper submenu
-			//CustomtablesHelper::addSubmenu('videolists');
+			CustomtablesHelper::addSubmenu('videolists');
 		}
 		
 		$this->items = $this->get('Items');
@@ -95,6 +95,16 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
 		$toolbar = Toolbar::getInstance('toolbar');
 
 		ToolbarHelper::title(Text::_('COM_YOUTUBEGALLERY_VIDEO_LIST'), 'joomla');
+	}
+	
+	protected function addToolBar_3()
+    {
+		$jinput = JFactory::getApplication()->input;
+        $jinput->get->set('hidemainmenu',true);
+
+        JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_VIDEO_LIST'));
+
+		JToolBarHelper::cancel('videolist.cancel', 'JTOOLBAR_CLOSE');
 	}
 	
 	protected function setDocument()

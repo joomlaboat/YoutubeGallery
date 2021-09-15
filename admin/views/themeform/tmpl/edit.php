@@ -91,10 +91,10 @@ $onPageLoads=array();
 						<div class="tab-pane" id="customlayout">
 						<?php
 								if($this->item->id==0)
-									$this->item->customlayout=file_get_contents($htmlscriptpath.'customlayout.html');
+									$this->item->es_customlayout=file_get_contents($htmlscriptpath.'customlayout.html');
 
 
-								$textareacode='<textarea name="jform[customlayout]" id="jform_customlayout" filter="raw" style="width:100%" rows="30">'.$this->item->customlayout.'</textarea>';
+								$textareacode='<textarea name="jform[customlayout]" id="jform_customlayout" filter="raw" style="width:100%" rows="30">'.$this->item->es_customlayout.'</textarea>';
 								echo renderEditor($textareacode,'customlayout',$onPageLoads);
 						?>
 						</div>
@@ -102,10 +102,10 @@ $onPageLoads=array();
 						<div class="tab-pane" id="customnavlayout">
 						<?php
 								if($this->item->id==0)
-									$this->item->customnavlayout=file_get_contents($htmlscriptpath.'customnavlayout.html');
+									$this->item->es_customnavlayout=file_get_contents($htmlscriptpath.'customnavlayout.html');
 
 
-								$textareacode='<textarea name="jform[customnavlayout]" id="jform_customnavlayout" filter="raw" style="width:100%" rows="30">'.$this->item->customnavlayout.'</textarea>';
+								$textareacode='<textarea name="jform[customnavlayout]" id="jform_customnavlayout" filter="raw" style="width:100%" rows="30">'.$this->item->es_customnavlayout.'</textarea>';
 								echo renderEditor($textareacode,'customnavlayout',$onPageLoads);
 						?>
 						</div>
@@ -121,9 +121,9 @@ $onPageLoads=array();
 						<div class="tab-pane" id="headscript">
 						<?php
 								if($this->item->id==0)
-									$this->item->headscript=file_get_contents($htmlscriptpath.'headscript.html');
+									$this->item->es_headscript=file_get_contents($htmlscriptpath.'headscript.html');
 
-								$textareacode='<textarea name="jform[headscript]" id="jform_headscript" filter="raw" style="width:100%" rows="30">'.$this->item->headscript.'</textarea>';
+								$textareacode='<textarea name="jform[headscript]" id="jform_headscript" filter="raw" style="width:100%" rows="30">'.$this->item->es_headscript.'</textarea>';
 								echo renderEditor($textareacode,'headscript',$onPageLoads);
 						?>
 						</div>

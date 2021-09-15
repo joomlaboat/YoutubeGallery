@@ -14,10 +14,10 @@ $client_id = YouTubeGalleryDB::getSettingValue('soundcloud_api_client_id');
 $document = JFactory::getDocument();
 $document->addCustomTag('
 <script>
-				function YGGetSoundCloudClientID()
-				{
-								return "'.$client_id.'";
-				}
+	function YGGetSoundCloudClientID()
+	{
+		return "'.$client_id.'";
+	}
 </script>');
 
 ?>

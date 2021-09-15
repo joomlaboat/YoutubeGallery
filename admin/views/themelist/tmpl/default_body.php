@@ -28,14 +28,14 @@ defined('_JEXEC') or die('Restricted Access');
                 </td>
                 <td>
 					<?php if($this->canEdit): ?>
-                        <a href="<?php echo $link2edit; ?>"><?php echo $item->themename; ?></a>
+                        <a href="<?php echo $link2edit; ?>"><?php echo $item->es_themename; ?></a>
 					<?php else: ?>
-						<?php echo $item->themename; ?>
+						<?php echo $item->es_themename; ?>
 					<?php endif; ?>
                 </td>
                 
                 <td>
-                    <?php echo ($item->mediafolder!='' ? 'images/'.$item->mediafolder : ''); ?>
+                    <?php echo ($item->es_mediafolder!='' ? 'images/'.$item->es_mediafolder : ''); ?>
                 </td>
                 
                 <td>

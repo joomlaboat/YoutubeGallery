@@ -12,9 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 $allowsef = YouTubeGalleryDB::getSettingValue('allowsef');
 if ($allowsef != 1)
 	$allowsef = 0;
-    
-    
-    
+ 
 ?>
 <div class="span10 form-horizontal" style="width:100%;">
 			<div class="control-group">			

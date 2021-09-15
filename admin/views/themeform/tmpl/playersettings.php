@@ -20,19 +20,22 @@ defined('_JEXEC') or die('Restricted access');
 		<div class="controls"><?php echo $this->form->getInput('es_autoplay'); ?></div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('es_repeat'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_repeat'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_repeat'); ?></div>
+		<div class="controls"><?php echo $this->form->getInput('es_repeat'); ?></div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('es_allowplaylist'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_allowplaylist'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_allowplaylist'); ?></div>
+		<div class="controls"><?php echo $this->form->getInput('es_allowplaylist'); ?></div>
 	</div>
 	<div class="control-group">
 		<div class="control-label"><?php echo $this->form->getLabel('es_fullscreen'); ?></div>
 		<div>
-			<div class="controls radio btn-group"><?php echo $this->form->getInput('es_fullscreen'); ?></div>
+			<div class="controls"><?php echo $this->form->getInput('es_fullscreen'); ?></div>
 		</div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('es_related'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_related'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_related'); ?></div>
+		<div class="controls"><?php echo $this->form->getInput('es_related'); ?></div>
 	</div>
 	
 	<?php /*
@@ -43,10 +46,10 @@ defined('_JEXEC') or die('Restricted access');
 	*/ ?>
 	
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('es_controls'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_controls'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_controls'); ?></div><div class="controls"><?php echo $this->form->getInput('es_controls'); ?></div>
 	</div>
 		<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('es_border'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_border'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_border'); ?></div><div class="controls"><?php echo $this->form->getInput('es_border'); ?></div>
 	</div>
 	<div class="control-group">
 		<div class="control-label"><?php echo $this->form->getLabel('es_color1'); ?></div><div class="controls"><?php echo $this->form->getInput('es_color1'); ?></div>
@@ -58,7 +61,7 @@ defined('_JEXEC') or die('Restricted access');
 	<div class="control-group">
 		<div class="control-label"><?php echo $this->form->getLabel('es_muteonplay'); ?></div>
 		<div>
-			<div class="controls radio btn-group"><?php echo $this->form->getInput('es_muteonplay'); ?></div>
+			<div class="controls"><?php echo $this->form->getInput('es_muteonplay'); ?></div>
 		</div>
 	</div>
 	<div class="control-group">

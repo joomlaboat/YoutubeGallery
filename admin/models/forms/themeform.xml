@@ -168,7 +168,7 @@
 
 
                 <field
-                        name="es_color1"
+                        name="es_colorone"
                         type="text"
                         label="COM_YOUTUBEGALLERY_FIELD_PRIBORDERCOLOR_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_PRIBORDERCOLOR_DESC"
@@ -179,7 +179,7 @@
 
 
                 <field
-                        name="es_color2"
+                        name="es_colortwo"
                         type="text"
                         label="COM_YOUTUBEGALLERY_FIELD_SECBORDERCOLOR_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_SECBORDERCOLOR_DESC"
@@ -309,7 +309,7 @@
                         default=""
                 />
 
-                	<field
+<!--                	<field
                         name="es_cols"
                         type="list"
                         label="COM_YOUTUBEGALLERY_FIELD_COLS_LABEL"
@@ -328,7 +328,7 @@
                         <option value="8">Table with 8 columns</option>
 
                 </field>
-
+    -->
 
                 <field
                         name="es_bgcolor"
@@ -349,7 +349,7 @@
                         size="60"
                 />
 
-				<field
+<!--				<field
                         name="es_showtitle"
                         type="radio"
                         label="COM_YOUTUBEGALLERY_FIELD_SHOWTITLE_LABEL"
@@ -361,6 +361,7 @@
                         <option value="0">COM_YOUTUBEGALLERY_NO</option>
 
                 </field>
+-->
 
                 <field
                         name="es_orderby"
@@ -445,7 +446,7 @@
 
                 <field name="es_spacer5" type="spacer" default="" label="COM_YOUTUBEGALLERY_SPACER_MISC" description="" />
 
-
+<!--
 		<field
                         name="es_linestyle"
                         type="text"
@@ -455,6 +456,7 @@
                         default=""
                         size="60"
                 />
+-->
 
                 <field
                         name="es_cssstyle"
@@ -571,10 +573,10 @@
 
                 <field
                         name="es_nocookie"
-                        type="btn-group btn-group-yesno"
+                        type="radio"
                         label="COM_YOUTUBEGALLERY_FIELD_NOCOOKIE_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_NOCOOKIE_DESC"
-                        class="inputbox"
+                        class="btn-group btn-group-yesno"
                         default="0"
                 >
                         <option value="1">COM_YOUTUBEGALLERY_YES</option>

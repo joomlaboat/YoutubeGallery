@@ -39,10 +39,10 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 		$version = new Version;
 		$this->version = (int)$version->getShortVersion();
 		
-		if ($this->getLayout() !== 'modal')
+		if ($this->getLayout() !== 'modal' and $this->version < 4)
 		{
 			// Include helper submenu
-			//YoutubeGalleryHelper::addSubmenu('linkslist');
+			YoutubeGalleryHelper::addSubmenu('linkslist');
 		}
 		
 		$this->items = $this->get('Items');
@@ -172,7 +172,7 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 			if ($this->canCreate)
 				JToolBarHelper::custom( 'linkslist.copyItem', 'copy.png', 'copy_f2.png', 'Copy', true);
 		
-			if($this->canUpdate)
+			if($this->canEdit)
 			{
 				JToolBarHelper::custom( 'linkslist.updateItem', 'refresh.png', 'refresh_f2.png', 'Update', true);
 				JToolBarHelper::custom( 'linkslist.refreshItem', 'refresh.png', 'refresh_f2.png', 'Refresh', true);

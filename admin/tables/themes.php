@@ -45,11 +45,11 @@ class YoutubeGalleryTableThemes extends JTable
 	
 	//var $es_description = null;
 	//var $es_descr_position = null;
-	var $es_descr_style = null;
+	var $es_descrstyle = null;
 	
 	
-	var $es_color1 = null;
-	var $es_color2 = null;
+	var $es_colorone = null;
+	var $es_colortwo = null;
 	
 	var $es_border = null;
 	

@@ -16,7 +16,7 @@ defined('_JEXEC') or die('Restricted access');
 	<div class="control-group"><div class="control-label"><?php echo $this->form->getLabel('es_themename'); ?></div><div class="controls"><?php echo $this->form->getInput('es_themename'); ?></div></div>
 	<div class="control-group"><div class="control-label"><?php echo $this->form->getLabel('es_width'); ?></div><div class="controls"><?php echo $this->form->getInput('es_width'); ?></div></div>
 	<div class="control-group"><div class="control-label"><?php echo $this->form->getLabel('es_height'); ?></div><div class="controls"><?php echo $this->form->getInput('es_height'); ?></div></div>
-	<div class="control-group"><div class="control-label"><?php echo $this->form->getLabel('es_playvideo'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_playvideo'); ?></div></div>
+	<div class="control-group"><div class="control-label"><?php echo $this->form->getLabel('es_playvideo'); ?></div><div class="controls"><?php echo $this->form->getInput('es_playvideo'); ?></div></div>
 </div>
 
 

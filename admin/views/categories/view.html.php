@@ -39,10 +39,10 @@ class YoutubeGalleryViewCategories extends JViewLegacy
 		$version = new Version;
 		$this->version = (int)$version->getShortVersion();
 		
-		if ($this->getLayout() !== 'modal')
+		if ($this->getLayout() !== 'modal' and $this->version < 4)
 		{
 			// Include helper submenu
-			//YoutubeGalleryHelper::addSubmenu('categories');
+			YoutubeGalleryHelper::addSubmenu('categories');
 		}
 		
 		$this->items = $this->get('Items');
@@ -156,6 +156,23 @@ class YoutubeGalleryViewCategories extends JViewLegacy
 					->listCheck(true);
 			}
 		}
+	}
+	
+	protected function addToolBar_3()
+    {
+		JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_CATEGORIES'));
+
+		if($this->canCreate)
+			JToolBarHelper::addNew('categoryform.add');
+				
+		if($this->canEdit)
+			JToolBarHelper::editList('categoryform.edit');
+				
+		if($this->canCreate)
+			JToolBarHelper::custom( 'categories.copyItem', 'copy.png', 'copy_f2.png', 'Copy', true);
+				
+		if($this->canDelete)
+			JToolBarHelper::deleteList('', 'categories.delete');
 	}
 	
 	protected function setDocument()
