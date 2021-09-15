@@ -34,8 +34,8 @@ class JFormFieldVideoLists extends JFormFieldList
         {
                 $db = JFactory::getDBO();
                 $query = $db->getQuery(true);
-                $query->select(array('id','listname'));
-                $query->from('#__youtubegallery_videolists');
+                $query->select(array('id','es_listname'));
+                $query->from('#__customtables_table_youtubegalleryvideolists');
                 $db->setQuery((string)$query);
                 $messages = $db->loadObjectList();
                 $options = array();
@@ -43,7 +43,7 @@ class JFormFieldVideoLists extends JFormFieldList
                 {
                         foreach($messages as $message)
                         {
-                                $options[] = JHtml::_('select.option', $message->id, $message->listname);
+                                $options[] = JHtml::_('select.option', $message->id, $message->es_listname);
 
                         }
                 }

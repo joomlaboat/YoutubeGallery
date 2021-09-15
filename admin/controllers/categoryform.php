@@ -114,20 +114,6 @@ class YoutubeGalleryControllerCategoryForm extends JControllerForm
 	/**
 	* Cancels an edit operation
 	*/
-	/*
-	function cancelItem()
-	{
-		
-
-		$model = $this->getModel('item');
-		$model->checkin();
-
-		$this->setRedirect( 'index.php?option=com_youtubegallery&view=linkslist');
-	}*/
-
-	/**
-	* Cancels an edit operation
-	*/
 	function cancel()
 	{
 		$this->setRedirect( 'index.php?option=com_youtubegallery&view=categories');

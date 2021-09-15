@@ -9,6 +9,11 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Version;
+
+$version_object = new Version;
+$version = (int)$version_object->getShortVersion();
+
 $theme='eclipse';
 $document = JFactory::getDocument();
 
@@ -16,7 +21,12 @@ $adminpath=JURI::root(true).'/administrator/components/com_youtubegallery/';
 $document->addCustomTag('<script src="'.JURI::root().'components/com_youtubegallery/js/ajax.js"></script>');
 $document->addCustomTag('<script src="'.JURI::root().'components/com_youtubegallery/js/typeparams.js"></script>');
 
-$document->addCustomTag('<script src="'.$adminpath.'js/layouteditor.js"></script>');
+if($version < 4)
+	$document->addCustomTag('<script src="'.$adminpath.'js/layouteditor.js"></script>');
+else
+	$document->addCustomTag('<script src="'.$adminpath.'js/layouteditor_quatro.js"></script>');
+
+
 $document->addCustomTag('<link href="'.$adminpath.'css/layouteditor.css" rel="stylesheet">');
 
 $document->addCustomTag('<link rel="stylesheet" href="'.$adminpath.'libraries/codemirror/lib/codemirror.css">');
@@ -52,7 +62,7 @@ $document->addCustomTag('<link rel="stylesheet" href="'.$adminpath.'libraries/co
 			$code.='
 
 		text_areas.push(["'.$layoutname.'",'.$index.']);
-        codemirror_editors['.$index.'] = CodeMirror.fromTextArea(document.getElementById("jform_'.$layoutname.'"), {
+        codemirror_editors['.$index.'] = CodeMirror.fromTextArea(document.getElementById("jform_es_'.$layoutname.'"), {
           mode: "layouteditor",
 	   lineNumbers: true,
         lineWrapping: true,
@@ -68,7 +78,6 @@ $document->addCustomTag('<link rel="stylesheet" href="'.$adminpath.'libraries/co
       });
 
 
-		//loadFields("jform_tableid","fieldWizardBox");
 		addExtraEvents('.$index.');
 
 	';
@@ -92,11 +101,7 @@ $document->addCustomTag('<link rel="stylesheet" href="'.$adminpath.'libraries/co
   </div>
 
 </div>
-
-		';
-
-
-
+';
 
 	$result_js='
 	<script type="text/javascript">

@@ -10,7 +10,7 @@
 defined('_JEXEC') or die('Restricted Access');
 
 // load tooltip behavior
-JHtml::_('behavior.tooltip');
+//JHtml::_('behavior.tooltip');
 
 ?>
 <p><a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact Tech-Support)</a></p>
@@ -67,8 +67,12 @@ Upload it to your website root and administrator folders. Or contact your hostin
 	//for joomla 3.0
 	$s=JFactory::getApplication()->input->getVar( 'search');
 ?>
+
+<?php /*
 <div id="j-main-container" class="span10">
 		<div id="filter-bar" class="btn-toolbar">
+			
+			
 			<div class="filter-search btn-group pull-left">
 				<label for="search" class="element-invisible">Search title.</label>
 				<input type="text" name="search" placeholder="Search title." id="search" value="<?php echo $s; ?>" title="Search title." />
@@ -82,6 +86,7 @@ Upload it to your website root and administrator folders. Or contact your hostin
 </div></div>
 
 		<div class="clearfix"> </div>
+		*/ ?>
 
 
         <table class="table table-striped">

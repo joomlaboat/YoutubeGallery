@@ -17,18 +17,18 @@ jimport('joomla.database.table');
  */
 class YoutubeGalleryTableSettings extends JTable
 {
-        /**
+	/**
          * Constructor
          *
          * @param object Database connector object
          */
 
-		var $id = null;
-		var $option = null;
-		var $value = null;
+	var $id = null;
+	var $es_option = null;
+	var $es_value = null;
 
         function __construct(&$db) 
         {
-                parent::__construct('#__youtubegallery_settings', 'id', $db);
+                parent::__construct('#__customtables_table_youtubegallerysettings', 'id', $db);
         }
 }

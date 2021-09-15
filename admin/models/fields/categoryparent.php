@@ -18,79 +18,70 @@ JFormHelper::loadFieldClass('list');
  */
 class JFormFieldCategoryParent extends JFormFieldList
 {
-        /**
-         * The field type.
-         *
-         * @var         string
-         */
-        protected $type = 'CategoryParent';
+	protected $type = 'CategoryParent';
+	
+	/**
+	* Method to get a list of options for a list input.
+	*
+	* @return array An array of JHtml options.
+	*/
+	
+	protected function getOptions()
+	{
+		$current_category_id = JFactory::getApplication()->input->getInt('id', '0');
 
-        /**
-         * Method to get a list of options for a list input.
-         *
-         * @return array An array of JHtml options.
-         */
-        protected function getOptions()
-        {
-                $current_category_id = JFactory::getApplication()->input->getInt('id', '0');
+		$db = JFactory::getDBO();
 
-                $db = JFactory::getDBO();
-                //$query = $db->getQuery(true);
-                //$query->select($db->quoteName(array('id', 'categoryname', 'parentid')));
-                //$query->from('#__youtubegallery_categories');
+		$query='SELECT id,es_categoryname,es_parentid FROM #__customtables_table_youtubegallerycategories';
+		$db->setQuery((string)$query);
 
-                $query='SELECT id,categoryname,parentid FROM #__youtubegallery_categories';
-                $db->setQuery((string)$query);
+		$messages = $db->loadObjectList();
 
-                $messages = $db->loadObjectList();
+		$options = array();
 
+		$options[] = JHtml::_('select.option', 0, JText::_( 'COM_YOUTUBEGALLERY_SELECT_CATEGORYROOT' ));
 
-                $options = array();
+		$children=$this->getAllChildren($current_category_id);
 
-                $options[] = JHtml::_('select.option', 0, JText::_( 'COM_YOUTUBEGALLERY_SELECT_CATEGORYROOT' ));
+		if ($messages)
+		{
+			foreach($messages as $message)
+			{
+				if($current_category_id==0)
+				    $options[] = JHtml::_('select.option', $message->id, $message->es_categoryname);
+				else
+				{
+					if($message->id!=$current_category_id and $message->es_parentid!=$current_category_id and !in_array($message->id,$children))
+						$options[] = JHtml::_('select.option', $message->id, $message->es_categoryname);
+				}
+			}
+		}
+		
+		$options = array_merge(parent::getOptions(), $options);
+		return $options;
+	}
 
-                $children=$this->getAllChildren($current_category_id);
+	protected function getAllChildren($parentid)
+	{
+		$children=array();
+		if($parentid==0)
+			return $children;
 
-                if ($messages)
-                {
-                        foreach($messages as $message)
-                        {
-                                if($current_category_id==0)
-                                        $options[] = JHtml::_('select.option', $message->id, $message->categoryname);
-                                else
-                                {
-                                        if($message->id!=$current_category_id and $message->parentid!=$current_category_id and !in_array($message->id,$children))
-                                                $options[] = JHtml::_('select.option', $message->id, $message->categoryname);
-                                }
+		$db = JFactory::getDBO();
+		$query = $db->getQuery(true);
+		$query->select(array('id', 'es_parentid'));
+		$query->from('#__customtables_table_youtubegallerycategories');
+		$query->where('es_parentid='.$parentid);
+		$db->setQuery((string)$query);
 
-                        }
-                }
-                $options = array_merge(parent::getOptions(), $options);
-                return $options;
-        }
-
-        protected function getAllChildren($parentid)
-        {
-                $children=array();
-                if($parentid==0)
-                        return $children;
-
-                $db = JFactory::getDBO();
-                $query = $db->getQuery(true);
-                $query->select(array('id', 'parentid'));
-                $query->from('#__youtubegallery_categories');
-                $query->where('parentid='.$parentid);
-                $db->setQuery((string)$query);
-
-                $rows = $db->loadObjectList();
-                foreach($rows as $row)
-                {
-                        $children[]=$row->id;
-                        $grand_children=$this->getAllChildren($row->id);
-                        if(count($grand_children)>0)
-                                $children=array_merge($children,$grand_children);
-                }
-                return $children;
-        }
-
+		$rows = $db->loadObjectList();
+		foreach($rows as $row)
+		{
+			$children[]=$row->id;
+			$grand_children=$this->getAllChildren($row->id);
+			if(count($grand_children)>0)
+						     $children=array_merge($children,$grand_children);
+		}
+		return $children;
+	}
 }

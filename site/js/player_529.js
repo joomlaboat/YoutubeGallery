@@ -3,14 +3,11 @@
 	    //return str.replace(new RegExp(find, 'g'), replace);
 		return str.replace(new RegExp(find.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), replace);
 	};
-	
-	
 		
 	const YoutubeGalleryPlayerObject = class
 	{
 		constructor(width_,height_,playerapiid_,initial_volume_,mute_on_play_,auto_play_,allowplaylist_)
 		{
-			
 			this.WebsiteRoot="";
 			
 			this.iframeAPIloaded=false;
@@ -46,11 +43,6 @@
 
 		youtube_SetPlayer_(videoid)
 		{
-			
-			
-			//---------------------------------
-			
-			
 				this.youtubeplayer_options.start=this.ApiStart;
 				this.youtubeplayer_options.end=this.ApiEnd;
 				this.youtubeplayer_options.mute=1;//for autoplay: https://stackoverflow.com/questions/54944500/problems-with-youtube-iframe-api-to-start-playing-video-on-chrome
@@ -182,8 +174,6 @@
 					return false;
 				}
 				
-				//this.updateVideoRecords();
-
 				var d=0;
 				var v=this.CurrentVideoID;
 				var l=this.PlayList.length;
@@ -224,13 +214,10 @@
 				
 				if(this.PlayList.length==0)
 				{
-					//alert("FindCurrentVideo:Video records not loaded yet");
 					setTimeout(this.FindCurrentVideo(), 500);
 					return false;
 				}
 				
-				//this.updateVideoRecords();
-
 				var l=this.PlayList.length;
 				for(var i=0;i<l;i++)
 				{
@@ -252,11 +239,12 @@
 	{
 		var xmlHttp = new XMLHttpRequest();
 	
-		let url=this.WebsiteRoot + '/index.php?option=com_youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
+		let url=this.WebsiteRoot + '/index.php?option=com_youtubegallery&view=youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
 
 		xmlHttp.open( "GET", url, false);
 		xmlHttp.send(null);
 		var r=xmlHttp.responseText;
+		
 		this.videorecords=JSON && JSON.parse(r) || $.parseJSON(r);
 	}
 
@@ -265,7 +253,8 @@
 		for(var i=0;i<this.videorecords.length;i++)
 		{
 			var rec=this.videorecords[i];
-			if(rec.videoid==videoid)
+			
+			if(rec.es_videoid==videoid)
 				return rec;
 		}
 		return null;
@@ -352,9 +341,9 @@
 		if(rec==null)
 			return;
 
-		if(rec.custom_imageurl!="" && rec.custom_imageurl.indexOf("#")==-1)
+		if(rec.es_customimageurl!="" && rec.es_customimageurl.indexOf("#")==-1)
 		{
-			var customimage=rec.custom_imageurl;
+			var customimage=rec.es_customimageurl;
 			var n=customimage.indexOf("_small");
 			if(n==-1)
 			{
@@ -372,9 +361,9 @@
 		else
 			playercode=YoutubeGalleryCleanCode(playercode);
 
-		playercode=playercode.replace("****youtubegallery-video-link****",rec.link);
-		playercode=playercode.replace("****youtubegallery-video-startsecond****",rec.startsecond);
-		playercode=playercode.replace("****youtubegallery-video-endsecond****",rec.endsecond);
+		playercode=playercode.replace("****youtubegallery-video-link****",rec.es_link);
+		playercode=playercode.replace("****youtubegallery-video-startsecond****",rec.es_startsecond);
+		playercode=playercode.replace("****youtubegallery-video-endsecond****",rec.es_endsecond);
 		playercode=playercode.replace("autoplay=0","autoplay=1");
 		
 		playercode=playercode.replace("****scriptbegin****","<script ");
@@ -387,8 +376,8 @@
 
 		if(playercode.indexOf("<!--DYNAMIC PLAYER-->")!=-1)
 		{
-			this.ApiStart=rec.startsecond;
-			this.ApiEnd=rec.endsecond;
+			this.ApiStart=rec.es_startsecond;
+			this.ApiEnd=rec.es_endsecond;
 
 			if(videosource=="youtube")
 			{
@@ -404,19 +393,7 @@
 				eval("this.youtubegallery_updateplayer_"+videosource+"(videoid,true)");
 			}
 		}
-		/*else
-		{
-			if(videosource=="tiktok")
-			{
-				alert("TikTok player");
-				let a=function(e){
-					alert(JSON.stringify(e));
-					startTikTok(e);
-				}
-				
-			}
-		}
-		*/
+
 		var title_obj_name="YoutubeGalleryVideoTitle"+this.videolistid+"";
 		var tObj=document.getElementById(title_obj_name);
 		var description_obj_name="YoutubeGalleryVideoDescription"+this.videolistid+"";
@@ -429,7 +406,7 @@
 			this.element_removeClass(title_obj_name,"ygTitle-visible");
 			this.element_addClass(title_obj_name,"ygTitle-hidden");
 			
-			var title=rec.title;
+			var title=rec.es_title;
 			tObj.innerHTML=title.replaceAll('_quote_','&quot;');
 
 			setTimeout(function(){
@@ -445,7 +422,7 @@
 			this.element_removeClass(description_obj_name,"ygDescription-visible");
 			this.element_addClass(description_obj_name,"ygDescription-hidden");
 
-			var desc=rec.description;
+			var desc=rec.es_description;
 
 			desc=desc.replaceAll('_thelinebreak_','<br />');
 			desc=desc.replaceAll('_quote_','&quot;');

@@ -8,7 +8,11 @@
 
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
-        
+
+// UNUSED
+
+/*
+use YouTubeGallery\Helper;        
 
 $videoid=JFactory::getApplication()->input->getVar('videoid');
 if($jinput->get('ygvdata','','RAW')!='')
@@ -16,14 +20,12 @@ if($jinput->get('ygvdata','','RAW')!='')
 	$jinput=JFactory::getApplication()->input;
     $video_data=$jinput->get('ygvdata','','RAW');
 
-    require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
-
     $video_data=str_replace('"','\"',$video_data);
 
-    YouTubeGalleryMisc::setRawData($videoid,$video_data);
+    Helper::setRawData($videoid,$video_data);
 
     $db = JFactory::getDBO();
-    $query = 'SELECT * FROM #__youtubegallery_videos WHERE videoid="'.$videoid.'"';
+    $query = 'SELECT * FROM #__customtables_table_youtubegalleryvideos WHERE es_videoid="'.$videoid.'"';
     $db->setQuery($query);
 
     $videos_rows=$db->loadAssocList();
@@ -31,7 +33,7 @@ if($jinput->get('ygvdata','','RAW')!='')
     $ygDB=new YouTubeGalleryDB;
     $ygDB->RefreshVideoData($videos_rows,true);
 
-    $query = 'SELECT * FROM #__youtubegallery_videos WHERE videoid="'.$videoid.'"';
+    $query = 'SELECT * FROM #__customtables_table_youtubegalleryvideos WHERE es_videoid="'.$videoid.'"';
     $db->setQuery($query);
 
     $videos_rows=$db->loadAssocList();
@@ -39,12 +41,13 @@ if($jinput->get('ygvdata','','RAW')!='')
     if(count($videos_rows)!=0)
     {
         $row=$videos_rows[0];
-        echo '*title_start*='.$row['title'].'*title_end*';
-        echo '*description_start*='.$row['description'].'*description_end*';
-        echo '*lastupdate_start*='.$row['lastupdate'].'*lastupdate_end*';
+        echo '*title_start*='.$row['es_title'].'*title_end*';
+        echo '*description_start*='.$row['es_description'].'*description_end*';
+        echo '*lastupdate_start*='.$row['es_lastupdate'].'*lastupdate_end*';
     }
     else
         echo '*status_start*=video not found*status_end*';
 }
 else
     echo 'Data not set.';
+*/

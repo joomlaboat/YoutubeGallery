@@ -119,8 +119,8 @@ function loadTags()
                     return;
                 }
                 MessageBox.innerHTML='';
-                var s=Array.from(xmlToJson(xmlDoc));
-                layout_tags=s[0].layouts.tagset;
+                var s=xmlToJson(xmlDoc);
+                layout_tags=s.layouts.tagset;
 
                 layout_tags_loaded=true;
                 loadTagParams();

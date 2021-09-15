@@ -9,6 +9,8 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+use YouTubeGallery\Helper;
+
 function YouTubeGalleryBuildRoute(&$query) {
 
        $segments = array();
@@ -30,9 +32,7 @@ function YouTubeGalleryBuildRoute(&$query) {
        }
        elseif(isset($query['videoid']))
        {
-	      require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-
-	      $allowsef=YouTubeGalleryMisc::getSettingValue('allowsef');
+	      $allowsef=Helper::getSettingValue('allowsef');
 	      if($allowsef==1)
 	      {
 		     $videoid=$query['videoid'];

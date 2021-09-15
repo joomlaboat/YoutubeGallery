@@ -42,7 +42,7 @@ class ygExportTheme
                 }
 
                 // get the Data
-                require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
+
                 $ygDB=new YouTubeGalleryDB;
                 if(!$ygDB->getThemeTableRow($id))
                         return  '<p>No video found</p>';

@@ -13,37 +13,37 @@ defined('_JEXEC') or die('Restricted access');
 
 <div class="form-horizontal">
 								<div class="control-group">
-									<div class="control-label"><?php echo $this->form->getLabel('catid'); ?></div>
-									<div class="controls radio btn-group"><?php echo $this->form->getInput('catid'); ?></div>
+									<div class="control-label"><?php echo $this->form->getLabel('es_catid'); ?></div>
+									<div class="controls radio btn-group"><?php echo $this->form->getInput('es_catid'); ?></div>
 								</div>
 
 								<div class="control-group">
-									<div class="control-label"><?php echo $this->form->getLabel('updateperiod'); ?></div>
-									<div class="controls radio btn-group"><?php echo $this->form->getInput('updateperiod'); ?></div>
+									<div class="control-label"><?php echo $this->form->getLabel('es_updateperiod'); ?></div>
+									<div class="controls radio btn-group"><?php echo $this->form->getInput('es_updateperiod'); ?></div>
 								</div>
 
 								<div class="control-group">
-									<div class="control-label"><?php echo $this->form->getLabel('description'); ?></div>
-									<div class="controls radio btn-group"><?php echo $this->form->getInput('description'); ?></div>
+									<div class="control-label"><?php echo $this->form->getLabel('es_description'); ?></div>
+									<div class="controls radio btn-group"><?php echo $this->form->getInput('es_description'); ?></div>
 								</div>
 
 								<div class="control-group">
-									<div class="control-label"><?php echo $this->form->getLabel('authorurl'); ?></div>
-									<div class="controls radio btn-group"><?php echo $this->form->getInput('authorurl'); ?></div>
+									<div class="control-label"><?php echo $this->form->getLabel('es_authorurl'); ?></div>
+									<div class="controls radio btn-group"><?php echo $this->form->getInput('es_authorurl'); ?></div>
 								</div>
 
 								<div class="control-group">
-									<div class="control-label"><?php echo $this->form->getLabel('watchusergroup'); ?></div>
-									<div class="controls radio btn-group"><?php echo $this->form->getInput('watchusergroup'); ?></div>
+									<div class="control-label"><?php echo $this->form->getLabel('es_watchusergroup'); ?></div>
+									<div class="controls radio btn-group"><?php echo $this->form->getInput('es_watchusergroup'); ?></div>
 								</div>
 
 								<div class="control-group">
-									<div class="control-label"><?php echo $this->form->getLabel('image'); ?></div>
-									<div class="controls radio btn-group"><?php echo $this->form->getInput('image'); ?></div>
+									<div class="control-label"><?php echo $this->form->getLabel('es_image'); ?></div>
+									<div class="controls radio btn-group"><?php echo $this->form->getInput('es_image'); ?></div>
 								</div>
 
 								<div class="control-group">
-									<div class="control-label"><?php echo $this->form->getLabel('note'); ?></div>
-									<div class="controls radio btn-group"><?php echo $this->form->getInput('note'); ?></div>
+									<div class="control-label"><?php echo $this->form->getLabel('es_note'); ?></div>
+									<div class="controls radio btn-group"><?php echo $this->form->getInput('es_note'); ?></div>
 								</div>
 						</div>

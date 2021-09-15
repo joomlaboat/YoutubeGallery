@@ -98,9 +98,6 @@ $s=JFactory::getApplication()->input->getVar( 'search');
 
 	}
 
-
-
-
 	function YGpostURlContent(videoid,ygvdata,itemid)
 	{
 		var url = "index.php";
@@ -108,9 +105,6 @@ $s=JFactory::getApplication()->input->getVar( 'search');
 		.done(function( data ) {
 		  UpdateFormData(data,itemid)
 		});
-
-
-
 	}
 
 	function UpdateVideoData(link,videoid,itemid)

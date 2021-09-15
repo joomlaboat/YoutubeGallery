@@ -8,30 +8,69 @@
 
 // No direct access
 defined('_JEXEC') or die('Restricted access');
-JHtml::_('behavior.formvalidation');
-JHtml::_('behavior.tooltip');
+
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Editor\Editor;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+
+if($this->version < 4)
+{
+	JHtml::_('behavior.formvalidation');
+	JHtml::_('behavior.tooltip');
+}
+else
+{
+	$wa = $this->document->getWebAssetManager();
+	$wa->useScript('keepalive')
+		->useScript('form.validate');
+}
+
+$link = 'index.php?option=com_youtubegallery';
+
+$input = JFactory::getApplication()->input;
+$id = (int)$input->getInt('id');
+$link.= '&id='.$id;
+
 ?>
 
+<form id="adminForm" action="<?php echo JRoute::_($link); ?>" method="post" class="form-validate">
 
-<form id="adminForm" action="<?php echo JRoute::_('index.php?option=com_youtubegallery'); ?>" method="post" class="form-validate">
+	<fieldset class="adminform">
+		<legend><?php echo JText::_( 'COM_YOUTUBEGALLERY_CATEGORY_FORM_DETAILS' ); ?></legend>
+			   
+			<div class="form-horizontal">
+				<div class="control-group">
+					<div class="control-label"><?php echo $this->form->getLabel('es_categoryname'); ?></div>
+					<div class="controls"><?php echo $this->form->getInput('es_categoryname'); ?></div>
+				</div>
+			</div>
+			
+			<div class="form-horizontal">
+				<div class="control-group">
+					<div class="control-label"><?php echo $this->form->getLabel('es_parentid'); ?></div>
+					<div class="controls"><?php echo $this->form->getInput('es_parentid'); ?></div>
+				</div>
+			</div>
+			
+			<div class="form-horizontal">
+				<div class="control-group">
+					<div class="control-label"><?php echo $this->form->getLabel('es_description'); ?></div>
+					<div class="controls"><?php echo $this->form->getInput('es_description'); ?></div>
+				</div>
+			</div>
+			
+			<div class="form-horizontal">
+				<div class="control-group">
+					<div class="control-label"><?php echo $this->form->getLabel('es_image'); ?></div>
+					<div class="controls"><?php echo $this->form->getInput('es_image'); ?></div>
+				</div>
+			</div>
 
+	</fieldset>
 
-        <fieldset class="adminform">
-               <legend><?php echo JText::_( 'COM_YOUTUBEGALLERY_CATEGORY_FORM_DETAILS' ); ?></legend>
-               <table><tbody>
-               
-               <tr><td><?php echo $this->form->getLabel('categoryname'); ?></td><td>:</td><td><?php echo $this->form->getInput('categoryname'); ?></td></tr>
-               <tr><td><?php echo $this->form->getLabel('parentid'); ?></td><td>:</td><td><?php echo $this->form->getInput('parentid'); ?></td></tr>
-               <tr><td><?php echo $this->form->getLabel('description'); ?></td><td>:</td><td><?php echo $this->form->getInput('description'); ?></td></tr>
-               <tr><td><?php echo $this->form->getLabel('image'); ?></td><td>:</td><td><?php echo $this->form->getInput('image'); ?></td></tr>
-               
-               </tbody></table>
-               
-
-        </fieldset>
-        <div>
-                <input type="hidden" name="jform[id]" value="<?php echo (int)$this->item->id; ?>" />
-                <input type="hidden" name="task" value="categoryform.edit" />
-                <?php echo JHtml::_('form.token'); ?>
-        </div>
+	<input type="hidden" name="jform[id]" value="<?php echo (int)$this->item->id; ?>" />
+    <input type="hidden" name="task" value="categoryform.edit" />
+    <?php echo JHtml::_('form.token'); ?>
+    
 </form>

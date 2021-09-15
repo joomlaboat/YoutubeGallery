@@ -26,13 +26,13 @@ class YoutubeGalleryModelSettings extends JModelAdmin
          * @return      JTable  A database object
 
          */
-		public $id;
+		//public $id;
 
-
-        public function getTable($type = 'Settings', $prefix = 'YoutubeGalleryTable', $config = array())
-        {
-                return JTable::getInstance($type, $prefix, $config);
-        }
+	public function getTable($type = 'Settings', $prefix = 'YoutubeGalleryTable', $config = array())
+    {
+		return JTable::getInstance($type, $prefix, $config);
+    }
+	
         /**
          * Method to get the record form.
          *
@@ -42,27 +42,26 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 
          */
 
-        public function getForm($data = array(), $loadData = true)
+	public function getForm($data = array(), $loadData = true)
+	{
+		// Get the form.
+
+        $form = $this->loadForm('com_youtubegallery.settings', 'settings', array('control' => 'jform', 'load_data' => $loadData));
+        if (empty($form))
         {
-                // Get the form.
+			return false;
+		}
 
-                $form = $this->loadForm('com_youtubegallery.settings', 'settings', array('control' => 'jform', 'load_data' => $loadData));
-                if (empty($form))
-                {
-                        return false;
-                }
-
-                return $form;
-        }
-
+		return $form;
+	}
 
 	static protected function makeQueryLine($field,$value)
 	{
 		$db = JFactory::getDBO();
 		
-		return 'INSERT INTO #__youtubegallery_settings (`option`, `value`)
+		return 'INSERT INTO #__customtables_table_youtubegallerysettings (`es_option`, `es_value`)
 		VALUES ('.$db->quote($field).', '.$db->quote($value).')
-		ON DUPLICATE KEY UPDATE `option`='.$db->quote($field).', `value`='.$db->quote($value);
+		ON DUPLICATE KEY UPDATE `es_option`='.$db->quote($field).', `es_value`='.$db->quote($value);
 	}
 
     function store()
@@ -70,7 +69,6 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 		$jform=JFactory::getApplication()->input->getVar('jform');
 		$allowsef=trim(preg_replace("/[^0-9]/", "", $jform['allowsef']));
 
-		//$joomlaboat_api_host=trim(preg_replace("/[^^a-zA-Z0-9~\-#@:_(),.!@\/]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_host')));
 		$joomlaboat_api_host=trim(JFactory::getApplication()->input->getVar('joomlaboat_api_host'));
 		$joomlaboat_api_key=trim(preg_replace("/[^a-zA-Z0-9~_-]/", "", JFactory::getApplication()->input->getVar('joomlaboat_api_key')));
 

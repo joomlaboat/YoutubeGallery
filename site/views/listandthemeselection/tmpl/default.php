@@ -10,8 +10,6 @@
 defined('_JEXEC') or die('Restricted access');
 ?>
 
-
-	
 	<link href="/administrator//media/jui/css/chosen.css" rel="stylesheet" />
 	<link href="/administrator/templates/isis/css/template.css" rel="stylesheet" />
 	

@@ -17,83 +17,78 @@ jimport('joomla.database.table');
  */
 class YoutubeGalleryTableThemes extends JTable
 {
-        /**
-         * Constructor
-         *
-         * @param object Database connector object
-         */
-       	var $id = null;
-        var $themename = null;
+	var $id = null;
+	var $es_themename = null;
 	
-        var $width = null;
-        var $height = null;
-        var $playvideo = null;
-        var $repeat = null;
-        var $fullscreen = null;
-        var $autoplay = null;
-        var $related = null;
-        var $showinfo = null;
-        var $bgcolor = null;
-        var $cols = null;
-        var $showtitle = null;
+	var $es_width = null;
+	var $es_height = null;
+	var $es_playvideo = null;
+	var $es_repeat = null;
+	var $es_fullscreen = null;
+	var $es_autoplay = null;
+	var $es_related = null;
+//	var $es_showinfo = null;
+	var $es_bgcolor = null;
+	var $es_cols = null;
+	var $es_showtitle = null;
 
-        var $cssstyle = null;
-        var $navbarstyle = null;
-        var $thumbnailstyle = null;
-        var $linestyle = null;
+	var $es_cssstyle = null;
+	var $es_navbarstyle = null;
+	var $es_thumbnailstyle = null;
+	var $es_linestyle = null;
 	
-	var $showlistname = null;
-        var $listnamestyle = null;
+	var $es_showlistname = null;
+	var $es_listnamestyle = null;
 		
-        var $showactivevideotitle = null;
-        var $activevideotitlestyle = null;
+	var $es_showactivevideotitle = null;
+	var $es_activevideotitlestyle = null;
 	
-        var $description = null;
-        var $descr_position = null;
-        var $descr_style = null;
+	//var $es_description = null;
+	//var $es_descr_position = null;
+	var $es_descr_style = null;
 	
 	
-        var $color1 = null;
-        var $color2 = null;
+	var $es_color1 = null;
+	var $es_color2 = null;
 	
-        var $border = null;
-        
-        var $openinnewwindow = null;
-        var $rel = null;
-        var $hrefaddon = null;
+	var $es_border = null;
 	
-	var $pagination = null;
-	var $customlimit = null;
+	var $es_openinnewwindow = null;
+	var $es_rel = null;
+	var $es_hrefaddon = null;
+	
+//	var $es_pagination = null;
+	var $es_customlimit = null;
 		
 
-	var $controls = null;
-	var $youtubeparams = null;
-	var $playertype = null;
-	var $useglass = null;
-	var $logocover = null;
+	var $es_controls = null;
+	var $es_youtubeparams = null;
+	var $es_playertype = null;
+	var $es_useglass = null;
+	var $es_logocover = null;
 		
-	var $customlayout = null;
-	var $prepareheadtags = null;
+	var $es_customlayout = null;
+	var $es_prepareheadtags = null;
 		
-	var $muteonplay = null;
-	var $lastplaylistupdate = null;
-	var $volume = null;
+	var $es_muteonplay = null;
+	var $es_lastplaylistupdate = null;
+	var $es_volume = null;
 
-	var $orderby = null;
-	var $customnavlayout = null;
-	var $responsive = null;
+	var $es_orderby = null;
+	var $es_customnavlayout = null;
+	var $es_responsive = null;
 	
-	var $mediafolder = null;
-	var $readonly = null;
-	var $headscript = null;
-	var $themedescription = null;
-	var $nocookie = null;
-	var $changepagetitle = null;
+	var $es_mediafolder = null;
+	var $es_readonly = null;
+	var $es_headscript = null;
+	var $es_themedescription = null;
+	var $es_nocookie = null;
+	var $es_changepagetitle = null;
 
-	var $allowplaylist = null;
+	var $es_allowplaylist = null;
 
-        function __construct(&$db) 
-        {
-                parent::__construct('#__youtubegallery_themes', 'id', $db);
-        }
+	function __construct(&$db) 
+	{
+		parent::__construct('#__customtables_table_youtubegallerythemes', 'id', $db);
+	}
 }

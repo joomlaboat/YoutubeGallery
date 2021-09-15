@@ -11,54 +11,63 @@ defined('_JEXEC') or die('Restricted access');
 
 
 ?>
-<div class="form-horizontal">
+<!--<div class="form-horizontal">-->
+	<div class="row-fluid form-horizontal-desktop">
+	<div class="span12">
 
-
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('autoplay'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('autoplay'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_autoplay'); ?></div>
+		<div class="controls"><?php echo $this->form->getInput('es_autoplay'); ?></div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('repeat'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('repeat'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_repeat'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_repeat'); ?></div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('allowplaylist'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('allowplaylist'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_allowplaylist'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_allowplaylist'); ?></div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('fullscreen'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_fullscreen'); ?></div>
 		<div>
-			<div class="controls radio btn-group"><?php echo $this->form->getInput('fullscreen'); ?></div>
+			<div class="controls radio btn-group"><?php echo $this->form->getInput('es_fullscreen'); ?></div>
 		</div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('related'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('related'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_related'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_related'); ?></div>
 	</div>
+	
+	<?php /*
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('showinfo'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('showinfo'); ?></div>
+		<div class="control-label"><?php //echo $this->form->getLabel('es_showinfo'); ?></div><div class="controls radio btn-group">
+		<?php //echo $this->form->getInput('es_showinfo'); ?></div>
 	</div>
+	*/ ?>
+	
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('controls'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('controls'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_controls'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_controls'); ?></div>
 	</div>
 		<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('border'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('border'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_border'); ?></div><div class="controls radio btn-group"><?php echo $this->form->getInput('es_border'); ?></div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('color1'); ?></div><div class="controls"><?php echo $this->form->getInput('color1'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_color1'); ?></div><div class="controls"><?php echo $this->form->getInput('es_color1'); ?></div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('color2'); ?></div><div class="controls"><?php echo $this->form->getInput('color2'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_color2'); ?></div><div class="controls"><?php echo $this->form->getInput('es_color2'); ?></div>
 	</div>
 
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('muteonplay'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_muteonplay'); ?></div>
 		<div>
-			<div class="controls radio btn-group"><?php echo $this->form->getInput('muteonplay'); ?></div>
+			<div class="controls radio btn-group"><?php echo $this->form->getInput('es_muteonplay'); ?></div>
 		</div>
 	</div>
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('volume'); ?></div><div class="controls"><?php echo $this->form->getInput('volume'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_volume'); ?></div><div class="controls"><?php echo $this->form->getInput('es_volume'); ?></div>
 	</div>
 
 	<div class="control-group">
-		<div class="control-label"><?php echo $this->form->getLabel('youtubeparams'); ?></div><div class="controls"><?php echo $this->form->getInput('youtubeparams'); ?></div>
+		<div class="control-label"><?php echo $this->form->getLabel('es_youtubeparams'); ?></div><div class="controls"><?php echo $this->form->getInput('es_youtubeparams'); ?></div>
 	</div>
+
+</div>
 </div>

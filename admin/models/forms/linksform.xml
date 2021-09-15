@@ -11,19 +11,18 @@
                 />
                 
                 <field
-                        name="listname"
+                        name="es_listname"
                         type="text"
                         label="COM_YOUTUBEGALLERY_FIELD_LISTNAME_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_LISTNAME_DESC"
                         size="40"
                         class="inputbox validate-greeting"
-                        validate="listname"
                         required="true"
                         default=""
                 />
                 
                 <field
-                        name="catid"
+                        name="es_catid"
                         type="ygcategory"
                         label="COM_YOUTUBEGALLERY_FIELD_CATEGORY_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_CATEGORY_DESC"
@@ -33,7 +32,7 @@
                 />
                 
                 <field
-                        name="videolist"
+                        name="es_videolist"
                         type="textarea"
                         label="COM_YOUTUBEGALLERY_FIELD_VIDEOLIST_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_VIDEOLIST_DESC"
@@ -46,7 +45,7 @@
                 
                 
                 <field
-                        name="updateperiod"
+                        name="es_updateperiod"
                         type="list"
                         label="COM_YOUTUBEGALLERY_FIELD_UPDATEPERIOD_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_UPDATEPERIOD_DESC"
@@ -85,7 +84,7 @@
                 
                 
                 <field
-                        name="description"
+                        name="es_description"
                         type="textarea"
                         label="COM_YOUTUBEGALLERY_FIELD_DESCRIPTION_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_DESCRIPTION_DESC"
@@ -97,7 +96,7 @@
                 
                 <field
 			cols="150"
-                        name="author"
+                        name="es_author"
                         type="text"
                         label="COM_YOUTUBEGALLERY_FIELD_AUTHOR_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_AUTHOR_DESC"
@@ -108,7 +107,7 @@
 		
 		<field
 			cols="150"
-                        name="authorurl"
+                        name="es_authorurl"
                         type="text"
                         label="COM_YOUTUBEGALLERY_FIELD_AUTHORURL_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_AUTHORURL_DESC"
@@ -119,7 +118,7 @@
 		
 		<field
 			cols="150"
-                        name="image"
+                        name="es_image"
                         type="text"
                         label="COM_YOUTUBEGALLERY_FIELD_IMAGE_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_IMAGE_DESC"
@@ -130,7 +129,7 @@
 		
 		<field
 			cols="150"
-                        name="note"
+                        name="es_note"
                         type="text"
                         label="COM_YOUTUBEGALLERY_FIELD_NOTE_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_NOTE_DESC"

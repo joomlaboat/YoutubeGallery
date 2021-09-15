@@ -8,8 +8,11 @@
 
 // No direct access
 defined('_JEXEC') or die('Restricted access');
+
+JHtml::_('behavior.keepalive');
 JHtml::_('behavior.formvalidation');
-JHtml::_('behavior.tooltip');
+
+//JHtml::_('behavior.tooltip');
 
 $document = JFactory::getDocument();
 $document->addCustomTag('<link rel="stylesheet" href="'.JURI::root().'components/com_youtubegallery/css/wizard.css" type="text/css" />');
@@ -125,7 +128,7 @@ $textarea_box=$this->form->getInput('videolist');
 			</div>
 
 			<script>
-				YGSetVLTA('jform_videolist');
+				YGSetVLTA('jform_es_videolist');
 				YGUpdatelinksTable();
 			</script>
 

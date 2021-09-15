@@ -36,20 +36,20 @@ class JFormFieldYGCategory extends JFormFieldList
                 //die;
                 $db = JFactory::getDBO();
                 $query = $db->getQuery(true);
-                $query->select(array('id','categoryname'));
-                $query->from('#__youtubegallery_categories');
+                $query->select(array('id','es_categoryname'));
+                $query->from('#__customtables_table_youtubegallerycategories');
                 $db->setQuery((string)$query);
-                $messages = $db->loadObjectList();
+                $records = $db->loadObjectList();
 
                 $options = array();
 
                 $options[] = JHtml::_('select.option', 0, JText::_( 'COM_YOUTUBEGALLERY_SELECT_CATEGORY' ));
 
-                if ($messages)
+                if($records)
                 {
-                        foreach($messages as $message)
+                        foreach($records as $record)
                         {
-                                $options[] = JHtml::_('select.option', $message->id, $message->categoryname);
+                                $options[] = JHtml::_('select.option', $record->id, $record->es_categoryname);
 
                         }
                 }

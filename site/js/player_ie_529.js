@@ -209,7 +209,7 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
     value: function loadVideoRecords() {
 		var xmlHttp = new XMLHttpRequest();
 
-		let url=this.WebsiteRoot + '/index.php?option=com_youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
+		let url=this.WebsiteRoot + '/index.php?option=com_youtubegallery&view=youtubegallery&yg_api=1&listid='+this.videolistid+'&themeid='+this.themeid+'&ygstart='+ygstart;
 
 		xmlHttp.open( "GET", url, false);
 		xmlHttp.send(null);
@@ -217,27 +217,12 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
 
 		this.videorecords=JSON && JSON.parse(r) || $.parseJSON(r);
     }
-  },/* {
-    key: "updateVideoRecords",
-    value: function updateVideoRecords() {
-      if (this.videorecords.length == 0) {
-        var obj_name = "YoutubeGallery_VideoRecords_" + this.videolistid + "";
-        var obj = document.getElementById(obj_name);
-
-        try {
-          this.videorecords = JSON.parse(obj.innerHTML);
-        } catch (e) {
-          alert("Response is not JSON: " + obj.innerHTML);
-          return false;
-        }
-      }
-    }
-  }, */{
+  }, {
     key: "findVideoRecordByID",
     value: function findVideoRecordByID(videoid) {
       for (var i = 0; i < this.videorecords.length; i++) {
         var rec = this.videorecords[i];
-        if (rec.videoid == videoid) return rec;
+        if (rec.es_videoid == videoid) return rec;
       }
 
       return null;
@@ -312,8 +297,8 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
       var rec = this.findVideoRecordByID(videoid);
       if (rec == null) return;
 
-      if (rec.custom_imageurl != "" && rec.custom_imageurl.indexOf("#") == -1) {
-        var customimage = rec.custom_imageurl;
+      if (rec.es_customimageurl != "" && rec.es_customimageurl.indexOf("#") == -1) {
+        var customimage = rec.es_customimageurl;
         var n = customimage.indexOf("_small");
 
         if (n == -1) {
@@ -326,9 +311,9 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
         } else playercode = YoutubeGalleryCleanCode(playercode);
       } else playercode = YoutubeGalleryCleanCode(playercode);
 
-      playercode = playercode.replace("****youtubegallery-video-link****", rec.link);
-      playercode = playercode.replace("****youtubegallery-video-startsecond****", rec.startsecond);
-      playercode = playercode.replace("****youtubegallery-video-endsecond****", rec.endsecond);
+      playercode = playercode.replace("****youtubegallery-video-link****", rec.es_link);
+      playercode = playercode.replace("****youtubegallery-video-startsecond****", rec.es_startsecond);
+      playercode = playercode.replace("****youtubegallery-video-endsecond****", rec.es_endsecond);
       playercode = playercode.replace("autoplay=0", "autoplay=1");
       playercode = playercode.replace("****scriptbegin****", "<script ");
       playercode = playercode.replace("****scriptend****", "</script>");
@@ -337,8 +322,8 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
       ygsc.style.display = "block";
 
       if (playercode.indexOf("<!--DYNAMIC PLAYER-->") != -1) {
-        this.ApiStart = rec.startsecond;
-        this.ApiEnd = rec.endsecond;
+        this.ApiStart = rec.es_startsecond;
+        this.ApiEnd = rec.es_endsecond;
 
         if (videosource == "youtube") {
           this.youtube_SetPlayer_(videoid);
@@ -348,20 +333,6 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
           eval("this.youtubegallery_updateplayer_" + videosource + "(videoid,true)");
         }
       }
-      /*else
-      {
-      	if(videosource=="tiktok")
-      	{
-      		alert("TikTok player");
-      		let a=function(e){
-      			alert(JSON.stringify(e));
-      			startTikTok(e);
-      		}
-      		
-      	}
-      }
-      */
-
 
       var title_obj_name = "YoutubeGalleryVideoTitle" + this.videolistid + "";
       var tObj = document.getElementById(title_obj_name);
@@ -372,7 +343,7 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
       if (tObj) {
         this.element_removeClass(title_obj_name, "ygTitle-visible");
         this.element_addClass(title_obj_name, "ygTitle-hidden");
-        var title = rec.title;
+        var title = rec.es_title;
         tObj.innerHTML = title.replaceAll('_quote_', '&quot;');
         setTimeout(function () {
           t.element_removeClass(title_obj_name, "ygTitle-hidden");
@@ -383,7 +354,7 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
       if (dObj) {
         this.element_removeClass(description_obj_name, "ygDescription-visible");
         this.element_addClass(description_obj_name, "ygDescription-hidden");
-        var desc = rec.description;
+        var desc = rec.es_description;
         desc = desc.replaceAll('_thelinebreak_', '<br />');
         desc = desc.replaceAll('_quote_', '&quot;');
         desc = desc.replaceAll('_email_', '@');

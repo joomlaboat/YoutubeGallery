@@ -15,44 +15,49 @@ jimport('joomla.application.component.modellist');
  */
 class YoutubeGalleryModelVideoList extends JModelList
 {
-        /**
-         * Method to build an SQL query to load the list data.
-         *
-         * @return string  An SQL query
-         */
-        protected function getListQuery()
-        {
-				$where=array();
+	/**
+	* Method to build an SQL query to load the list data.
+	*
+	* @return string  An SQL query
+	*/
+	protected function getListQuery()
+    {
+			// Create a new query object.
+			$db = JFactory::getDBO();
+			
+			$where=array();
 
-				$context= 'com_youtubegallery.videolist.';
-                $mainframe = JFactory::getApplication();
-                $search			= $mainframe->getUserStateFromRequest($context."search",'search','',	'string' );
-				$search			=strtolower(trim(preg_replace("/[^a-zA-Z0-9 ]/", "", $search)));
+			$context= 'com_youtubegallery.videolist.';
+			$mainframe = JFactory::getApplication();
+			//$search	= $mainframe->getUserStateFromRequest($context."search",'search','',	'string' );
+			//$search	= strtolower(trim(preg_replace("/[^a-zA-Z0-9 ]/", "", $search)));
 
-				$where[]='listid='.JFactory::getApplication()->input->getInt( 'listid');
+			$where[]='es_videolist='.(int)JFactory::getApplication()->input->getInt('listid');
+			
+			$search = $this->getState('filter.search');
+			$search	= strtolower(trim(preg_replace("/[^a-zA-Z0-9 ]/", "", $search)));
 
-				if($search!='')
-						$where[]='( instr(link,"'.$search.'") OR instr(title,"'.$search.'") OR instr(description,"'.$search.'") )';
+			if($search!='')
+				$where[]='(
+					INSTR(es_link,'.$db->quote($search).') OR 
+					INSTR(es_title,'.$db->quote($search).') OR 
+					INSTR(es_description,'.$db->quote($search).')
+				)';
+		       
+			$query = $db->getQuery(true);
+			// Select some fields
+			$query->select(array('*'));
+			// From the Youtube Gallery Videos table
+			$query->from('#__customtables_table_youtubegalleryvideos');
 
+			if(count($where)>0)
+				$query->where(implode(' AND ',$where));
 
-                // Create a new query object.
-                $db = JFactory::getDBO();
-                $query = $db->getQuery(true);
-                // Select some fields
-                $query->select(array('*'));
-                // From the Youtube Gallery Videos table
-                $query->from('#__youtubegallery_videos');
-
-		if(count($where)>0)
-			$query->where(implode(' AND ',$where));
-
-
-                return $query;
-        }
+			return $query;
+	}
 
 	public function getTable($type = 'VideoList', $prefix = 'YoutubeGalleryTable', $config = array())
-        {
-                return JTable::getInstance($type, $prefix, $config);
-        }
-
+	{
+	    return JTable::getInstance($type, $prefix, $config);
+    }
 }

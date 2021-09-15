@@ -7,67 +7,159 @@
  **/
 
 // No direct access to this file
-defined('_JEXEC') or die('Restricted access');
+\defined('_JEXEC') or die;
 
-// import Joomla view library
-jimport('joomla.application.component.view');
+use Joomla\CMS\Version;
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\GenericDataException;
+use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Object\CMSObject;
+use Joomla\CMS\Toolbar\Toolbar;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\Database\DatabaseDriver;
+use Joomla\Component\Content\Administrator\Extension\ContentComponent;
 
 /**
  * YoutubeGallery LinksList View
  */
 class YoutubeGalleryViewLinksList extends JViewLegacy
 {
-        /**
-         * YoutubeGallery view display method
-         * @return void
-         */
-        function display($tpl = null)
-        {
-                // Get data from the model
-                $items = $this->get('Items');
-                $pagination = $this->get('Pagination');
+	/**
+	* YoutubeGallery view display method
+	* @return void
+	*/
+		 
+	private $isEmptyState = false;
+	 
+	function display($tpl = null)
+	{
+		$version = new Version;
+		$this->version = (int)$version->getShortVersion();
+		
+		if ($this->getLayout() !== 'modal')
+		{
+			// Include helper submenu
+			//YoutubeGalleryHelper::addSubmenu('linkslist');
+		}
+		
+		$this->items = $this->get('Items');
+		$this->pagination = $this->get('Pagination');
+		$this->state = $this->get('State');
+		$this->user = JFactory::getUser();
+		
+		
+		if($this->version >= 4)
+		{
+			//This must be after getting Items
+			$this->filterForm    = $this->get('FilterForm');
+			$this->activeFilters = $this->get('ActiveFilters');
+		}
+		
+		$this->listOrder = $this->state->get('list.ordering');
+		$this->listDirn = $this->escape($this->state->get('list.direction'));
+		
+		// get global action permissions
 
-                // Check for errors.
-                if (count($errors = $this->get('Errors')))
-                {
-                        JFactory::getApplication()->enqueueMessage( implode('<br />', $errors), 'error');
-                        return false;
-                }
-                // Assign data to the view
-                $this->items = $items;
-                $this->pagination = $pagination;
+		$this->canDo = ContentHelper::getActions('com_youtubegallery', 'linkslist');
+		
+		$this->canCreate = $this->canDo->get('linkslist.create');
+		$this->canEdit = $this->canDo->get('linkslist.edit');
+		$this->canState = $this->canDo->get('linkslist.edit.state');
+		$this->canDelete = $this->canDo->get('linkslist.delete');
+		
+		$this->isEmptyState = $this->get('IsEmptyState');
+		//$this->canBatch = $this->canDo->get('core.batch');
 
-                // Set the toolbar
-				$this->canDo = YoutubeGalleryHelper::getActions('linkslist');
-				
-				$this->canCreate = $this->canDo->get('linkslist.create');
-				$this->canDelete = $this->canDo->get('linkslist.delete');
-				$this->canEdit = $this->canDo->get('linkslist.edit');
-				$this->canUpdate = $this->canDo->get('linkslist.update');
-				
-                $this->addToolBar();
+		// We don't need toolbar in the modal window.
+		if ($this->getLayout() !== 'modal')
+		{
+			if($this->version < 4)
+			{
+				$this->addToolbar_3();
+				$this->sidebar = JHtmlSidebar::render();
+			}
+			else
+				$this->addToolbar_4();
+			
+			// load the batch html
+			if ($this->canCreate && $this->canEdit && $this->canState)
+			{
+				//$this->batchDisplay = JHtmlBatch_::render();
+			}
+		}
+		
+		// Check for errors.
+		if (count($errors = $this->get('Errors')))
+		{
+			throw new Exception(implode("\n", $errors), 500);
+		}
 
-                $context= 'com_youtubegallery.linkslist.';
-                $mainframe = JFactory::getApplication();
-                $search			= $mainframe->getUserStateFromRequest($context."search",'search','',	'string' );
-                $search			= JString::strtolower( $search );
+		// Display the template
+		if($this->version < 4)
+			parent::display($tpl);
+		else
+			parent::display('quatro');
 
-                $this->lists['search']=$search;
+		// Set the document
+		$this->setDocument();
+	}
+	
+	protected function addToolbar_4()
+	{
+		$canDo = $this->canDo;
+		$user  = Factory::getUser();
 
-                $filter_category= $mainframe->getUserStateFromRequest($context."filter_category",'filter_category','',	'integer' );
+		// Get the toolbar object instance
+		$toolbar = Toolbar::getInstance('toolbar');
 
-                $available_categories=$this->getAllCategories();
-                $javascript = 'onchange="document.adminForm.submit();"';
-                $this->lists['categories']=JHTML::_('select.genericlist', $available_categories, 'filter_category', $javascript ,'id','categoryname', $filter_category);
+		ToolbarHelper::title(Text::_('COM_YOUTUBEGALLERY_LINKSLIST'), 'joomla');
 
-                // Display the template
-                parent::display($tpl);
-        }
+		if ($this->canCreate)
+			$toolbar->addNew('linksform.add');
 
-        /**
-         * Setting the toolbar
-        */
-        protected function addToolBar()
+		$dropdown = $toolbar->dropdownButton('status-group')
+			->text('JTOOLBAR_CHANGE_STATUS')
+			->toggleSplit(false)
+			->icon('icon-ellipsis-h')
+			->buttonClass('btn btn-action')
+			->listCheck(true);
+
+		$childBar = $dropdown->getChildToolbar();
+		
+		if ($this->canState)
+		{
+			$childBar->publish('linkslist.publish')->listCheck(true);
+			$childBar->unpublish('linkslist.unpublish')->listCheck(true);
+		}
+		
+		/*
+		if ($this->canDo->get('core.admin'))
+		{
+			$childBar->checkin('listoflayouts.checkin');
+		}
+		*/
+
+		if(($this->canState && $this->canDelete))
+		{
+			if ($this->state->get('filter.published') != ContentComponent::CONDITION_TRASHED)
+			{
+				$childBar->trash('linkslist.trash')->listCheck(true);
+			}
+
+			if (!$this->isEmptyState && $this->state->get('filter.published') == ContentComponent::CONDITION_TRASHED && $this->canDelete)
+			{
+				$toolbar->delete('linkslist.delete')
+					->text('JTOOLBAR_EMPTY_TRASH')
+					->message('JGLOBAL_CONFIRM_DELETE')
+					->listCheck(true);
+			}
+		}
+	}
+	
+	protected function addToolBar_3()
         {
             JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_LINKSLIST'));
 
@@ -90,38 +182,13 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
                 JToolBarHelper::deleteList('', 'linkslist.delete');
 
         }
-
-       	function getAllCategories()
-        {
-        	$db = JFactory::getDBO();
-
-        	$query = "SELECT id, categoryname FROM #__youtubegallery_categories ORDER BY categoryname";
-        	$db->setQuery( $query );
-        	$available_categories = $db->loadObjectList();
-        	$this->array_insert($available_categories ,array("id" => 0, "categoryname" => JText::_( 'COM_YOUTUBEGALLERY_SELECT_CATEGORY' )),0);
-        	return $available_categories;
-        }
-
-        function array_insert(&$array, $insert, $position = -1)
-        {
-                $position = ($position == -1) ? (count($array)) : $position ;
-                if($position != (count($array))) {
-                $ta = $array;
-                for($i = $position; $i < (count($array)); $i++)
-                {
-                        if(!isset($array[$i])) {
-                                 die("\r\nInvalid array: All keys must be numerical and in sequence.");
-                        }
-                        $tmp[$i+1] = $array[$i];
-                        unset($ta[$i]);
-                }
-                $ta[$position] = $insert;
-                $array = $ta + $tmp;
-
-                } else {
-                     $array[$position] = $insert;
-                }
-                ksort($array);
-                return true;
-        }
-}//class
+	
+	protected function setDocument()
+	{
+		if (!isset($this->document))
+		{
+			$this->document = JFactory::getDocument();
+		}
+		$this->document->setTitle(JText::_('COM_YOUTUBEGALLERY_LINKSLIST'));
+	}
+}

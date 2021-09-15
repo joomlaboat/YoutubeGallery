@@ -30,9 +30,9 @@ defined('_JEXEC') or die('Restricted Access');
                 <td>
 				
 					<?php if($this->canEdit): ?>
-                        <a href="<?php echo $link2edit; ?>"><?php echo $item->listname; ?></a>
+                        <a href="<?php echo $link2edit; ?>"><?php echo $item->es_listname; ?></a>
 					<?php else: ?>
-						<?php echo $item->listname; ?>
+						<?php echo $item->es_listname; ?>
 					<?php endif; ?>
                 </td>
                 

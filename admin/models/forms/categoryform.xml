@@ -9,7 +9,7 @@
                 />
                 
                 <field
-                        name="categoryname"
+                        name="es_categoryname"
                         type="text"
                         label="COM_YOUTUBEGALLERY_FIELD_CATEGORYNAME_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_CATEGORYNAME_DESC"
@@ -21,7 +21,7 @@
                 />
                 
                 <field
-                        name="parentid"
+                        name="es_parentid"
                         type="categoryparent"
                         label="COM_YOUTUBEGALLERY_FIELD_CATEGORYPARENT_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_CATEGORYPARENT_DESC"
@@ -31,7 +31,7 @@
                 />
 
 		<field
-                        name="description"
+                        name="es_description"
                         type="textarea"
                         label="COM_YOUTUBEGALLERY_FIELD_DESCRIPTION_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_DESCRIPTION_DESC"
@@ -43,7 +43,7 @@
                 
                 <field
 			cols="150"
-                        name="image"
+                        name="es_image"
                         type="text"
                         label="COM_YOUTUBEGALLERY_FIELD_IMAGE_LABEL"
                         description="COM_YOUTUBEGALLERY_FIELD_IMAGE_DESC"

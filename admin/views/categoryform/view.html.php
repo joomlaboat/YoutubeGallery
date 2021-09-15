@@ -10,69 +10,96 @@
 defined('_JEXEC') or die('Restricted access');
 
 // import Joomla view library
-jimport('joomla.application.component.view');
+use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Version;
 
 /**
  * Youtube Category Form
  */
 class YoutubeGalleryViewCategoryForm extends JViewLegacy
 {
-        /**
-         * display method of Youtube Gallery view
-         * @return void
-         */
-        public function display($tpl = null)
-        {
-                $form = $this->get('Form');
-                $item = $this->get('Item');
-                
-                // Check for errors.
-                if (count($errors = $this->get('Errors')))
-                {
-						JFactory::getApplication()->enqueueMessage( implode('<br />', $errors), 'error');
-                        return false;
-                }
+	/**
+	* display method of Youtube Gallery view
+	* @return void
+     */
+		 
+	public function display($tpl = null)
+	{
+		$version = new Version;
+		$this->version = (int)$version->getShortVersion();
+		
+		// Assign the variables
+		$this->form = $this->get('Form');
+		$this->item = $this->get('Item');
+		$this->script = $this->get('Script');
+		$this->state = $this->get('State');
+		// get action permissions
 
-                // Assign the Data
-                $this->form = $form;
-                $this->item = $item;
+		$this->canDo = ContentHelper::getActions('com_youtubegallery', 'categories',$this->item->id);
+		
+		$this->canCreate = $this->canDo->get('categories.create');
+		$this->canEdit = $this->canDo->get('categories.edit');
+		$this->canState = $this->canDo->get('categories.edit.state');
+		$this->canDelete = $this->canDo->get('categories.delete');
+		
+		// get input
+		$jinput = JFactory::getApplication()->input;
+		$this->ref = JFactory::getApplication()->input->get('ref', 0, 'word');
+		$this->refid = JFactory::getApplication()->input->get('refid', 0, 'int');
+		$this->referral = '';
+		if ($this->refid)
+		{
+			// return to the item that refered to this item
+			$this->referral = '&ref='.(string)$this->ref.'&refid='.(int)$this->refid;
+		}
+		elseif($this->ref)
+		{
+			// return to the list view that refered to this item
+			$this->referral = '&ref='.(string)$this->ref;
+		}
 
-                // Set the toolbar
-                $this->addToolBar();
+		// Set the toolbar
+		$this->addToolBar();
+		
+		// Check for errors.
+		if (count($errors = $this->get('Errors')))
+		{
+			throw new Exception(implode("\n", $errors), 500);
+		}
 
-                // Display the template
-                parent::display($tpl);
-                
-                // Set the document
-                $this->setDocument();//this method must be called after "display" to let validation work properly because the Form must be rendered before validation script
-        }
+		// Display the template
+		parent::display($tpl);
 
-        /**
-         * Setting the toolbar
-         */
-        protected function addToolBar()
-        {
-                $jinput = JFactory::getApplication()->input;
-                $jinput->get->set('hidemainmenu',true);
+		// Set the document
+		$this->setDocument();
+	}
+    
+	/**
+	* Setting the toolbar
+	*/
+	protected function addToolBar()
+	{
+		$jinput = JFactory::getApplication()->input;
+		$jinput->get->set('hidemainmenu',true);
 
-                $isNew = ($this->item->id == 0);
-                JToolBarHelper::title($isNew ? JText::_('COM_YOUTUBEGALLERY_NEW_CATEGORY') : JText::_('COM_YOUTUBEGALLERY_EDIT_CATEGORY'));
-                JToolBarHelper::apply('categoryform.apply');
-                JToolBarHelper::save('categoryform.save');
-                JToolBarHelper::cancel('categoryform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
-        }
+		$isNew = ($this->item->id == 0);
+		JToolBarHelper::title($isNew ? JText::_('COM_YOUTUBEGALLERY_NEW_CATEGORY') : JText::_('COM_YOUTUBEGALLERY_EDIT_CATEGORY'));
+		JToolBarHelper::apply('categoryform.apply');
+		JToolBarHelper::save('categoryform.save');
+		JToolBarHelper::cancel('categoryform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
+	}
 
-        /**
-        * Method to set up the document properties
-        *
-        * @return void
-        */
-        protected function setDocument()
-        {
-                $isNew = ($this->item->id < 1);
-                $document = JFactory::getDocument();
-                $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_NEW_CATEGORY') : JText::_('COM_YOUTUBEGALLERY_EDIT_CATEGORY'));
-                $document->addScript(JURI::root()."components/com_youtubegallery/js/submitbutton.js");
-                JText::script('COM_YOUTUBEGALLERY_CATEGORYFORM_ERROR_UNACCEPTABLE');
-        }
+	/**
+	* Method to set up the document properties
+	*
+	* @return void
+	*/
+	protected function setDocument()
+	{
+		$isNew = ($this->item->id < 1);
+		$document = JFactory::getDocument();
+		$document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_NEW_CATEGORY') : JText::_('COM_YOUTUBEGALLERY_EDIT_CATEGORY'));
+		$document->addScript(JURI::root()."components/com_youtubegallery/js/submitbutton.js");
+		JText::script('COM_YOUTUBEGALLERY_CATEGORYFORM_ERROR_UNACCEPTABLE');
+	}
 }

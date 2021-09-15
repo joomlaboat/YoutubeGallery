@@ -1,6 +1,6 @@
 .specialbutton {
 	display: inline-block;
-    margin-bottom:20px;
+    margin:10px;
 }
 
 .specialbutton a {
@@ -12,7 +12,7 @@
     display: inline-block;
     /*margin: 20px auto;*/
     max-width: 180px;
-	max-height:30px;
+/*	max-height:30px; */
     text-decoration: none;
     border-radius: 4px;
     padding: 15px 20px;
@@ -31,4 +31,3 @@
 
     box-shadow: rgba(37, 80, 209, 0.7) 0 80px 0px 2px inset;
 }
-

@@ -9,9 +9,6 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
-
-require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
 $client_id = YouTubeGalleryDB::getSettingValue('soundcloud_api_client_id');
 
 $document = JFactory::getDocument();
@@ -25,10 +22,9 @@ $document->addCustomTag('
 
 ?>
 
-
 <table style="border:none;">
-                                <tbody>
-                                        <tr>
+    <tbody>
+        <tr>
 						<td style="vertical-align: top;" valign="top">
 							<p style="font-weight:bold;">Source</p>
 

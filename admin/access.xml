@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <access component="com_youtubegallery">
 	<section name="component">
-		<action name="core.admin" title="JACTION_ADMIN" description="JACTION_ADMIN_COMPONENT_DESC" />
-		<!--<action name="core.options" title="JACTION_OPTIONS" description="JACTION_OPTIONS_COMPONENT_DESC" />-->
-		<action name="core.manage" title="JACTION_MANAGE" description="JACTION_MANAGE_COMPONENT_DESC" />
+		<action name="core.admin" title="JACTION_ADMIN" description="" />
+		<action name="core.manage" title="JACTION_MANAGE" description="" />
 
-
-		<action name="linkslist.create" title="COM_YOUTUBEGALLERY_LINKSLIST_CREATE" description="COM_YOUTUBEGALLERY_LINKSLIST_CREATE_DESC" />
-		<action name="linkslist.delete" title="COM_YOUTUBEGALLERY_LINKSLIST_DELETE" description="COM_YOUTUBEGALLERY_LINKSLIST_DELETE_DESC" />
-		<action name="linkslist.edit" title="COM_YOUTUBEGALLERY_LINKSLIST_EDIT" description="COM_YOUTUBEGALLERY_LINKSLIST_EDIT_DESC" />
-		<action name="linkslist.update" title="COM_YOUTUBEGALLERY_LINKSLIST_UPDATE" description="COM_YOUTUBEGALLERY_LINKSLIST_UPDATE_DESC" />
+		<action name="linkslist.create" title="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_CREATE" description="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_CREATE_DESC" />
+		<action name="linkslist.edit" title="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_EDIT" description="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_EDIT_DESC" />
+		<action name="linkslist.edit.state" title="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_EDIT_STATE" description="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_EDIT_STATE_DESC" />
+		<action name="linkslist.delete" title="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_DELETE" description="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_DELETE_DESC" />
+		<action name="linkslist.update" title="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_UPDATE" description="COM_YOUTUBEGALLERY_LINKSLIST_ACTION_UPDATE_DESC" />
 		
-		<action name="themelist.view" title="COM_YOUTUBEGALLERY_THEMELIST_VIEW" description="COM_YOUTUBEGALLERY_THEMELIST_VIEW_DESC" />
-		<action name="themelist.create" title="COM_YOUTUBEGALLERY_THEMELIST_CREATE" description="COM_YOUTUBEGALLERY_THEMELIST_CREATE_DESC" />
-		<action name="themelist.delete" title="COM_YOUTUBEGALLERY_THEMELIST_DELETE" description="COM_YOUTUBEGALLERY_THEMELIST_DELETE_DESC" />
-		<action name="themelist.edit" title="COM_YOUTUBEGALLERY_THEMELIST_EDIT" description="COM_YOUTUBEGALLERY_THEMELIST_EDIT_DESC" />
+		<action name="themelist.view" title="COM_YOUTUBEGALLERY_THEMELIST_ACTION_VIEW" description="COM_YOUTUBEGALLERY_THEMELIST_ACTION_VIEW_DESC" />
+		<action name="themelist.create" title="COM_YOUTUBEGALLERY_THEMELIST_ACTION_CREATE" description="COM_YOUTUBEGALLERY_THEMELIST_ACTION_CREATE_DESC" />
+		<action name="themelist.edit" title="COM_YOUTUBEGALLERY_THEMELIST_ACTION_EDIT" description="COM_YOUTUBEGALLERY_THEMELIST_ACTION_EDIT_DESC" />
+		<action name="themelist.edit.state" title="COM_YOUTUBEGALLERY_THEMELIST_ACTION_EDIT_STATE" description="COM_YOUTUBEGALLERY_THEMELIST_ACTION_EDIT_STATE_DESC" />
+		<action name="themelist.delete" title="COM_YOUTUBEGALLERY_THEMELIST_ACTION_DELETE" description="COM_YOUTUBEGALLERY_THEMELIST_ACTION_DELETE_DESC" />
+		<action name="themelist.export" title="COM_YOUTUBEGALLERY_THEMELIST_ACTION_EXPORT" description="COM_YOUTUBEGALLERY_THEMELIST_ACTION_EXPORT_DESC" />
 		
-		<action name="categories.view" title="COM_YOUTUBEGALLERY_CATEGORIES_VIEW_LIST" description="COM_YOUTUBEGALLERY_CATEGORIES_VIEW_DESC" />
-		<action name="categories.create" title="COM_YOUTUBEGALLERY_CATEGORIES_CREATE" description="COM_YOUTUBEGALLERY_CATEGORIES_CREATE_DESC" />
-		<action name="categories.delete" title="COM_YOUTUBEGALLERY_CATEGORIES_DELETE" description="COM_YOUTUBEGALLERY_CATEGORIES_DELETE_DESC" />
-		<action name="categories.edit" title="COM_YOUTUBEGALLERY_CATEGORIES_EDIT" description="COM_YOUTUBEGALLERY_CATEGORIES_EDIT_DESC" />
+		<action name="categories.view" title="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_VIEW" description="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_VIEW_DESC" />
+		<action name="categories.create" title="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_CREATE" description="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_CREATE_DESC" />
+		<action name="categories.edit" title="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_EDIT" description="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_EDIT_DESC" />
+		<action name="categories.edit.state" title="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_EDIT_STATE" description="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_EDIT_STATE_DESC" />
+		<action name="categories.delete" title="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_DELETE" description="COM_YOUTUBEGALLERY_CATEGORIES_ACTION_DELETE_DESC" />
 
-		<action name="settings.view" title="COM_YOUTUBEGALLERY_SETTINGS_DASHBOARD_LIST" description="COM_YOUTUBEGALLERY_SETTINGS_DASHBOARD_LIST_DESC" />
-		<action name="settings.edit" title="COM_YOUTUBEGALLERY_SETTINGS_EDIT" description="COM_YOUTUBEGALLERY_SETTINGS_EDIT_DESC" />
+		<action name="settings.view" title="COM_YOUTUBEGALLERY_SETTINGS_ACTION_VIEW" description="COM_YOUTUBEGALLERY_SETTINGS_ACTION_VIEW_DESC" />
+		<action name="settings.edit" title="COM_YOUTUBEGALLERY_SETTINGS_ACTION_EDIT" description="COM_YOUTUBEGALLERY_SETTINGS_ACTION_EDIT_DESC" />
 	</section>
 
 </access>

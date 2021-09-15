@@ -9,314 +9,106 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\Utilities\ArrayHelper;
+
 /**
  * YoutubeGallery component helper.
  */
 abstract class YoutubeGalleryHelper
 {
-	/**
-	*	Get the actions permissions
-	**/
-	/*
-	public static function getActions($view,&$record = null,$views = null)
+	public function setRecordStatus($task, $viewLabel,$tableShortName)
 	{
-		jimport('joomla.access.access');
+		if($task == 'publish')
+			$status = 1;
+		elseif($task == 'unpublish')
+			$status = 0;
+		elseif($task == 'trash')
+			$status = -2;
+		else
+			return;
+				
+		$cid	= JFactory::getApplication()->input->post->get('cid',array(),'array');
+		$cid = ArrayHelper::toInteger($cid);
+		
+		$ok=true;
+		
+		foreach($cid as $id)
+		{
+			if((int)$id!=0)
+			{
+				$id=(int)$id;
+				$isok=YoutubeGalleryHelper::setPublishStatusSingleRecord($id,$status,$tableShortName);
+				if(!$isok)
+				{
+					$ok=false;
+					break;
+				}
+			}
+		}
+		
+		if($task == 'trash')
+			$msg = 'COM_YOUTUBEGALLERY_'.$viewLabel.'_N_ITEMS_TRASHED';
+		elseif($task == 'publish')
+			$msg = 'COM_YOUTUBEGALLERY_'.$viewLabel.'_N_ITEMS_PUBLISHED';
+		else
+			$msg = 'COM_YOUTUBEGALLERY_'.$viewLabel.'_N_ITEMS_UNPUBLISHED';
+			
+		if(count($cid) == 1)
+			$msg.='_1';
+		
+		JFactory::getApplication()->enqueueMessage(JText::sprintf($msg,count($cid)),'success');
+	}
+	
+	protected static function setPublishStatusSingleRecord($id,$status,$tableShortName)
+	{
+		$db = JFactory::getDBO();
 
-		$user	= JFactory::getUser();
-		$result	= new JObject;
-		$view	= self::safeString($view);
-		if (self::checkString($views))
-		{
-			$views = self::safeString($views);
- 		}
-		// get all actions from component
-		$actions = JAccess::getActions('com_youtubegallery', 'component');
-		// set acctions only set in component settiongs
-		$componentActions = array('core.admin','core.manage','core.options','core.export');
-		// loop the actions and set the permissions
-		foreach ($actions as $action)
-		{
-			// set to use component default
-			$fallback= true;
-			if (self::checkObject($record) && isset($record->id) && $record->id > 0 && !in_array($action->name,$componentActions))
-			{
-				// The record has been set. Check the record permissions.
-				$permission = $user->authorise($action->name, 'com_youtubegallery.'.$view.'.' . (int) $record->id);
-				if (!$permission) // TODO removed && !is_null($permission)
-				{
-					if ($action->name == 'core.edit' || $action->name == $view.'.edit')
-					{
-						if ($user->authorise('core.edit.own', 'com_youtubegallery.'.$view.'.' . (int) $record->id))
-						{
-							// If the owner matches 'me' then allow.
-							if (isset($record->created_by) && $record->created_by > 0 && ($record->created_by == $user->id))
-							{
-								$result->set($action->name, true);
-								// set not to use component default
-								$fallback= false;
-							}
-							else
-							{
-								$result->set($action->name, false);
-								// set not to use component default
-								$fallback= false;
-							}
-						}
-						elseif ($user->authorise($view.'edit.own', 'com_youtubegallery.'.$view.'.' . (int) $record->id))
-						{
-							// If the owner matches 'me' then allow.
-							if (isset($record->created_by) && $record->created_by > 0 && ($record->created_by == $user->id))
-							{
-								$result->set($action->name, true);
-								// set not to use component default
-								$fallback= false;
-							}
-							else
-							{
-								$result->set($action->name, false);
-								// set not to use component default
-								$fallback= false;
-							}
-						}
-						elseif ($user->authorise('core.edit.own', 'com_youtubegallery'))
-						{
-							// If the owner matches 'me' then allow.
-							if (isset($record->created_by) && $record->created_by > 0 && ($record->created_by == $user->id))
-							{
-								$result->set($action->name, true);
-								// set not to use component default
-								$fallback= false;
-							}
-							else
-							{
-								$result->set($action->name, false);
-								// set not to use component default
-								$fallback= false;
-							}
-						}
-						elseif ($user->authorise($view.'edit.own', 'com_youtubegallery'))
-						{
-							// If the owner matches 'me' then allow.
-							if (isset($record->created_by) && $record->created_by > 0 && ($record->created_by == $user->id))
-							{
-								$result->set($action->name, true);
-								// set not to use component default
-								$fallback= false;
-							}
-							else
-							{
-								$result->set($action->name, false);
-								// set not to use component default
-								$fallback= false;
-							}
-						}
-					}
-				}
-				elseif (self::checkString($views) && isset($record->categorytable) && $record->categorytable > 0)
-				{
-					// make sure we use the core. action check for the categories
-					if (strpos($action->name,$view) !== false && strpos($action->name,'core.') === false ) {
-						$coreCheck		= explode('.',$action->name);
-						$coreCheck[0]	= 'core';
-						$categoryCheck	= implode('.',$coreCheck);
-					}
-					else
-					{
-						$categoryCheck = $action->name;
-					}
-					// The record has a category. Check the category permissions.
-					$catpermission = $user->authorise($categoryCheck, 'com_youtubegallery.'.$views.'.category.' . (int) $record->categorytable);
-					if (!$catpermission && !is_null($catpermission))
-					{
-						if ($action->name == 'core.edit' || $action->name == $view.'.edit')
-						{
-							if ($user->authorise('core.edit.own', 'com_youtubegallery.'.$views.'.category.' . (int) $record->categorytable))
-							{
-								// If the owner matches 'me' then allow.
-								if (isset($record->created_by) && $record->created_by > 0 && ($record->created_by == $user->id))
-								{
-									$result->set($action->name, true);
-									// set not to use component default
-									$fallback= false;
-								}
-								else
-								{
-									$result->set($action->name, false);
-									// set not to use component default
-									$fallback= false;
-								}
-							}
-							elseif ($user->authorise($view.'edit.own', 'com_youtubegallery.'.$views.'.category.' . (int) $record->categorytable))
-							{
-								// If the owner matches 'me' then allow.
-								if (isset($record->created_by) && $record->created_by > 0 && ($record->created_by == $user->id))
-								{
-									$result->set($action->name, true);
-									// set not to use component default
-									$fallback= false;
-								}
-								else
-								{
-									$result->set($action->name, false);
-									// set not to use component default
-									$fallback= false;
-								}
-							}
-							elseif ($user->authorise('core.edit.own', 'com_youtubegallery'))
-							{
-								// If the owner matches 'me' then allow.
-								if (isset($record->created_by) && $record->created_by > 0 && ($record->created_by == $user->id))
-								{
-									$result->set($action->name, true);
-									// set not to use component default
-									$fallback= false;
-								}
-								else
-								{
-									$result->set($action->name, false);
-									// set not to use component default
-									$fallback= false;
-								}
-							}
-							elseif ($user->authorise($view.'edit.own', 'com_youtubegallery'))
-							{
-								// If the owner matches 'me' then allow.
-								if (isset($record->created_by) && $record->created_by > 0 && ($record->created_by == $user->id))
-								{
-									$result->set($action->name, true);
-									// set not to use component default
-									$fallback= false;
-								}
-								else
-								{
-									$result->set($action->name, false);
-									// set not to use component default
-									$fallback= false;
-								}
-							}
-						}
-					}
-				}
-			}
-			// if allowed then fallback on component global settings
-			if ($fallback)
-			{
-				$result->set($action->name, $user->authorise($action->name, 'com_youtubegallery'));
-			}
-		}
-		return $result;
-	}
-	*/
-	
-	public static function safeString($string, $type = 'L', $spacer = '_', $replaceNumbers = true)
-	{
-		if ($replaceNumbers === true)
-		{
-			// remove all numbers and replace with english text version (works well only up to millions)
-			$string = self::replaceNumbers($string);
-		}
-		// 0nly continue if we have a string
-		if (self::checkString($string))
-		{
-			// create file name without the extention that is safe
-			if ($type === 'filename')
-			{
-				// make sure VDM is not in the string
-				$string = str_replace('VDM', 'vDm', $string);
-				// Remove anything which isn't a word, whitespace, number
-				// or any of the following caracters -_()
-				// If you don't need to handle multi-byte characters
-				// you can use preg_replace rather than mb_ereg_replace
-				// Thanks @Łukasz Rysiak!
-				// $string = mb_ereg_replace("([^\w\s\d\-_\(\)])", '', $string);
-				$string = preg_replace("([^\w\s\d\-_\(\)])", '', $string);
-				// http://stackoverflow.com/a/2021729/1.8.177
-				return preg_replace('/\s+/', ' ', $string);
-			}
-			// remove all other characters
-			$string = trim($string);
-			$string = preg_replace('/'.$spacer.'+/', ' ', $string);
-			$string = preg_replace('/\s+/', ' ', $string);
-			$string = preg_replace("/[^A-Za-z ]/", '', $string);
-			// select final adaptations
-			if ($type === 'L' || $type === 'strtolower')
-			{
-				// replace white space with underscore
-				$string = preg_replace('/\s+/', $spacer, $string);
-				// default is to return lower
-				return strtolower($string);
-			}
-			elseif ($type === 'W')
-			{
-				// return a string with all first letter of each word uppercase(no undersocre)
-				return ucwords(strtolower($string));
-			}
-			elseif ($type === 'w' || $type === 'word')
-			{
-				// return a string with all lowercase(no undersocre)
-				return strtolower($string);
-			}
-			elseif ($type === 'Ww' || $type === 'Word')
-			{
-				// return a string with first letter of the first word uppercase and all the rest lowercase(no undersocre)
-				return ucfirst(strtolower($string));
-			}
-			elseif ($type === 'WW' || $type === 'WORD')
-			{
-				// return a string with all the uppercase(no undersocre)
-				return strtoupper($string);
-			}
-			elseif ($type === 'U' || $type === 'strtoupper')
-			{
-					// replace white space with underscore
-					$string = preg_replace('/\s+/', $spacer, $string);
-					// return all upper
-					return strtoupper($string);
-			}
-			elseif ($type === 'F' || $type === 'ucfirst')
-			{
-					// replace white space with underscore
-					$string = preg_replace('/\s+/', $spacer, $string);
-					// return with first caracter to upper
-					return ucfirst(strtolower($string));
-			}
-			elseif ($type === 'cA' || $type === 'cAmel' || $type === 'camelcase')
-			{
-				// convert all words to first letter uppercase
-				$string = ucwords(strtolower($string));
-				// remove white space
-				$string = preg_replace('/\s+/', '', $string);
-				// now return first letter lowercase
-				return lcfirst($string);
-			}
-			// return string
-			return $string;
-		}
-		// not a string
-		return '';
+		$query = 'UPDATE #__customtables_table_'.$tableShortName.' SET published='.(int)$status.' WHERE id='.(int)$id;
+
+	 	$db->setQuery($query);
+		$db->execute();	
+
+		return true;
 	}
 	
-	
-	public static function replaceNumbers($string)
+	public static function deleteRecord($viewLabel,$tableShortName)
 	{
-		// set numbers array
-		$numbers = array();
-		// first get all numbers
-		preg_match_all('!\d+!', $string, $numbers);
-		// check if we have any numbers
-		if (isset($numbers[0]) && self::checkArray($numbers[0]))
+		$cid	= JFactory::getApplication()->input->post->get('cid',array(),'array');
+		$cid = ArrayHelper::toInteger($cid);
+		
+		$ok=true;
+		
+		foreach($cid as $id)
 		{
-			foreach ($numbers[0] as $number)
+			if((int)$id!=0)
 			{
-				$searchReplace[$number] = self::numberToString((int)$number);
+				$id=(int)$id;
+				$isok=YoutubeGalleryHelper::deleteSingleRecord($id,$tableShortName);
+				if(!$isok)
+				{
+					$ok=false;
+					break;
+				}
 			}
-			// now replace numbers in string
-			$string = str_replace(array_keys($searchReplace), array_values($searchReplace),$string);
-			// check if we missed any, strange if we did.
-			return self::replaceNumbers($string);
 		}
-		// return the string with no numbers remaining.
-		return $string;
+		
+		$msg ='COM_YOUTUBEGALLERY_'.$viewLabel.'_N_ITEMS_DELETED';
+		if(count($cid) == 1)
+			$msg.='_1';
+		
+		JFactory::getApplication()->enqueueMessage(JText::sprintf($msg,count($cid)),'success');
+	}
+	
+	protected static function deleteSingleRecord($id,$tableShortName)
+	{
+		$db = JFactory::getDBO();
+
+		$query = 'DELETE FROM #__customtables_table_'.$tableShortName.' WHERE id='.(int)$id;
+
+	 	$db->setQuery($query);
+		$db->execute();	
+
+		return true;
 	}
 	
 	/**

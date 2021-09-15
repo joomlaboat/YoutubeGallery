@@ -8,6 +8,12 @@
 
 // No direct access
 defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Editor\Editor;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+
 JHtml::_('behavior.formvalidation');
 JHtml::_('behavior.tooltip');
 
@@ -16,6 +22,8 @@ $htmlscriptpath=$componentpath.'views'.DIRECTORY_SEPARATOR.'themeform'.DIRECTORY
 
 require_once($componentpath.'libraries'.DIRECTORY_SEPARATOR.'layouteditor.php');
 $onPageLoads=array();
+
+/*
 ?>
 
 <script type="text/javascript">
@@ -41,14 +49,15 @@ $onPageLoads=array();
 		jQuery('#loading').hide();
 	});
 </script>
-
+*/
+?>
 <style>
 #jform_headscript, #jform_themedescription
 {
 		width:420px;
 }
 </style>
-<div id="customtables_loader" style="display: none;"></div>
+<!--<div id="customtables_loader" style="display: none;"></div>-->
 <form id="adminForm" name="adminForm" action="<?php echo JRoute::_('index.php?option=com_youtubegallery'); ?>" method="post" class="form-validate">
 <?php echo $this->form->getInput('id'); ?>
 
@@ -59,8 +68,8 @@ $onPageLoads=array();
 						<li class="active"><a href="#general" data-toggle="tab">General</a></li>
 						<li><a href="#playersettings" data-toggle="tab">Player Settings</a></li>
 						<li><a href="#customlayout" data-toggle="tab">Custom Layout</a></li>
-						<li><a href="#customnavlayout" data-toggle="tab">Custom Navigation Bar</a></li>
-						<li><a href="#misc" data-toggle="tab">Misc</a></li>
+						<li><a href="#customnavlayout" data-toggle="tab">Thumbnail Layout</a></li>
+						<li><a href="#misc" data-toggle="tab">Miscellaneous</a></li>
 						<li><a href="#headscript" data-toggle="tab">Head Script</a></li>
 						<li><a href="http://www.joomlaboat.com/youtube-gallery/youtube-gallery-themes?view=catalog&layout=custom" target="_blank" style="color:#51A351;">Get more Themes</a></li>
 

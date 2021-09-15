@@ -17,20 +17,20 @@ jimport('joomla.database.table');
  */
 class YoutubeGalleryTableCategories extends JTable
 {
-        /**
-         * Constructor
-         *
-         * @param object Database connector object
-         */
-       	var $id = null;
-        var $categoryname = null;
-	var $description = null;
-	var $image = null;
-	var $parentid = null;
+	/**
+	 * Constructor
+	 *
+	 * @param object Database connector object
+	 */
+	
+	var $id = null;
+	var $es_categoryname = null;
+	var $es_description = null;
+	var $es_image = null;
+	var $es_parentid = null;
        
-        function __construct(&$db) 
-        {
-                parent::__construct('#__youtubegallery_categories', 'id', $db);
-        }
-
+	function __construct(&$db) 
+	{
+		parent::__construct('#__customtables_table_youtubegallerycategories', 'id', $db);
+	}
 }

@@ -17,7 +17,7 @@ class JHTMLVideoList
           $value=(int)$value;
           $db = JFactory::getDBO();
 
-          $query = 'SELECT id, listname FROM #__youtubegallery_videolists ORDER BY listname';
+          $query = 'SELECT id, es_listname FROM #__customtables_table_youtubegalleryvideolists ORDER BY es_listname';
 				
          $db->setQuery( $query );
          $videolists = $db->loadAssocList( );
@@ -39,9 +39,9 @@ class JHTMLVideoList
            }
          }
 		        
-        $videolists=array_merge(array(array('id'=>'','listname'=>'- '.JText ::_( 'COM_YOUTUBEGALLERY_VIDEOLIST_ADD' ))),$videolists);  
+        $videolists=array_merge(array(array('id'=>'','es_listname'=>'- '.JText ::_( 'COM_YOUTUBEGALLERY_VIDEOLIST_ADD' ))),$videolists);  
 				
-        return JHTML::_('select.genericlist',  $videolists, $control_name, 'class="inputbox"'.$attribute, 'id', 'listname', $value);
+        return JHTML::_('select.genericlist',  $videolists, $control_name, 'class="inputbox"'.$attribute, 'id', 'es_listname', $value);
 		
 				
         }

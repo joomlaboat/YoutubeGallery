@@ -14,6 +14,10 @@ jimport('joomla.application.component.controller');
 
 // Get an instance of the controller prefixed by Youtube Gallery
 
+$path=JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'libraries'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR;
+require_once($path.'loader.php');
+YGLoadClasses();
+
 $controller = JControllerLegacy::getInstance('YoutubeGallery');
 
 

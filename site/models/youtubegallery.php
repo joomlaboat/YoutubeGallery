@@ -9,22 +9,20 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
-// import Joomla modelitem library
-jimport('joomla.application.component.modelitem');
-jimport('joomla.application.menu' );
+use Joomla\CMS\MVC\Model\ListModel;
+
+use YouTubeGallery\Helper;
 
 /**
  * YoutubeGallery Model
  */
-class YoutubeGalleryModelYoutubeGallery extends JModelItem
+class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
 {
         protected $youtubegallerycode;
 		var $params;
-       
+
         public function getYoutubeGalleryCode()
         {
-            require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
-			require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'render.php');
 			$jinput=JFactory::getApplication()->input;
 			$result='';
 
@@ -43,7 +41,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 								$m_themeid=(int)$jinput->getInt('mobilethemeid');
 								if($m_themeid!=0)
 								{
-									if(YouTubeGalleryMisc::check_user_agent('mobile'))
+									if(Helper::check_user_agent('mobile'))
 										$themeid=$m_themeid;
 									else
 										$themeid=(int)$jinput->getInt('themeid');
@@ -58,7 +56,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 								$m_themeid=(int)$this->params->get( 'mobilethemeid' );
 								if($m_themeid!=0)
 								{
-									if(YouTubeGalleryMisc::check_user_agent('mobile'))
+									if(Helper::check_user_agent('mobile'))
 										$themeid=$m_themeid;
 									else
 										$themeid=(int)$this->params->get( 'themeid' );
@@ -66,7 +64,6 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 								else
 									$themeid=(int)$this->params->get( 'themeid' );
 						}
-
 
                         if($listid==0 and $themeid!=0)
                         {
@@ -124,8 +121,8 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 								if(!$ygDB->getThemeTableRow($themeid))
 										return  '<p>No theme found</p>';
 									
-								if($ygDB->theme_row->playvideo==1 and $videoid!='')
-									$ygDB->theme_row->autoplay=1;
+								if($ygDB->theme_row->es_playvideo==1 and $videoid!='')
+									$ygDB->theme_row->es_autoplay=1;
 									
 
 								$renderer= new YouTubeGalleryRenderer;
@@ -138,7 +135,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
                                 if($jinput->getInt('yg_api')==1)
                                 {
                                         $videolist=$ygDB->getVideoList_FromCache_From_Table($videoid_new,$total_number_of_rows,false);
-										$videolist=YouTubeGalleryMisc::prepareDescriptions($videolist);
+										$videolist=Helper::prepareDescriptions($videolist);
 
                                         if (ob_get_contents())
                                         	ob_end_clean();
@@ -161,9 +158,9 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
 								if($videoid=='')
 								{
 									if($videoid_new!='')
-										JFactory::getApplication()->input->setVar('videoid',$videoid_new);
+										JFactory::getApplication()->input->set('videoid',$videoid_new);
 
-									if($ygDB->theme_row->playvideo==1 and $videoid_new!='')
+									if($ygDB->theme_row->es_playvideo==1 and $videoid_new!='')
 										$videoid=$videoid_new;
 								}
 
@@ -186,8 +183,8 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
                                 		break;
 
                                 	case 'center' :
-										if(((int)$ygDB->theme_row->width)>0)
-												$this->youtubegallerycode = '<div style="width:'.$ygDB->theme_row->width.'px;margin: 0 auto;">'.$gallerymodule.'</div>';
+										if(((int)$ygDB->theme_row->es_width)>0)
+												$this->youtubegallerycode = '<div style="width:'.$ygDB->theme_row->es_width.'px;margin: 0 auto;">'.$gallerymodule.'</div>';
 										else
 												$this->youtubegallerycode = $gallerymodule;
 
@@ -202,15 +199,7 @@ class YoutubeGalleryModelYoutubeGallery extends JModelItem
                                 		break;
 
                                 }
-
-
-
-
-
-
                 }
-
-
 
 				if($this->params->get( 'allowcontentplugins' ))
 				{

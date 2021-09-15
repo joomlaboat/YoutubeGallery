@@ -9,10 +9,6 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery'
-             . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'data.php');
-
-             
 $key=YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 $host=YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
 

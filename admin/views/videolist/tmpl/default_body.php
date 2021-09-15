@@ -9,8 +9,6 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted Access');
 
-require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-
 $s=false;
 if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
 	$s=true;

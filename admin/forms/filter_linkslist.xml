@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields name="filter">
+		<field
+			name="search"
+			type="text"
+			inputmode="search"
+			label="COM_YOUTUBEGALLERY_SEARCH_IN_LISTNAME"
+			description="COM_YOUTUBEGALLERY_SEARCH_IN_LISTNAME_DESC"
+			hint="JSEARCH_FILTER"
+		/>
+
+		<field
+			name="es_catid"
+			type="YGCategory"
+			label="COM_YOUTUBEGALLERY_SELECT_CATEGORY"
+			onchange="this.form.submit();"
+			extension="com_youtubegallery"
+			>
+		</field>
+
+		<field
+			name="published"
+			type="YGStatus"
+			label="JOPTION_SELECT_PUBLISHED"
+			onchange="this.form.submit();"
+			extension="com_youtubegallery"
+			>
+			<option value="">JOPTION_SELECT_PUBLISHED</option>
+		</field>
+	</fields>
+	<fields name="list">
+		<field
+			name="fullordering"
+			type="list"
+			label="JGLOBAL_SORT_BY"
+			onchange="this.form.submit();"
+			default="a.id ASC"
+			validate="options"
+			>
+			<option value="">JGLOBAL_SORT_BY</option>
+			<option value="a.es_listname ASC">COM_YOUTUBEGALLERY_LINKSLIST_HEADING_NAME_ASC</option>
+			<option value="a.es_listname DESC">COM_YOUTUBEGALLERY_LINKSLIST_HEADING_NAME_DESC</option>
+			<option value="a.published ASC">COM_YOUTUBEGALLERY_HEADING_STATE_ASC</option>
+			<option value="a.published DESC">COM_YOUTUBEGALLERY_HEADING_STATE_DESC</option>
+			<option value="a.id ASC">JGRID_HEADING_ID_ASC</option>
+			<option value="a.id DESC">JGRID_HEADING_ID_DESC</option>
+		</field>
+		<field
+			name="limit"
+			type="limitbox"
+			label="JGLOBAL_LIST_LIMIT"
+			default="25"
+			onchange="this.form.submit();"
+		/>
+	</fields>
+</form>

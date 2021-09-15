@@ -10,70 +10,97 @@
 defined('_JEXEC') or die('Restricted access');
 
 // import Joomla view library
-jimport('joomla.application.component.view');
+use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Version;
 
 /**
  * Youtube Gallery - Links Form View
  */
 class YoutubeGalleryViewLinksForm extends JViewLegacy
 {
-        /**
-         * display method of Youtube Gallery view
-         * @return void
-         */
-        public function display($tpl = null)
-        {
-                $form = $this->get('Form');
-                $item = $this->get('Item');
+	/**
+	* display method of Youtube Gallery view
+	* @return void
+     */
+		 
+	public function display($tpl = null)
+	{
+		$version = new Version;
+		$this->version = (int)$version->getShortVersion();
+		
+		// Assign the variables
+		$this->form = $this->get('Form');
+		$this->item = $this->get('Item');
+		$this->script = $this->get('Script');
+		$this->state = $this->get('State');
+		// get action permissions
 
-                // Check for errors.
-                if (count($errors = $this->get('Errors')))
-                {
-                        JFactory::getApplication()->enqueueMessage( implode('<br />', $errors), 'error');
-                        return false;
-                }
+		$this->canDo = ContentHelper::getActions('com_youtubegallery', 'linkslist',$this->item->id);
+		
+		$this->canCreate = $this->canDo->get('linkslist.create');
+		$this->canEdit = $this->canDo->get('linkslist.edit');
+		$this->canState = $this->canDo->get('linkslist.edit.state');
+		$this->canDelete = $this->canDo->get('linkslist.delete');
+		
+		// get input
+		$jinput = JFactory::getApplication()->input;
+		$this->ref = JFactory::getApplication()->input->get('ref', 0, 'word');
+		$this->refid = JFactory::getApplication()->input->get('refid', 0, 'int');
+		$this->referral = '';
+		if ($this->refid)
+		{
+			// return to the item that refered to this item
+			$this->referral = '&ref='.(string)$this->ref.'&refid='.(int)$this->refid;
+		}
+		elseif($this->ref)
+		{
+			// return to the list view that refered to this item
+			$this->referral = '&ref='.(string)$this->ref;
+		}
 
-                // Assign the Data
-                $this->form = $form;
-                $this->item = $item;
+		// Set the toolbar
+		$this->addToolBar();
+		
+		// Check for errors.
+		if (count($errors = $this->get('Errors')))
+		{
+			throw new Exception(implode("\n", $errors), 500);
+		}
 
-                // Set the toolbar
-                $this->addToolBar();
+		// Display the template
+		parent::display($tpl);
 
-                // Display the template
-                parent::display($tpl);
-                
-                // Set the document
-                $this->setDocument();//this method must be called after "display" to let validation work properly because the Form must be rendered before validation script
-        }
+		// Set the document
+		$this->setDocument();
+	}
 
-        /**
-         * Setting the toolbar
-         */
-        protected function addToolBar()
-        {
-                $jinput = JFactory::getApplication()->input;
-                $jinput->get->set('hidemainmenu',true);
+	/**
+	* Setting the toolbar
+	*/
+	protected function addToolBar()
+	{
+		$jinput = JFactory::getApplication()->input;
+		$jinput->get->set('hidemainmenu',true);
 
-                $isNew = ($this->item->id == 0);
-                JToolBarHelper::title($isNew ? JText::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : JText::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
-                JToolBarHelper::apply('linksform.apply');
-                JToolBarHelper::save('linksform.save');
-                JToolBarHelper::cancel('linksform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
-        }
+		$isNew = ($this->item->id == 0);
+		JToolBarHelper::title($isNew ? JText::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : JText::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
+		JToolBarHelper::apply('linksform.apply');
+		JToolBarHelper::save('linksform.save');
+		JToolBarHelper::cancel('linksform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
+	}
 
-        /**
-        * Method to set up the document properties
-        *
-        * @return void
-        */
-        protected function setDocument()
-        {
-                $isNew = ($this->item->id < 1);
-                $document = JFactory::getDocument();
-                $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : JText::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
-                $document->addScript(JURI::root(). "components/com_youtubegallery/js/submitbutton.js");
-                
-                JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
-        }
+	/**
+	* Method to set up the document properties
+	*
+	* @return void
+	*/
+	protected function setDocument()
+	{
+		$isNew = ($this->item->id < 1);
+		$document = JFactory::getDocument();
+		$document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : JText::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
+		$document->addScript(JURI::root(). "components/com_youtubegallery/js/submitbutton.js");
+				
+		JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
+	}
 }//class
