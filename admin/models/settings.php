@@ -58,10 +58,30 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 	static protected function makeQueryLine($field,$value)
 	{
 		$db = JFactory::getDBO();
-		
-		return 'INSERT INTO #__customtables_table_youtubegallerysettings (`es_option`, `es_value`)
+		/*
+		return 'INSERT INTO #__customtables_table_youtubegallerysettings (es_option, es_value)
 		VALUES ('.$db->quote($field).', '.$db->quote($value).')
-		ON DUPLICATE KEY UPDATE `es_option`='.$db->quote($field).', `es_value`='.$db->quote($value);
+		ON DUPLICATE KEY UPDATE es_option='.$db->quote($field).', es_value='.$db->quote($value);
+		*/
+		
+		$id = YoutubeGalleryModelSettings::getRecordID($field);
+		if($id == null)
+			return 'INSERT INTO #__customtables_table_youtubegallerysettings (es_option, es_value)'
+				.' VALUES ('.$db->quote($field).', '.$db->quote($value).')';
+		else
+			return 'UPDATE #__customtables_table_youtubegallerysettings SET es_value='.$db->quote($value).' WHERE es_option='.$db->quote($field);
+	}
+	
+	static protected function getRecordID($field)
+	{
+		$db = JFactory::getDBO();	
+		$query = 'SELECT id FROM #__customtables_table_youtubegallerysettings WHERE es_option='.$db->quote($field).' LIMIT 1';
+		$db->setQuery( $query );
+		$records = $db->loadAssocList();
+		if(count($records) ==0)
+			return null;
+		
+		return $records[0]['id'];
 	}
 
     function store()
@@ -77,12 +97,13 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 		$query[] = YoutubeGalleryModelSettings::makeQueryLine('allowsef',$allowsef);
 		$query[] = YoutubeGalleryModelSettings::makeQueryLine('joomlaboat_api_host',$joomlaboat_api_host);
 		$query[] = YoutubeGalleryModelSettings::makeQueryLine('joomlaboat_api_key',$joomlaboat_api_key);
-				
+			
 		foreach($query as $q)
 		{
 			$db->setQuery($q);
 			$db->execute();
 		}
+
 		return true;
     }
 }

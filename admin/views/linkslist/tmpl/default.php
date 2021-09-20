@@ -9,13 +9,7 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted Access');
 
-// load tooltip behavior
-//JHtml::_('behavior.tooltip');
 
-?>
-<p><a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact Tech-Support)</a></p>
-<?php
-//----------------------- Check PHP requirememts
 	if (!function_exists('curl_init'))
 	{
 		echo '<div style="border-radius:5px;margin-bottom:10px;padding:5px;border: 1px solid red; ">
@@ -100,3 +94,5 @@ Upload it to your website root and administrator folders. Or contact your hostin
                 <input type="hidden" id="boxchecked" name="boxchecked" value="0" />
                 <?php echo JHtml::_('form.token'); ?>
 </form>
+
+<p><a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact Tech-Support)</a></p>

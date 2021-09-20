@@ -226,4 +226,110 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
 		return $value;
 	}
+	
+	function RefreshPlayist($cids,$update_videolist=true)
+	{
+		$where=array();
+
+		foreach($cids as $cid)
+			$where[]= 'id='.$cid;
+
+		// Create a new query object.
+
+		$db = JFactory::getDBO();
+        $query = $db->getQuery(true);
+		// Select some fields
+		$query->select(array('*'));
+        // From the Youtube Gallery table
+        $query->from('#__customtables_table_youtubegalleryvideolists');
+
+		if(count($where)>0)
+			$query->where(implode(' OR ',$where));
+
+		$db->setQuery($query);
+
+		$linksform_rows=$db->loadObjectList();
+		if(count($linksform_rows)<1)
+			return false;
+
+		foreach($linksform_rows as $linksform_row)
+		{
+
+			$videolist_row = $linksform_row;
+			YouTubeGalleryDB::update_cache_table($linksform_row,$update_videolist); //false - refresh
+
+			if(!$update_videolist)
+			{
+				$query='UPDATE #__customtables_table_youtubegalleryvideolists SET es_lastplaylistupdate="'.date( 'Y-m-d H:i:s').'" WHERE id='.(int)$linksform_row->id;
+				$db->setQuery($query);
+				$db->execute();
+
+				$query='UPDATE #__customtables_table_youtubegalleryvideos SET es_lastupdate=NULL WHERE es_isvideo AND es_videolist='.(int)$linksform_row->id;//to force the update
+
+				$db->setQuery($query);
+				$db->execute();
+			}
+		}
+		
+		//check for error messages
+		$mainframe= JFactory::getApplication();
+		$messages = $mainframe->getMessageQueue();
+		if (is_array($messages) and count($messages)==0)
+			return true;
+		else
+			return false;
+	}
+
+
+        function store()
+        {
+
+
+        	$linksform_row = $this->getTable('videolists');
+
+			$jinput = JFactory::getApplication()->input;
+            $data = $jinput->get( 'jform',array(),'ARRAY');
+
+        	$post = array();
+
+            $listname=trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['listname']));
+
+            $data['jform']['listname']=$listname;
+
+
+
+        	if (!$linksform_row->bind($data))
+        	{
+                echo 'Cannot bind.';
+        		return false;
+        	}
+
+        	// Make sure the  record is valid
+        	if (!$linksform_row->check())
+        	{
+                echo 'Cannot check.';
+        		return false;
+        	}
+
+        	// Store
+        	if (!$linksform_row->store())
+        	{
+
+                echo '<p>Cannot store.</p>
+				<p>There is some fields missing.</p>
+				';
+        		return false;
+        	}
+
+			//require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
+			require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'db.php');
+			
+		
+			YouTubeGalleryDB::update_cache_table($linksform_row,false);
+		
+
+        	$this->id=$linksform_row->id;
+
+        	return true;
+        }
 }

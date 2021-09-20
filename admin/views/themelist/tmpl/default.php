@@ -12,15 +12,29 @@ defined('_JEXEC') or die('Restricted Access');
 JHtml::_('behavior.tooltip');
 
 ?>
-<p style="text-align:left;">
-<a href="http://www.joomlaboat.com/youtube-gallery/youtube-gallery-themes?view=catalog&layout=custom" target="_blank" style="color:#51A351;">Get more Themes</a>
-<span style="margin-left:20px;">|</span>
-<a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact Tech-Support)</a>
-
-
-</p>
 <form action="<?php echo JRoute::_('index.php?option=com_youtubegallery&view=themelist'); ?>" method="post" name="adminForm" id="adminForm">
-<?php	$s=JFactory::getApplication()->input->getVar( 'search'); ?>
+
+<?php if(!empty( $this->sidebar)): ?>
+
+
+	<div id="j-main-container" class="span10">
+	
+	<div id="j-sidebar-container" class="span2">
+		<?php //echo $this->sidebar; ?>
+	</div>
+	
+<?php else : ?>
+	<div id="j-main-container">
+<?php endif; ?>
+<?php if (empty($this->items)): ?>
+	<?php // echo $this->loadTemplate('toolbar');?>
+    <div class="alert alert-no-items">
+        <?php echo JText::_('JGLOBAL_NO_MATCHING_RESULTS'); ?>
+    </div>
+<?php else : ?>
+		<?php //echo $this->loadTemplate('toolbar');?>
+
+<?php	/*$s=JFactory::getApplication()->input->getVar( 'search'); ?>
 	<div id="j-main-container" class="span10">
 		<div id="filter-bar" class="btn-toolbar">
 
@@ -35,8 +49,8 @@ JHtml::_('behavior.tooltip');
 			</div>
 		</div>
 
-
-	</div>
+	</div>*/
+?>
 
 
 
@@ -49,6 +63,7 @@ JHtml::_('behavior.tooltip');
                 <tbody><?php echo $this->loadTemplate('body');?></tbody>
         </table>
 
+<?php endif; ?>
 
         <input type="hidden" id="task" name="task" value="" />
 		<input type="hidden" id="view" name="view" value="themelist" />
@@ -56,3 +71,9 @@ JHtml::_('behavior.tooltip');
         <?php echo JHtml::_('form.token'); ?>
 
 </form>
+
+<p style="text-align:left;">
+<a href="http://www.joomlaboat.com/youtube-gallery/youtube-gallery-themes?view=catalog&layout=custom" target="_blank" style="color:#51A351;">Get more Themes</a>
+<span style="margin-left:20px;">|</span>
+<a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact Tech-Support)</a>
+</p>

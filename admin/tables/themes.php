@@ -30,18 +30,18 @@ class YoutubeGalleryTableThemes extends JTable
 //	var $es_showinfo = null;
 	var $es_bgcolor = null;
 	var $es_cols = null;
-	var $es_showtitle = null;
+//	var $es_showtitle = null;
 
 	var $es_cssstyle = null;
 	var $es_navbarstyle = null;
 	var $es_thumbnailstyle = null;
-	var $es_linestyle = null;
+	//var $es_linestyle = null;
 	
-	var $es_showlistname = null;
+//	var $es_showlistname = null;
 	var $es_listnamestyle = null;
 		
-	var $es_showactivevideotitle = null;
-	var $es_activevideotitlestyle = null;
+	//var $es_showactivevideotitle = null;
+	//var $es_activevideotitlestyle = null;
 	
 	//var $es_description = null;
 	//var $es_descr_position = null;

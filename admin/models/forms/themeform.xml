@@ -26,7 +26,7 @@
                         default=""
                 />
 
-                <field
+<!--                <field
                         name="es_showlistname"
                         type="radio"
                         label="COM_YOUTUBEGALLERY_FIELD_SHOWLISTNAME_LABEL"
@@ -36,7 +36,7 @@
                 >
                         <option value="1">COM_YOUTUBEGALLERY_YES</option>
                         <option value="0">COM_YOUTUBEGALLERY_NO</option>
-                </field>
+                </field>-->
 
 
 

@@ -50,6 +50,8 @@ class com_YoutubeGalleryInstallerScript
 			return false;
 		}
 		
+		com_YoutubeGalleryInstallerScript::updateYGv3tov4();
+
 		return true;
     }
 	
@@ -74,4 +76,77 @@ class com_YoutubeGalleryInstallerScript
         $db->setQuery($query);   
         $db->execute();     
     }
+	
+	function updateYGv3tov4()
+	{
+		//Update Youtube gallery database tables to Joomla 4 model.
+		//Joomla 4 Youtube Gallery database tables created using Custom Tables and can be managed by Custom Tables as well.
+		
+		$map = ['option','value'];
+		com_YoutubeGalleryInstallerScript::updateYGv3table('#__youtubegallery_settings', '#__customtables_table_youtubegallerysettings',$map);
+		
+		$map = ['categoryname','parentid','description','image'];
+		com_YoutubeGalleryInstallerScript::updateYGv3table('#__youtubegallery_categories', '#__customtables_table_youtubegallerycategories',$map);
+		
+		$map = ['themename','playvideo','width','height','repeat','fullscreen','autoplay','related','bgcolor','cssstyle','navbarstyle','thumbnailstyle',
+			'listnamestyle','descr_style'=>'es_descrstyle','color1'=>'es_colorone','color2'=>'es_colortwo',
+			'border','openinnewwindow','rel','hrefaddon',
+			'customlimit','controls','youtubeparams','useglass','logocover','customlayout','prepareheadtags','muteonplay','lastplaylistupdate',
+			'volume','orderby','customnavlayout','responsive','mediafolder','headscript','themedescription','nocookie','changepagetitle','allowplaylist'];
+			
+
+		$ignore_map = ['showtitle','showinfo','cols','linestyle','showlistname','showactivevideotitle',
+			'activevideotitlestyle','description','pagination','playertype','readonly','cache','enablecache','randomization'];
+			
+		com_YoutubeGalleryInstallerScript::updateYGv3table('#__youtubegallery_themes', '#__customtables_table_youtubegallerythemes',$map,$ignore_map);
+
+		//'listname'
+		$map = ['videolist','catid','updateperiod','lastplaylistupdate','datetime','description','watchusergroup','authorurl','image','note'];
+		$ignore_map = ['author'];
+		com_YoutubeGalleryInstallerScript::updateYGv3table('#__youtubegallery_videolists', '#__customtables_table_youtubegalleryvideolists',$map,$ignore_map);
+
+	
+		$map = ['custom_imageurl'=>'es_customimageurl','custom_title'=>'es_customtitle','custom_description'=>'es_customdescription',
+		'rating_average'=>'es_ratingaverage','rating_max'=>'es_ratingmax','rating_min'=>'es_ratingmin','rating_numRaters'=>'es_ratingnumberofraters',
+		'statistics_favoriteCount'=>'es_statisticsfavoritecount','statistics_viewCount'=>'es_statisticsviewcount',
+		'channel_username'=>'es_channelusername','channel_title'=>'es_channeltitle','channel_subscribers'=>'es_channelsubscribers',
+		'channel_subscribed'=>'es_channelsubscribed','channel_location'=>'es_channellocation','channel_commentcount'=>'es_channelcommentcount',
+		'channel_viewcount'=>'es_channelviewcount','channel_videocount'=>'es_channelvideocount','channel_description'=>'es_channeldescription',
+		'channel_totaluploadviews'=>'es_channel_totaluploadviews','listid'=>'es_videolist',
+		'latitude'=>['name'=>'es_latitude','type'=>'float'],
+		'longitude'=>['name'=>'es_longitude','type'=>'float'],
+		'altitude'=>['name'=>'es_altitude','type'=>'int']
+		
+		];
+		
+		$ignore_map = ['volume'];
+		
+		com_YoutubeGalleryInstallerScript::updateYGv3table('#__youtubegallery_videos', '#__customtables_table_youtubegalleryvideos',$map,$ignore_map);
+	}
+	
+	function updateYGv3table($old_table,$new_table,$map,$exceptions=array())
+	{
+		if(!ESTables::checkIfTableExists($old_table))
+			return false;
+	
+		$db = JFactory::getDBO();	
+		$query = 'SELECT COUNT(*) AS c FROM '.$new_table.' LIMIT 1';
+		$db->setQuery( $query );
+		$records = $db->loadAssocList();
+		
+		if((int)$records[0]['c'] > 0)
+			return false;
+		
+		$query = 'SELECT * FROM '.$old_table.' LIMIT 100';
+		$db->setQuery( $query );
+
+		$records = $db->loadAssocList();
+		
+		foreach($records as $record)
+		{
+			$id=ImportTables::insertRecords($new_table,$record,false,$exceptions,true,'es_',$map);//insert single new record
+		}
+
+		return false;
+	}
 }

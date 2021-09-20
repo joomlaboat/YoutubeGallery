@@ -39,6 +39,7 @@ class YoutubeGalleryControllerSettings extends JControllerForm
 	function save($key = NULL, $urlVar = NULL)
 	{
 		$this->canDo = ContentHelper::getActions('com_youtubegallery', 'settings');
+		
 		$this->canView = $this->canDo->get('settings.view');
 		$this->canEdit = $this->canDo->get('settings.edit');
 		
@@ -49,7 +50,7 @@ class YoutubeGalleryControllerSettings extends JControllerForm
 			$this->setRedirect($link, $msg, 'error');
 			return false;
 		}
-		
+
 
 		$task = JFactory::getApplication()->input->getVar( 'task');
 		

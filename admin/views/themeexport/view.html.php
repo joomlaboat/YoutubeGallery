@@ -139,7 +139,7 @@ class ygExportTheme
 		$result='<?xml version="1.0" encoding="utf-8"?>
 <extension type="file" version="3.0" method="upgrade">
     <name>YoutubeGalleryTheme_'.$themeName.'</name>
-    <version>5.3.2</version>
+    <version>5.3.3</version>
     <creationDate>'.$createdDate.'</creationDate>
     <author>'.$user->name.'</author>
     <authorEmail>'.$user->email.'</authorEmail>

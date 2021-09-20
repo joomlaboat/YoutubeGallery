@@ -97,7 +97,7 @@ class YouTubeGalleryData
 			YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,$item,$listitem,$force=true);//force the update
 		}
 		
-		if((int)$item['status']==0)
+		if(!isset($item['status']) or (int)$item['status']==0)
 		{
 			$parent_id=null;
 			
@@ -126,7 +126,7 @@ class YouTubeGalleryData
 		else
 			$url=$host.'&';
 	
-		$url .= 'key='.$key.'&v=5.3.2&query='.base64_encode($theLink);
+		$url .= 'key='.$key.'&v=5.3.3&query='.base64_encode($theLink);
 		
 		if($force)
 			$url.='&force=1';//to force the update

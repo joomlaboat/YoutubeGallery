@@ -17,8 +17,8 @@ class YoutubeGalleryLayoutRenderer
 	function getValue($fld, $params, &$videolist_row, &$theme_row, $gallery_list, $width, $height, $videoid, $AllowPagination, $total_number_of_rows,$custom_itemid=0)//,$title
 	{
 		$videodescription_params=array();
-
-		$fields_theme=array('bgcolor','cssstyle','navbarstyle','thumbnailstyle','listnamestyle','activevideotitlestyle',
+		//,'listnamestyle','activevideotitlestyle'
+		$fields_theme=array('bgcolor','cssstyle','navbarstyle','thumbnailstyle',
 							'color1','color2','descr_style','rel','hrefaddon');
 		
 		if(in_array($fld,$fields_theme))
@@ -232,8 +232,9 @@ class YoutubeGalleryLayoutRenderer
 
 	public static function isEmpty($fld, &$videolist_row, &$theme_row, $gallery_list, $videoid, $AllowPagination, $total_number_of_rows)
 	{
+			///'activevideotitlestyle',
 		$fields_theme=array('bgcolor','cssstyle','navbarstyle','thumbnailstyle','listnamestyle',
-			'activevideotitlestyle','color1','color2','descr_style','es_rel','hrefaddon');
+			'color1','color2','descr_style','es_rel','hrefaddon');
 			
 		if(in_array($fld,$fields_theme))
 		{
@@ -361,9 +362,9 @@ class YoutubeGalleryLayoutRenderer
 			$AllowPagination=false;
 		else
 			$AllowPagination=true;
-//,'cols','linestyle'
+//,'cols','linestyle','activevideotitlestyle'
 		$fields_generated=array('link','width','height','video', 'videolist', 'listname','videotitle','videodescription','videoplayer','navigationbar','thumbnails','count','pagination','instanceid','videoid','mediafolder','social');
-		$fields_theme=array('bgcolor','cssstyle','navbarstyle','thumbnailstyle','listnamestyle','activevideotitlestyle','color1','color2','descr_style','rel','hrefaddon');
+		$fields_theme=array('bgcolor','cssstyle','navbarstyle','thumbnailstyle','listnamestyle','color1','color2','descr_style','rel','hrefaddon');
 
 		$fields_all=array_merge($fields_generated, $fields_theme);
 

@@ -42,7 +42,7 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
 		if ($this->getLayout() !== 'modal' and $this->version < 4)
 		{
 			// Include helper submenu
-			CustomtablesHelper::addSubmenu('videolists');
+			YoutubeGalleryHelper::addSubmenu('videolists');
 		}
 		
 		$this->items = $this->get('Items');
@@ -67,7 +67,7 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
 			if($this->version < 4)
 			{
 				$this->addToolbar_3();
-				$this->sidebar = JHtmlSidebar::render();
+				//$this->sidebar = JHtmlSidebar::render();
 			}
 			else
 				$this->addToolbar_4();

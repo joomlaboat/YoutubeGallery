@@ -15,8 +15,6 @@ $s=JFactory::getApplication()->input->getVar( 'search');
 
 ?>
 
-<p><a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact Tech-Support)</a></p>
-
 <script>
 	function changeThumb(id,links_str,index)
 	{
@@ -169,3 +167,5 @@ $s=JFactory::getApplication()->input->getVar( 'search');
 	<p><?php // echo JText::_('COM_YOUTUBEGALLERY_IFSTATUSOFTHEVIDEO'); ?></p>
 
 </form>
+
+<p><a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact Tech-Support)</a></p>

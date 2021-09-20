@@ -81,7 +81,7 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
 			if($this->version < 4)
 			{
 				$this->addToolbar_3();
-				$this->sidebar = JHtmlSidebar::render();
+				//$this->sidebar = JHtmlSidebar::render();
 			}
 			else
 				$this->addToolbar_4();

@@ -30,6 +30,57 @@ class YoutubeGalleryControllerLinksList extends JControllerAdmin
 		return $model;
 	}
 	
+	public function updateItem()
+	{
+		$model = $this->getModel('linksform');
+		$cid = JFactory::getApplication()->input->post->get('cid',array(),'array');
+
+		if (count($cid)<1)
+		{
+			$this->setRedirect( 'index.php?option=com_youtubegallery&view=linkslist', JText::_('COM_YOUTUBEGALLERY_NO_ITEMS_SELECTED'),'error' );
+			return false;
+		}
+					    	    
+		if($model->RefreshPlayist($cid,true))
+		{
+			$msg = JText::_( 'COM_YOUTUBEGALLERY_VIDEOLIST_UPDATED_SUCCESSFULLY' );
+			$link 	= 'index.php?option=com_youtubegallery&view=linkslist';
+			$this->setRedirect($link, $msg);
+		}
+		else
+		{
+			$msg = JText::_( 'COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_UPDATE' );
+			$link 	= 'index.php?option=com_youtubegallery&view=linkslist';
+			$this->setRedirect($link, $msg,'error');
+		}
+	}
+	
+	public function refreshItem()
+	{
+		$model = $this->getModel('linksform');
+		$cid = JFactory::getApplication()->input->post->get('cid',array(),'array');
+    
+		if (count($cid)<1)
+		{
+			$this->setRedirect( 'index.php?option=com_youtubegallery&view=linkslist', JText::_('COM_YOUTUBEGALLERY_NO_ITEMS_SELECTED'),'error' );
+                
+			return false;
+		}
+					    	    
+		if($model->RefreshPlayist($cid,false))
+		{
+			$msg = JText::_( 'COM_YOUTUBEGALLERY_VIDEOLIST_REFRESHED_SUCCESSFULLY' );
+			$link 	= 'index.php?option=com_youtubegallery&view=linkslist';
+			$this->setRedirect($link, $msg);
+		}
+		else
+		{
+			$msg = JText::_( 'COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_REFRESH' );
+			$link 	= 'index.php?option=com_youtubegallery&view=linkslist';
+			$this->setRedirect($link, $msg,'error');
+		}
+	}
+	
 	public function publish()
 	{
 		YoutubeGalleryHelper::setRecordStatus($this->task,'LINKSLIST','youtubegalleryvideolists');

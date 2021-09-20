@@ -180,10 +180,10 @@ class YoutubeGalleryModelThemeImport extends JModelList
 				$fields[]=$db->quoteName('es_navbarstyle').'='.$db->quote($theme_row->es_navbarstyle);
 				$fields[]=$db->quoteName('es_thumbnailstyle').'='.$db->quote($theme_row->es_thumbnailstyle);
 				$fields[]=$db->quoteName('es_linestyle').'='.$db->quote($theme_row->es_linestyle);
-				$fields[]=$db->quoteName('es_showlistname').'='.$db->quote($theme_row->es_showlistname);
+//				$fields[]=$db->quoteName('es_showlistname').'='.$db->quote($theme_row->es_showlistname);
 				$fields[]=$db->quoteName('es_listnamestyle').'='.$db->quote($theme_row->es_listnamestyle);
-				$fields[]=$db->quoteName('es_showactivevideotitle').'='.$db->quote($theme_row->es_showactivevideotitle);
-				$fields[]=$db->quoteName('es_activevideotitlestyle').'='.$db->quote($theme_row->es_activevideotitlestyle);
+//				$fields[]=$db->quoteName('es_showactivevideotitle').'='.$db->quote($theme_row->es_showactivevideotitle);
+//				$fields[]=$db->quoteName('es_activevideotitlestyle').'='.$db->quote($theme_row->es_activevideotitlestyle);
 				//$fields[]=$db->quoteName('description').'='.$db->quote($theme_row->description);
 				//$fields[]=$db->quoteName('descr_position').'='.$db->quote($theme_row->descr_position);
 				$fields[]=$db->quoteName('es_descrstyle').'='.$db->quote($theme_row->es_descrstyle);

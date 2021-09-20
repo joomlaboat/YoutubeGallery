@@ -64,9 +64,9 @@ class YouTubeGalleryDB
 		$db = JFactory::getDBO();
 
 		//Load Theme Row
-		//, es_showinfo, es_cols,es_showtitle, , es_linestyle, es_showlistname, es_showactivevideotitle,es_description, es_descr_position,, es_pagination , es_readonly
+		//, es_showinfo, es_cols,es_showtitle, , es_linestyle, es_showlistname, es_showactivevideotitle,es_description, es_descr_position,, es_pagination , es_readonly,es_activevideotitlestyle,
 		$query = 'SELECT id, es_themename, es_width, es_height, es_playvideo, es_repeat, es_fullscreen, es_autoplay, es_related, es_allowplaylist, es_bgcolor,
-		es_cssstyle, es_navbarstyle, es_thumbnailstyle, es_listnamestyle, es_activevideotitlestyle,
+		es_cssstyle, es_navbarstyle, es_thumbnailstyle, es_listnamestyle,
 		es_descrstyle, es_colorone, es_colortwo, es_border, es_openinnewwindow, es_rel, es_hrefaddon, es_customlimit,
 		es_controls, es_youtubeparams, es_useglass, es_logocover, es_customlayout,  es_prepareheadtags, es_muteonplay,
 		es_volume, es_orderby, es_customnavlayout, es_responsive, es_mediafolder, es_headscript, es_themedescription, es_nocookie, es_changepagetitle

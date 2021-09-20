@@ -30,9 +30,9 @@ class YoutubeGalleryHotPlayer
 		$document = JFactory::getDocument();
 			
 		if(Helper::check_user_agent_for_ie())
-			$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_ie_529.js');//Thankx to https://babeljs.io/
+			$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_ie_533.js');//Thankx to https://babeljs.io/
 		else
-			$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_529.js');
+			$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_533.js');
 			
 			
 		$autoplay=((int)$theme_row->es_autoplay==1 ? 'true' : 'false');

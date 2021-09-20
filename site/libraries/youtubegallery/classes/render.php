@@ -64,8 +64,8 @@ class YouTubeGalleryRenderer
 			$headscript=str_replace('[width]',$width,$headscript);
 			$headscript=str_replace('[height]',$height,$headscript);
 			$headscript=str_replace('[mediafolder]','images/'.$theme_row->es_mediafolder,$headscript);
-
-			$fields_theme=array('es_bgcolor','es_cssstyle','es_navbarstyle','es_thumbnailstyle','es_listnamestyle','es_activevideotitlestyle','es_colorone',
+			//,'es_activevideotitlestyle'
+			$fields_theme=array('es_bgcolor','es_cssstyle','es_navbarstyle','es_thumbnailstyle','es_listnamestyle','es_colorone',
 				'es_colortwo','es_descrstyle','es_rel','es_hrefaddon','es_mediafolder');
 
 			$theme_row_array = get_object_vars($theme_row);
