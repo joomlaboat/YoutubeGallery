@@ -93,7 +93,6 @@ class YouTubeGalleryData
 		}
 		else
 		{
-			echo 'query the server';
 			YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink,$item,$listitem,$force=true);//force the update
 		}
 		
@@ -161,10 +160,7 @@ class YouTubeGalleryData
 				
 			return true;
 		}
-		
-		
-		
-		
+	
 		$item=array();
 		if (!function_exists('curl_init') and !function_exists('file_get_contents'))
 		{

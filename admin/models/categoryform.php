@@ -43,10 +43,9 @@ class YoutubeGalleryModelCategoryForm extends JModelAdmin
          */
         public function getForm($data = array(), $loadData = true) 
         {
-				//echo '7676f';
                 // Get the form.
                 $form = $this->loadForm('com_youtubegallery.categoryform', 'categoryform', array('control' => 'jform', 'load_data' => $loadData));
-				//echo 'abc';
+
                 if (empty($form)) 
                 {
                         return false;

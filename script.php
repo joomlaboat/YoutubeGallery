@@ -20,16 +20,16 @@ class com_YoutubeGalleryInstallerScript
 		
 		$path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
 
-		$esfile = $path.'loader.php';
+		$loader_file = $path.'loader.php';
 			
-		if(!file_exists($esfile))
+		if(!file_exists($loader_file))
 		{
 			JFactory::getApplication()->enqueueMessage('Youtube Gallery is corrupted, please contact the developer.','error');
 
 			return false;
 		}
 		
-		require_once($path.'loader.php');
+		require_once($loader_file);
 		CTLoader();
 		
 		//Check Custom Tables, create if nessesary

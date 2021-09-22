@@ -297,7 +297,7 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
       var rec = this.findVideoRecordByID(videoid);
       if (rec == null) return;
 
-      if (rec.es_customimageurl != "" && rec.es_customimageurl.indexOf("#") == -1) {
+      if (rec.es_customimageurl !== null && rec.es_customimageurl != "" && rec.es_customimageurl.indexOf("#") == -1) {
         var customimage = rec.es_customimageurl;
         var n = customimage.indexOf("_small");
 

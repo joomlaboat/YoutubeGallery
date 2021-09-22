@@ -32,8 +32,6 @@ class JFormFieldYGCategory extends JFormFieldList
          */
         protected function getOptions()
         {
-                //echo 'zuka';
-                //die;
                 $db = JFactory::getDBO();
                 $query = $db->getQuery(true);
                 $query->select(array('id','es_categoryname'));

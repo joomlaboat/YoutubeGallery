@@ -436,7 +436,7 @@ class YouTubeGalleryDB
 
 		$firstvideo='';
 		$videolist=YouTubeGalleryData::formVideoList($videolist_row,$videolist_array, $firstvideo, '',$update_videolist);//$this->theme_row->thumbnailstyle);
-				
+
 		$db = JFactory::getDBO();
 		$parent_id=null;
 
