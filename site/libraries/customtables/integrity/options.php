@@ -13,22 +13,20 @@ namespace CustomTables\Integrity;
  
 defined('_JEXEC') or die('Restricted access');
 
+use CustomTables\Fields;
+
 use \Joomla\CMS\Factory;
-use \ESFields;
-use \ESLanguages;
 
 class IntegrityOptions extends \CustomTables\IntegrityChecks
 {
-	public static function checkOptions()
+	public static function checkOptions(&$ct)
 	{
 		$jinput = Factory::getApplication()->input;
-		$LangMisc	= new ESLanguages;
-		$languages=$LangMisc->getLanguageList();
 		
-		IntegrityOptions::checkOptionsTitleFields($languages);
+		IntegrityOptions::checkOptionsTitleFields($ct);
 	}
 	
-	protected static function checkOptionsTitleFields(&$languages)
+	protected static function checkOptionsTitleFields(&$ct)
     {
 		$db = Factory::getDBO();
 		
@@ -40,10 +38,10 @@ class IntegrityOptions extends \CustomTables\IntegrityChecks
 		
         $table_name='#__customtables_options';
 
-        $g_ExistingFields=ESFields::getExistingFields($table_name,false);
+        $g_ExistingFields=Fields::getExistingFields($table_name,false);
 
         $morethanonelang=false;
-		foreach($languages as $lang)
+		foreach($ct->Languages->LanguageList as $lang)
         {
            	$g_fieldname='title';
             if($morethanonelang)
@@ -63,7 +61,7 @@ class IntegrityOptions extends \CustomTables\IntegrityChecks
 
             if(!$g_found)
             {
-				ESFields::AddMySQLFieldNotExist($table_name, $g_fieldname, 'varchar(100) null', '');
+				Fields::AddMySQLFieldNotExist($table_name, $g_fieldname, 'varchar(100) null', '');
 				Factory::getApplication()->enqueueMessage('Options Field "'.g_fieldname.'" added.','notice');
             }
 			$morethanonelang=true;

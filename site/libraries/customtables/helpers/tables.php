@@ -11,6 +11,8 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+use CustomTables\Fields;
+
 class ESTables
 {
 	//This function works with MySQL not PostgreeSQL
@@ -23,54 +25,6 @@ class ESTables
 		return $db->loadObjectList();
 	}
 	
-	public static function checkComponentTable($realtablename, $projected_fields)
-	{
-		$db = JFactory::getDBO();
-		
-		$ExistingFields=ESFields::getExistingFields($realtablename, false);
-		
-		if($db->serverType == 'postgresql')
-			$type_field_name='postgresql_type';
-		else
-			$type_field_name='mysql_type';
-		
-		foreach($projected_fields as $projected_field)
-		{
-			$proj_field=$projected_field['name'];
-			$fieldtype=$projected_field[$type_field_name];
-        
-			ESFields::checkField($ExistingFields,$realtablename,$projected_field['name'],$projected_field[$type_field_name]);
-		}
-	}
-	
-	public static function checkComponentTables()
-	{
-		$tables_projected_fields=array();
-		$tables_projected_fields[]=['name'=>'id','mysql_type'=>'INT UNSIGNED NOT NULL AUTO_INCREMENT','postgresql_type'=>'id INT check (id > 0) NOT NULL DEFAULT NEXTVAL (\'#__customtables_tables_seq\')'];
-//		$tables_projected_fields[]=['name'=>'asset_id','mysql_type'=>'INT UNSIGNED NOT NULL DEFAULT 0','postgresql_type'=>'INT NOT NULL DEFAULT 0'];
-		$tables_projected_fields[]=['name'=>'customphp','mysql_type'=>'VARCHAR(1024) NULL DEFAULT NULL','postgresql_type'=>'VARCHAR(1024) NULL DEFAULT NULL'];
-		$tables_projected_fields[]=['name'=>'description','mysql_type'=>'TEXT NULL DEFAULT NULL','postgresql_type'=>'TEXT NULL DEFAULT NULL'];
-		$tables_projected_fields[]=['name'=>'tablecategory','mysql_type'=>'INT NULL DEFAULT NULL','postgresql_type'=>'INT NULL DEFAULT NULL'];
-		$tables_projected_fields[]=['name'=>'tablename','mysql_type'=>'VARCHAR(255) NOT NULL DEFAULT "tablename"','postgresql_type'=>'VARCHAR(255) NOT NULL DEFAULT \'\''];
-		$tables_projected_fields[]=['name'=>'customtablename','mysql_type'=>'VARCHAR(100) NULL DEFAULT NULL','postgresql_type'=>'VARCHAR(100) NULL DEFAULT NULL'];
-		$tables_projected_fields[]=['name'=>'customidfield','mysql_type'=>'VARCHAR(100) NULL DEFAULT NULL','postgresql_type'=>'VARCHAR(100) NULL DEFAULT NULL'];
-		$tables_projected_fields[]=['name'=>'tabletitle','mysql_type'=>'VARCHAR(255) NULL DEFAULT NULL','postgresql_type'=>'VARCHAR(255) NULL DEFAULT NULL'];
-		//$tables_projected_fields[]=['name'=>'params','mysql_type'=>'text NULL DEFAULT NULL','postgresql_type'=>'text NULL DEFAULT NULL'];
-		$tables_projected_fields[]=['name'=>'published','mysql_type'=>'TINYINT NOT NULL DEFAULT 1','postgresql_type'=>'SMALLINT NOT NULL DEFAULT 1'];
-		$tables_projected_fields[]=['name'=>'created_by','mysql_type'=>'INT UNSIGNED NOT NULL DEFAULT 0','postgresql_type'=>'INT NOT NULL DEFAULT 0'];
-		$tables_projected_fields[]=['name'=>'modified_by','mysql_type'=>'INT UNSIGNED NOT NULL DEFAULT 0','postgresql_type'=>'INT NOT NULL DEFAULT 0'];
-		$tables_projected_fields[]=['name'=>'created','mysql_type'=>'DATETIME NULL DEFAULT NULL','postgresql_type'=>'TIMESTAMP(0) NULL DEFAULT NULL'];
-		$tables_projected_fields[]=['name'=>'modified','mysql_type'=>'DATETIME NULL DEFAULT NULL','postgresql_type'=>'TIMESTAMP(0) NULL DEFAULT NULL'];
-		$tables_projected_fields[]=['name'=>'checked_out','mysql_type'=>'int UNSIGNED NOT NULL DEFAULT 0','postgresql_type'=>'INT NOT NULL DEFAULT 0'];
-		$tables_projected_fields[]=['name'=>'checked_out_time','mysql_type'=>'DATETIME NULL DEFAULT NULL','postgresql_type'=>'TIMESTAMP(0) NULL DEFAULT NULL'];
-		//$tables_projected_fields[]=['name'=>'version','mysql_type'=>'INT UNSIGNED NOT NULL DEFAULT 1','postgresql_type'=>'INT NOT NULL DEFAULT 1'];
-		//$tables_projected_fields[]=['name'=>'hits','mysql_type'=>'INT UNSIGNED NOT NULL DEFAULT 0','postgresql_type'=>'INT NOT NULL DEFAULT 0'];
-		//$tables_projected_fields[]=['name'=>'ordering','mysql_type'=>'INT NOT NULL DEFAULT 0','postgresql_type'=>'INT NOT NULL DEFAULT 0'];
-		$tables_projected_fields[]=['name'=>'allowimportcontent','mysql_type'=>'TINYINT NOT NULL DEFAULT 0','postgresql_type'=>'SMALLINT NOT NULL DEFAULT 0'];
-		
-		ESTables::checkComponentTable('#__customtables_tables', $tables_projected_fields);
-	}
-
 	public static function checkIfTableExists($realtablename)
 	{
 		$conf = JFactory::getConfig();
@@ -221,7 +175,7 @@ class ESTables
 		$published_field_found=true;
 		if($row['customtablename']!='')
 		{
-			$realfields=ESFields::getListOfExistingFields($row['realtablename'],false);
+			$realfields=Fields::getListOfExistingFields($row['realtablename'],false);
 			if(!in_array('published',$realfields))
 				$published_field_found=false;
 		}
@@ -269,7 +223,7 @@ class ESTables
 			else
 				$table_name=$complete_table_name;// used for custom table names - to connect to third-part tables for example
 				
-			$fields = ESFields::getListOfExistingFields($table_name,false);
+			$fields = Fields::getListOfExistingFields($table_name,false);
 			
 			if(count($fields)==0)
 			{

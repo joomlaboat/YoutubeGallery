@@ -13,15 +13,18 @@ namespace CustomTables\Integrity;
  
 defined('_JEXEC') or die('Restricted access');
 
+use CustomTables\Fields;
+
 use \Joomla\CMS\Factory;
 
 use \ESTables;
-use \ESFields;
-use \ESLanguages;
+
+use CustomTables\Integrity\IntegrityFieldType_FileBox;
+use CustomTables\Integrity\IntegrityFieldType_Gallery;
 
 class IntegrityFields extends \CustomTables\IntegrityChecks
 {
-	public static function checkFields($tableid,$tablename,$tabletitle,$customtablename,$link)
+	public static function checkFields(&$ct,$tableid,$tablename,$tabletitle,$customtablename,$link)
 	{
 		require_once('fieldtype_filebox.php');
 		require_once('fieldtype_gallery.php');
@@ -44,13 +47,11 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 		else
 			$realtablename='#__customtables_table_'.$tablename;
     
-		$ExistingFields=ESFields::getExistingFields($realtablename, false);
+		$ExistingFields=Fields::getExistingFields($realtablename, false);
 	
 		$jinput = Factory::getApplication()->input;
-		$LangMisc	= new ESLanguages;
-		$languages=$LangMisc->getLanguageList();
   
-		$projected_fields = ESFields::getFields($tableid,false);
+		$projected_fields = Fields::getFields($tableid,false);
 
 		//Delete unnesesary fields:
 		$projected_fields[]=['realfieldname'=>'id','type'=>'_id','typeparams'=>''];
@@ -103,7 +104,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 				elseif($projected_field['type']=='multilangstring' or $projected_field['type']=='multilangtext')
 				{
 					$morethanonelang=false;
-					foreach($languages as $lang)
+					foreach($ct->Languages->LanguageList as $lang)
 					{
 						$fieldname=$projected_field['realfieldname'];
 						if($morethanonelang)
@@ -111,7 +112,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 
 						if($exst_field==$fieldname)
 						{
-							$PureFieldType=ESFields::getPureFieldType($projected_field['type'], $projected_field['typeparams']);
+							$PureFieldType=Fields::getPureFieldType($projected_field['type'], $projected_field['typeparams']);
 							$found_field=$projected_field['realfieldname'];
 							$found_fieldparams=$projected_field['typeparams'];
 							$found=true;
@@ -127,7 +128,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 						$gallery_table_name='#__customtables_gallery_'.$tablename.'_'.$projected_field['fieldname'];
 						IntegrityFieldType_Gallery::checkGallery($gallery_table_name,$languages,$tablename,$projected_field['fieldname']);
 
-						$PureFieldType=ESFields::getPureFieldType($projected_field['type'], $projected_field['typeparams']);
+						$PureFieldType=Fields::getPureFieldType($projected_field['type'], $projected_field['typeparams']);
 						$found_field=$projected_field['realfieldname'];
 						$found_fieldparams=$projected_field['typeparams'];
 						$found=true;
@@ -139,9 +140,9 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 					if($exst_field==$projected_field['realfieldname'])
 					{
 						$filebox_table_name='#__customtables_filebox_'.$tablename.'_'.$projected_field['fieldname'];
-						IntegrityFieldType_FileBox::checkFileBox($filebox_table_name,$languages,$tablename,$projected_field['fieldname']);
+						IntegrityFieldType_FileBox::checkFileBox($ct,$filebox_table_name,$tablename,$projected_field['fieldname']);
 
-						$PureFieldType=ESFields::getPureFieldType($projected_field['type'], $projected_field['typeparams']);
+						$PureFieldType=Fields::getPureFieldType($projected_field['type'], $projected_field['typeparams']);
 						$found_field=$projected_field['realfieldname'];
 						$found_fieldparams=$projected_field['typeparams'];
 						$found=true;
@@ -160,7 +161,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 				{
 					if($exst_field==$projected_field['realfieldname'])
 					{
-						$PureFieldType=ESFields::getPureFieldType($projected_field['type'], $projected_field['typeparams']);
+						$PureFieldType=Fields::getPureFieldType($projected_field['type'], $projected_field['typeparams']);
 						$found_field=$projected_field['realfieldname'];
 						$found_fieldparams=$projected_field['typeparams'];
 						$found=true;
@@ -175,7 +176,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 				if($tableid == $tasktableid and $task=='deleteurfield' and $taskfieldname==$exst_field)
 				{
 					$msg='';
-					if(ESFields::deleteMYSQLField($realtablename,$exst_field,$msg))
+					if(Fields::deleteMYSQLField($realtablename,$exst_field,$msg))
 						$result.='<p>Field "<span style="color:green;">'.$exst_field.'</span>" not registered. <span style="color:green;">Deleted.</span></p>';
 					
 					if($msg!='')
@@ -192,7 +193,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 					if($existing_field[$field_columns->is_nullable]=='YES' or $existing_field['Extra'] != 'auto_increment')
 					{
 						$msg='';
-						if(ESFields::fixMYSQLField($realtablename,$found_field,$PureFieldType,$msg))
+						if(Fields::fixMYSQLField($realtablename,$found_field,$PureFieldType,$msg))
 							$result.=$msg.'<p>Field "<span style="color:green;">id</span>" fixed</p>';
 					
 						if($msg!='')
@@ -204,19 +205,19 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 					if($existing_field[$field_columns->is_nullable]=='YES')
 					{
 						$msg='';
-						if(ESFields::fixMYSQLField($realtablename,$found_field,$PureFieldType,$msg))
+						if(Fields::fixMYSQLField($realtablename,$found_field,$PureFieldType,$msg))
 							$result.='<p>Field "<span style="color:green;">published</span>" fixed</p>';
 					
 						if($msg!='')
 							$result.=$msg;
 					}
 				}
-				elseif(!ESFields::comparePureFieldTypes($field_mysql_type,$PureFieldType))
+				elseif(!Fields::comparePureFieldTypes($field_mysql_type,$PureFieldType))
 				{
 					if($tableid == $tasktableid and $task=='fixfieldtype' and $taskfieldname==$exst_field)
 					{
 						$msg='';
-						if(ESFields::fixMYSQLField($realtablename,$found_field,$PureFieldType,$msg))
+						if(Fields::fixMYSQLField($realtablename,$found_field,$PureFieldType,$msg))
 							$result.='<p>Field "<span style="color:green;">'.str_replace('es_','',$found_field).'</span>" fixed.</p>';
 					
 						if($msg!='')
@@ -238,14 +239,14 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 			$proj_field=$projected_field['realfieldname'];
 			$fieldtype=$projected_field['type'];
 			if($fieldtype!='dummy')
-				IntegrityFields::checkField($ExistingFields,$realtablename,$proj_field,$fieldtype,$projected_field['typeparams'],$languages);
+				IntegrityFields::checkField($ct,$ExistingFields,$realtablename,$proj_field,$fieldtype,$projected_field['typeparams']);
         }
 	
 		return $result;
 	}
 	
 		
-	protected static function checkField($ExistingFields,$realtablename,$proj_field,$fieldtype,$typeparams,&$languages)
+	protected static function checkField(&$ct,$ExistingFields,$realtablename,$proj_field,$fieldtype,$typeparams)
     {
 		$result = '';
 		$db = Factory::getDBO();
@@ -259,7 +260,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
         {
             $found=false;
             $morethanonelang=false;
-        	foreach($languages as $lang)
+        	foreach($ct->Languages->LanguageList as $lang)
         	{
         		$fieldname=$proj_field;
         		if($morethanonelang)
@@ -278,7 +279,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
                 if(!$found)
                 {
                     //Add field
-                    addField($realtablename,$fieldname,$fieldtype,$typeparams);
+                    IntegrityFields::addField($realtablename,$fieldname,$fieldtype,$typeparams);
                 }
 
                 $morethanonelang=true;
@@ -303,8 +304,8 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 	
 	protected static function addField($realtablename,$realfieldname,$fieldtype,$typeparams)
     {
-        $PureFieldType=ESFields::getPureFieldType($fieldtype,$typeparams);
-        ESFields::AddMySQLFieldNotExist($realtablename, $realfieldname, $PureFieldType, '');
+        $PureFieldType=Fields::getPureFieldType($fieldtype,$typeparams);
+        Fields::AddMySQLFieldNotExist($realtablename, $realfieldname, $PureFieldType, '');
 
 		Factory::getApplication()->enqueueMessage('Field "'.$realfieldname.'" added.','notice');
     }
