@@ -144,7 +144,7 @@ class YoutubeGalleryLayoutRenderer
 
 				$containerStyle='width:'.$playerwidth.'px;height:'.$playerheight.'px;';
 
-				if($theme_row->es_playvideo==0)
+				if((int)$theme_row->es_playvideo==0)
 					$containerStyle.='display:none;';
 				else
 					$containerStyle.='display:block;';

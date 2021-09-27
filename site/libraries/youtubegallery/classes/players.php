@@ -19,7 +19,7 @@ class YouTubeGalleryPlayers
 
 		$divstyle_player='';
 
-		if($theme_row->es_playvideo==0)
+		if((int)$theme_row->es_playvideo==0)
 		{
 			if($theme_row->es_openinnewwindow==4 or $theme_row->es_openinnewwindow==5)
 			{

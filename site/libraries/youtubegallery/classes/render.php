@@ -30,10 +30,10 @@ class YouTubeGalleryRenderer
 		YouTubeGalleryRenderer::setHeadScript($theme_row,$videolist_row->id,$width,$height);
 		
 		YoutubeGalleryHotPlayer::addHotReloadScript($gallery_list,$width,$height,$videolist_row, $theme_row);
-		
+
 		$result='
 <a name="youtubegallery"></a>
-<div id="YoutubeGalleryMainContainer'.$videolist_row->id.'" style="position: relative;display: block;'
+<div id="YoutubeGalleryMainContainer'.$videolist_row->id.'" style="position: relative;display:block;'
 	.((int)$theme_row->es_width!=0 ? 'width:'.$width.'px;' : '').($theme_row->es_cssstyle!='' ? $theme_row->es_cssstyle.';' : '').'">
 ';
 

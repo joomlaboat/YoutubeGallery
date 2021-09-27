@@ -9,6 +9,7 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use CustomTables\CT;
 use CustomTables\IntegrityChecks;
 use CustomTables\ImportTables;
 
@@ -30,10 +31,11 @@ class com_YoutubeGalleryInstallerScript
 		}
 		
 		require_once($loader_file);
-		CTLoader();
+		CTLoader($inclide_utilities = true);
+		$ct = new CT;
 		
 		//Check Custom Tables, create if nessesary
-		$result = IntegrityChecks::check($check_core_tables = true, $check_custom_tables = false);
+		$result = IntegrityChecks::check($ct,$check_core_tables = true, $check_custom_tables = false);
 
 		$component_name='com_youtubegallery';
 		

@@ -59,7 +59,7 @@ Upload it to your website root and administrator folders. Or contact your hostin
 
 <?php
 	//for joomla 3.0
-	$s=JFactory::getApplication()->input->getVar( 'search');
+	//$s=JFactory::getApplication()->input->getVar( 'search');
 ?>
 
 <?php /*

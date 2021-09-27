@@ -94,7 +94,7 @@ $onPageLoads=array();
 									$this->item->es_customlayout=file_get_contents($htmlscriptpath.'customlayout.html');
 
 
-								$textareacode='<textarea name="jform[customlayout]" id="jform_customlayout" filter="raw" style="width:100%" rows="30">'.$this->item->es_customlayout.'</textarea>';
+								$textareacode='<textarea name="jform[es_customlayout]" id="jform_es_customlayout" filter="raw" style="width:100%" rows="30">'.$this->item->es_customlayout.'</textarea>';
 								echo renderEditor($textareacode,'customlayout',$onPageLoads);
 						?>
 						</div>
@@ -105,7 +105,7 @@ $onPageLoads=array();
 									$this->item->es_customnavlayout=file_get_contents($htmlscriptpath.'customnavlayout.html');
 
 
-								$textareacode='<textarea name="jform[customnavlayout]" id="jform_customnavlayout" filter="raw" style="width:100%" rows="30">'.$this->item->es_customnavlayout.'</textarea>';
+								$textareacode='<textarea name="jform[es_customnavlayout]" id="jform_es_customnavlayout" filter="raw" style="width:100%" rows="30">'.$this->item->es_customnavlayout.'</textarea>';
 								echo renderEditor($textareacode,'customnavlayout',$onPageLoads);
 						?>
 						</div>
@@ -123,7 +123,7 @@ $onPageLoads=array();
 								if($this->item->id==0)
 									$this->item->es_headscript=file_get_contents($htmlscriptpath.'headscript.html');
 
-								$textareacode='<textarea name="jform[headscript]" id="jform_headscript" filter="raw" style="width:100%" rows="30">'.$this->item->es_headscript.'</textarea>';
+								$textareacode='<textarea name="jform[es_headscript]" id="jform_es_headscript" filter="raw" style="width:100%" rows="30">'.$this->item->es_headscript.'</textarea>';
 								echo renderEditor($textareacode,'headscript',$onPageLoads);
 						?>
 						</div>

@@ -50,7 +50,6 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 		$this->state = $this->get('State');
 		$this->user = JFactory::getUser();
 		
-		
 		if($this->version >= 4)
 		{
 			//This must be after getting Items
@@ -79,7 +78,6 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 			if($this->version < 4)
 			{
 				$this->addToolbar_3();
-				//$this->sidebar = JHtmlSidebar::render();
 			}
 			else
 				$this->addToolbar_4();

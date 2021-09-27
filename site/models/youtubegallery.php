@@ -157,11 +157,14 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
 
 								if($videoid=='')
 								{
-									if($videoid_new!='')
-										JFactory::getApplication()->input->set('videoid',$videoid_new);
+									//if($videoid_new!='')
+										
 
 									if($ygDB->theme_row->es_playvideo==1 and $videoid_new!='')
+									{
+										JFactory::getApplication()->input->set('videoid',$videoid_new);
 										$videoid=$videoid_new;
+									}
 								}
 
         			$gallerymodule=$renderer->render(

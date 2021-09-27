@@ -105,7 +105,7 @@ class YoutubeGalleryHotPlayer
 	});
 ';
 		$videoid=JFactory::getApplication()->input->getCmd('videoid');
-		if($theme_row->es_playvideo==1 or $videoid!='')
+		if((int)$theme_row->es_playvideo==1 or $videoid!='')
 		{
 			$hotrefreshscript.='
 			//Show first video

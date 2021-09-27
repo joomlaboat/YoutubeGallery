@@ -9,6 +9,7 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+//use YouTubeGalleryDB;
 use YouTubeGallery\Helper;
 
 function YouTubeGalleryBuildRoute(&$query) {
@@ -32,7 +33,7 @@ function YouTubeGalleryBuildRoute(&$query) {
        }
        elseif(isset($query['videoid']))
        {
-	      $allowsef=Helper::getSettingValue('allowsef');
+	      $allowsef=YouTubeGalleryDB::getSettingValue('allowsef');
 	      if($allowsef==1)
 	      {
 		     $videoid=$query['videoid'];
