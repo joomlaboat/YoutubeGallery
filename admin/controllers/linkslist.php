@@ -53,8 +53,6 @@ class YoutubeGalleryControllerLinksList extends JControllerAdmin
 			$link 	= 'index.php?option=com_youtubegallery&view=linkslist';
 			$this->setRedirect($link, $msg,'error');
 		}
-		
-		die;
 	}
 	
 	public function refreshItem()
