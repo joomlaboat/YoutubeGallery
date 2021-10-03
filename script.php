@@ -53,7 +53,6 @@ class com_YoutubeGalleryInstallerScript
 		}
 		
 		com_YoutubeGalleryInstallerScript::updateYGv3tov4();
-
 		return true;
     }
 	
