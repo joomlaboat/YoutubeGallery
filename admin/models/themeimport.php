@@ -159,8 +159,72 @@ class YoutubeGalleryModelThemeImport extends JModelList
 
 				return true;
 		}
-
+		
 		function saveTheme(&$theme_row)
+		{
+			if(isset($theme_row->es_themename))
+				$this->saveTheme4($theme_row);
+			elseif(isset($theme_row->themename))
+				$this->saveTheme3($theme_row);
+			else
+				return false;
+		}
+
+		function saveTheme3(&$theme_row)
+		{
+			$fields=array();
+				$db = JFactory::getDBO();
+				$fields[]=$db->quoteName('es_themename').'='.$db->quote($theme_row->themename);
+				$fields[]=$db->quoteName('es_width').'='.$db->quote($theme_row->width);
+				$fields[]=$db->quoteName('es_height').'='.$db->quote($theme_row->height);
+				$fields[]=$db->quoteName('es_playvideo').'='.$db->quote($theme_row->playvideo);
+				$fields[]=$db->quoteName('es_repeat').'='.$db->quote($theme_row->repeat);
+				$fields[]=$db->quoteName('es_fullscreen').'='.$db->quote($theme_row->fullscreen);
+				$fields[]=$db->quoteName('es_autoplay').'='.$db->quote($theme_row->autoplay);
+				$fields[]=$db->quoteName('es_related').'='.$db->quote($theme_row->related);
+				$fields[]=$db->quoteName('es_bgcolor').'='.$db->quote($theme_row->bgcolor);
+				$fields[]=$db->quoteName('es_cssstyle').'='.$db->quote($theme_row->cssstyle);
+				$fields[]=$db->quoteName('es_navbarstyle').'='.$db->quote($theme_row->navbarstyle);
+				$fields[]=$db->quoteName('es_thumbnailstyle').'='.$db->quote($theme_row->thumbnailstyle);
+				$fields[]=$db->quoteName('es_listnamestyle').'='.$db->quote($theme_row->listnamestyle);
+				$fields[]=$db->quoteName('es_descrstyle').'='.$db->quote($theme_row->descr_style);
+				$fields[]=$db->quoteName('es_colorone').'='.$db->quote($theme_row->color1);
+				$fields[]=$db->quoteName('es_colortwo').'='.$db->quote($theme_row->color2);
+				$fields[]=$db->quoteName('es_border').'='.$db->quote($theme_row->border);
+				$fields[]=$db->quoteName('es_openinnewwindow').'='.$db->quote($theme_row->openinnewwindow);
+				$fields[]=$db->quoteName('es_rel').'='.$db->quote($theme_row->rel);
+				$fields[]=$db->quoteName('es_hrefaddon').'='.$db->quote($theme_row->hrefaddon);
+				$fields[]=$db->quoteName('es_customlimit').'='.$db->quote($theme_row->customlimit);
+				$fields[]=$db->quoteName('es_controls').'='.$db->quote($theme_row->controls);
+				$fields[]=$db->quoteName('es_youtubeparams').'='.$db->quote($theme_row->youtubeparams);
+				$fields[]=$db->quoteName('es_useglass').'='.$db->quote($theme_row->useglass);
+				$fields[]=$db->quoteName('es_logocover').'='.$db->quote($theme_row->logocover);
+				$fields[]=$db->quoteName('es_customlayout').'='.$db->quote($theme_row->customlayout);
+
+				$fields[]=$db->quoteName('es_prepareheadtags').'='.$db->quote($theme_row->prepareheadtags);
+				$fields[]=$db->quoteName('es_muteonplay').'='.$db->quote($theme_row->muteonplay);
+				$fields[]=$db->quoteName('es_volume').'='.$db->quote($theme_row->volume);
+				$fields[]=$db->quoteName('es_orderby').'='.$db->quote($theme_row->orderby);
+				$fields[]=$db->quoteName('es_customnavlayout').'='.$db->quote($theme_row->customnavlayout);
+				$fields[]=$db->quoteName('es_responsive').'='.$db->quote($theme_row->responsive);
+				$fields[]=$db->quoteName('es_mediafolder').'='.$db->quote($theme_row->mediafolder);
+				$fields[]=$db->quoteName('es_headscript').'='.$db->quote($theme_row->headscript);
+				$fields[]=$db->quoteName('es_themedescription').'='.$db->quote($theme_row->themedescription);
+
+				if(isset($theme_row->nocookie))
+						$fields[]=$db->quoteName('es_nocookie').'='.$db->quote($theme_row->nocookie);
+
+				if(isset($theme_row->changepagetitle))
+						$fields[]=$db->quoteName('es_changepagetitle').'='.$db->quote($theme_row->changepagetitle);
+
+				$query='INSERT #__customtables_table_youtubegallerythemes SET '.implode(', ',$fields);
+
+				$db = JFactory::getDBO();
+
+				$db->setQuery($query);
+				$db->execute();
+		}
+		function saveTheme4(&$theme_row)
 		{
 				$fields=array();
 				$db = JFactory::getDBO();
@@ -172,20 +236,11 @@ class YoutubeGalleryModelThemeImport extends JModelList
 				$fields[]=$db->quoteName('es_fullscreen').'='.$db->quote($theme_row->es_fullscreen);
 				$fields[]=$db->quoteName('es_autoplay').'='.$db->quote($theme_row->es_autoplay);
 				$fields[]=$db->quoteName('es_related').'='.$db->quote($theme_row->es_related);
-//				$fields[]=$db->quoteName('showinfo').'='.$db->quote($theme_row->showinfo);
 				$fields[]=$db->quoteName('es_bgcolor').'='.$db->quote($theme_row->es_bgcolor);
-				//$fields[]=$db->quoteName('es_cols').'='.$db->quote($theme_row->cols);
-				$fields[]=$db->quoteName('es_showtitle').'='.$db->quote($theme_row->es_showtitle);
 				$fields[]=$db->quoteName('es_cssstyle').'='.$db->quote($theme_row->es_cssstyle);
 				$fields[]=$db->quoteName('es_navbarstyle').'='.$db->quote($theme_row->es_navbarstyle);
 				$fields[]=$db->quoteName('es_thumbnailstyle').'='.$db->quote($theme_row->es_thumbnailstyle);
-				$fields[]=$db->quoteName('es_linestyle').'='.$db->quote($theme_row->es_linestyle);
-//				$fields[]=$db->quoteName('es_showlistname').'='.$db->quote($theme_row->es_showlistname);
 				$fields[]=$db->quoteName('es_listnamestyle').'='.$db->quote($theme_row->es_listnamestyle);
-//				$fields[]=$db->quoteName('es_showactivevideotitle').'='.$db->quote($theme_row->es_showactivevideotitle);
-//				$fields[]=$db->quoteName('es_activevideotitlestyle').'='.$db->quote($theme_row->es_activevideotitlestyle);
-				//$fields[]=$db->quoteName('description').'='.$db->quote($theme_row->description);
-				//$fields[]=$db->quoteName('descr_position').'='.$db->quote($theme_row->descr_position);
 				$fields[]=$db->quoteName('es_descrstyle').'='.$db->quote($theme_row->es_descrstyle);
 				$fields[]=$db->quoteName('es_colorone').'='.$db->quote($theme_row->es_colorone);
 				$fields[]=$db->quoteName('es_colortwo').'='.$db->quote($theme_row->es_colortwo);
@@ -193,15 +248,12 @@ class YoutubeGalleryModelThemeImport extends JModelList
 				$fields[]=$db->quoteName('es_openinnewwindow').'='.$db->quote($theme_row->es_openinnewwindow);
 				$fields[]=$db->quoteName('es_rel').'='.$db->quote($theme_row->es_rel);
 				$fields[]=$db->quoteName('es_hrefaddon').'='.$db->quote($theme_row->es_hrefaddon);
-//				$fields[]=$db->quoteName('pagination').'='.$db->quote($theme_row->pagination);
 				$fields[]=$db->quoteName('es_customlimit').'='.$db->quote($theme_row->es_customlimit);
 				$fields[]=$db->quoteName('es_controls').'='.$db->quote($theme_row->es_controls);
 				$fields[]=$db->quoteName('es_youtubeparams').'='.$db->quote($theme_row->es_youtubeparams);
-				$fields[]=$db->quoteName('es_playertype').'='.$db->quote($theme_row->es_playertype);
 				$fields[]=$db->quoteName('es_useglass').'='.$db->quote($theme_row->es_useglass);
 				$fields[]=$db->quoteName('es_logocover').'='.$db->quote($theme_row->es_logocover);
 				$fields[]=$db->quoteName('es_customlayout').'='.$db->quote($theme_row->es_customlayout);
-
 				$fields[]=$db->quoteName('es_prepareheadtags').'='.$db->quote($theme_row->es_prepareheadtags);
 				$fields[]=$db->quoteName('es_muteonplay').'='.$db->quote($theme_row->es_muteonplay);
 				$fields[]=$db->quoteName('es_volume').'='.$db->quote($theme_row->es_volume);
@@ -209,7 +261,6 @@ class YoutubeGalleryModelThemeImport extends JModelList
 				$fields[]=$db->quoteName('es_customnavlayout').'='.$db->quote($theme_row->es_customnavlayout);
 				$fields[]=$db->quoteName('es_responsive').'='.$db->quote($theme_row->es_responsive);
 				$fields[]=$db->quoteName('es_mediafolder').'='.$db->quote($theme_row->es_mediafolder);
-				//$fields[]=$db->quoteName('readonly').'='.$db->quote($theme_row->readonly);
 				$fields[]=$db->quoteName('es_headscript').'='.$db->quote($theme_row->es_headscript);
 				$fields[]=$db->quoteName('es_themedescription').'='.$db->quote($theme_row->es_themedescription);
 
@@ -253,7 +304,7 @@ class YoutubeGalleryModelThemeImport extends JModelList
 		{
 			$db = JFactory::getDBO();
 
-			$query = 'SELECT id FROM #__customtables_table_youtubegallerythemes WHERE '.$db->quoteName('themename').'='.$db->quote($themename).' LIMIT 1';
+			$query = 'SELECT id FROM #__customtables_table_youtubegallerythemes WHERE '.$db->quoteName('es_themename').'='.$db->quote($themename).' LIMIT 1';
 			$db->setQuery($query);
 			$db->execute();
 			return $db->getNumRows()>0;
