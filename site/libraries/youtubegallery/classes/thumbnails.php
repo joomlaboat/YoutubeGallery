@@ -362,7 +362,7 @@ class YoutubeGalleryLayoutThumbnails
 
 			default:
 				if(in_array($fld,$tableFields ))
-					$vlu=$listitem[$fld];
+					$vlu=$listitem['es_'.$fld];
 			break;
 		}
 

@@ -54,4 +54,21 @@ class YoutubeGalleryControllerThemeList extends JControllerAdmin
 			)
 		);
 	}
+	
+	public function uploadItem()
+	{
+		//$canDoThemeList = YoutubeGalleryHelper::getActions('themelist');
+		//$canViewThemeList = $canDoThemeList->get('themelist.view');
+		
+		//if(!$canViewThemeList)
+		//{
+			//$link='index.php?option=com_youtubegallery&view=linkslist';
+			//$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+			//$this->setRedirect($link, $msg, 'error');
+			//return false;
+		//}
+		
+		$link 	= 'index.php?option=com_youtubegallery&view=themeimport';
+		$this->setRedirect($link, '');
+	}
 }

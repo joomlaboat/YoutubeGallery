@@ -1,6 +1,6 @@
 <?php
 /**
- * YoutubeGallery Joomla! 3.0 Native Component
+ * YoutubeGallery Joomla! 3.0/4.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
  * @GNU General Public License
@@ -9,11 +9,30 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
-
 class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 {
 	function preflight($route, $adapter)
 	{
+		YoutubeGalleryTheme_'.$themeName.'InstallerScript::deleteIfExists();
+		
+		$parent = $adapter->getParent();
+		$source = $parent->getPath("source");
+		
+		if(file_exists(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'models'.DIRECTORY_SEPARATOR.'themeimport.php'))
+		{
+		    $this->addTheme($source);
+		}
+		else
+		{
+		    echo '<h1 style="text-align:center;">Youtube Gallery not found. Please install it first.<br/>
+		    <a href="http://www.joomlaboat.com/youtube-gallery">Youtube Gallery Home Page.</a>
+		    </h1><br/><br/>';
+		    return false;
+		}
+	}
+	
+	function postflight($route, $adapter)
+    {
 		YoutubeGalleryTheme_'.$themeName.'InstallerScript::deleteIfExists();
 	}
 
@@ -25,42 +44,8 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 		$db->execute();
 	}
 
-        function install($parent)
-        {
-		$theme_name=''.$themeName.'';
-		$manifest = $parent->get("manifest");
-		$parent = $parent->getParent();
-		$source = $parent->getPath("source");
-		$installer = new JInstaller();
-		YoutubeGalleryTheme_'.$themeName.'InstallerScript::deleteIfExists();
-
-	    	if(file_exists(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'models'.DIRECTORY_SEPARATOR.'themeimport.php'))
-		{
-		    $this->addTheme($source);
-		}
-		else
-		{
-		    echo '<h1 style="text-align:center;">Youtube Gallery not found. Please install it first.<br/>
-		    <a href="http://www.joomlaboat.com/youtube-gallery">Youtube Gallery Home Page.</a>
-		    </h1><br/><br/>';
-		    return false;
-		}
-
-	}
-
-    function update($parent)
-    {
-		$this->install($parent);
-    }
-
-	function uninstall($parent)
-	{
-
-	}
-
 	function addTheme($path)
 	{
-
 	    if(file_exists($path.DIRECTORY_SEPARATOR.'theme.txt'))
 	    {
 			require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'models'.DIRECTORY_SEPARATOR.'themeimport.php');
@@ -79,25 +64,25 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 			$theme_row=unserialize($filedata);
 			
 			//Add record to database
-			$theme_row->themename=$ygmti->getThemeName(str_replace('"','',$theme_row->themename));
-			if($theme_row->themename!='')
+			$theme_row->themename=$ygmti->getThemeName(str_replace('"','',$theme_row->es_themename));
+			if($theme_row->es_themename!='')
 			{
 				if(file_exists($path.DIRECTORY_SEPARATOR.'about.txt'))
-					$theme_row->themedescription=file_get_contents ($path.DIRECTORY_SEPARATOR.'about.txt');
+					$theme_row->es_themedescription=file_get_contents ($path.DIRECTORY_SEPARATOR.'about.txt');
 				else
-					$theme_row->themedescription="";
+					$theme_row->es_themedescription="";
 
 
-				if($theme_row->mediafolder!='')
+				if($theme_row->es_mediafolder!='')
 				{
 					//prepare media folder
-					$theme_row->mediafolder=$ygmti->prepareFolder($theme_row->mediafolder,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR);
-					echo '<p>Media Folder "'.$theme_row->mediafolder.'" created.</p>';
+					$theme_row->es_mediafolder=$ygmti->prepareFolder($theme_row->es_mediafolder,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR);
+					echo '<p>Media Folder "'.$theme_row->es_mediafolder.'" created.</p>';
 					//move files
-					$ygmti->moveFiles($path,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR.$theme_row->mediafolder);
+					$ygmti->moveFiles($path,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR.$theme_row->es_mediafolder);
 				}
 
-				echo '<p>New Theme Name: '.$theme_row->themename.'</p>';
+				echo '<p>New Theme Name: '.$theme_row->es_themename.'</p>';
 
 				$ygmti->saveTheme($theme_row);
 				echo '<p>Theme Imported</p>';
@@ -111,8 +96,5 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 			$msg='Archive doesn\'t contain Gallery Data.';
 			return false;
 	    }
-
 	}
-
-
 }

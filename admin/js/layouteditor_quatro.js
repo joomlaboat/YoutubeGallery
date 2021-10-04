@@ -665,31 +665,52 @@ function addTabExtraEvents()
         cm.refresh();
     }, 100);
 
-      
-        jQuery(function($)
-        {
-            $("joomla-tab button").click(function (e)
-            {
-				let a = e.target.getAttribute('aria-controls');
-				
-            	let code=a.replace('-tab','');
-
-            	let index=textarea_findindex(code);
-
-                if(index!=-1)
-                {
-					tagsets=findTagSets(code);
-                    
-                    setTimeout(function()
+	let b1s=document.querySelectorAll('[aria-controls="customlayout-tab"]');
+	for (let i = 0; i < b1s.length; i++)  
+	{
+		b1s[i].addEventListener("click",  function(){ 
+		
+			let index=textarea_findindex('customlayout');
+			setTimeout(function()
                                {
                                     codemirror_active_index=index;
                                     let cm=codemirror_editors[index];
                                     cm.refresh();
                                }, 100);
-                }
-            });
-        });
+		}); 
 	}
+	
+	let b2s=document.querySelectorAll('[aria-controls="customnavlayout-tab"]');
+	for (let i = 0; i < b2s.length; i++)  
+	{
+		b2s[i].addEventListener("click",  function(){ 
+		
+			let index=textarea_findindex('customnavlayout');
+			setTimeout(function()
+                               {
+                                    codemirror_active_index=index;
+                                    let cm=codemirror_editors[index];
+                                    cm.refresh();
+                               }, 100);
+		}); 
+	}
+      
+	let b3s=document.querySelectorAll('[aria-controls="headscript-tab"]');
+	for (let i = 0; i < b3s.length; i++)  
+	{
+		b3s[i].addEventListener("click",  function(){ 
+		
+			let index=textarea_findindex('headscript');
+			setTimeout(function()
+                               {
+                                    codemirror_active_index=index;
+                                    let cm=codemirror_editors[index];
+                                    cm.refresh();
+                               }, 100);
+		}); 
+	}
+
+}
 
 function addExtraEvents(index)
 {

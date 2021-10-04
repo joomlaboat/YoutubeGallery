@@ -47,7 +47,7 @@ class ygExportTheme
                 if(!$ygDB->getThemeTableRow($id))
                         return  '<p>No video found</p>';
 
-				$themename=$ygDB->theme_row->themename;
+				$themename=$ygDB->theme_row->es_themename;
 
                 // Prepare Folder
                 $folder_base_name=ygExportTheme::cleanThemeName($themename);
@@ -59,23 +59,23 @@ class ygExportTheme
 
 
                 //Copy Files
-                if($ygDB->theme_row->mediafolder!='')
-                        $files_to_archive=ygExportTheme::copyFiles('images'.DIRECTORY_SEPARATOR.str_replace('/',DIRECTORY_SEPARATOR,$ygDB->theme_row->mediafolder), 'tmp'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR.$folder);
+                if($ygDB->theme_row->es_mediafolder!='')
+                        $files_to_archive=ygExportTheme::copyFiles('images'.DIRECTORY_SEPARATOR.str_replace('/',DIRECTORY_SEPARATOR,$ygDB->theme_row->es_mediafolder), 'tmp'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR.$folder);
 
                 $path=JPATH_SITE.DIRECTORY_SEPARATOR.'tmp'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR;
 
 
 
                 //Save About info
-                if($ygDB->theme_row->themedescription!='')
+                if($ygDB->theme_row->es_themedescription!='')
                 {
-                        file_put_contents ($path.$folder.DIRECTORY_SEPARATOR.'about.txt',$ygDB->theme_row->themedescription);
+                        file_put_contents ($path.$folder.DIRECTORY_SEPARATOR.'about.txt',$ygDB->theme_row->es_themedescription);
                         echo 'File "about.txt" created.<br/>';
                 }
 
                 //Clean Theme Array
                 unset($ygDB->theme_row->id);
-                unset($ygDB->theme_row->themedescription);
+                unset($ygDB->theme_row->es_themedescription);
 
                 //Save Theme
 		$filename='theme.txt';
@@ -139,7 +139,7 @@ class ygExportTheme
 		$result='<?xml version="1.0" encoding="utf-8"?>
 <extension type="file" version="3.0" method="upgrade">
     <name>YoutubeGalleryTheme_'.$themeName.'</name>
-    <version>5.3.3</version>
+    <version>5.3.8</version>
     <creationDate>'.$createdDate.'</creationDate>
     <author>'.$user->name.'</author>
     <authorEmail>'.$user->email.'</authorEmail>

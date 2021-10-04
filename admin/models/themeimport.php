@@ -200,6 +200,8 @@ class YoutubeGalleryModelThemeImport extends JModelList
 				$fields[]=$db->quoteName('es_useglass').'='.$db->quote($theme_row->useglass);
 				$fields[]=$db->quoteName('es_logocover').'='.$db->quote($theme_row->logocover);
 				$fields[]=$db->quoteName('es_customlayout').'='.$db->quote($theme_row->customlayout);
+				$fields[]=$db->quoteName('es_allowplaylist').'='.$db->quote($theme_row->allowplaylist);
+
 
 				$fields[]=$db->quoteName('es_prepareheadtags').'='.$db->quote($theme_row->prepareheadtags);
 				$fields[]=$db->quoteName('es_muteonplay').'='.$db->quote($theme_row->muteonplay);
@@ -249,6 +251,8 @@ class YoutubeGalleryModelThemeImport extends JModelList
 				$fields[]=$db->quoteName('es_rel').'='.$db->quote($theme_row->es_rel);
 				$fields[]=$db->quoteName('es_hrefaddon').'='.$db->quote($theme_row->es_hrefaddon);
 				$fields[]=$db->quoteName('es_customlimit').'='.$db->quote($theme_row->es_customlimit);
+				$fields[]=$db->quoteName('es_allowplaylist').'='.$db->quote($theme_row->es_allowplaylist);
+				
 				$fields[]=$db->quoteName('es_controls').'='.$db->quote($theme_row->es_controls);
 				$fields[]=$db->quoteName('es_youtubeparams').'='.$db->quote($theme_row->es_youtubeparams);
 				$fields[]=$db->quoteName('es_useglass').'='.$db->quote($theme_row->es_useglass);
