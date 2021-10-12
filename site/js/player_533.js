@@ -72,7 +72,8 @@
 					autoplay: 0,
 					playerVars: this.youtubeplayer_options,
 					videoId: videoid,
-					origin: 'http://demo.oxforddavid.com/?aa=1s',
+					origin: 'https://joomlaboat.com/',
+					
 					events: {
 						"onReady": function(event){
 							if(initial_volume!=-1)

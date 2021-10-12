@@ -533,7 +533,7 @@ class Helper
 				
 				foreach($gallery_list as $listitem)
 				{
-					$description=$listitem['description'];
+					$description=$listitem['es_description'];
 					$description=str_replace('&quot;','_quote_',$description);
 					$description=str_replace('"','_quote_',$description);
 					$description=str_replace("'",'_quote_',$description);
@@ -542,17 +542,17 @@ class Helper
 					if($params!='')
 						$description=Helper::PrepareDescription($description, $videodescription_params);
 					
-					$listitem['description']=$description;
+					$listitem['es_description']=$description;
 
-					$title=$listitem['title'];
+					$title=$listitem['es_title'];
 					$title=str_replace('&quot;','_quote_',$title);
 					$title=str_replace('"','_quote_',$title);
 					$listitem['title']=str_replace("'",'_quote_',$title);
 					
-					$title=$listitem['custom_title'];
+					$title=$listitem['es_customtitle'];
 					$title=str_replace('&quot;','_quote_',$title);
 					$title=str_replace('"','_quote_',$title);
-					$listitem['custom_title']=str_replace("'",'_quote_',$title);
+					$listitem['es_customtitle']=str_replace("'",'_quote_',$title);
 					
 					$new_gallery_list[]=$listitem;
 				}

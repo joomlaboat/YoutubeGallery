@@ -726,7 +726,7 @@ class YouTubeGalleryDB
 		else
 		{
 			$row=$rows[0];
-			return $row->videoid;
+			return $row->es_videoid;
 		}
 	}
 
