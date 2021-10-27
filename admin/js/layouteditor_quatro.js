@@ -576,7 +576,8 @@ function updateCodeMirror(text)
 
 function render_current_TagSets(index,layoutname,tagsets_)
 {
-    let result_li='';
+	
+//    let result_li='';
     let result_div='';
 
     for(let i=0;i<tagsets_.length;i++)
@@ -584,11 +585,10 @@ function render_current_TagSets(index,layoutname,tagsets_)
         let tagset=tagsets_[i];
         let a=tagset["@attributes"];
 
-        let c="";
-        if(i==0)
-            c="active";
+        //let c="";
+        //if(i==0)
+          //  c="active";
 			
-		
 
         if (proversion || typeof(a.proversion) === "undefined" || a.proversion==="0")
         {
@@ -600,16 +600,17 @@ function render_current_TagSets(index,layoutname,tagsets_)
 			
 //			result_div+='<button aria-expanded="false" aria-controls="layouteditor_tags'+index+'_'+i+'" type="button" hidden=""><span class="accordion-title">'+a.label+'<span class="accordion-icon"></span></span></button>';
 			//aria-disabled="true"
-			result_div_content = '<div class="FieldTagWizard"><p>'+a.description+'</p>'+renderTags(index,tagset)+'</div>';
-			result_div = result_div + '<joomla-tab-element' + (i==0 ? ' active' : '') +' id="layouteditor_tags'+index+'_'+i+'" name="'+a.label+'">'+result_div_content+'</joomla-tab-element>';
+			let result_div_content = '<div class="FieldTagWizard"><p>'+a.description+'</p>'+renderTags(index,tagset)+'</div>';
+			result_div = result_div + '<joomla-tab-element' + (i==0 ? ' active' : '') +' id="layouteditor_tags'+index+'_'+i+'" name="'+a.label+'7">'+result_div_content+'</joomla-tab-element>';
         }// aria-disabled="true"aria-expanded="true" aria-expanded="false" active=""role="tabpanel" tabindex="-1"
     }
 
-    let result_div_li='<div role="tablist">'+result_li+'</div>';
+    let result_div_li='';//'<div role="tablist">'+result_li+'</div>';
+	//alert(1);
 
     //result+='<div class="tab-content" id="layouteditor_tagsContent'+index+'">'+result_div+'</div>';
 	//result+=''+result_div+''; active="' + act + '" view="tabs"
-	let act = 'layouteditor_tags'+index+'_0';
+	//let act = 'layouteditor_tags'+index+'_0';
 	
 	let result = '<joomla-tab id="layouteditor_tags'+index+'" orientation="horizontal" recall="" breakpoint="768">' + result_div_li + result_div + '</joomla-tab>';
     
