@@ -13,10 +13,12 @@ defined('_JEXEC') or die('Restricted access');
 
 use \Joomla\CMS\Factory;
 use \Joomla\CMS\Component\ComponentHelper;
+use \Joomla\CMS\User\UserHelper;
 
 use CT_FieldTypeTag_image;
 use CT_FieldTypeTag_file;
 use CustomTables\DataTypes\Tree;
+use CustomTables\Email;
 
 use tagProcessor_General;
 use tagProcessor_Item;
@@ -25,13 +27,12 @@ use tagProcessor_Page;
 use tagProcessor_Value;
 
 use \JoomlaBasicMisc;
-use \CustomTablesCreateUser;
+use CustomTables\CTUser;
+use \LayoutProcessor;
 
 trait SaveFieldQuerySet
 {
-    //public static function getValue($id,&$esfield,&$savequery,$prefix,$establename,$LanguageList,&$fieldstosave,$realtablename)
-	
-	var $fieldname;
+    var $fieldname;
 	var $realfieldname;
 	var $comesfieldname;
 	var $typeparams;
@@ -295,15 +296,16 @@ trait SaveFieldQuerySet
 					break;
 
 				case 'customtables':
-                    $value_found=$this->get_customtables_type_value();
+                    return $this->get_customtables_type_value();
 
 					break;
 
 				case 'email':
-						$value=trim($this->jinput->getString($this->comesfieldname,null));
+						$value=$this->jinput->getString($this->comesfieldname);
 						if(isset($value))
 						{
-							if($this->checkEmail($value))
+							$value = trim($value);
+							if(Email::checkEmail($value))
 								return $this->realfieldname.'='.$this->db->Quote($value);
 							else
 								return $this->realfieldname.'='.$this->db->Quote("");//PostgreSQL compatible
@@ -311,9 +313,11 @@ trait SaveFieldQuerySet
 					break;
 
 				case 'url':
-						$value=trim($this->jinput->getString($this->comesfieldname,null));
+						$value=$this->jinput->getString($this->comesfieldname);
 						if(isset($value))
 						{
+							$value = trim($value);
+							
 							if (filter_var($value, FILTER_VALIDATE_URL))
 								return $this->realfieldname.'='.$this->db->Quote($value);
 							else
@@ -366,19 +370,19 @@ trait SaveFieldQuerySet
 
 }
 
-protected function toHex($n) {
+	protected function toHex($n)
+	{
+		$n = intval($n);
+		if (!$n)
+			return '00';
 
-    $n = intval($n);
-    if (!$n)
-        return '00';
+		$n = max(0, min($n, 255)); // make sure the $n is not bigger than 255 and not less than 0
+		$index1 = (int) ($n - ($n % 16)) / 16;
+		$index2 = (int) $n % 16;
 
-    $n = max(0, min($n, 255)); // make sure the $n is not bigger than 255 and not less than 0
-    $index1 = (int) ($n - ($n % 16)) / 16;
-    $index2 = (int) $n % 16;
-
-    return substr("0123456789ABCDEF", $index1, 1) 
-        . substr("0123456789ABCDEF", $index2, 1);
-}
+		return substr("0123456789ABCDEF", $index1, 1) 
+			. substr("0123456789ABCDEF", $index2, 1);
+	}
 
 public function Try2CreateUserAccount(&$Model,$field,$row)
 {
@@ -389,23 +393,28 @@ public function Try2CreateUserAccount(&$Model,$field,$row)
         $user = Factory::getUser($uid);
         $email=$user->email.'';
         if($email!='')
-            return 0; //all good, user already assigned.
+		{
+			Factory::getApplication()->enqueueMessage(JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_ALREADY_EXISTS','error' ));
+            return false; //all good, user already assigned.
+		}
 
     }
 
     $params=$field['typeparams'];
     $parts=JoomlaBasicMisc::csv_explode(',', $params, '"', false);
-	
 
     if(count($parts)<3)
+	{
+		Factory::getApplication()->enqueueMessage(JoomlaBasicMisc::JTextExtended('User field name parameters count is less than 3.','error' ));
         return false;
+	}
 	
     //Try to create user
     $new_parts=array();
     foreach($parts as $part)
     {
         tagProcessor_General::process($Model,$part,$row,'',1);
-    	tagProcessor_Item::process(false,$Model,$row,$part,'',array(),'',0);
+    	tagProcessor_Item::process(false,$Model,$row,$part,'','',0);
     	tagProcessor_If::process($Model,$part,$row,'',0);
     	tagProcessor_Page::process($Model,$part);
     	tagProcessor_Value::processValues($Model,$row,$part,'[]');
@@ -419,23 +428,23 @@ public function Try2CreateUserAccount(&$Model,$field,$row)
     $user_name=$new_parts[1];
     $user_email=$new_parts[2];
 	
-	if($user_groups=='' or $user_groups=='' or $user_email=='')
+	if($user_groups=='' or $user_name=='' or $user_email=='')
+	{
+		Factory::getApplication()->enqueueMessage(JoomlaBasicMisc::JTextExtended('User group field, user name and user email fields not set.' ));
 		return false;
+	}
 
     $unique_users=false;
     if(isset($new_parts[4]) and $new_parts[4]=='unique')
         $unique_users=true;
 		
-	$path = JPATH_COMPONENT_SITE . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR; 
-	require_once($path.'createuser.php');
-	
-    $existing_user_id=CustomTablesCreateUser::CheckIfEmailExist($user_email,$existing_user,$existing_name);
+	$existing_user_id=CTUser::CheckIfEmailExist($user_email,$existing_user,$existing_name);
 	
     if($existing_user_id)
 	{
         if(!$unique_users) //allow not unique record per users
         {
-            $this->UpdateUserField($this->realtablename,$field['realfieldname'],$existing_user_id,$row['listing_id']);
+            CTUser::UpdateUserField($Model->ct->Table->realtablename, $Model->ct->Table->realidfieldname,$field['realfieldname'],$existing_user_id,$row['listing_id']);
             Factory::getApplication()->enqueueMessage(JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_RECORD_USER_UPDATED' ));
         }
         else
@@ -448,112 +457,60 @@ public function Try2CreateUserAccount(&$Model,$field,$row)
 
 	}
     else
-        $this->CreateUser($user_email,$user_name,$user_groups,$row['listing_id'],$field['realfieldname'],$this->realtablename);
+        CTUser::CreateUser($Model->ct->Table->realtablename, $Model->ct->Table->realidfieldname,$user_email,$user_name,$user_groups,$row['listing_id'],$field['realfieldname'],$this->realtablename);
 
-    return;
+    return true;
 }
 
-    static protected function UpdateUserField($useridfieldname,$existing_user_id,$listing_id)
-    {
-		$query = 'UPDATE '.$this->realtablename.' SET '.$useridfieldname.'='.$existing_user_id.' WHERE '.$this->realidfieldname.'='.$listing_id.' LIMIT 1';
-		$this->db->setQuery( $query );
-		$this->db->execute();
-    }
-
-    static protected function CreateUser($email,$name,$usergroups,$listing_id,$useridfieldname)
+	protected function get_customtables_type_language()
 	{
-		$path = JPATH_COMPONENT_SITE . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR; 
-		require_once($path.'createuser.php');
-		
-		$msg='';
-		$password=strtolower(JUserHelper::genRandomPassword());
+		$value=$this->jinput->getCmd($this->comesfieldname,null);
 
-		$new_password=$password;
+		if(isset($value))
+			return $this->realfieldname.'='.$this->db->Quote($value);
 
-		$realuserid=0;
-
-		$articleid=0;
-		$msg='';
-		$realuserid=CustomTablesCreateUser::CreateUserAccount($name,$email,$password,$email,$usergroups,$msg,$articleid);
-
-		if($realuserid!=0)
-		{
-                $this->UpdateUserField($this->realtablename,$useridfieldname,$realuserid,$listing_id);
-				Factory::getApplication()->enqueueMessage(JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_USER_CREATE_PSW_SENT' ));
-		}
-		else
-		{
-
-				$msg=JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_USER_NOTCREATED');
-				if(count($msg_warning)>0)
-					$msg.='<br/><ul><li>'.implode('</li><li>',$msg_warning).'</li></ul>';
-
-				Factory::getApplication()->enqueueMessage($msg, 'error');
-		}
-
+		return null;
 	}
 
-protected function get_customtables_type_language()
-{
-    $value=$this->jinput->getCmd($this->comesfieldname,null);
+	protected function get_customtables_type_value()
+	{
+		$value='';
 
-	if(isset($value))
-		return $this->realfieldname.'='.$this->db->Quote($value);
+		$typeparams_arr=explode(',',$this->typeparams);
+		$optionname=$typeparams_arr[0];
 
-    return null;
-}
+		if($typeparams_arr[1]=='multi')
+		{
+			$value=$this->getMultiString($optionname, $this->prefix.'multi_'.$this->tablename.'_'.$this->fieldname);
 
-protected function get_customtables_type_value()
-{
-    $value='';
+			if($value!=null)
+			{
+				if($value!='')
+					return $this->realfieldname.'='.$this->db->Quote(','.$value.',');
+				else
+					return $this->realfieldname.'=""';
+			}
+		}
+		elseif($typeparams_arr[1]=='single')
+		{
+			$value=$this->getComboString($optionname, $this->prefix.'combotree_'.$this->tablename.'_'.$this->fieldname);
 
-	$typeparams_arr=explode(',',$this->typeparams);
-					$optionname=$typeparams_arr[0];
-
-					if($typeparams_arr[1]=='multi')
-					{
-							$value=$this->getMultiString($optionname, $this->prefix.'multi_'.$this->tablename.'_'.$this->fieldname);
-
-							if($value!=null)
-							{
-								if($value!='')
-									return $this->realfieldname.'='.$this->db->Quote(','.$value.',');
-								else
-									return $this->realfieldname.'=""';
-							}
-
-					}
-					elseif($typeparams_arr[1]=='single')
-					{
-
-							$value=$this->getComboString($optionname, $this->prefix.'combotree_'.$this->tablename.'_'.$this->fieldname);
-
-
-							if($value!=null)
-							{
-
-								if($value!='')
-									return $this->realfieldname.'='.$this->db->Quote(','.$value.',');
-								else
-									return $this->realfieldname.'=""';
-
-                                $value_found=true;
-							}
-					}
-
-					// commas characters here are for the compatibility purpose, to let same algoritms search in multi value strings as well as in single value
-        return $value_found;
+			if($value!=null)
+			{
+				if($value!='')
+					return $this->realfieldname.'='.$this->db->Quote(','.$value.',');
+				else
+					return $this->realfieldname.'=""';
+			}
+		}
+        return null;
     }
 
-
-
-
-
-protected function get_usergroups_type_value()
-{
-                       switch($this->typeparams)
-						{
-							case 'single';
+	protected function get_usergroups_type_value()
+	{
+		switch($this->typeparams)
+		{
+			case 'single';
 
 								$value=$this->jinput->getString($this->comesfieldname,null);
 
@@ -603,49 +560,49 @@ protected function get_usergroups_type_value()
 
 
 
-public function get_alias_type_value($id)
-{
-    $value=$this->jinput->getString($this->comesfieldname);
-    if(!isset($value))
-        return null;
-    
-    $value=$this->prepare_alias_type_value($id,$value);
-    if($value=='')
-        return null;
-
-    return $this->realfieldname.'='.$this->db->quote($value);
-}
-
-protected function prepare_alias_type_value($id,$value)
-{
-    $value=JoomlaBasicMisc::slugify($value);
-
-    if($value=='')
-        return '';
-
-    if(!$this->checkIfAliasExists($id,$value))
-        return $value;
-
-    $val=$this->splitStringToStringAndNumber($value);
-
-	$value_new=$val[0];
-    $i=$val[1];
-
-	do
+	public function get_alias_type_value($id)
 	{
-		if($this->checkIfAliasExists($id,$value_new))
+		$value=$this->jinput->getString($this->comesfieldname);
+		if(!isset($value))
+			return null;
+    
+		$value=$this->prepare_alias_type_value($id,$value,$this->realfieldname);
+		if($value=='')
+			return null;
+
+		return $this->realfieldname.'='.$this->db->quote($value);
+	}
+
+	public function prepare_alias_type_value($id,$value,$realfieldname)
+	{
+		$value=JoomlaBasicMisc::slugify($value);
+
+		if($value=='')
+			return '';
+
+		if(!$this->checkIfAliasExists($id,$value,$realfieldname))
+			return $value;
+
+		$val=$this->splitStringToStringAndNumber($value);
+
+		$value_new=$val[0];
+		$i=$val[1];
+
+		do
 		{
-			//increase index
-			$i++;
-			$value_new=$val[0].'-'.$i;
-		}
-		else
-			break;
+			if($this->checkIfAliasExists($id,$value_new,$realfieldname))
+			{
+				//increase index
+				$i++;
+				$value_new=$val[0].'-'.$i;
+			}
+			else
+				break;
 
-	}while(1==1);
+		}while(1==1);
 
-    return $value_new;
-}
+		return $value_new;
+	}
 
 protected function splitStringToStringAndNumber($string)
 {
@@ -671,10 +628,10 @@ protected function splitStringToStringAndNumber($string)
     return $val;
 }
 
-protected function checkIfAliasExists($exclude_id,$value)
+protected function checkIfAliasExists($exclude_id,$value,$realfieldname)
 {
     $query = 'SELECT count('.$this->realidfieldname.') AS c FROM '.$this->realtablename.' WHERE '
-		.$this->realidfieldname.'!='.$exclude_id.' AND '.$this->realfieldname.'='.$this->db->quote($value).' LIMIT 1';
+		.$this->realidfieldname.'!='.(int)$exclude_id.' AND '.$realfieldname.'='.$this->db->quote($value).' LIMIT 1';
 		
 	$this->db->setQuery( $query );
 
@@ -762,27 +719,6 @@ protected function get_record_type_value()
 		}
 		return ','.implode(',',$values).',';
 	}
-
-    	protected function checkEmail($email)
-	{
-		if(preg_match("/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/",  $email))
-        {
-            if($this->domain_exists($email))
-                return true;
-            else
-                return false;
-		}
-		return false;
-	}
-
-    protected function domain_exists($email, $record = 'MX')
-    {
-    	$pair = explode('@', $email);
-        if(count($pair)==1)
-            return false;
-
-    	return checkdnsrr(end($pair), $record);
-    }
 
 	protected function getMultiString($parent, $prefix)
 	{
@@ -896,10 +832,10 @@ protected function get_record_type_value()
         return $this->db->loadObjectList();
 	}
 
-    static protected function processDefaultValue(&$Model,$htmlresult,$type,&$row)
+    function processDefaultValue(&$Model,$htmlresult,$type,&$row)
     {
         tagProcessor_General::process($Model,$htmlresult,$row,'',1);
-		tagProcessor_Item::process(false,$Model,$row,$htmlresult,'',array(),'',0);
+		tagProcessor_Item::process(false,$Model,$row,$htmlresult,'','',0);
 		tagProcessor_If::process($Model,$htmlresult,$row,'',0);
 		tagProcessor_Page::process($Model,$htmlresult);
 		tagProcessor_Value::processValues($Model,$row,$htmlresult,'[]');
@@ -913,9 +849,7 @@ protected function get_record_type_value()
                 $htmlresult=$this->prepare_alias_type_value(
 					$row['listing_id'],
 					$htmlresult,
-					$this->realtablename,
-					$this->realfieldname,
-					$this->realidfieldname);
+					$this->realfieldname);
 			}
             return $this->realfieldname.'='.$this->db->quote($htmlresult);
         }

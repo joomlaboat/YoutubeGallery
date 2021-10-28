@@ -16,8 +16,9 @@ class Helper
 {
 	//Text Functions
 	
-	public static function csv_explode($delim=',', $str, $enclose='"', $preserve=false)
+	public static function csv_explode(string $delim, $str, $enclose='"', $preserve=false)
 	{
+		//$delim=','
 		$resArr = array();
 		$n = 0;
 		$expEncArr = explode($enclose, $str);

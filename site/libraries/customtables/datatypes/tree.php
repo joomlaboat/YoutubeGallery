@@ -603,22 +603,6 @@ class Tree
 		return "";
 	}
 
-	/*
-	function getOptionsByID($parentid=0)
-	{
-		if($parentid=='')
-			return array();
-			
-		$db = Factory::getDBO();
-			
-		$query = 'SELECT * FROM #__customtables_options WHERE parentid="'.$parentid.'" ORDER BY ordering';
-		
-		$db->setQuery($query);
-
-		return $db->loadAssocList();
-	}
-	*/
-	
 	//Used many times
 	public static function getHeritageInfo($parentid, $fieldname)
 	{
@@ -646,7 +630,7 @@ class Tree
 	}
 	
 	//Used many times
-	public static function getHeritage($parentid, $where='', $limit)
+	public static function getHeritage($parentid, string $where, $limit)
 	{
 		if((int)$parentid==0)
 			return array();

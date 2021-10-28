@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
- * @copyright Copyright (C) 2018-2020. All Rights Reserved
+ * @copyright Copyright (C) 2018-2021. All Rights Reserved
  * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -444,7 +444,7 @@ class Fields
     }
 
 
-    public static function addForeignKey($realtablename_, $realfieldname, $new_typeparams='', $join_with_table_name ='',$join_with_table_field='',&$msg)
+    public static function addForeignKey($realtablename_, $realfieldname, string $new_typeparams, string $join_with_table_name, string $join_with_table_field,&$msg)
 	{
 		$db = Factory::getDBO();
 		
@@ -491,11 +491,7 @@ class Fields
         
         Fields::removeForeignKey($realtablename,$realfieldname);
         
-        if(isset($params[7]) and $params[7]=='noforignkey')
-        {
-			//Do nothing
-        }
-        else
+        if(isset($params[7]) and $params[7]=='addforignkey')
         {
             Fields::cleanTableBeforeNormalization($realtablename,$realfieldname,$join_with_table_name,$join_with_table_field);
 
@@ -855,7 +851,7 @@ class Fields
             return '';
     }
 
-    public static function getFieldType($tablename,$add_table_prefix=true,$realfieldname)
+    public static function getFieldType($tablename, bool $add_table_prefix,$realfieldname)
 	{
 		$db = Factory::getDBO();
 

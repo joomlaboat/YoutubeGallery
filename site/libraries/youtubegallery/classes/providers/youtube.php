@@ -162,69 +162,6 @@ class VideoSource_YouTube
 		return $settings;
 	}
 
-	/*
-	protected static function ygPlayerTypeController(&$options, &$theme_row)
-	{
-		$initial_volume=(int)$theme_row->es_volume;
-
-
-		if($options['playertype']==100) //auto
-			$options['playertype']=2; //Flash with API by default
-
-		//Change Flash 2 to 3
-		elseif($options['playertype']==4)//Flash Version 2 is depricated (api)
-			$options['playertype']=2;//Flash Version 3 (api)
-		elseif($options['playertype']==3)//Flash Version 2 is depricated
-			$options['playertype']=0;//Flash Version 3
-
-
-		//Change to HTML5 if for Apple
-		if($options['playertype']==0)
-		{
-			if(Helper::check_user_agent_for_apple())
-				$options['playertype']=1; //Flash Player not supported use IFrame Instead
-		}
-
-		//Change to HTML5 API if for Apple
-		if($options['playertype']==2)
-		{
-			if(Helper::check_user_agent_for_apple())
-				$options['playertype']=5; //Flash Player not supported use IFrame API Instead
-		}
-
-		//Change to API if needed
-		if($options['playertype']==0)
-		{
-			//Note - not available for IE
-			if(($theme_row->es_muteonplay or $initial_volume!=-1)// and $options['playertype']!=5)
-					$options['playertype']=2; //because other types of player doesn't support this functionality.
-		}
-
-		//Change to API if needed
-		if($options['playertype']==1)
-		{
-			//Note - not available for IE
-			if(($theme_row->es_muteonplay or $initial_volume!=-1)// and $options['playertype']!=5)
-					$options['playertype']=5; //because other types of player doesn't support this functionality.
-		}
-
-		//Disable API for IE (Flash)
-		if($options['playertype']==2)
-		{
-			if(Helper::check_user_agent_for_ie())
-				$options['playertype']=0; //Disable API for IE (so sad!)
-		}
-
-
-		//Disable API for IE (IFrame)
-		if($options['playertype']==5)
-		{
-			if(Helper::check_user_agent_for_ie())
-				$options['playertype']=1; //Disable API for IE (so sad!)
-		}
-	}
-	*/
-
 	protected static function ygHTML5PlayerAPI($width,$height,$youtubeserver,$videoidkeyword,$settingline,
 		&$options,$vlid,$playerid,&$theme_row,&$full_playlist,$initial_volume,$playerapiid,$withFlash=false)
 	{

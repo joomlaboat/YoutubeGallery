@@ -661,15 +661,8 @@ function addTabExtraEvents()
                                }, 100);
                 }
             });
-        });
-        
-        
-        
-        
-        
-        
-
-	}
+    });
+}
 
 function addExtraEvents(index)
 {

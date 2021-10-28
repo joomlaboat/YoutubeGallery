@@ -191,7 +191,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 							.($projected_field['typeparams']!='' ? ' ('.$projected_field['typeparams'].')' : '');
 					}
 					
-					if($ct->Table->tableid == $tasktableid and $task=='fixfieldtype' and $taskfieldname==$exst_field)
+					if($ct->Table->tableid == $tasktableid and $task=='fixfieldtype' and ($taskfieldname==$exst_field or $taskfieldname=='all_fields'))
 					{
 						$msg='';
 						
@@ -230,14 +230,14 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
 			$proj_field=$projected_field['realfieldname'];
 			$fieldtype=$projected_field['type'];
 			if($fieldtype!='dummy')
-				IntegrityFields::addFieldIfNotExists($ct,$ExistingFields,$proj_field,$fieldtype,$projected_field['typeparams']);
+				IntegrityFields::addFieldIfNotExists($ct,$ct->Table->realtablename,$ExistingFields,$proj_field,$fieldtype,$projected_field['typeparams']);
         }
 	
 		return $result;
 	}
 	
 		
-	public static function addFieldIfNotExists(&$ct,$ExistingFields,$proj_field,$fieldtype,$typeparams)
+	public static function addFieldIfNotExists(&$ct,$realtablename,$ExistingFields,$proj_field,$fieldtype,$typeparams)
     {
 		$result = '';
 		$db = Factory::getDBO();
@@ -265,7 +265,8 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
                 if(!$found)
                 {
                     //Add field
-                    IntegrityFields::addField($ct->Table->realtablename,$fieldname,$fieldtype,$typeparams);
+                    IntegrityFields::addField($realtablename,$fieldname,$fieldtype,$typeparams);
+					return true;
                 }
 
                 $morethanonelang=true;
@@ -273,7 +274,7 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
         }
         else
         {
-            $found=false;
+			$found=false;
             foreach($ExistingFields as $existing_field)
             {
                 if($proj_field==$existing_field['column_name'])
@@ -284,8 +285,13 @@ class IntegrityFields extends \CustomTables\IntegrityChecks
             }
 
             if(!$found)
-                IntegrityFields::addField($ct->Table->realtablename,$proj_field,$fieldtype,$typeparams);
+			{
+				IntegrityFields::addField($realtablename,$proj_field,$fieldtype,$typeparams);
+				return true;
+			}
         }
+		
+		return false;
     }
 	
 	protected static function addField($realtablename,$realfieldname,$fieldtype,$typeparams)
