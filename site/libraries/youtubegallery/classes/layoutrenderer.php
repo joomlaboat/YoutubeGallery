@@ -12,6 +12,10 @@ defined('_JEXEC') or die('Restricted access');
 use YouTubeGallery\Helper;
 use YouTubeGallery\Pagination;
 
+use Joomla\CMS\Version;
+
+use Joomla\CMS\HTML\HTMLHelper;
+
 class YoutubeGalleryLayoutRenderer
 {
 	function getValue($fld, $params, &$videolist_row, &$theme_row, $gallery_list, $width, $height, $videoid, $AllowPagination, $total_number_of_rows,$custom_itemid=0)//,$title
@@ -343,7 +347,15 @@ class YoutubeGalleryLayoutRenderer
 	function render($htmlresult, &$videolist_row, &$theme_row, $gallery_list, $width, $height, $videoid, $total_number_of_rows,$custom_itemid=0)
 	{
 		if($theme_row->es_rel=='jce')
-			echo JHTML::_('behavior.modal'); //Modal Loader
+		{
+			$version_object = new Version;
+			$version = (int)$version_object->getShortVersion();
+		
+			if($version < 4)
+				echo JHTML::_('behavior.modal'); //Modal Loader
+			//else
+				//echo JHTML::_('behavior.modal'); //Modal Loader
+		}
 		
 		
 		if(!isset($theme_row))
