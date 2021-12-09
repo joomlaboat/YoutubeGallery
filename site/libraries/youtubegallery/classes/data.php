@@ -142,9 +142,13 @@ class YouTubeGalleryData
 		
 		$force=$force or $diff>$updateperiod;
 		
+		$youtubedataapi_key=YouTubeGalleryDB::getSettingValue('youtubedataapi_key');
+		
 		//Check if YouTubeGallery API installed
-		$file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegalleryapi' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'misc.php';
-		if (file_exists($file))
+		$file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR 
+			. 'libraries' . DIRECTORY_SEPARATOR . 'youtubegalleryapi' . DIRECTORY_SEPARATOR . 'misc.php';
+		
+		if (file_exists($file) and $youtubedataapi_key!='')
 		{
 			require_once ($file);
 			
@@ -152,9 +156,9 @@ class YouTubeGalleryData
             
 			$isnew = 0;
 			$active_key = true;
-			
-			$results = $y->checkLink($theLink, $isnew, $active_key, $force_update = $force, $videolist_id = $videolist_row->id);
-			
+
+			$results = $y->checkLink($theLink, $isnew, $active_key, $force_update = $force, $videolist_id = $videolist_row->id, $youtubedataapi_key);
+						
 			foreach($results as $result)
 				$gallery_list[] = $result;
 				
@@ -182,6 +186,7 @@ class YouTubeGalleryData
 			}
 		}
 
+		echo 'Request API server';
 		//try
 		//{
 			$htmlcode=YouTubeGalleryData::queryTheAPIServer($theLink,'',$force);
