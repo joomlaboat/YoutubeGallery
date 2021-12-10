@@ -166,7 +166,7 @@ class YouTubeGalleryAPIMisc
 		return $videos_row['id'];
 	}
 	
-	function checkLink($theLink, &$isnew, $active_key, $force_update = false, $videolist_id = null)
+	function checkLink($theLink, &$isnew, $active_key, $force_update = false, $videolist_id = null, $youtube_data_api_key = '')
 	{
 		$blankArray=array();
 		
@@ -183,14 +183,14 @@ class YouTubeGalleryAPIMisc
 					if(count($videos_rows)==0)
 					{
 						$isnew=1;
-						return $this->update_cache_table($theLink,$active_key, $videolist_id);//new
+						return $this->update_cache_table($theLink,$active_key, $videolist_id, $youtube_data_api_key);//new
 					}
 					else
 					{
 						$isnew=0;
 						
 						if((bool)$force_update)
-							return $this->update_cache_table($theLink,$active_key, $videolist_id);//not new
+							return $this->update_cache_table($theLink,$active_key, $videolist_id, $youtube_data_api_key);//not new
 						else
 							return $videos_rows;//not new
 					}
@@ -203,7 +203,7 @@ class YouTubeGalleryAPIMisc
 					{
 						//Video not found in database, try to grab it from the provider
 						$isnew=1;
-						return $this->update_cache_table($theLink,$active_key, $videolist_id);//new
+						return $this->update_cache_table($theLink,$active_key, $videolist_id, $youtube_data_api_key);//new
 					}
 					else
 					{
@@ -211,7 +211,7 @@ class YouTubeGalleryAPIMisc
 						
 						if((bool)$force_update)
 						{
-							$recs=$this->update_cache_table($theLink,$active_key, $videolist_id);//not new
+							$recs=$this->update_cache_table($theLink,$active_key, $videolist_id, $youtube_data_api_key);//not new
 							return $recs;
 						}
 						else
@@ -277,9 +277,9 @@ class YouTubeGalleryAPIMisc
 		return $recs;
 	}
 	
-	function update_cache_table($theLink,$active_key, $videolist_id = null)
+	function update_cache_table($theLink,$active_key, $videolist_id = null, $youtube_data_api_key = '')
 	{
-		$videolist=YouTubeGalleryAPIData::formVideoList($theLink,$active_key);
+		$videolist=YouTubeGalleryAPIData::formVideoList($theLink,$active_key, $youtube_data_api_key);
 
 		$parent_id = null;
 

@@ -36,15 +36,14 @@ try
 	echo '<hr/>
 			
 			<div class="control-group">
-				<div class="control-label">'.JText::_('COM_YOUTUBEGALLERYAPI_YOUTUBE_API_KEY').'</div>
+				<div class="control-label">'.JText::_('COM_YOUTUBEGALLERY_YOUTUBE_API_KEY').'</div>
 				<div class="controls"><input type="text" name="youtubedataapi_key" style="min-width:370px;width:100%;" value="'.$youtubedataapi_key.'" /></div>
 			</div>
-			<p>'.JText::_('COM_YOUTUBEGALLERYAPI_YOUTUBE_API_REGISTER_PROJECT')
+			<p>'.JText::_('COM_YOUTUBEGALLERY_YOUTUBE_API_REGISTER_PROJECT')
 			.' <a href="https://console.developers.google.com/" target="_blank">link</a> '
-			.JText::_('COM_YOUTUBEGALLERYAPI_YOUTUBE_API_GET_THE_KEY').'</p>
+			.JText::_('COM_YOUTUBEGALLERY_YOUTUBE_API_GET_THE_KEY').'</p>
 			<hr/>';
-			
-			
+		
     $j=(array)$j;
 	if(isset($j['connection']))
 	{

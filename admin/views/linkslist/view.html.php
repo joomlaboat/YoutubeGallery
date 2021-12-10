@@ -139,6 +139,11 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 			$childBar->checkin('listoflayouts.checkin');
 		}
 		*/
+		if($this->canEdit)
+		{
+			JToolBarHelper::custom( 'linkslist.updateItem', 'refresh.png', 'refresh_f2.png', 'Update', true);
+			JToolBarHelper::custom( 'linkslist.refreshItem', 'refresh.png', 'refresh_f2.png', 'Refresh', true);
+		}
 
 		if(($this->canState && $this->canDelete))
 		{
