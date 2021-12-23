@@ -10,7 +10,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\MVC\Model\ListModel;
-
+use Joomla\CMS\Version;
 use YouTubeGallery\Helper;
 
 /**
@@ -206,16 +206,24 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
 
 				if($this->params->get( 'allowcontentplugins' ))
 				{
-								$o = new stdClass();
-								$o->text=$this->youtubegallerycode;
-
-								$dispatcher	= JDispatcher::getInstance();
-
-								JPluginHelper::importPlugin('content');
-
-								$r = $dispatcher->trigger('onContentPrepare', array ('com_content.article', &$o, &$this->params_, 0));
-
-								$this->youtubegallerycode=$o->text;
+					$version = new Version;
+					$this->version = (int)$version->getShortVersion();
+					
+					$o = new stdClass();
+					$o->text=$this->youtubegallerycode;
+					$o->created_by_alias = 0;
+					
+					if($this->version < 4)
+					{
+						$dispatcher	= JDispatcher::getInstance();
+						JPluginHelper::importPlugin('content');
+						$results = $dispatcher->trigger('onContentPrepare', array ('com_content.article', &$o, &$this->params_, 0));
+					}
+					else
+					{
+						$results = JFactory::getApplication()->triggerEvent( 'onContentPrepare',array ('com_content.article', &$o, &$this->params_, 0));
+					}
+					$this->youtubegallerycode=$o->text;
 				}
 
 				$result.=$this->youtubegallerycode;
