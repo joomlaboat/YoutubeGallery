@@ -81,8 +81,6 @@ class YouTubeGalleryAPIMisc
 	
 	static public function getBlankArray($isPublic=false)
 	{
-		
-		
 		$blankArray=array(
 				'id'=>0,
 				'es_videosource'=>'',
@@ -487,7 +485,6 @@ class YouTubeGalleryAPIMisc
 		return $arr;
 	}
 
-
 	public static function csv_explode(string $delim, $str, $enclose='"', $preserve=false)
 	{
 		//$delim=','
@@ -509,38 +506,34 @@ class YouTubeGalleryAPIMisc
 
 	public static function getURLData($url,$format='json')
 	{
-			$htmlcode='';
+		$htmlcode='';
 
-			if (function_exists('curl_init'))
-			{
-				$ch = curl_init();
-				$timeout = 150;
-				curl_setopt($ch, CURLOPT_URL, $url);
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+		if (function_exists('curl_init'))
+		{
+			$ch = curl_init();
+			$timeout = 150;
+			curl_setopt($ch, CURLOPT_URL, $url);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
 
-				if($format=='json')
-				{
-					curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
-				}
+			if($format=='json')
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
 
-				$htmlcode = curl_exec($ch);
-				curl_close($ch);
-			}
-			elseif (ini_get('allow_url_fopen') == true)
-			{
-				$htmlcode = file_get_contents($url);
-			}
-			else
-			{
-			    $application = JFactory::getApplication();
-				$application->enqueueMessage('Cannot load data, enable "allow_url_fopen" or install cURL<br/>'
-				.'<a href="https://joomlaboat.com/youtube-gallery/f-a-q/why-i-see-allow-url-fopen-message" target="_blank">Here</a> is what to do.', 'error');
-
+			$htmlcode = curl_exec($ch);
+			curl_close($ch);
+		}
+		elseif (ini_get('allow_url_fopen') == true)
+		{
+			$htmlcode = file_get_contents($url);
+		}
+		else
+		{
+		    $application = JFactory::getApplication();
+			$application->enqueueMessage('Cannot load data, enable "allow_url_fopen" or install cURL<br/>'
+			.'<a href="https://joomlaboat.com/youtube-gallery/f-a-q/why-i-see-allow-url-fopen-message" target="_blank">Here</a> is what to do.', 'error');
 				return '';
-			}
-
-			return $htmlcode;
+		}
+		return $htmlcode;
 	}
 
 	public static function CreateParamLine(&$settings)
@@ -611,15 +604,14 @@ class YouTubeGalleryAPIMisc
 
 	public static function check_user_agent_for_apple ()
 	{
-		$user_agent = strtolower ( $_SERVER['HTTP_USER_AGENT'] );
-                if ( preg_match ( "/iphone|itouch|ipod|ipad/", $user_agent ) ) {
-                        // these are the most common
-                        return true;
-                }
-
+		$user_agent = strtolower ( $_SERVER['HTTP_USER_AGENT']);
+		if(preg_match ( "/iphone|itouch|ipod|ipad/", $user_agent ) )
+		{
+			// these are the most common
+			return true;
+		}
 		return false;
 	}
-
 
 	public static function check_user_agent_for_ie ()
 	{
@@ -631,8 +623,6 @@ class YouTubeGalleryAPIMisc
 
 		return false;
 	}
-
-
 
 	public static function html2txt($document)
 	{

@@ -25,27 +25,51 @@ class Environment
 {
 	var $version;
 	var $current_url;
+	var $current_sef_url;
+	
 	var $encoded_current_url;
 	var $userid;
 	var $user;
 	var $isUserAdministrator;
-	var $print;
-	var $clean;
-	var $frmt;
-	var $WebsiteRoot;
+	var $print; // ok
+	var $clean; // ok
+	var $frmt; // ok
+	var $WebsiteRoot; // ok
 	var $advancedtagprocessor;
 	var $jinput;
-	var $isMobile;
-	
+	var $isMobile; // ok
+	var $isModal; // ok
+	var $Itemid; // ok
+	var $field_prefix; // ok
+	var $field_input_prefix; // ok
+	var $menu_params; // ok, other menu marameters are part of modl. class, also you can find it in cintroller files
+
 	function __construct()
 	{
+		$this->field_prefix = 'es_';
+		$this->field_input_prefix = 'com' . $this->field_prefix;
+		
 		$version_object = new Version;
 		$this->version = (int)$version_object->getShortVersion();
 		
 		$this->jinput=Factory::getApplication()->input;
 
-		$this->current_url=JoomlaBasicMisc::curPageURL();
-		$this->encoded_current_url=base64_encode($this->current_url);
+		$this->current_url = JoomlaBasicMisc::curPageURL();
+		
+		if(strpos($this->current_url,'option=com_customtables')===false)
+		{
+			$pair=explode('?',$this->current_url);
+			$this->current_sef_url=$pair[0].'/';
+			if(isset($pair[1]))
+				$this->current_sef_url='?'.$pair[1];
+		}
+		else 
+			$this->current_sef_url = $this->current_url;
+		
+		$tmp_current_url = JoomlaBasicMisc::deleteURLQueryOption($this->current_url, 'listing_id');
+		$tmp_current_url = JoomlaBasicMisc::deleteURLQueryOption($tmp_current_url, 'number');
+		
+		$this->encoded_current_url=base64_encode($tmp_current_url);
 
 		$this->user = Factory::getUser();
 		$this->userid=$this->user->id;
@@ -54,6 +78,7 @@ class Environment
 		$this->isUserAdministrator=JoomlaBasicMisc::isUserAdmin($this->userid);
 		$this->print=(bool)$this->jinput->getInt('print',0);
 		$this->clean=(bool)$this->jinput->getInt('clean',0);
+		$this->isModal=(bool)$this->jinput->getInt('modal',0);
 		$this->frmt=$this->jinput->getCmd('frmt','html');
 		if($this->jinput->getCmd('layout','') == 'json')
 			$this->frmt = 'json';
@@ -82,6 +107,10 @@ class Environment
 		}
 		
 		$this->isMobile = $this->check_user_agent('mobile');
+		
+		$this->Itemid = $this->jinput->getInt('Itemid',0);
+		
+		$this->menu_params = null;
 	}
 	
 	
@@ -89,7 +118,7 @@ class Environment
 	//http://stackoverflow.com/questions/6524301/detect-mobile-browser
 	protected function check_user_agent ( $type = NULL )
 	{
-        $user_agent = strtolower ( $_SERVER['HTTP_USER_AGENT'] );
+		$user_agent = strtolower ( $_SERVER['HTTP_USER_AGENT'] ?? '');
         if ( $type == 'bot' ) {
                 // matches popular bots
                 if ( preg_match ( "/googlebot|adsbot|yahooseeker|yahoobot|msnbot|watchmouse|pingdom\.com|feedfetcher-google/", $user_agent ) ) {

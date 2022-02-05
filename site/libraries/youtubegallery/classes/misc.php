@@ -15,7 +15,6 @@ defined('_JEXEC') or die('Restricted access');
 class Helper
 {
 	//Text Functions
-	
 	public static function csv_explode(string $delim, $str, string $enclose='"', bool $preserve=false)
 	{
 		//$delim=','
@@ -34,7 +33,6 @@ class Helper
 		}
 		return $resArr;
 	}
-	
 	
 	public static function PrepareDescription($description, $videodescription_params)
 	{
@@ -220,24 +218,11 @@ class Helper
 	}
 	
 	//URL/Network Functions
-	
 	public static function full_url($s, $use_forwarded_host=false)
 	{
 	    return Helper::url_origin($s, $use_forwarded_host) . $s['REQUEST_URI'];
 	}
 
-	/*
-	protected static function _is_curl_installed()
-	{
-		if  (in_array  ('curl', get_loaded_extensions())) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-	*/
-	
 	protected static function url_origin($s, $use_forwarded_host=false)
 	{
 		$ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true:false;
@@ -284,7 +269,6 @@ class Helper
 
 		return $urlstr;
 	}
-	
 	
 	public static function parse_query($var)
 	{
@@ -405,7 +389,7 @@ class Helper
 	
 	/* USER-AGENTS ================================================== */
 	//http://stackoverflow.com/questions/6524301/detect-mobile-browser
-	public static function check_user_agent ( $type = NULL )
+	public static function check_user_agent($type=NULL)
 	{
         $user_agent = strtolower ( $_SERVER['HTTP_USER_AGENT'] );
         if ( $type == 'bot' ) {
@@ -524,7 +508,6 @@ class Helper
 		return implode('&amp;',$a);
 	}
 	
-	
 	public static function prepareDescriptions($gallery_list)
 	{
 			//-------------------- prepare description
@@ -559,7 +542,6 @@ class Helper
 				}
 			return $new_gallery_list;
 	}
-
 }
 
 

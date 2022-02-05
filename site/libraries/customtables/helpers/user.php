@@ -37,7 +37,6 @@ class CTUser
 		
 		if($ct->Table->useridrealfieldname==null or $ct->Table->useridrealfieldname=='')
 		{
-			//$Itemid=$ct->Env->jinput->getInt('Itemid', 0);
 			Factory::getApplication()->enqueueMessage('User ID field not found.', 'error');
 			return;
 		}
@@ -187,20 +186,20 @@ class CTUser
 
 	}
 
-	static protected function UpdateUserField($realtablename, $realidfieldname, $useridfieldname,$existing_user_id,$listing_id)
+	static public function UpdateUserField($realtablename, $realidfieldname, $useridfieldname,$existing_user_id,$listing_id)
     {
 		$db = Factory::getDBO();
 		
-		$query = 'UPDATE '.$realtablename.' SET '.$useridfieldname.'='.$existing_user_id.' WHERE '.$realidfieldname.'='.$listing_id.' LIMIT 1';
+		$query = 'UPDATE '.$realtablename.' SET '.$useridfieldname.'='.$existing_user_id.' WHERE '.$realidfieldname.'='.$db->quote($listing_id).' LIMIT 1';
 		$db->setQuery( $query );
 		$db->execute();
     }
 	
-	static public function UpdateUserLink($realtablename,$fieldusreidname,$userid,$id)
+	static public function UpdateUserLink($realtablename,$fieldusreidname,$userid,$listing_id)
 	{
 		$db = Factory::getDBO();
 
-		$query = 'UPDATE '.$realtablename.' SET '.$fieldusreidname.'='.$userid.' WHERE id='.$id;
+		$query = 'UPDATE '.$realtablename.' SET '.$fieldusreidname.'='.$userid.' WHERE '.$realidfieldname.'='.$db->quote($listing_id);
 
 		$db->setQuery( $query );
 		$db->execute();
@@ -277,12 +276,12 @@ class CTUser
 		$db->setQuery( $query );
 
 		$rows = $db->loadObjectList();
-		$ids=array();
+		$usergroup_ids=array();
 		foreach($rows as $row)
 		{
-			$ids[]=$row->id;
+			$usergroup_ids[]=$row->id;
 		}
-		return $ids;
+		return $usergroup_ids;
 	}
 
 	static public function CreateUserAccount($fullname,$username,$password,$email,$group_names,&$msg)
@@ -294,11 +293,8 @@ class CTUser
 		$useractivation=0;//alreadey activated
 
 		$config = Factory::getConfig();
-		$params = ComponentHelper::getParams('com_users');
 
 		// Initialise the table with JUser.
-		$user = Factory::getUser();
-		
 		$user = Factory::getUser(0);
 		
 		$data = array();
@@ -393,4 +389,35 @@ class CTUser
 
 		return $user->id;
 	}
+
+
+	//checkAccess
+	public static function checkIfRecordBelongsToUser(&$ct,$ug)
+	{
+        if(!isset($ct->Env->isUserAdministrator))
+            return false;
+
+		if($ug==1)
+			$usergroups =array();
+		else
+			$usergroups = $ct->Env->user->get('groups');
+
+		$isok=false;
+
+		if($ct->Env->isUserAdministrator or in_array($ug,$usergroups))
+			$isok=true;
+		else
+		{
+			if(isset($ct->Table->record) and isset($ct->Table->record['listing_published']) and $ct->Table->useridfieldname!='')
+			{
+				$uid = $ct->Table->record[$ct->Table->useridrealfieldname];
+
+				if($uid==$ct->Env->userid and $ct->Env->userid!=0)
+					$isok=true;
+			}
+		}
+
+		return $isok;
+	}
+
 }

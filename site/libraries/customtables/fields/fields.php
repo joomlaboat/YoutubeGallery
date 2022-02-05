@@ -99,7 +99,7 @@ class Fields
 			//get CT table name if possible
 			
 			$establename=str_replace($db->getPrefix().'customtables_table','',$realtablename);
-			$esfieldname=str_replace('es_','',$realfieldname);
+			$esfieldname=str_replace($ct->Env->field_prefix,'',$realfieldname);
 			Fields::CreateImageGalleryTable($establename,$esfieldname);
 		}
 		elseif($fieldtype=='filebox')
@@ -107,7 +107,7 @@ class Fields
 			//Create table
 			//get CT table name if possible
 			$establename=str_replace('#__customtables_table','',$realtablename);
-			$esfieldname=str_replace('es_','',$realfieldname);
+			$esfieldname=str_replace($ct->Env->field_prefix,'',$realfieldname);
 			Fields::CreateFileBoxTable($establename,$esfieldname);
 		}
 	}
@@ -300,6 +300,70 @@ class Fields
 		return implode(' ',$elements);
 	}
 	
+	public static function convertMySQLFieldTypeToCT($data_type,$column_type)
+	{
+		$type = '';
+		$typeparams = '';
+		
+		switch(strtolower(trim($data_type)))
+		{
+			case 'tinyint':
+			case 'int':
+			case 'integer':
+			case 'smallint':
+			case 'mediumint':
+			case 'bigint':
+				$type = 'int';
+				break;
+				
+			case 'dec':
+			case 'decimal':
+			case 'float':
+			case 'double':
+			
+				$parts = explode('(',$column_type);
+				if(count($parts)>1)
+				{
+					$length = str_replace(')','',$parts[1]);
+					if($length!='')
+						$typeparams = $length;
+				}
+				$type = 'float';
+				break;
+				
+			case 'char':
+			case 'varchar':
+			
+				$parts = explode('(',$column_type);
+				if(count($parts)>1)
+				{
+					$length = str_replace(')','',$parts[1]);
+					if($length!='')
+						$typeparams = $length;
+				}
+				$type = 'string';
+				break;
+				
+			case 'blob':
+			case 'text':
+			case 'mediumtext':
+			case 'longtext':
+				$type = 'text';
+				break;
+				
+			case 'datetime':
+				$type = 'creationtime';
+				break;
+				
+			case 'date':
+				$type = 'date';
+				break;
+			
+		}
+		
+		return ['type' => $type, 'typeparams' => $typeparams];
+	}
+	
 	public static function getProjectedFieldType($ct_fieldtype,$typeparams)
 	{
 		//Returns an array of mysql column parameters
@@ -331,6 +395,7 @@ class Fields
 			case 'text':
 			case 'multilangtext':
 			case 'log':
+				//mediumtext
 				return ['data_type' => 'text','is_nullable'=> true, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null];
 			case 'int':
 				return ['data_type' => 'int','is_nullable'=> true, 'is_unsigned' => false, 'length' => null, 'default' => null, 'extra' => null];
@@ -430,7 +495,6 @@ class Fields
 		return $type;
 	}
 
-
     public static function AddMySQLFieldNotExist($realtablename, $realfieldname, $fieldtype, $options)
     {
 		$db = Factory::getDBO();
@@ -442,7 +506,6 @@ class Fields
 			$db->execute();
 		}
     }
-
 
     public static function addForeignKey($realtablename_, $realfieldname, string $new_typeparams, string $join_with_table_name, string $join_with_table_field,&$msg)
 	{
@@ -457,7 +520,7 @@ class Fields
 			return false;
 			
 		//Create Key only if possible
-        $params=explode(',',$new_typeparams);
+        $typeparams=explode(',',$new_typeparams);
 
 		if($join_with_table_name=='')
 		{
@@ -467,13 +530,13 @@ class Fields
 				return false; //Exit if parameters not set
 			}
 
-			if(count($params)<2)
+			if(count($typeparams)<2)
 			{
 				$msg='Parameters not complete.';
 				return false;	// Exit if field not set (just in case)
 			}
 
-			$tablerow = ESTables::getTableRowByName($params[0]); //$params[0] - is tablename
+			$tablerow = ESTables::getTableRowByName($typeparams[0]); //[0] - is tablename
 			if(!is_object($tablerow))
 			{
 				$msg='Join with table "'.$join_with_table_name.'" not found.';
@@ -491,7 +554,7 @@ class Fields
         
         Fields::removeForeignKey($realtablename,$realfieldname);
         
-        if(isset($params[7]) and $params[7]=='addforignkey')
+        if(isset($typeparams[7]) and $typeparams[7]=='addforignkey')
         {
             Fields::cleanTableBeforeNormalization($realtablename,$realfieldname,$join_with_table_name,$join_with_table_field);
 
@@ -798,16 +861,16 @@ class Fields
 
 		$rows = $db->loadAssocList();
 
-		$ids=array();
-		$ids[]=$realfieldname.'=0';
+		$where_ids=array();
+		$where_ids[] = $realfieldname.'=0';
 
 		foreach($rows as $row)
 		{
 			if($row['customtables_distinct_temp_id']!='')
-				$ids[]=$realfieldname.'='.$row['customtables_distinct_temp_id'];
+				$where_ids[] = $realfieldname.'='.$row['customtables_distinct_temp_id'];
 		}
 
-		$query = 'UPDATE '.$realtablename.' SET '.$realfieldname.'=NULL WHERE '.implode(' OR ',$ids).';';
+		$query = 'UPDATE '.$realtablename.' SET '.$realfieldname.'=NULL WHERE '.implode(' OR ',$where_ids).';';
 
 		$db->setQuery( $query );
 		$db->execute();
@@ -901,9 +964,6 @@ class Fields
 		{
 			$realtablename=str_replace('#__',$db->getPrefix(),$realtablename);
 			
-			//$query = 'SHOW COLUMNS FROM '.$realtablename;
-			//$db->setQuery( $query );
-			
 			$conf = Factory::getConfig();
 			$database = $conf->get('db');
 			
@@ -915,7 +975,6 @@ class Fields
 				.'COLUMN_DEFAULT AS column_default,'
 				.'EXTRA AS extra'
 				.' FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='.$db->quote($database).' AND TABLE_NAME='.$db->quote($realtablename);
-
 		}
 
 		$db->setQuery( $query );
@@ -925,29 +984,7 @@ class Fields
     public static function getListOfExistingFields($tablename,$add_table_prefix=true)
 	{
 		$realfieldnames=Fields::getExistingFields($tablename,$add_table_prefix);
-		/*
-		$db = Factory::getDBO();
 
-		if($add_table_prefix)
-			$realtablename=$db->getPrefix().'customtables_table_'.$tablename;
-		else
-			$realtablename=$tablename;
-
-		if($db->serverType == 'postgresql')
-		{
-			$realtablename=str_replace('#__',$db->getPrefix(),$realtablename);
-			$query = 'SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_name = '.$db->quote($realtablename);
-		}
-		else
-		{
-			$query = 'SHOW COLUMNS FROM '.$realtablename;
-		}
-     
-		$list=array();
-
-		$db->setQuery( $query );
-		$recs=$db->loadAssocList();
-        */
 		foreach($realfieldnames as $rec)
 			$list[]=$rec['column_name'];
 
@@ -1176,11 +1213,11 @@ class Fields
 		return array();
 	}
 
-	public static function getRealFieldName($fieldname,&$ctfields)
+	public static function getRealFieldName($fieldname,&$ctfields,$all_fields = false)
 	{
 		foreach($ctfields as $row)
 		{
-			if($row['allowordering']==1 and $row['fieldname']==$fieldname)
+			if(($all_fields or $row['allowordering']==1) and $row['fieldname']==$fieldname)
 				return $row['realfieldname'];
 		}
 		return '';
@@ -1260,4 +1297,34 @@ class Fields
 		return $field;
 	}
 
+
+	public static function deleteTablelessFields()
+	{
+		$db = Factory::getDBO();
+		
+		$query='DELETE FROM #__customtables_fields AS f WHERE (SELECT id FROM #__customtables_tables AS t WHERE t.id = f.tableid) IS NULL';
+
+		$db->setQuery($query);
+		$db->execute();
+	}
+	
+	public static function getSelfParentField(&$ct)
+	{
+		//Check if this table has self-parent field - the TableJoing field linked with the same table.
+		
+		foreach($ct->Table->fields as $fld)
+		{
+			if($fld['type'] == 'sqljoin')
+			{
+				$type_params = JoomlaBasicMisc::csv_explode(',',$fld['typeparams'],'"',false);
+				$join_tablename = $type_params[0];
+		
+				if($join_tablename == $ct->Table->tablename)
+				{
+					return $fld;//['fieldname'];
+				}
+			}
+		}
+		return null;
+	}
 }

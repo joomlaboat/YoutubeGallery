@@ -46,6 +46,9 @@ class Table
 	
 	var $fields;
 	var $record;
+
+	var $recordcount;
+	var $recordlist;
 	
 	var $db;
 	
@@ -70,27 +73,18 @@ class Table
 			return;
 
 		$this->setTable($this->tablerow, $useridfieldname, $load_fields = true);
-		
-		$this->record = array(1);
 	}
 	
 	function setTable(&$tablerow, $useridfieldname = null, $load_fields = true)
 	{
 		$this->tablerow = $tablerow;
-		
 		$this->tablename = $this->tablerow['tablename'];
-
 		$this->tableid=$this->tablerow['id'];
-
 		$this->published_field_found=$this->tablerow['published_field_found'];
-		
 		$this->customtablename=$this->tablerow['customtablename'];
-		
 		$this->realtablename=$this->tablerow['realtablename'];
 		$this->realidfieldname=$this->tablerow['realidfieldname'];
-			
 		$this->tabletitle=$this->tablerow['tabletitle'.$this->Languages->Postfix];
-		
 		$this->alias_fieldname='';
 		$this->imagegalleries=array();
 		$this->fileboxes=array();
@@ -126,16 +120,18 @@ class Table
 		}
 	}
 	
-	function loadRecord($id)
+	function loadRecord($listing_id)
 	{
-		$query = 'SELECT '.$this->tablerow['query_selects'].' FROM '.$this->realtablename.' WHERE id='.(int)$id.' LIMIT 1';
+		$query = 'SELECT '.$this->tablerow['query_selects'].' FROM '.$this->realtablename.' WHERE '.$this->realidfieldname.'='.$this->db->quote($listing_id).' LIMIT 1';
 
 		$this->db->setQuery( $query );
 	
 		$recs = $this->db->loadAssocList( );
 		if(!$recs) return $this->record = null;
-		if (count($recs)<1) $this->record = null;
+		if (count($recs)<1) return $this->record = null;
 
 		$this->record = $recs[0];
+		
+		return $this->record;
 	}
 }

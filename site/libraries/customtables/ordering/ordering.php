@@ -48,6 +48,8 @@ class Ordering
 			return true;
 		}
 		
+		
+		
 		$inners = [];
 	
 		$oPair=explode(' ',$this->ordering_processed_string);
@@ -74,8 +76,8 @@ class Ordering
 			$this->orderby = 'published'.$direction;
 			return true;
 		}
-			
-		$realfieldname=Fields::getRealFieldName($orderby_field,$this->Table->fields);
+		
+		$realfieldname=Fields::getRealFieldName($orderby_field, $this->Table->fields, true);
 		
 		if($realfieldname=='')
 			return false;
@@ -128,25 +130,27 @@ class Ordering
 		
 	}
 	
-	function parseOrderByParam($blockExternalVars,&$params)
+	function parseOrderByParam($blockExternalVars,&$menu_params,$Itemid)
 	{
 		//get sort field (and direction) example "price desc"
 		$jinput = Factory::getApplication()->input;
 		$mainframe = Factory::getApplication();
 		
+		//$orderby_forced = false;
 		$ordering_param_string='';
 		
 		if($blockExternalVars)
 		{
 			//module or plugin
-			if($params->get( 'sortby' )!='')
-				$ordering_param_string=$params->get( 'sortby' );
+			if($menu_params->get( 'sortby' )!='')
+				$ordering_param_string=$menu_params->get( 'sortby' );
 		}
 		else
 		{
-			if($params->get( 'forcesortby' )!='')
+			if($menu_params->get( 'forcesortby' )!='')
 			{
-				$ordering_param_string=$params->get( 'forcesortby' );
+				$ordering_param_string=$menu_params->get( 'forcesortby' );
+				$orderby_forced = true;
 			}
 			elseif($jinput->get('esordering','','CMD'))
 			{
@@ -160,12 +164,23 @@ class Ordering
 
 				if($ordering_param_string=='')
 				{
-					if($params->get( 'sortby' )!='')
-						$ordering_param_string=$params->get( 'sortby' );
+					if($menu_params->get( 'sortby' )!='')
+						$ordering_param_string=$menu_params->get( 'sortby' );
 				}
 			}
 		}
-
+/*
+		if(!$orderby_forced)
+		{
+			$ordering_param_string_state = $mainframe->getUserState( 'com_customtables.orderby_'.$Itemid,'' );
+		
+			if($ordering_param_string_state != '')
+				$this->ordering_processed_string = $this->processOrderingString($ordering_param_string_state);
+			else
+				$this->ordering_processed_string = $this->processOrderingString($ordering_param_string);
+		}
+		else
+		*/	
 		$this->ordering_processed_string = $this->processOrderingString($ordering_param_string);
 
 		//set state

@@ -16,27 +16,31 @@ class JoomlaBasicMisc
 	static public function array_insert(&$array, $insert, $position = -1)
 	{
 	    $position = ($position == -1) ? (count($array)) : $position ;
-	    if($position != (count($array))) {
-	    $ta = $array;
-	    for($i = $position; $i < (count($array)); $i++) {
-               if(!isset($array[$i])) {
-                    die("Invalid array: All keys must be numerical and in sequence.");
-               }
-               $tmp[$i+1] = $array[$i];
-               unset($ta[$i]);
-	    }
-	    $ta[$position] = $insert;
-	    $array = $ta + $tmp;
+	    if($position != (count($array)))
+		{
+			$ta = $array;
+			for($i = $position; $i < (count($array)); $i++)
+			{
+				if(!isset($array[$i]))
+					die("Invalid array: All keys must be numerical and in sequence.");
 
-	    } else {
-	         $array[$position] = $insert;
+				$tmp[$i+1] = $array[$i];
+				unset($ta[$i]);
+			}
+		
+			$ta[$position] = $insert;
+			$array = $ta + $tmp;
 	    }
+		else
+			$array[$position] = $insert;
+	    
 	    ksort($array);
 	    return true;
 	}
 	
 	//https://stackoverflow.com/questions/13076480/php-get-actual-maximum-upload-size
-	public static function file_upload_max_size() {
+	public static function file_upload_max_size()
+	{
 		static $max_size = -1;
 
 		if ($max_size < 0) {
@@ -56,11 +60,12 @@ class JoomlaBasicMisc
 		return $max_size;
 	}
 
-
-	protected static function parse_size($size) {
+	protected static function parse_size($size)
+	{
 		$unit = preg_replace('/[^bkmgtpezy]/i', '', $size); // Remove the non-unit characters from the size.
 		$size = preg_replace('/[^0-9\.]/', '', $size); // Remove the non-numeric characters from the size.
-		if ($unit) {
+		if ($unit)
+		{
 			// Find the position of the unit in the ordered string which is the power of magnitude to multiply a kilobyte by.
 			return round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
 		}
@@ -72,33 +77,20 @@ class JoomlaBasicMisc
 	public static function formatSizeUnits($bytes)
     {
         if ($bytes >= 1073741824)
-        {
             $bytes = number_format($bytes / 1073741824, 2) . ' GB';
-        }
         elseif ($bytes >= 1048576)
-        {
             $bytes = number_format($bytes / 1048576, 2) . ' MB';
-        }
         elseif ($bytes >= 1024)
-        {
             $bytes = number_format($bytes / 1024, 2) . ' KB';
-        }
         elseif ($bytes > 1)
-        {
             $bytes = $bytes . ' bytes';
-        }
         elseif ($bytes == 1)
-        {
             $bytes = $bytes . ' byte';
-        }
         else
-        {
-            $bytes = '0 bytes';
-        }
+			$bytes = '0 bytes';
 
         return $bytes;
 	}
-
 
 	public static function generateRandomString($length = 32)
 	{
@@ -106,13 +98,10 @@ class JoomlaBasicMisc
 		$charactersLength = strlen($characters);
 		$randomString = '';
 		for ($i = 0; $i < $length; $i++)
-		{
 		    $randomString .= $characters[rand(0, $charactersLength - 1)];
-		}
+
 		return $randomString;
 	}
-
-
 
 	public static function suggest_TempFileName()
 	{
@@ -129,47 +118,17 @@ class JoomlaBasicMisc
 				return $file;
 
 		}while(1==1);
-
-
-	}
-
-	public static function CreateUniqueID($categoryCode, $CreateDate)
-	{
-
-		$db =& JFactory::getDBO();
-
-		$n=1;
-		do
-		{
-			$DateText=floor(date("ym",$CreateDate));
-			$ID=$DateText.$categoryCode.$n;
-
-
-			$query =' SELECT listing_id FROM listing WHERE esrecat_id="'.$ID.'"' ;
-
-			$db->setQuery( $query );
-			$db->execute();
-
-			$n++;
-		}while($db->getNumRows()>0);
-		return $ID;
 	}
 
 	public static function isUserAdmin()
 	{
 		$user = JFactory::getUser();
 
-
-			//if ($user->authorise( 'com_customtables', 'edit', 'content', 'all' )) {
-			if ($user->authorise('core.edit', 'com_content'))
-			{
-			  //Editing permitted
-			  return true;
-			} else {
-			  //Editing not permitted
-			  return false;
-			}
-
+		if ($user->authorise('core.edit', 'com_content'))
+			return true; //Editing permitted
+		
+		//Editing not permitted
+		return false;
 	}
 
 	public static function SendNotification($Subject,$Message)
@@ -186,19 +145,13 @@ class JoomlaBasicMisc
         $mail->setSubject($Subject);
 
         $mail->setBody($Message);
-
         $sent = $mail->Send();
-
-
 	}
 
 	public static function getURLQueryOption($urlstr, $opt)
 	{
-
-		$params = array();
-
+		$urlstr = str_replace('&amp;','&',$urlstr);
 		$query=explode('&',$urlstr);
-
 		$newquery=array();
 
 		for($q=0;$q<count($query);$q++)
@@ -218,6 +171,7 @@ class JoomlaBasicMisc
 
 	public static function deleteURLQueryOption($urlstr, $opt_)
 	{
+		$urlstr = str_replace('&amp;','&',$urlstr);
 		$link='';
 		$newquery=array();
 		$opt=$opt_.'=';
@@ -244,11 +198,14 @@ class JoomlaBasicMisc
 		if($link=='')
 			return implode('&',$newquery);
 		
-		return $link.'?'.implode('&',$newquery);
+		$link2 = $link.'?'.implode('&',$newquery);
+
+		return $link2;
 	}
 
 	public static function ExplodeURLQuery($urlstr)
 	{
+		$urlstr = str_replace('&amp;','&',$urlstr);
 
 		$p=strpos($urlstr,'?');
 
@@ -256,14 +213,11 @@ class JoomlaBasicMisc
 			return array();
 
 		$urlstr=substr($urlstr,$p+1);
-
 		return explode('&',$urlstr);
-
-
 	}
 
-	public static function curPageURL() {
-		
+	public static function curPageURL()
+	{
 		$WebsiteRoot = str_replace(JURI::root(true),'',JURI::root(false));
 		$RequestURL = $_SERVER["REQUEST_URI"];
 		
@@ -279,26 +233,24 @@ class JoomlaBasicMisc
 		return $WebsiteRoot.$RequestURL;
 	}
 
-	public static function curPageHost() {
+	public static function curPageHost()
+	{
 		$pageHost = 'http';
 		if ($_SERVER["HTTPS"] == "on") {$pageHost .= "s";}
 		$pageHost .= "://";
-		if ($_SERVER["SERVER_PORT"] != "80") {
+		if ($_SERVER["SERVER_PORT"] != "80")
 			$pageHost .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
-		} else {
+		else
 			$pageHost .= $_SERVER["SERVER_NAME"];
-		}
+
 		return $pageHost;
 	}
 
 	public static function getFirstImage($content)
 	{
-
 		preg_match_all('/<img[^>]+>/i',$content, $result);
 		if(count($result[0])==0)
 			return '';
-
-
 
 		$img_tag=$result[0][0];
 
@@ -306,7 +258,6 @@ class JoomlaBasicMisc
 		preg_match_all('/(src|alt)=("[^"]*")/i',$img_tag, $img, PREG_SET_ORDER);
 
 		$image=JoomlaBasicMisc::getSrcParam($img);
-
 
 		if($image=='')
 		{
@@ -320,13 +271,9 @@ class JoomlaBasicMisc
 			$image=str_replace("'",'',$image);
 		}
 		else
-		{
 			$image=str_replace('"','',$image);
-		}
-
 
 		return $image;
-
 	}
 
 	public static function simple_trimtext($text, $words, $strip_html = true)
@@ -382,10 +329,7 @@ class JoomlaBasicMisc
 		$desc=trim($matches[0]);
 		$desc=str_replace("/n","",$desc);
 		$desc=str_replace("/r","",$desc);
-
 		$desc=str_replace("+","_",$desc);
-
-
 
 		if($cleanbraces)
 			$desc = preg_replace('!{.*?}!s', '', $desc);
@@ -399,11 +343,7 @@ class JoomlaBasicMisc
 		$desc=trim(preg_replace('/\s\s+/', ' ', $desc));
 
 		return $desc;
-
-	}//if(JoomlaBasicMisc::layoutsettings->wordcount==0)
-
-
-
+	}
 
 	public static function getSrcParam($img)
 	{
@@ -411,15 +351,13 @@ class JoomlaBasicMisc
 		{
 			if($i[1]=='src' or $i[1]=='SRC')
 				return $i[2];
-
 		}
-
 	}
 
 	public static function trim_text($input, $length, $ellipses = true, $strip_html = true)
 	{
 		if ($strip_html)
-				$input = strip_tags($input);
+			$input = strip_tags($input);
 
 		$input=str_replace("&nbsp;","",$input);
 		$input=trim($input);
@@ -431,14 +369,11 @@ class JoomlaBasicMisc
 
 		if($version==5)
 		{
-
 			if (iconv_strlen($input,'UTF-8') <= $length)
 				return trim($input);
 
 			$input=str_replace("&","*****",$input);
-
 			$last_space = iconv_strrpos(iconv_substr($input, 0, $length,'UTF-8'), ' ','UTF-8');
-
 			$trimmed_text = iconv_substr($input, 0, $last_space,'UTF-8');
 		}
 		elseif($version==5)
@@ -447,9 +382,7 @@ class JoomlaBasicMisc
 				return trim($input);
 
 			$input=str_replace("&","*****",$input);
-
 			$last_space = strrpos(iconv_substr($input, 0, $length,'UTF-8'), ' ','UTF-8');
-
 			$trimmed_text = substr($input, 0, $last_space,'UTF-8');
 		}
 
@@ -457,8 +390,6 @@ class JoomlaBasicMisc
 
 		if ($ellipses)
 			$trimmed_text .= '...';
-
-
 
 		return trim($trimmed_text);
 	}
@@ -490,8 +421,8 @@ class JoomlaBasicMisc
 				$count++;
 				if($count>1000)
 				{
-					echo 'count>1000';
-					die;
+					JFactory::getApplication()->enqueueMessage('Quote count > 1000', 'error');
+					return [];
 				}
 
 				if($quote_char=='')
@@ -567,8 +498,6 @@ class JoomlaBasicMisc
 		return $fList;
 	}
 
-
-
 	public static function getListToReplaceAdvanced($begining_tag,$ending_tag,&$options,&$text,$sub_begining_tag='')
 	{
 		$fList=array();
@@ -597,8 +526,8 @@ class JoomlaBasicMisc
 				$count++;
 				if($count>1000)
 				{
-					echo 'too many quotes.';
-					die;
+					JFactory::getApplication()->enqueueMessage('Too many quotes.', 'error');
+					return [];
 				}
 
 				$peq=strpos($text, '"', $ps1);
@@ -627,7 +556,6 @@ class JoomlaBasicMisc
 				}
 				else
 				{
-				
 					if(!$quote_open)
 					{
 						if($skip_count==0)//this is to skip sub entries
@@ -635,13 +563,9 @@ class JoomlaBasicMisc
 						
 						$skip_count-=1;
 					}
-
 					$ps1=$pe+1;
-
 				}
 			}while(1==1);
-
-
 
 		if($pe===false)
 			break;
@@ -665,53 +589,24 @@ class JoomlaBasicMisc
 		return $fList;
 	}
 
-
-
-
-
-	public static function getMenuParam($param, $Itemid,$rawparams='')
+	public static function getMenuParams($Itemid,$rawparams='')
     {
-
 		if($rawparams=='')
 		{
 			$db = JFactory::getDBO();
-
 			$query = 'SELECT params FROM #__menu WHERE id='.(int)$Itemid.' LIMIT 1';
-
 			$db->setQuery($query);
-
 			$rows= $db->loadObjectList();
 
 			if(count($rows)==0)
 				return '';
 
 			$row=$rows[0];
-
 			$rawparams=$row->params;
-
 		}
-
-
-
-			if(strlen($rawparams)<8)
-				return '';
-
-			$rawparams=substr($rawparams,1,strlen($rawparams)-2);
-
-			$paramslist=JoomlaBasicMisc::csv_explode(',', $rawparams,'"', true);
-
-			foreach($paramslist as $pl)
-		    {
-				$pair=JoomlaBasicMisc::csv_explode(':', $pl,'"', false);
-
-				if($pair[0]==$param)
-					return $pair[1];
-			}
-
-		return '';
-
-	}//function getMenuParam($param, $Itemid,$rawparams='')
-
+		
+		return json_decode($rawparams);
+	}
 
 	public static function csv_explode(string $delim, string $str, string $enclose='"', bool $preserve = false)
 	{
@@ -730,12 +625,11 @@ class JoomlaBasicMisc
 			    $resArr = array_merge($resArr, $expDelArr);
 			}
 		}
-	return $resArr;
+		return $resArr;
 	}
 
-
 	//-- only for "records" field type;
-	public static function processValue($field,&$model,&$row,$langpostfix)
+	public static function processValue($field,&$ct,&$row,$langpostfix)
 	{
 		$htmlresult='';
 		$p=strpos($field,'->');
@@ -771,39 +665,21 @@ class JoomlaBasicMisc
 		}
 		else
 		{
-			$fieldrow=Fields::getFieldAsocByName_($field,$model->ct->Table->fields);
+			$fieldrow=Fields::getFieldAsocByName_($field,$ct->Table->fields);
 			if(count($fieldrow)>0)
 			{
-				if(isset($recursivefieldslist))
-				{
-					$typeparams_=explode(',',$fieldrow['typeparams']);
-					$typeparams_[1]=$recursivefieldslist;
-					$typeparams=implode(',',$typeparams_);
-				}
-				else
-					$typeparams=$fieldrow['typeparams'];
-
-
 				$getGalleryRows=array();
 				$getFileBoxRows=array();
 
-				if($fieldrow['type']=="multilangstring" or $fieldrow['type']=="multilangtext")
-					$real_fields=$fieldrow['realfieldname'].$langpostfix;
-				else
-					$real_fields=$fieldrow['realfieldname'];
-
 				$options_list=explode(',',$options);
-				$v=tagProcessor_Value::getValueByType($model,
-					$row[$real_fields],
-					$field,
-					$fieldrow['type'],
-					$typeparams,
+
+				$v=tagProcessor_Value::getValueByType($ct,
+					$fieldrow,
+					$row,
 					$options_list,
 					$getGalleryRows,
 					$getFileBoxRows,
-					$row['listing_id'],
-					$row,
-					$fieldrow['id']);
+				);
 
 				$htmlresult=$v;
 			}
@@ -815,7 +691,6 @@ class JoomlaBasicMisc
 		return $htmlresult;
 
 	}//processValue()
-
 
 	public static function getGroupIdByTitle($grouptitle)
 	{
@@ -876,8 +751,6 @@ class JoomlaBasicMisc
         return $filename;
     }
 
-
-
     public static function strip_tags_content($text, $tags = '', $invert = FALSE)
     {
 		//$tags - list of tags. Example: <b><span>
@@ -919,8 +792,6 @@ text with <div>tags</div>
 	 */
     }
 
-
-
 	public static function slugify($text)
 	{
 		//or use
@@ -929,11 +800,7 @@ text with <div>tags</div>
 		// replace non letter or digits by -
 		$text = preg_replace('~[^\\pL\d]+~u', '-', $text);
 
-
-		//ini_set('mbstring.substitute_character', "none");
-		//$text= mb_convert_encoding($text, 'UTF-8', 'UTF-8');
 		// transliterate
-
 		//$text = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
 		if(function_exists('iconv'))
 			$text = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $text);
@@ -941,13 +808,7 @@ text with <div>tags</div>
 		//$text = iconv('utf-8', 'us-ascii//IGNORE//TRANSLIT', $text);
 		//$text = iconv('utf-8', 'ISO-8859-1//TRANSLIT', $text);
 
-
-
-
-		// trim
 		$text = trim($text, '-');
-
-
 
 		// lowercase
 		$text = strtolower($text);
@@ -999,32 +860,31 @@ text with <div>tags</div>
 
 	public static function FindItemidbyAlias($alias)
 	{
-			$db = JFactory::getDBO();
-			$query = 'SELECT id FROM #__menu WHERE published=1 AND alias='.$db->Quote($alias);
+		$db = JFactory::getDBO();
+		$query = 'SELECT id FROM #__menu WHERE published=1 AND alias='.$db->Quote($alias);
 
-			$db->setQuery( $query );
-			$recs = $db->loadAssocList( );
-			if(!$recs) return 0;
-			if (count($recs)<1) return 0;
+		$db->setQuery( $query );
+		$recs = $db->loadAssocList( );
+		if(!$recs) return 0;
+		if (count($recs)<1) return 0;
 
-			$r=$recs[0];
-			return $r['id'];
+		$r=$recs[0];
+		return $r['id'];
 	}
 
 	public static function FindMenuItemRowByAlias($alias)
 	{
-			$db = JFactory::getDBO();
-			$query = 'SELECT * FROM #__menu WHERE published=1 AND alias='.$db->Quote($alias);
+		$db = JFactory::getDBO();
+		$query = 'SELECT * FROM #__menu WHERE published=1 AND alias='.$db->Quote($alias);
 
-			$db->setQuery( $query );
+		$db->setQuery( $query );
 
-			$recs = $db->loadAssocList( );
-			if(!$recs) return 0;
-			if (count($recs)<1) return 0;
+		$recs = $db->loadAssocList( );
+		if(!$recs) return 0;
+		if (count($recs)<1) return 0;
 
-			return $recs[0];
+		return $recs[0];
 	}
-	
 	
 	public static function checkUserGroupAccess($thegroup=0)
 	{
@@ -1043,38 +903,33 @@ text with <div>tags</div>
 
 		return false;
 	}
-	
-	
-	
-public static function prepareSearchFilter(&$_params)
-{
-	if(isset($_params['filter']) and $_params['filter']!="")
+
+	public static function prepareSearchFilter(&$_params)
 	{
-		$jinput=JFactory::getApplication()->input;
-		
-		$f=str_replace('$now','{now}',$_params['filter']);
-		$f=str_replace('$year',date('Y'),$f);
-			
-
-		$newf=array();
-		$p=explode(' ',$f);
-		foreach($p as $a)
+		if(isset($_params['filter']) and $_params['filter']!="")
 		{
-			if(strpos($a,'$get_')!==false)
+			$jinput=JFactory::getApplication()->input;
+		
+			$f=str_replace('$now','{now}',$_params['filter']);
+			$f=str_replace('$year',date('Y'),$f);
+			
+			$newf=array();
+			$p=explode(' ',$f);
+			foreach($p as $a)
 			{
-				$z=explode('$get_',$a);
-				$sp=explode('|',$z[1]);//$get_param|
-				$v=(string)preg_replace('/[^A-Z0-9_\.,-]/i', '', $jinput->getString($sp[0]));
-				$newf[]=str_replace('$get_'.$sp[0],$v,$a);
+				if(strpos($a,'$get_')!==false)
+				{
+					$z=explode('$get_',$a);
+					$sp=explode('|',$z[1]);
+					$v=(string)preg_replace('/[^A-Z0-9_\.,-]/i', '', $jinput->getString($sp[0]));
+					$newf[]=str_replace('$get_'.$sp[0],$v,$a);
+				}
+				else
+					$newf[]=$a;
 			}
-			else
-				$newf[]=$a;
+			$f=implode(' ',$newf);
+
+			$_params['filter']=str_replace('|',',',$f);
 		}
-		$f=implode(' ',$newf);
-
-		$_params['filter']=str_replace('|',',',$f);
 	}
-}
-
-
 }

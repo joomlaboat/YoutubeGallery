@@ -56,7 +56,6 @@ class CustomTablesImageMethods
 			return (int)$vlu;
 	}
 
-	
 	function getCustomImageOptions($imageparams_)
 	{
 		$TypeParamsArr=JoomlaBasicMisc::csv_explode(',',$imageparams_,'"',false);
@@ -108,7 +107,6 @@ class CustomTablesImageMethods
 		return $cleanOptions;
 	}
 
-
 	function DeleteExistingSingleImage($ExistingImage,$ImageFolder,$imageparams, $realtablename, $realfieldname, $realidfield)
 	{
 		//$realtablename='-options'
@@ -151,7 +149,6 @@ class CustomTablesImageMethods
 			}
 		}
 	}
-
 
 	function DeleteGalleryImages($gallery_table_name, $estableid, $galleryname,$typeparams,$deleteOriginals=false)
 	{
@@ -309,9 +306,9 @@ class CustomTablesImageMethods
 			{
 				$compareexisting=true;
 
-				$identity=4;
+				$level_identity=4;
 				if(isset($second_pair[1]))
-					$identity=(int)$second_pair[1];
+					$level_identity=(int)$second_pair[1];
 			}
 
 			if(isset($pair[2]))
@@ -341,7 +338,7 @@ class CustomTablesImageMethods
 
 						if($db->getNumRows()==0) //do not compare if there is a child
 						{
-							$NewImageID=-FindSimilarImage::find($originalImage,$identity,$realtablename,$realfieldname,$ImageFolder);
+							$NewImageID=-FindSimilarImage::find($originalImage,$level_identity,$realtablename,$realfieldname,$ImageFolder);
 							if($NewImageID!=0)
 							{
 								$DeleteExistingImage=true;
@@ -521,9 +518,9 @@ class CustomTablesImageMethods
 
 		if($realtablename!='-options' and ($pair[0]=='compare' or $pair[0]=='compareexisting'))
 		{
-			$identity=2;
+			$level_identity=2;
 			if(isset($pair[1]))
-				$identity=(int)$pair[1];
+				$level_identity=(int)$pair[1];
 					
 			$additional_filter='';
 				
@@ -537,7 +534,7 @@ class CustomTablesImageMethods
 			$additional_filter=str_replace("/",'',$additional_filter);
 			$additional_filter=str_replace("\\",'',$additional_filter);
 				
-			$ImageID = -FindSimilarImage::find($uploadedfile,$identity,$realtablename,$realfieldname,$ImageFolder,$additional_filter);
+			$ImageID = -FindSimilarImage::find($uploadedfile,$level_identity,$realtablename,$realfieldname,$ImageFolder,$additional_filter);
 				
 			if($ImageID!=0)
 			{

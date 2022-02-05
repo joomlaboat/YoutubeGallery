@@ -16,55 +16,6 @@ use \Joomla\CMS\Factory;
 
 class Tree
 {
-	/*
-	public static function getAllParents($optionid,$filter_rootparent)
-	{
-		
-		if($filter_rootparent)
-		{
-		    $available_categories=Tree::getChildren($optionid,$filter_rootparent,1);
-		    
-		    $db = Factory::getDBO();
-		    $query = ' SELECT optionname, id AS id FROM #__customtables_options WHERE ';
-		    $query.= ' id='.$filter_rootparent.' LIMIT 1';
-	    
-		    $db->setQuery( $query );
-		
-		    $rpname= $db->loadObjectList();
-		    if(count($rpname)==1)
-			Tree::array_insert(
-			    $available_categories,
-			    array("id" => $filter_rootparent, "name" => strtoupper($rpname[0]->optionname)),0);
-		}
-		else
-		{
-		    $available_categories=Tree::getChildren($optionid,0,1);
-		}
-				
-		
-	
-		
-		Tree::array_insert($available_categories,array("id" => 0, "name" => JText::_( 'ROOT' )),count($available_categories));
-		
-		
-				
-		return $available_categories;
-
-	}
-	*/
-	/*
-	public static function getAllChildren($parentid,$langpostfix)
-	{
-		$db = Factory::getDBO();
-		$query = ' SELECT id, optionname, title_'.$langpostfix.' AS title FROM #__customtables_options WHERE parentid='.$parentid;
-	    $query.= ' ORDER BY title';
-		
-		$db->setQuery($query);
-		
-		return $db->loadObjectList();
-	}
-	*/
-	//public
 	public static function getChildren($optionid,$parentid,$level)
 	{
 	    $db = Factory::getDBO();
@@ -109,15 +60,10 @@ class Tree
 
 	}
 	
-	public static function getMultyValueTitles($PropertyTypes,$langpostfix,$StartFrom, $Separator,$TypeParams='')
+	public static function getMultyValueTitles($PropertyTypes,$langpostfix,$StartFrom, $Separator, array $list_of_params = [])
 	{
-		if(strpos($PropertyTypes,'.')===false)
-		{
-			//Try to complete the value
-			$paramslist=JoomlaBasicMisc::csv_explode(',', $TypeParams,'"', false);
-			
-			$PropertyTypes=','.$paramslist[0].'.'.$PropertyTypes.'.,';
-		}
+		if(strpos($PropertyTypes,'.')===false and count($list_of_params) > 0)
+			$PropertyTypes=','.$list_of_params[0].'.'.$PropertyTypes.'.,';
 		
 		$RowPropertyTypes=explode(",", $PropertyTypes);
 
@@ -401,13 +347,13 @@ class Tree
 			return "";
 		
 		$result.='<ul>';
-		$IDs=array();
+		$list_ids=array();
 		
 		$count=count($rows);
 		foreach($rows as $row)
 		{
 			
-			$IDs[]=$row->id;
+			$list_ids[]=$row->id;
 			
 			$temp_Ids="";
 			$count_child=0;
@@ -493,16 +439,11 @@ class Tree
 			$result=''; //empty block
 		else
 			$result.='</ul>';
+	
+		$ItemList='"'.implode('","',$list_ids).'"';
 		
-		
-		
-		$ItemList='"'.implode('","',$IDs).'"';
-		
-				
 		return $result;
 	}
-	
-	
 	
 	public static function getList($parentid, $langpostfix)
 	{
@@ -649,20 +590,15 @@ class Tree
 	//Used in import
 	public static function getFamilyTreeByParentID($parentid)
 	{
-		
 		if($parentid!=0)
-		{
 			return Tree::getFamilyTree($parentid,0).'-'.$parentid;
-			
-		}
+
 		return '';
-		
 	}
 	
 	//Used many times
 	public static function getFamilyTree($optionid,$level)
 	{
-				
 		$db = Factory::getDBO();
 		$query = 'SELECT parentid FROM #__customtables_options WHERE id="'.$optionid.'" LIMIT 1';
 		$db->setQuery($query);
@@ -671,10 +607,9 @@ class Tree
 		if(count($rows)!=1)
 			return '';
 		
-		$id=$rows[0]->parentid;
-		if($id!=0)
+		if($rows[0]->parentid != 0)
 		{
-			$parentid=Tree::getFamilyTree($id,$level+1);
+			$parentid=Tree::getFamilyTree($rows[0]->parentid,$level+1);
 			if($level>0)
 				$parentid.='-'.$optionid;
 		}
@@ -691,7 +626,6 @@ class Tree
 	//Used many times
 	public static function getFamilyTreeString($optionid,$level)
 	{
-				
 		$db = Factory::getDBO();
 		$query = 'SELECT parentid, optionname FROM #__customtables_options WHERE id="'.$optionid.'" LIMIT 1';
 		$db->setQuery($query);
@@ -700,10 +634,9 @@ class Tree
 		if(count($rows)!=1)
 			return '';
 		
-		$id=$rows[0]->parentid;
-		if($id!=0)
+		if($rows[0]->parentid!=0)
 		{
-			$parentstring=Tree::getFamilyTreeString($id,$level+1);
+			$parentstring=Tree::getFamilyTreeString($rows[0]->parentid,$level+1);
 			if($level>0)
 				$parentstring.='.'.$rows[0]->optionname;
 		}
@@ -715,6 +648,4 @@ class Tree
 		
 		return $parentstring;
 	}
-	
-	
 }
