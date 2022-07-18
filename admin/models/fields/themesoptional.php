@@ -7,6 +7,8 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 // import the list field type
@@ -18,28 +20,26 @@ JFormHelper::loadFieldClass('list');
  */
 class JFormFieldThemesOptional extends JFormFieldList
 {
-	protected $type = 'themesoptional';
+    protected $type = 'themesoptional';
 
-	protected function getOptions()
-	{
-		$db = JFactory::getDBO();
-		$query = $db->getQuery(true);
-		$query->select(array('id','es_themename'));
-		$query->from('#__customtables_table_youtubegallerythemes');
-		$db->setQuery((string)$query);
-		$messages = $db->loadObjectList();
-		$options = array();
-		if ($messages)
-		{
-			$options[] = JHtml::_('select.option', 0, " - Select Theme");
-			foreach($messages as $message)
-			{
-				$options[] = JHtml::_('select.option', $message->id, $message->es_themename);
+    protected function getOptions()
+    {
+        $db = Factory::getDBO();
+        $query = $db->getQuery(true);
+        $query->select(array('id', 'es_themename'));
+        $query->from('#__customtables_table_youtubegallerythemes');
+        $db->setQuery((string)$query);
+        $messages = $db->loadObjectList();
+        $options = array();
+        if ($messages) {
+            $options[] = JHtml::_('select.option', 0, " - Select Theme");
+            foreach ($messages as $message) {
+                $options[] = JHtml::_('select.option', $message->id, $message->es_themename);
 
-			}
-		}
+            }
+        }
 
-		$options = array_merge(parent::getOptions(), $options);
-		return $options;
-	}
+        $options = array_merge(parent::getOptions(), $options);
+        return $options;
+    }
 }

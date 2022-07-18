@@ -18,7 +18,7 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\String\PunycodeHelper;
 
-$document = JFactory::getDocument();
+$document = Factory::getDocument();
 
 $adminpath=JURI::root(true).'/administrator/components/com_youtubegallery/';
 $document->addCustomTag('<script src="'.$adminpath.'js/videolist.js"></script>');
@@ -66,7 +66,7 @@ $document->addCustomTag('<script src="'.$adminpath.'js/videolist.js"></script>')
 				<input type="hidden" name="task" value="">
 				<input type="hidden" name="boxchecked" value="0">
 				<?php echo HTMLHelper::_('form.token'); ?>
-				<input type="hidden" name="es_listid" value="<?php echo JFactory::getApplication()->input->getInt( 'es_listid'); ?>" />
+				<input type="hidden" name="es_listid" value="<?php echo Factory::getApplication()->input->getInt( 'es_listid'); ?>" />
 			</div>
 		</div>
 	</div>

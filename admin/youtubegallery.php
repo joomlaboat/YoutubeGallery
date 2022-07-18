@@ -7,12 +7,13 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted access');
 
 // Access check.
-if (!JFactory::getUser()->authorise('core.manage', 'com_youtubegallery'))
-{
-	JFactory::getApplication()->enqueueMessage(JText::_('JERROR_ALERTNOAUTHOR'), 'error');
+if (!Factory::getUser()->authorise('core.manage', 'com_youtubegallery')) {
+    Factory::getApplication()->enqueueMessage(JText::_('JERROR_ALERTNOAUTHOR'), 'error');
 };
 
 // require helper files
@@ -22,15 +23,15 @@ JLoader::register('JHtmlBatch_', dirname(__FILE__) . '/helpers/html/batch_.php')
 // import joomla controller library
 jimport('joomla.application.component.controller');
 
-$path=JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'libraries'.DIRECTORY_SEPARATOR.'youtubegallery'.DIRECTORY_SEPARATOR;
-require_once($path.'loader.php');
+$path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR;
+require_once($path . 'loader.php');
 YGLoadClasses();
 
 // Get an instance of the controller prefixed by Customtables
 $controller = JControllerLegacy::getInstance('YoutubeGallery');
 
 /// Perform the Request task
-$task = JFactory::getApplication()->input->getCmd('task');
+$task = Factory::getApplication()->input->getCmd('task');
 
 $controller->execute($task);
 

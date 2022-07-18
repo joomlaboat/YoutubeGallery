@@ -9,6 +9,7 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
 use YouTubeGallery\Helper;
  
 class YGPagination extends JObject
@@ -260,7 +261,7 @@ class YGPagination extends JObject
 	public function getPagesLinks()
 	{
 
-		$app = JFactory::getApplication();
+		$app = Factory::getApplication();
 
 		// Build the page navigation list.
 		$data = $this->_buildDataObject();
@@ -355,7 +356,7 @@ class YGPagination extends JObject
 	 */
 	public function getListFooter()
 	{
-		$app = JFactory::getApplication();
+		$app = Factory::getApplication();
 
 		$list = array();
 		$list['prefix']			= $this->prefix;
@@ -388,7 +389,7 @@ class YGPagination extends JObject
 	{
 		$the_step=$columns*5;
 
-		$app = JFactory::getApplication();
+		$app = Factory::getApplication();
 
 		// Initialise variables.
 		$limits = array ();
@@ -743,7 +744,7 @@ class YGPagination extends JObject
             if($alias=='')
                 return true;
 
-            $db = JFactory::getDBO();
+            $db = Factory::getDBO();
 
 	    $db->setQuery('SELECT id FROM #__customtables_table_youtubegalleryvideos WHERE es_alias="'.$alias.'" LIMIT 1');
 

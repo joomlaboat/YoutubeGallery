@@ -7,11 +7,13 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted Access');
 
 JHtml::_('behavior.tooltip');
 
-$s=JFactory::getApplication()->input->getVar( 'search');
+$s=Factory::getApplication()->input->getVar( 'search');
 
 ?>
 
@@ -161,7 +163,7 @@ $s=JFactory::getApplication()->input->getVar( 'search');
 	<input type="hidden" id="task" name="task" value="" />
 	<input type="hidden" id="view" name="view" value="videolist" />
     <input type="hidden" id="boxchecked" name="boxchecked" value="0" />
-	<input type="hidden" name="listid" value="<?php echo JFactory::getApplication()->input->getInt( 'listid'); ?>" />
+	<input type="hidden" name="listid" value="<?php echo Factory::getApplication()->input->getInt( 'listid'); ?>" />
     <?php echo JHtml::_('form.token'); ?>
 
 	<p><?php // echo JText::_('COM_YOUTUBEGALLERY_IFSTATUSOFTHEVIDEO'); ?></p>

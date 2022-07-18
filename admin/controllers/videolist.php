@@ -7,37 +7,36 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted access');
- 
+
 // import Joomla controllerform library
 jimport('joomla.application.component.controlleradmin');
- 
 
 
 /**
  * YoutubeGallery - VideoList Controller
  */
-
 class YoutubeGalleryControllerVideoList extends JControllerAdmin
 {
-		function display($cachable = false, $urlparams = array())
-		{
-				switch(JFactory::getApplication()->input->getVar( 'task'))
-				{
-						case 'cancel':
-								$this->cancel();
-								break;
-						default:
-								JFactory::getApplication()->input->setVar( 'view', 'videoylist');
-								parent::display();
-								break;
-				}
-				
-		}
+    function display($cachable = false, $urlparams = array())
+    {
+        switch (Factory::getApplication()->input->getVar('task')) {
+            case 'cancel':
+                $this->cancel();
+                break;
+            default:
+                Factory::getApplication()->input->setVar('view', 'videoylist');
+                parent::display();
+                break;
+        }
 
-        
-		function cancel()
-		{
-				$this->setRedirect( 'index.php?option=com_youtubegallery');
-		}
+    }
+
+
+    function cancel()
+    {
+        $this->setRedirect('index.php?option=com_youtubegallery');
+    }
 }

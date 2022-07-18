@@ -7,6 +7,8 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted access');
  
 // import Joomla controller library
@@ -23,7 +25,7 @@ jimport('joomla.application.component.controller');
         function display($cachable = false, $urlparams = null) 
         {
                 // set default view if not set
-                $jinput=JFactory::getApplication()->input;
+                $jinput=Factory::getApplication()->input;
                 $view=$jinput->getCmd('view', 'linkslist');
                 
                 $jinput->set('view', $view);

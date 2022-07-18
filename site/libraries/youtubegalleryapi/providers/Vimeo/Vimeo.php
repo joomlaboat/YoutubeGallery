@@ -1,244 +1,230 @@
-
 <?php
 /**
  * @GNU General Public License
  *
  */
+
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted access');
 
 if (!function_exists('json_decode'))
-    JFactory::getApplication()->enqueueMessage('json_decode not found', 'error');
+    Factory::getApplication()->enqueueMessage('json_decode not found', 'error');
 
 class Vimeo
 
 {
-	const ROOT_ENDPOINT = 'https://api.vimeo.com';
-	const AUTH_ENDPOINT = 'https://api.vimeo.com/oauth/authorize';
-	const ACCESS_TOKEN_ENDPOINT = '/oauth/access_token';
-	const CLIENT_CREDENTIALS_TOKEN_ENDPOINT = '/oauth/authorize/client';
-	const REPLACE_ENDPOINT = '/files';
-	const VERSION_STRING = 'application/vnd.vimeo.*+json; version=3.2';
-	const USER_AGENT = 'vimeo.php 1.0; (http://developer.vimeo.com/api/docs)';
-	const CERTIFICATE_PATH = '/certificates/vimeo-api.pem';
-	private $_client_id = null;
-	private $_client_secret = null;
-	private $_access_token = null;
-	protected $_curl_opts = array();
-	protected $CURL_DEFAULTS = array();
-	public	function __construct($client_id, $client_secret, $access_token = null)
-	{
-		$this->_client_id = $client_id;
-		$this->_client_secret = $client_secret;
-		$this->_access_token = $access_token;
-		$this->CURL_DEFAULTS = array(
-			CURLOPT_HEADER => 1,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_TIMEOUT => 30,
-			CURLOPT_SSL_VERIFYPEER => true,
+    const ROOT_ENDPOINT = 'https://api.vimeo.com';
+    const AUTH_ENDPOINT = 'https://api.vimeo.com/oauth/authorize';
+    const ACCESS_TOKEN_ENDPOINT = '/oauth/access_token';
+    const CLIENT_CREDENTIALS_TOKEN_ENDPOINT = '/oauth/authorize/client';
+    const REPLACE_ENDPOINT = '/files';
+    const VERSION_STRING = 'application/vnd.vimeo.*+json; version=3.2';
+    const USER_AGENT = 'vimeo.php 1.0; (http://developer.vimeo.com/api/docs)';
+    const CERTIFICATE_PATH = '/certificates/vimeo-api.pem';
+    protected $_curl_opts = array();
+    protected $CURL_DEFAULTS = array();
+    private $_client_id = null;
+    private $_client_secret = null;
+    private $_access_token = null;
 
-			// Certificate must indicate that the server is the server to which you meant to connect.
+    public function __construct($client_id, $client_secret, $access_token = null)
+    {
+        $this->_client_id = $client_id;
+        $this->_client_secret = $client_secret;
+        $this->_access_token = $access_token;
+        $this->CURL_DEFAULTS = array(
+            CURLOPT_HEADER => 1,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => true,
 
-			CURLOPT_SSL_VERIFYHOST => 2,
-			CURLOPT_CAINFO => realpath(__DIR__ ) . self::CERTIFICATE_PATH
-		);
-	}
+            // Certificate must indicate that the server is the server to which you meant to connect.
 
-	public	function request($url, $params = array() , $method = 'GET', $json_body = true)
-	{
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_CAINFO => realpath(__DIR__) . self::CERTIFICATE_PATH
+        );
+    }
 
-		// add accept header hardcoded to version 3.0
+    public function getToken()
+    {
+        return $this->_access_token;
+    }
 
-		$headers[] = 'Accept: ' . self::VERSION_STRING;
-		$headers[] = 'User-Agent: ' . self::USER_AGENT;
-		$method = strtoupper($method);
+    public function setToken($access_token)
+    {
+        $this->_access_token = $access_token;
+    }
 
-		// add bearer token, or client information
+    public function setCURLOptions($curl_opts = array())
+    {
+        $this->_curl_opts = $curl_opts;
+    }
 
-		if (!empty($this->_access_token))
-		{
-			$headers[] = 'Authorization: Bearer ' . $this->_access_token;
-		}
-		else
-		{
+    public function accessToken($code, $redirect_uri)
+    {
+        return $this->request(self::ACCESS_TOKEN_ENDPOINT, array(
+            'grant_type' => 'authorization_code',
+            'code' => $code,
+            'redirect_uri' => $redirect_uri
+        ), "POST", false);
+    }
 
-			//  this may be a call to get the tokens, so we add the client info.
+    public function request($url, $params = array(), $method = 'GET', $json_body = true)
+    {
 
-			$headers[] = 'Authorization: Basic ' . $this->_authHeader();
-		}
+        // add accept header hardcoded to version 3.0
 
-		//  Set the methods, determine the URL that we should actually request and prep the body.
+        $headers[] = 'Accept: ' . self::VERSION_STRING;
+        $headers[] = 'User-Agent: ' . self::USER_AGENT;
+        $method = strtoupper($method);
 
-		$curl_opts = array();
-		switch ($method)
-		{
-		case 'GET':
-			if (!empty($params))
-			{
-				$query_component = '?' . http_build_query($params, '', '&');
-			}
-			else
-			{
-				$query_component = '';
-			}
+        // add bearer token, or client information
 
-			$curl_url = self::ROOT_ENDPOINT . $url . $query_component;
-			break;
+        if (!empty($this->_access_token)) {
+            $headers[] = 'Authorization: Bearer ' . $this->_access_token;
+        } else {
 
-		case 'POST':
-		case 'PATCH':
-		case 'PUT':
-		case 'DELETE':
-			if ($json_body && !empty($params))
-			{
-				$headers[] = 'Content-Type: application/json';
-				$body = json_encode($params);
-			}
-			else
-			{
-				$body = http_build_query($params, '', '&');
-			}
+            //  this may be a call to get the tokens, so we add the client info.
 
-			$curl_url = self::ROOT_ENDPOINT . $url;
-			$curl_opts = array(
-				CURLOPT_POST => true,
-				CURLOPT_CUSTOMREQUEST => $method,
-				CURLOPT_POSTFIELDS => $body
-			);
-			break;
-		}
+            $headers[] = 'Authorization: Basic ' . $this->_authHeader();
+        }
 
-		// Set the headers
+        //  Set the methods, determine the URL that we should actually request and prep the body.
 
-		$curl_opts[CURLOPT_HTTPHEADER] = $headers;
-		$response = $this->_request($curl_url, $curl_opts);
-		
-		$response['body'] = json_decode($response['body'], true);
-		return $response;
-	}
+        $curl_opts = array();
+        switch ($method) {
+            case 'GET':
+                if (!empty($params)) {
+                    $query_component = '?' . http_build_query($params, '', '&');
+                } else {
+                    $query_component = '';
+                }
 
-	private function _request($url, $curl_opts = array())
-	{
+                $curl_url = self::ROOT_ENDPOINT . $url . $query_component;
+                break;
 
-		// Merge the options (custom options take precedence).
+            case 'POST':
+            case 'PATCH':
+            case 'PUT':
+            case 'DELETE':
+                if ($json_body && !empty($params)) {
+                    $headers[] = 'Content-Type: application/json';
+                    $body = json_encode($params);
+                } else {
+                    $body = http_build_query($params, '', '&');
+                }
 
-		$curl_opts = $this->_curl_opts + $curl_opts + $this->CURL_DEFAULTS;
+                $curl_url = self::ROOT_ENDPOINT . $url;
+                $curl_opts = array(
+                    CURLOPT_POST => true,
+                    CURLOPT_CUSTOMREQUEST => $method,
+                    CURLOPT_POSTFIELDS => $body
+                );
+                break;
+        }
 
-		// Call the API.
+        // Set the headers
 
-		$curl = curl_init($url);
-		curl_setopt_array($curl, $curl_opts);
-		$response = curl_exec($curl);
-		$curl_info = curl_getinfo($curl);
-		
-		
-		if (isset($curl_info['http_code']) && $curl_info['http_code'] === 0)
-		{
-			
-			$curl_error = curl_error($curl);
-			$curl_error = !empty($curl_error) ? '[' . $curl_error . ']' : '';
-			
-			$application = JFactory::getApplication();		
-			$application->enqueueMessage('Unable to complete request.', 'error');
-			return '';
-		}
+        $curl_opts[CURLOPT_HTTPHEADER] = $headers;
+        $response = $this->_request($curl_url, $curl_opts);
 
-		curl_close($curl);
+        $response['body'] = json_decode($response['body'], true);
+        return $response;
+    }
 
-		// Retrieve the info
+    private function _authHeader()
+    {
+        return base64_encode($this->_client_id . ':' . $this->_client_secret);
+    }
 
-		$header_size = $curl_info['header_size'];
-		$headers = substr($response, 0, $header_size);
-		$body = substr($response, $header_size);
+    private function _request($url, $curl_opts = array())
+    {
 
-		// Return it raw.
+        // Merge the options (custom options take precedence).
 
-		return array(
-			'body' => $body,
-			'status' => $curl_info['http_code'],
-			'headers' => self::parse_headers($headers)
-		);
-	}
+        $curl_opts = $this->_curl_opts + $curl_opts + $this->CURL_DEFAULTS;
 
-	public function getToken()
-	{
-		return $this->_access_token;
-	}
+        // Call the API.
 
-	public function setToken($access_token)
-	{
-		$this->_access_token = $access_token;
-	}
+        $curl = curl_init($url);
+        curl_setopt_array($curl, $curl_opts);
+        $response = curl_exec($curl);
+        $curl_info = curl_getinfo($curl);
 
-	public function setCURLOptions($curl_opts = array())
-	{
-		$this->_curl_opts = $curl_opts;
-	}
 
-	public static function parse_headers($headers)
-	{
-		$final_headers = array();
-		$list = explode("\n", trim($headers));
-		$http = array_shift($list);
-		foreach($list as $header)
-		{
-			$parts = explode(':', $header, 2);
-			$final_headers[trim($parts[0]) ] = isset($parts[1]) ? trim($parts[1]) : '';
-		}
+        if (isset($curl_info['http_code']) && $curl_info['http_code'] === 0) {
 
-		return $final_headers;
-	}
+            $curl_error = curl_error($curl);
+            $curl_error = !empty($curl_error) ? '[' . $curl_error . ']' : '';
 
-	public function accessToken($code, $redirect_uri)
-	{
-		return $this->request(self::ACCESS_TOKEN_ENDPOINT, array(
-			'grant_type' => 'authorization_code',
-			'code' => $code,
-			'redirect_uri' => $redirect_uri
-		) , "POST", false);
-	}
+            $application = Factory::getApplication();
+            $application->enqueueMessage('Unable to complete request.', 'error');
+            return '';
+        }
 
-	public function clientCredentials($scope = 'public')
-	{
-		if (is_array($scope))
-		{
-			$scope = implode(' ', $scope);
-		}
+        curl_close($curl);
 
-		$token_response = $this->request(self::CLIENT_CREDENTIALS_TOKEN_ENDPOINT, array(
-			'grant_type' => 'client_credentials',
-			'scope' => $scope
-		) , "POST", false);
-		return $token_response;
-	}
+        // Retrieve the info
 
-	private function _authHeader()
-	{
-		return base64_encode($this->_client_id . ':' . $this->_client_secret);
-	}
+        $header_size = $curl_info['header_size'];
+        $headers = substr($response, 0, $header_size);
+        $body = substr($response, $header_size);
 
-	public function buildAuthorizationEndpoint($redirect_uri, $scope = 'public', $state = null)
-	{
-		$query = array(
-			"response_type" => 'code',
-			"client_id" => $this->_client_id,
-			"redirect_uri" => $redirect_uri
-		);
-		$query['scope'] = $scope;
-		if (empty($scope))
-		{
-			$query['scope'] = 'public';
-		}
-		elseif (is_array($scope))
-		{
-			$query['scope'] = implode(' ', $scope);
-		}
+        // Return it raw.
 
-		if (!empty($state))
-		{
-			$query['state'] = $state;
-		}
+        return array(
+            'body' => $body,
+            'status' => $curl_info['http_code'],
+            'headers' => self::parse_headers($headers)
+        );
+    }
 
-		return self::AUTH_ENDPOINT . '?' . http_build_query($query);
-	}
+    public static function parse_headers($headers)
+    {
+        $final_headers = array();
+        $list = explode("\n", trim($headers));
+        $http = array_shift($list);
+        foreach ($list as $header) {
+            $parts = explode(':', $header, 2);
+            $final_headers[trim($parts[0])] = isset($parts[1]) ? trim($parts[1]) : '';
+        }
+
+        return $final_headers;
+    }
+
+    public function clientCredentials($scope = 'public')
+    {
+        if (is_array($scope)) {
+            $scope = implode(' ', $scope);
+        }
+
+        $token_response = $this->request(self::CLIENT_CREDENTIALS_TOKEN_ENDPOINT, array(
+            'grant_type' => 'client_credentials',
+            'scope' => $scope
+        ), "POST", false);
+        return $token_response;
+    }
+
+    public function buildAuthorizationEndpoint($redirect_uri, $scope = 'public', $state = null)
+    {
+        $query = array(
+            "response_type" => 'code',
+            "client_id" => $this->_client_id,
+            "redirect_uri" => $redirect_uri
+        );
+        $query['scope'] = $scope;
+        if (empty($scope)) {
+            $query['scope'] = 'public';
+        } elseif (is_array($scope)) {
+            $query['scope'] = implode(' ', $scope);
+        }
+
+        if (!empty($state)) {
+            $query['state'] = $state;
+        }
+
+        return self::AUTH_ENDPOINT . '?' . http_build_query($query);
+    }
 
 }

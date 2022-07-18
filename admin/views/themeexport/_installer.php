@@ -7,6 +7,9 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+use Joomla\CMS\Installer\InstallerScript;
+
 defined('_JEXEC') or die('Restricted access');
 
 class YoutubeGalleryTheme_'.$themeName.'InstallerScript
@@ -39,7 +42,7 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 	function deleteIfExists()
 	{
 		//delete extension - type="file"
-		$db = JFactory::getDbo();
+		$db = Factory::getDbo();
 		$db->setQuery('DELETE FROM #__extensions WHERE name = "YoutubeGalleryTheme_'.$themeName.'" ');
 		$db->execute();
 	}

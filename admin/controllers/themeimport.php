@@ -7,6 +7,8 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted access');
  
 // import Joomla controllerform library
@@ -22,7 +24,7 @@ class YoutubeGalleryControllerThemeImport extends JControllerAdmin
 {
 		function display($cachable = false, $urlparams = array())
 	{
-		switch(JFactory::getApplication()->input->getVar( 'task'))
+		switch(Factory::getApplication()->input->getVar( 'task'))
 		{
 			case 'themeimport.upload':
 				$this->upload();
@@ -37,7 +39,7 @@ class YoutubeGalleryControllerThemeImport extends JControllerAdmin
 				$this->cancel();
 				break;
 			default:
-				JFactory::getApplication()->input->setVar( 'view', 'themeimport');
+				Factory::getApplication()->input->setVar( 'view', 'themeimport');
 				parent::display();
 				break;
 			}

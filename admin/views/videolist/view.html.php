@@ -36,7 +36,7 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
 		$version = new Version;
 		$this->version = (int)$version->getShortVersion();
 		
-		$app = JFactory::getApplication();
+		$app = Factory::getApplication();
 		$this->listid = $app->input->getInt('listid',0);
 		
 		if ($this->getLayout() !== 'modal' and $this->version < 4)
@@ -48,7 +48,7 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
 		$this->items = $this->get('Items');
 		$this->pagination = $this->get('Pagination');
 		$this->state = $this->get('State');
-		$this->user = JFactory::getUser();
+		$this->user = Factory::getUser();
 		
 		if($this->version >= 4)
 		{
@@ -99,7 +99,7 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
 	
 	protected function addToolBar_3()
     {
-		$jinput = JFactory::getApplication()->input;
+		$jinput = Factory::getApplication()->input;
         $jinput->get->set('hidemainmenu',true);
 
         JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_VIDEO_LIST'));
@@ -111,7 +111,7 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
 	{
 		if (!isset($this->document))
 		{
-			$this->document = JFactory::getDocument();
+			$this->document = Factory::getDocument();
 		}
 		$this->document->setTitle(JText::_('COM_YOUTUBEGALLERY_VIDEO_LIST'));
 	}

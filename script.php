@@ -12,6 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 use CustomTables\CT;
 use CustomTables\IntegrityChecks;
 use CustomTables\ImportTables;
+use Joomla\CMS\Factory;
 
 class com_YoutubeGalleryInstallerScript
 {
@@ -25,7 +26,7 @@ class com_YoutubeGalleryInstallerScript
 			
 		if(!file_exists($loader_file))
 		{
-			JFactory::getApplication()->enqueueMessage('Youtube Gallery is corrupted, please contact the developer.','error');
+			Factory::getApplication()->enqueueMessage('Youtube Gallery is corrupted, please contact the developer.','error');
 
 			return false;
 		}
@@ -48,7 +49,7 @@ class com_YoutubeGalleryInstallerScript
 
 		if($msg!='')
 		{
-			JFactory::getApplication()->enqueueMessage($msg,'error');
+			Factory::getApplication()->enqueueMessage($msg,'error');
 			return false;
 		}
 		
@@ -58,7 +59,7 @@ class com_YoutubeGalleryInstallerScript
 	
     protected static function enableButtonPlugin()
     {
-        $db = JFactory::getDbo();
+        $db = Factory::getDbo();
         $query = $db->getQuery(true);
 
         $fields = array(
@@ -130,7 +131,7 @@ class com_YoutubeGalleryInstallerScript
 		if(!ESTables::checkIfTableExists($old_table))
 			return false;
 	
-		$db = JFactory::getDBO();	
+		$db = Factory::getDBO();	
 		$query = 'SELECT COUNT(*) AS c FROM '.$new_table.' LIMIT 1';
 		$db->setQuery( $query );
 		$records = $db->loadAssocList();

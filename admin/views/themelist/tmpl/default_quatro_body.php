@@ -17,7 +17,7 @@ defined('_JEXEC') or die('Restricted access');
         $link2export='index.php?option=com_youtubegallery&view=themeexport&themeid='.$item->id;
 	
 		//$canCheckin = $this->user->authorise('core.manage', 'com_checkin') || $item->checked_out == $this->user->id || $item->checked_out == 0;
-		//$userChkOut = JFactory::getUser($item->checked_out);
+		//$userChkOut = Factory::getUser($item->checked_out);
 	?>
 	<tr class="row<?php echo $i % 2; ?>">
 

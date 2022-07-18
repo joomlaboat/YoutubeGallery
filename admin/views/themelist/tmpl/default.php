@@ -34,7 +34,7 @@ JHtml::_('behavior.tooltip');
 <?php else : ?>
 		<?php //echo $this->loadTemplate('toolbar');?>
 
-<?php	/*$s=JFactory::getApplication()->input->getVar( 'search'); ?>
+<?php	/*$s=Factory::getApplication()->input->getVar( 'search'); ?>
 	<div id="j-main-container" class="span10">
 		<div id="filter-bar" class="btn-toolbar">
 

@@ -10,6 +10,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 //use YouTubeGalleryDB;
+use Joomla\CMS\Factory;
 use YouTubeGallery\Helper;
 
 function YouTubeGalleryBuildRoute(&$query) {
@@ -38,7 +39,7 @@ function YouTubeGalleryBuildRoute(&$query) {
 	      {
 		     $videoid=$query['videoid'];
 
-		     $db = JFactory::getDBO();
+		     $db = Factory::getDBO();
 
 		     $db->setQuery('SELECT alias FROM #__youtubegallery_videos WHERE videoid="'.$videoid.'" LIMIT 1');
 
@@ -71,7 +72,7 @@ function YouTubeGalleryParseRoute($segments)
 	      $alias=str_replace(':','-',$segments[$sIndex]);
 	      $alias=preg_replace('/[^a-zA-Z0-9-_]+/', '', $alias);
 
-	      $db = JFactory::getDBO();
+	      $db = Factory::getDBO();
 
 	      $db->setQuery('SELECT videoid FROM #__youtubegallery_videos WHERE alias="'.$alias.'" LIMIT 1');
 

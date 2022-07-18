@@ -7,6 +7,8 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 // import the list field type
@@ -28,9 +30,9 @@ class JFormFieldCategoryParent extends JFormFieldList
 	
 	protected function getOptions()
 	{
-		$current_category_id = JFactory::getApplication()->input->getInt('id', '0');
+		$current_category_id = Factory::getApplication()->input->getInt('id', '0');
 
-		$db = JFactory::getDBO();
+		$db = Factory::getDBO();
 
 		$query='SELECT id,es_categoryname,es_parentid FROM #__customtables_table_youtubegallerycategories';
 		$db->setQuery((string)$query);
@@ -67,7 +69,7 @@ class JFormFieldCategoryParent extends JFormFieldList
 		if($parentid==0)
 			return $children;
 
-		$db = JFactory::getDBO();
+		$db = Factory::getDBO();
 		$query = $db->getQuery(true);
 		$query->select(array('id', 'es_parentid'));
 		$query->from('#__customtables_table_youtubegallerycategories');

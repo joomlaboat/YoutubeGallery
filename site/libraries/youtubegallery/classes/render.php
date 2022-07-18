@@ -10,6 +10,7 @@
 
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
 use YouTubeGallery\Helper;
 
 jimport('joomla.application.component.view');
@@ -39,7 +40,7 @@ class YouTubeGalleryRenderer
 
 		$LayoutRenderer=new YoutubeGalleryLayoutRenderer;
 		
-		$jinput=JFactory::getApplication()->input;
+		$jinput=Factory::getApplication()->input;
 		if($theme_row->es_rel!='' and $jinput->getCmd('tmpl')!='')
 			$layoutcode='[videoplayer]'; // Shadow box
 		else
@@ -73,7 +74,7 @@ class YouTubeGalleryRenderer
 			foreach($fields_theme as $fld)
 				$headscript=str_replace('['.$fld.']',$theme_row_array[$fld],$headscript);
 		
-			$document = JFactory::getDocument();
+			$document = Factory::getDocument();
 			$document->addCustomTag($headscript);
 		}
 		
@@ -98,11 +99,11 @@ class YouTubeGalleryRenderer
 		if(!$VideoRow)
 			return;
 
-		$mydoc = JFactory::getDocument();
+		$mydoc = Factory::getDocument();
 
 		if($theme_row->es_changepagetitle!=3)
 		{
-			$mainframe = JFactory::getApplication();
+			$mainframe = Factory::getApplication();
 			$sitename =$mainframe->getCfg('sitename');
 
 			$title=$VideoRow['es_title'];

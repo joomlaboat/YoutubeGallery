@@ -48,7 +48,7 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 		$this->items = $this->get('Items');
 		$this->pagination = $this->get('Pagination');
 		$this->state = $this->get('State');
-		$this->user = JFactory::getUser();
+		$this->user = Factory::getUser();
 		
 		if($this->version >= 4)
 		{
@@ -190,7 +190,7 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 	{
 		if (!isset($this->document))
 		{
-			$this->document = JFactory::getDocument();
+			$this->document = Factory::getDocument();
 		}
 		$this->document->setTitle(JText::_('COM_YOUTUBEGALLERY_LINKSLIST'));
 	}

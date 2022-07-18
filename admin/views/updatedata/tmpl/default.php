@@ -14,17 +14,17 @@ defined('_JEXEC') or die('Restricted access');
 /*
 use YouTubeGallery\Helper;        
 
-$videoid=JFactory::getApplication()->input->getVar('videoid');
+$videoid=Factory::getApplication()->input->getVar('videoid');
 if($jinput->get('ygvdata','','RAW')!='')
 {
-	$jinput=JFactory::getApplication()->input;
+	$jinput=Factory::getApplication()->input;
     $video_data=$jinput->get('ygvdata','','RAW');
 
     $video_data=str_replace('"','\"',$video_data);
 
     Helper::setRawData($videoid,$video_data);
 
-    $db = JFactory::getDBO();
+    $db = Factory::getDBO();
     $query = 'SELECT * FROM #__customtables_table_youtubegalleryvideos WHERE es_videoid="'.$videoid.'"';
     $db->setQuery($query);
 

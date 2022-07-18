@@ -18,11 +18,11 @@ $wa = $this->document->getWebAssetManager();
 $wa->useScript('keepalive')
 	->useScript('form.validate');
 
-$document = JFactory::getDocument();
+$document = Factory::getDocument();
 $document->addCustomTag('<link rel="stylesheet" href="'.JURI::root().'components/com_youtubegallery/css/wizard.css" type="text/css" />');
 $document->addCustomTag('<script src="'.JURI::root().'components/com_youtubegallery/js/wizard.js"></script>');
 
-$input      = JFactory::getApplication()->input;
+$input      = Factory::getApplication()->input;
 
 $link=JRoute::_('index.php?option=com_youtubegallery');
 $simple_mode=$input->getCmd('tmpl')=='component';

@@ -10,6 +10,7 @@
 \defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\Database\ParameterType;
 
@@ -73,9 +74,9 @@ class YoutubeGalleryModelCategories extends JModelList
 	protected function getListQuery()
 	{
 		// Get the user object.
-		$user = JFactory::getUser();
+		$user = Factory::getUser();
 		// Create a new query object.
-		$db = JFactory::getDBO();
+		$db = Factory::getDBO();
 		$query = $db->getQuery(true);
 
 		// Select some fields

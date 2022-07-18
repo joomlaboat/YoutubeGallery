@@ -18,7 +18,7 @@ $wa = $this->document->getWebAssetManager();
 $wa->useScript('keepalive')
 	->useScript('form.validate');
 
-$document = JFactory::getDocument();
+$document = Factory::getDocument();
 $document->addCustomTag('<link rel="stylesheet" href="components/com_youtubegallery/css/specialbutton.css" type="text/css" />');
 
 ?>

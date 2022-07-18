@@ -1,6 +1,6 @@
 <?php
 /**
- * CustomTables Joomla! 3.x Native Component
+ * CustomTables Joomla! 3.x/4.x Native Component
  * @package Custom Tables
  * @author Ivan komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
@@ -10,73 +10,60 @@
 
 namespace CustomTables;
 
-//use CustomTables\CTUser;
-use \Joomla\CMS\Factory;
-//use \JoomlaBasicMisc;
-//use \Joomla\CMS\Uri\Uri;
-
-
-
 class Forms
 {
-	var $ct;
+    var CT $ct;
 
-	function __construct(&$ct)
-	{
-		$this->ct = $ct;
-	}
-	
-	function renderFieldLabel(&$esfield)
-	{
-		if($esfield['type']=='dummy')
-        {
-			$field_label=$esfield['fieldtitle'.$this->ct->Languages->Postfix];
+    function __construct(&$ct)
+    {
+        $this->ct = &$ct;
+    }
+
+    function renderFieldLabel($field, $allowSortBy = false)
+    {
+        $OrderingStringPair = explode(' ', $this->ct->Ordering->ordering_processed_string);
+        $OrderingField = $OrderingStringPair[0];
+        $OrderingDirection = $OrderingStringPair[1] ?? '';
+
+        if ($field->type == 'dummy')
+            return $field->title;
+
+        $field_label = '<label id="' . $this->ct->Env->field_input_prefix . $field->fieldname . '-lbl" for="' . $this->ct->Env->field_input_prefix . $field->fieldname . '" ';
+        $class = ($field->description != '' ? 'hasPopover' : '') . ($field->isrequired ? ' required' : '');
+
+        if ($class != '')
+            $field_label .= ' class="' . $class . '"';
+
+        $field_label .= ' title="' . $field->title . '"';
+
+        if ($field->description != "")
+            $field_label .= ' data-content="' . $field->description . '"';
+
+        if ($allowSortBy) {
+            $field_label .= ' style="cursor:pointer"';
+            $field_label .= ' onClick="ctOrderChanged(\'' . $field->fieldname . ($OrderingField == $field->fieldname ? ($OrderingDirection == 'desc' ? '' : ' desc') : '') . '\')"';
         }
-        else
-        {
-			if(!array_key_exists('fieldtitle'.$this->ct->Languages->Postfix,$esfield))
-			{
-				Factory::getApplication()->enqueueMessage(
-					JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_LANGFIELDNOTFOUND' ), 'Error');
-                                        
-				$title = '*fieldtitle'.$this->ct->Languages->Postfix.' - not found*';
-			}
-			else	
-				$title = $esfield['fieldtitle'.$this->ct->Languages->Postfix];
-			
-			if(!array_key_exists('description'.$this->ct->Languages->Postfix,$esfield))
-			{
-				Factory::getApplication()->enqueueMessage(
-					JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_LANGFIELDNOTFOUND' ), 'Error');
-                                        
-				$description = '*description'.$this->ct->Languages->Postfix.' - not found*';
-			}
-			else	
-				$description = str_replace('"','',$esfield['description'.$this->ct->Languages->Postfix]);
-			
-			$isrequired=(bool)$esfield['isrequired'];
 
-			$field_label='<label id="'.$this->ct->Env->field_input_prefix.$esfield['fieldname'].'-lbl" for="'.$this->ct->Env->field_input_prefix.$esfield['fieldname'].'" ';
-			$class=($description!='' ? 'hasPopover' : '').''.($isrequired ? ' required' : '');
+        $field_label .= ' data-original-title="' . $field->title . '">' . $field->title;
 
-			if($class!='')
-			    $field_label.=' class="'.$class.'"';
+        if ($allowSortBy) {
+            if ($OrderingField == $field->fieldname) {
+                if ($OrderingDirection == 'desc')
+                    $field_label .= '<span class="ms-1 icon-caret-down" aria-hidden="true"></span>';
+                else
+                    $field_label .= '<span class="ms-1 icon-caret-up" aria-hidden="true"></span>';
 
-			$field_label.=' title="'.$title.'"';
+            } else
+                $field_label .= '<span class="ms-1 icon-sort" aria-hidden="true"></span>';
+        }
 
-			if($description)
-			    $field_label.=' data-content="'.$description.'"';
+        if ($field->isrequired)
+            $field_label .= '<span class="star">&#160;*</span>';
 
-			$field_label.=' data-original-title="'.$title.'">'.$title;
+        $field_label .= '</label>';
 
-			if($isrequired)
-			    $field_label.='<span class="star">&#160;*</span>';
+        return $field_label;
+    }
 
-			$field_label.='</label>';
-		}
-		
-		return $field_label;
-	}
-	
-	
+
 }

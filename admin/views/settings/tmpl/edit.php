@@ -7,12 +7,14 @@
  **/
 
 // No direct access
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted access');
 
 JHtml::_('behavior.formvalidation');
 JHtml::_('behavior.tooltip');
 
-$document = JFactory::getDocument();
+$document = Factory::getDocument();
 $document->addCustomTag('<link rel="stylesheet" href="components/com_youtubegallery/css/specialbutton.css" type="text/css" />');
 
 ?>

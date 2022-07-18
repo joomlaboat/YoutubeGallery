@@ -8,6 +8,8 @@
 
 // No direct access to this file
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted access');
 
 class YouTubeGalleryRendererJS extends YouTubeGalleryRenderer
@@ -110,7 +112,7 @@ window.onresize = function() { YoutubeGalleryAutoResizePlayer'.$instance_id.'();
 </script>
 ';
 
-		$document = JFactory::getDocument();
+		$document = Factory::getDocument();
 		$document->addCustomTag($result);
 
 	}

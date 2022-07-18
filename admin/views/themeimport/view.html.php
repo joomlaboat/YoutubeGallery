@@ -7,6 +7,8 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted access');
 
 // import Joomla view library
@@ -17,28 +19,23 @@ jimport('joomla.application.component.view');
  */
 class YoutubeGalleryViewThemeImport extends JViewLegacy
 {
-        /**
-         * display method of Youtube Gallery view
-         * @return void
-         */
+    /**
+     * display method of Youtube Gallery view
+     * @return void
+     */
 
-        public function display($tpl = null)
-        {
-                // Set the toolbar
-                $this->addToolBar();
-                parent::display($tpl);
+    public function display($tpl = null)
+    {
+        // Set the toolbar
+        $this->addToolBar();
+        parent::display($tpl);
+    }
 
-        }
-
-        protected function addToolBar()
-        {
-                $jinput = JFactory::getApplication()->input;
-$jinput->get->set('hidemainmenu',true);
-
-
-                JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_THEME_IMPORT'));
-                JToolBarHelper::cancel('themeimport.cancel', 'JTOOLBAR_CLOSE');
-        }
-
-
-}//class
+    protected function addToolBar()
+    {
+        $jinput = Factory::getApplication()->input;
+        $jinput->get->set('hidemainmenu', true);
+        JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_THEME_IMPORT'));
+        JToolBarHelper::cancel('themeimport.cancel', 'JTOOLBAR_CLOSE');
+    }
+}

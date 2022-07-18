@@ -9,6 +9,7 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
 use YouTubeGallery\Helper;
 
 class YoutubeGallerySocialButtons
@@ -39,7 +40,7 @@ document.write(\'<div id="fb-root"></div>\');
 </script>
 ';
 
-	$document = JFactory::getDocument();
+	$document = Factory::getDocument();
 	$document->addCustomTag($head_result);
 
 

@@ -28,7 +28,7 @@ else
 
 $link = 'index.php?option=com_youtubegallery';
 
-$input = JFactory::getApplication()->input;
+$input = Factory::getApplication()->input;
 $id = (int)$input->getInt('id');
 $link.= '&id='.$id;
 

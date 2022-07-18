@@ -9,13 +9,14 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
 use YouTubeGallery\Helper;
 
 class YoutubeGalleryHotPlayer
 {
 	public static function addHotReloadScript(&$gallery_list,$width,$height,&$videolist_row, &$theme_row)
 	{
-		$jinput=JFactory::getApplication()->input;
+		$jinput=Factory::getApplication()->input;
 		$ygstart=$jinput->getInt('ygstart',0);
 				
 		$vs=array();
@@ -27,7 +28,7 @@ class YoutubeGalleryHotPlayer
 				$vs[]=$v;
 		}
 
-		$document = JFactory::getDocument();
+		$document = Factory::getDocument();
 			
 		if(Helper::check_user_agent_for_ie())
 			$document->addScript(JURI::root(true).'/components/com_youtubegallery/js/player_ie_533.js');//Thankx to https://babeljs.io/
@@ -104,7 +105,7 @@ class YoutubeGalleryHotPlayer
 		youtubeplayer'.$videolist_row->id.'.loadVideoRecords('.$ygstart.');
 	});
 ';
-		$videoid=JFactory::getApplication()->input->getCmd('videoid');
+		$videoid=Factory::getApplication()->input->getCmd('videoid');
 		if((int)$theme_row->es_playvideo==1 or $videoid!='')
 		{
 			$hotrefreshscript.='

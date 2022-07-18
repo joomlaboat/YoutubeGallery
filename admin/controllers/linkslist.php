@@ -7,6 +7,8 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die('Restricted access');
  
 // import Joomla controlleradmin library
@@ -33,7 +35,7 @@ class YoutubeGalleryControllerLinksList extends JControllerAdmin
 	public function updateItem()
 	{
 		$model = $this->getModel('linksform');
-		$cid = JFactory::getApplication()->input->post->get('cid',array(),'array');
+		$cid = Factory::getApplication()->input->post->get('cid',array(),'array');
 
 		if (count($cid)<1)
 		{
@@ -58,7 +60,7 @@ class YoutubeGalleryControllerLinksList extends JControllerAdmin
 	public function refreshItem()
 	{
 		$model = $this->getModel('linksform');
-		$cid = JFactory::getApplication()->input->post->get('cid',array(),'array');
+		$cid = Factory::getApplication()->input->post->get('cid',array(),'array');
     
 		if (count($cid)<1)
 		{

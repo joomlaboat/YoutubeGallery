@@ -9,13 +9,14 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Version;
 
 $version_object = new Version;
 $version = (int)$version_object->getShortVersion();
 
 $theme='eclipse';
-$document = JFactory::getDocument();
+$document = Factory::getDocument();
 
 $adminpath=JURI::root(true).'/administrator/components/com_youtubegallery/';
 $document->addCustomTag('<script src="'.JURI::root().'components/com_youtubegallery/js/ajax.js"></script>');
@@ -126,7 +127,7 @@ $document->addCustomTag('<link rel="stylesheet" href="'.$adminpath.'libraries/co
 
     </script>';
 
-	    $document = JFactory::getDocument();
+	    $document = Factory::getDocument();
 		$document->addCustomTag($result_js);
 
 		return $result;

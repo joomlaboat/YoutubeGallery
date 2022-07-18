@@ -1,6 +1,6 @@
 <?php
 /**
- * CustomTables Joomla! 3.x Native Component
+ * CustomTables Joomla! 3.x/4.x Native Component
  * @package Custom Tables
  * @author Ivan komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
@@ -9,324 +9,291 @@
  **/
 
 namespace CustomTables;
- 
+
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+if (!defined('_JEXEC') and !defined('WPINC')) {
+    die('Restricted access');
+}
 
-use \Joomla\CMS\Factory;
-use \JoomlaBasicMisc;
-use CustomTables\Fields;
-use \ESTables;
+use Joomla\CMS\Factory;
+use JoomlaBasicMisc;
+use ESTables;
+use Joomla\Utilities\ArrayHelper;
+use JRegistry;
 
-//Old CTOrdering
 class Ordering
 {
-	var $Table=null;
-	var $inner=null;
-	var $selects=null;
-	var $orderby=null;
-	
-	var $ordering_processed_string=null;
-	
-	function __construct(&$Table)
-	{
-		$this->Table = $Table;
-	}
-	
-    function parseOrderByString()
-	{
-		//Order by string examples:
-		//name desc
-		//_id
-		//client.user desc
-		//birthdate:%m%d DESC converted to DATE_FORMAT(realfieldname,"%m%d") DESC;
-		
-		if(strpos($this->ordering_processed_string,"DATE_FORMAT")!==false)
-		{
-			//date_format()
-			$this->orderby = $this->ordering_processed_string;
-			return true;
-		}
-		
-		
-		
-		$inners = [];
-	
-		$oPair=explode(' ',$this->ordering_processed_string);
-		$oPair2=explode('.',$oPair[0]);
-		$orderby_field = $oPair2[0];
-		$subtype='';
-		if(isset($oPair2[1]) and $oPair2[1]!='')
-			$subtype=$oPair2[1];
-			
-		$direction='';
-		if(isset($oPair[1]))
-		{
-			$direction = strtolower($oPair[1]);
-			$direction = ($direction=='desc' ? ' DESC' : '');
-		}
-			
-		if($orderby_field=='_id')
-		{
-			$this->orderby = 'id'.$direction;
-			return true;
-		}
-		elseif($orderby_field=='_published')
-		{
-			$this->orderby = 'published'.$direction;
-			return true;
-		}
-		
-		$realfieldname=Fields::getRealFieldName($orderby_field, $this->Table->fields, true);
-		
-		if($realfieldname=='')
-			return false;
-		
-		switch($subtype)
-		{
-			case 'user':
-				$inners[]='LEFT JOIN #__users ON #__users.id='.$this->Table->realtablename.'.'.$realfieldname.'';
-				$this->selects = 'name AS t1';
-				$this->orderby = '#__users.name'.$direction;
-			break;
-		
-			case 'customtables':
-				$inners[]='LEFT JOIN #__customtables_options ON familytreestr='.$realfieldname.'';
-				$this->selects = '#__customtables_options.title'.$this->Table->Languages->Postfix.' AS t1';
-				$this->orderby = 'title'.$this->Table->Languages->Postfix.$direction;
-			break;
-			
-			case 'sqljoin':
-		
-				if(isset($oPair2[2]))
-				{
-					$typeparams=explode(',',$oPair2[2]);
-					$join_table=$typeparams[0];
-					$join_field='';
-					if(isset($typeparams[1]))
-						$join_field=$typeparams[1];
+    var ?Table $Table = null;
+    var ?Params $Params = null;
+    var ?string $selects = null;
+    var ?string $orderby = null;
+    var ?string $ordering_processed_string = null;
+    private int $index;
+    private ?array $fieldList;
 
-					if($join_table!='' and $join_field!='')
-					{
-						$real_joined_fieldname=$join_field;
-						if($real_joined_fieldname!='')
-						{
-							$join_table_row = ESTables::getTableRowByName($join_table);
-							
-							$w=$join_table_row->realtablename.'.id='.$this->Table->realtablename.'.'.$realfieldname;
-							$this->orderby = '(SELECT '.$join_table_row->realtablename.'.es_'.$real_joined_fieldname.' FROM '.$join_table_row->realtablename.' WHERE '.$w.') '.$direction;
-						}
-					}
-				}
-			break;
-				
-			default:
-				$this->orderby = $realfieldname.$direction;
-			break;
-		}
-		
-		if(count($inners)>0)
-			$this->inner=implode(' ',$inners);
-		
-	}
-	
-	function parseOrderByParam($blockExternalVars,&$menu_params,$Itemid)
-	{
-		//get sort field (and direction) example "price desc"
-		$jinput = Factory::getApplication()->input;
-		$mainframe = Factory::getApplication();
-		
-		//$orderby_forced = false;
-		$ordering_param_string='';
-		
-		if($blockExternalVars)
-		{
-			//module or plugin
-			if($menu_params->get( 'sortby' )!='')
-				$ordering_param_string=$menu_params->get( 'sortby' );
-		}
-		else
-		{
-			if($menu_params->get( 'forcesortby' )!='')
-			{
-				$ordering_param_string=$menu_params->get( 'forcesortby' );
-				$orderby_forced = true;
-			}
-			elseif($jinput->get('esordering','','CMD'))
-			{
-				$ordering_param_string=$jinput->getString('esordering','');
-				$ordering_param_string=trim(preg_replace("/[^a-zA-Z-+%.: ,_]/", "",$ordering_param_string));
-			}
-			else
-			{
-				$Itemid = $jinput->getInt('Itemid', 0);
-				$ordering_param_string = $mainframe->getUserState( 'com_customtables.orderby_'.$Itemid,'' );
+    function __construct($Table, $Params)
+    {
+        $this->Table = $Table;
+        $this->Params = $Params;
+        $this->index = -1;
+        $this->fieldList = null;
+    }
 
-				if($ordering_param_string=='')
-				{
-					if($menu_params->get( 'sortby' )!='')
-						$ordering_param_string=$menu_params->get( 'sortby' );
-				}
-			}
-		}
-/*
-		if(!$orderby_forced)
-		{
-			$ordering_param_string_state = $mainframe->getUserState( 'com_customtables.orderby_'.$Itemid,'' );
-		
-			if($ordering_param_string_state != '')
-				$this->ordering_processed_string = $this->processOrderingString($ordering_param_string_state);
-			else
-				$this->ordering_processed_string = $this->processOrderingString($ordering_param_string);
-		}
-		else
-		*/	
-		$this->ordering_processed_string = $this->processOrderingString($ordering_param_string);
+    function parseOrderByString(): bool
+    {
+        if ($this->ordering_processed_string === null or $this->ordering_processed_string == '')
+            return false;
 
-		//set state
-		if(!$blockExternalVars)
-		{
-			//component
-			$mainframe->setUserState( 'com_customtables.esorderby',$this->ordering_processed_string);
-		}
-	}
+        $orderingStringPair = explode(' ', $this->ordering_processed_string);
 
-    protected function processOrderingString($ordering_param_string)
-	{
-		if($ordering_param_string == '')
-			return null;
-			
-		$ordering_processed_string = '';
-		
-		// Check if field exist
-		$parts =explode(':',$ordering_param_string);
+        $direction = '';
+        if (isset($orderingStringPair[1])) {
+            $direction = (strtolower($orderingStringPair[1]) == 'desc' ? ' DESC' : '');
+        }
 
-       	$esorderingtemp_arr=explode(' ' ,$parts[0]);
-		
-		$esorderingtemp_arr_pair=explode('.' ,$esorderingtemp_arr[0]);
-		$fieldname=$esorderingtemp_arr_pair[0];
-		$desc='';
-		if(isset($esorderingtemp_arr[1]) and $esorderingtemp_arr[1]=='desc')
-			$desc=' desc';
-			
-		if($fieldname=='_id' or $fieldname=='_published')
-			return $fieldname.$desc;
+        $this->fieldList = explode('.', $orderingStringPair[0]);
 
-		$order_params='';
-        if(isset($parts[1]))
-			$order_params=trim(preg_replace("/[^a-zA-Z-+%.: ,_]/", "", $parts[1]));
+        $this->index = 0;
 
-		foreach($this->Table->fields as $row)
-		{
-			if($row['fieldname']==$fieldname)
-			{
-				$fieldtype=$row['type'];
-				$typeparams=$row['typeparams'];
+        $orderbyQuery = self::parseOrderByFieldName($this->fieldList[$this->index], $this->Table);
 
-				if($fieldtype=='sqljoin')
-					return $fieldname.'.sqljoin.'.$typeparams.$desc;
-				elseif($fieldtype=='customtables')
-					return $fieldname.'.customtables.'.$desc;
-				elseif($fieldtype=='userid' or $fieldtype=='user')
-					return $fieldname.'.user.'.$desc;
-				elseif($fieldtype!='dummy')
-					return $fieldname.$desc;
-				elseif($fieldtype=='date' or $fieldtype=='creationtime' or $fieldtype=='changetime' or $fieldtype=='lastviewtime')
-				{
-					if($order_params!='')
-					{
-						$db = Factory::getDBO();
-						return 'DATE_FORMAT('.$row['realfieldname'].', '.$db->quote($order_params).')'.$desc;
-					}
-					else
-						return $fieldname.$desc;
-				}
-			}
-		}
-		
-		//Enable in developer mode
-		//Factory::getApplication()->enqueueMessage('Order By parameter "'.$ordering_param_string.'" is incorrect or the field doesnt exist.', 'Error');
-					
-		return null;
-	}
-		
-	function getSortByFields()
-	{
-		//default sort by fields
-		$order_list=[];
-		$order_values=[];
-		
-		$order_list[]='ID '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ' );
-		$order_list[]='ID '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA' );
-						
-		$order_values[]='_id';
-		$order_values[]='_id desc';
-			
-		$label=JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_PUBLISHED' ).' ';
-		$order_list[]=$label.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ' );
-		$order_list[]=$label.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA' );
-						
-		$order_values[]='_published';
-		$order_values[]='_published desc';
-			
-		foreach($this->Table->fields as $row)
-		{
-			if($row['allowordering']==1)
-			{
-				if(!isset($row['fieldtitle'.$this->Table->Languages->Postfix]))
-				{
-					Factory::getApplication()->enqueueMessage(
-						JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_LANGFIELDNOTFOUND' ), 'Error');
-					return null;	
-				}
-					
-				$fieldtype=$row['type'];
-				$fieldname=$row['fieldname'];
-				$fieldtitle=$row['fieldtitle'.$this->Table->Languages->Postfix];
-				$typeparams=$row['typeparams'];
+        if ($orderbyQuery === null)
+            return false;
 
-				if($fieldtype=='string' or $fieldtype=='email' or $fieldtype=='url')
-				{
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ' );			$order_values[]=$fieldname;
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA' );			$order_values[]=$fieldname.' desc';
-				}
-				elseif($fieldtype=='sqljoin')
-				{
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ' );			$order_values[]=$fieldname.'.sqljoin.'.$typeparams;
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA' );			$order_values[]=$fieldname.'.sqljoin.'.$typeparams.' desc';
-				}
-				elseif($fieldtype=='phponadd' or $fieldtype=='phponchange')
-				{
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ' );			$order_values[]=$fieldname;
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA' );			$order_values[]=$fieldname.' desc';
-				}
-				elseif($fieldtype=='int' or $fieldtype=='float')
-				{
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_MINMAX' );			$order_values[]=$fieldname;
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_MAXMIN' );			$order_values[]=$fieldname." desc";
-				}
-				elseif($fieldtype=='changetime' or $fieldtype=='creationtime' or $fieldtype=='date')
-				{
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_NEWOLD' );			$order_values[]=$fieldname." desc";
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_OLDNEW' );			$order_values[]=$fieldname;
-				}
-				elseif(	$fieldtype=='multilangstring')
-				{
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ' );			$order_values[]=$fieldname.$this->Table->Languages->Postfix;
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA' );			$order_values[]=$fieldname.$this->Table->Languages->Postfix." desc";
-				}
-				elseif(	$fieldtype=='customtables')
-				{
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ' );			$order_values[]=$fieldname.'.customtables';
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA' );			$order_values[]=$fieldname.'.customtables desc';
-				}
-				elseif(	$fieldtype=='userid' or $fieldtype=='user')
-				{
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ' );			$order_values[]=$fieldname.'.user';
-					$order_list[]=$fieldtitle.' '.JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA' );			$order_values[]=$fieldname.'.user desc';
-				}
-			}
-		}
-		return (object)['titles'=>$order_list,'values'=>$order_values];
-	}
+        $this->orderby = $orderbyQuery . $direction;
+
+        return true;
+    }
+
+    function parseOrderByFieldName(string $fieldName, Table $Table): ?string
+    {
+        if ($fieldName == '_id')
+            return $Table->realidfieldname;
+        elseif ($fieldName == '_published' and $Table->published_field_found)
+            return 'published';
+
+        $fieldRow = Fields::FieldRowByName($fieldName, $Table->fields);
+        if ($fieldRow === null)
+            return null;
+
+        $params = new JRegistry;
+        $params->loadArray([]);
+        $temp_ct = new CT($params, true);
+        $temp_ct->Table = $Table;
+        $field = new Field($temp_ct, $fieldRow);
+
+        if ($field->realfieldname == '')
+            return null;
+
+        switch ($field->type) {
+            case 'user':
+                return '(SELECT #__users.name FROM #__users WHERE #__users.id=' . $Table->realtablename . '.' . $field->realfieldname . ')';
+
+            case 'customtables':
+                return '(SELECT #__customtables_options.title FROM #__customtables_options WHERE #__customtables_options.familytreestr=' . $field->realfieldname . ')';
+
+            case 'sqljoin':
+
+                $join_table = $field->params[0];
+
+                $params = new JRegistry;
+                $params->loadArray([]);
+                $sqljoin_temp_ct = new CT($params, true);
+                $sqljoin_temp_ct->getTable($join_table);
+
+                if ($this->index == count($this->fieldList) - 1) {
+
+                    $join_field = '';
+                    if (isset($field->params[1]))
+                        $join_field = $field->params[1];
+
+                    $select = self::parseOrderByFieldName($join_field, $sqljoin_temp_ct->Table);
+                    return '(SELECT ' . $select . ' FROM ' . $sqljoin_temp_ct->Table->realtablename
+                        . ' WHERE ' . $sqljoin_temp_ct->Table->realtablename . '.' . $sqljoin_temp_ct->Table->realidfieldname . '=' . $Table->realtablename . '.' . $field->realfieldname . ')';
+                } else {
+                    $join_field = $this->fieldList[$this->index + 1];
+                    $this->index += 1;
+                }
+
+                $select = self::parseOrderByFieldName($join_field, $sqljoin_temp_ct->Table);
+                return '(SELECT ' . $select . ' FROM ' . $sqljoin_temp_ct->Table->realtablename
+                    . ' WHERE ' . $sqljoin_temp_ct->Table->realtablename . '.' . $sqljoin_temp_ct->Table->realidfieldname . '=' . $Table->realtablename . '.' . $field->realfieldname . ')';
+
+
+            case 'date':
+            case 'creationtime':
+            case 'changetime':
+            case 'lastviewtime':
+
+                if ($field->params[0] != '') {
+                    return 'DATE_FORMAT(' . $field->realfieldname . ', ' . $Table->db->quote($field->params[0]) . ')';
+                } else
+                    return $field->realfieldname;
+
+            default:
+                return $field->realfieldname;
+        }
+
+        return null;
+    }
+
+    function parseOrderByParam(): void
+    {
+        //get sort field (and direction) example "price desc"
+        $app = Factory::getApplication();
+        $jinput = $app->input;
+
+        $ordering_param_string = '';
+
+        if ($this->Params->blockExternalVars) {
+            //module or plugin
+            if ($this->Params->forceSortBy != '')
+                $ordering_param_string = $this->Params->forceSortBy;
+            elseif ($this->Params->sortBy != '')
+                $ordering_param_string = $this->Params->sortBy;
+        } else {
+            if ($this->Params->forceSortBy != '') {
+                $ordering_param_string = $this->Params->forceSortBy;
+            } elseif ($jinput->get('esordering', '', 'CMD')) {
+                $ordering_param_string = $jinput->getString('esordering', '');
+                $ordering_param_string = trim(preg_replace("/[^a-zA-Z-+%.: ,_]/", "", $ordering_param_string));
+            } else {
+                $Itemid = $jinput->getInt('Itemid', 0);
+                $ordering_param_string = $app->getUserState('com_customtables.orderby_' . $Itemid, '');
+
+                if ($ordering_param_string == '') {
+                    if ($this->Params->sortBy != '')
+                        $ordering_param_string = $this->Params->sortBy;
+                }
+            }
+        }
+
+        $this->ordering_processed_string = $ordering_param_string;
+
+        //set state
+        if (!$this->Params->blockExternalVars)
+            $app->setUserState('com_customtables.esorderby', $this->ordering_processed_string);
+    }
+
+    function getSortByFields(): ?object
+    {
+        //default sort by fields
+        $order_list = [];
+        $order_values = [];
+
+        $order_list[] = 'ID ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ');
+        $order_list[] = 'ID ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA');
+
+        $order_values[] = '_id';
+        $order_values[] = '_id desc';
+
+        $label = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_PUBLISHED') . ' ';
+        $order_list[] = $label . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ');
+        $order_list[] = $label . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA');
+
+        $order_values[] = '_published';
+        $order_values[] = '_published desc';
+
+        foreach ($this->Table->fields as $row) {
+            if ($row['allowordering'] == 1) {
+
+                /*
+                if (!array_key_exists($row['fieldtitle' . $this->Table->Languages->Postfix])) {
+
+                    Factory::getApplication()->enqueueMessage('1:' .
+                        JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_LANGFIELDNOTFOUND'), 'Error');
+                    return null;
+                }
+                */
+
+                $fieldType = $row['type'];
+                $fieldname = $row['fieldname'];
+
+                if ($row['fieldtitle' . $this->Table->Languages->Postfix] != '')
+                    $fieldtitle = $row['fieldtitle' . $this->Table->Languages->Postfix];
+                else
+                    $fieldtitle = $row['fieldtitle'];
+
+                $typeparams = $row['typeparams'];
+
+                if ($fieldType == 'string' or $fieldType == 'email' or $fieldType == 'url') {
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ');
+                    $order_values[] = $fieldname;
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA');
+                    $order_values[] = $fieldname . ' desc';
+                } elseif ($fieldType == 'sqljoin') {
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ');
+                    $order_values[] = $fieldname . '.sqljoin.' . $typeparams;
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA');
+                    $order_values[] = $fieldname . '.sqljoin.' . $typeparams . ' desc';
+                } elseif ($fieldType == 'phponadd' or $fieldType == 'phponchange') {
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ');
+                    $order_values[] = $fieldname;
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA');
+                    $order_values[] = $fieldname . ' desc';
+                } elseif ($fieldType == 'int' or $fieldType == 'float') {
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_MINMAX');
+                    $order_values[] = $fieldname;
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_MAXMIN');
+                    $order_values[] = $fieldname . " desc";
+                } elseif ($fieldType == 'changetime' or $fieldType == 'creationtime' or $fieldType == 'date') {
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_NEWOLD');
+                    $order_values[] = $fieldname . " desc";
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_OLDNEW');
+                    $order_values[] = $fieldname;
+                } elseif ($fieldType == 'multilangstring') {
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ');
+                    $order_values[] = $fieldname . $this->Table->Languages->Postfix;
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA');
+                    $order_values[] = $fieldname . $this->Table->Languages->Postfix . " desc";
+                } elseif ($fieldType == 'customtables') {
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ');
+                    $order_values[] = $fieldname . '.customtables';
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA');
+                    $order_values[] = $fieldname . '.customtables desc';
+                } elseif ($fieldType == 'userid' or $fieldType == 'user') {
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_AZ');
+                    $order_values[] = $fieldname . '.user';
+                    $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA');
+                    $order_values[] = $fieldname . '.user desc';
+                }
+            }
+        }
+        return (object)['titles' => $order_list, 'values' => $order_values];
+    }
+
+    public function saveorder(): bool
+    {
+        // Get the input
+        $pks = $this->Table->Env->jinput->post->get('cid', array(), 'array');
+        $order = $this->Table->Env->jinput->post->get('order', array(), 'array');
+
+        // Sanitize the input
+        $pks = ArrayHelper::toInteger($pks);
+        $order = ArrayHelper::toInteger($order);
+
+        $realFieldName = '';
+
+        foreach ($this->Table->fields as $field) {
+            if ($field['type'] == 'ordering') {
+                $realFieldName = $field['realfieldname'];
+                break;
+            }
+        }
+
+        if ($realFieldName == '')
+            return false;
+
+        $db = Factory::getDBO();
+
+        for ($i = 0; $i < count($pks); $i++) {
+            $query = 'UPDATE ' . $this->Table->realtablename . ' SET ' . $db->quoteName($realFieldName) . '=' . $order[$i] . ' WHERE '
+                . $db->quoteName($this->Table->realidfieldname) . '=' . (int)$pks[$i];
+
+            $db->setQuery($query);
+            $db->execute();
+        }
+
+        return true;
+    }
 }
