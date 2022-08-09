@@ -576,12 +576,10 @@ class CustomTablesImageMethods
             try {
                 $from = @ImageCreateFromJpeg($src);
             } catch (Exception $e) {
-                echo 'e1.';
                 return -1;
             }
 
             if (!$from) {
-                echo 'e2.';
                 return -1;
             }
 
@@ -593,7 +591,6 @@ class CustomTablesImageMethods
                     return -1;
                 }
             }
-            echo '*';
 
         } elseif ($fileExtension == "gif") {
             $from1 = ImageCreateFromGIF($src);

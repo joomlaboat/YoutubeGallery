@@ -16,16 +16,9 @@ class YoutubeGalleryLayoutThumbnails
 {
     public static function NavigationList($the_gallery_list, &$videolist_row, &$theme_row, $AllowPagination, $videoid, $custom_itemid = 0)
     {
-        if ($theme_row->es_prepareheadtags > 0) {
-            $curPageUrl = Helper::curPageURL();
-            $document = Factory::getDocument();
-
-        }
         $catalogresult = '';
-        $paginationcode = '';
         $gallery_list = $the_gallery_list;
 
-        $tr = 0;
         $count = 0;
         $item_index = 1;
         $isForShadowBox = false;
@@ -34,10 +27,10 @@ class YoutubeGalleryLayoutThumbnails
                 $isForShadowBox = true;
         }
 
-        $bgcolor = $theme_row->es_bgcolor;
         $thumbnail_item = '';
 
         foreach ($gallery_list as $listitem) {
+
             if (strpos($listitem['es_title'], '***Video not found***') === false) {
                 $aLinkURL = '';
 
@@ -89,6 +82,7 @@ class YoutubeGalleryLayoutThumbnails
                 $thumbnail_item = YoutubeGalleryLayoutThumbnails::renderThumbnailForNavBar($aHrefLink, $aLink, $videolist_row, $theme_row, $listitem, $videoid, $item_index, $gallery_list);
 
                 if ($thumbnail_item != '') {
+
                     $catalogresult .= '<div id="youtubegallery_thumbnail_' . $videolist_row->id . '_' . $count . '" style="display:contents;">'
                         . '<div id="youtubegallery_thumbnail_box_' . $videolist_row->id . '_' . $listitem['id'] . '" class="ygThumb-inactive" style="display:contents;">'
                         . $thumbnail_item . '</div></div>';
@@ -230,17 +224,13 @@ class YoutubeGalleryLayoutThumbnails
 
     }
 
-    public static function renderThumbnailForNavBar($aHrefLink, $aLink, &$videolist_row, &$theme_row, $listitem, $videoid, $item_index, &$gallery_list)
+    public static function renderThumbnailForNavBar($aHrefLink, $aLink, $videolist_row, &$theme_row, $listitem, $videoid, $item_index, &$gallery_list)
     {
-        $result = '';
-
-        $thumbnail_layout = '';
-
         //------------------------------- title
         $thumbtitle = '';
         if ($listitem['es_title'] != '') {
             $thumbtitle = str_replace('"', '', $listitem['es_title']);
-            $thumbtitle = str_replace('\'', '&rsquo;', $listitem['es_title']);
+            $thumbtitle = str_replace('\'', '&rsquo;', $thumbtitle);
 
             if (strpos($thumbtitle, '&amp;') === false)
                 $thumbtitle = str_replace('&', '&amp;', $thumbtitle);
@@ -251,15 +241,14 @@ class YoutubeGalleryLayoutThumbnails
         //------------------------------- end of image tag
 
         if ($theme_row->es_customnavlayout != '') {
-            $result = YoutubeGalleryLayoutThumbnails::renderThumbnailLayout($theme_row->es_customnavlayout, $listitem, $aHrefLink, $aLink, $videoid, $theme_row, $item_index, $gallery_list, $videolist_row);
+            $result = YoutubeGalleryLayoutThumbnails::renderThumbnailLayout($theme_row->es_customnavlayout,
+                $listitem, $aHrefLink, $aLink, $videoid, $theme_row, $item_index, $gallery_list, $videolist_row);
         } else {
             $thumbnail_layout = '[a][image][/a]'; //with link
 
-            //if($theme_row->es_showtitle)
-            //{
             if ($thumbtitle != '')
                 $thumbnail_layout .= '<br/>' . ($theme_row->es_thumbnailstyle == '' ? '<span style="font-size: 8pt;" >[title]</span>' : '<div style="' . $theme_row->es_thumbnailstyle . '">[title]</div>');
-            //}
+
             $result = YoutubeGalleryLayoutThumbnails::renderThumbnailLayout($thumbnail_layout, $listitem, $aHrefLink, $aLink, $videoid, $theme_row, $item_index, $gallery_list, $videolist_row);
         }
 
@@ -381,9 +370,10 @@ class YoutubeGalleryLayoutThumbnails
                 elseif ($tf == 'rating_numRaters')
                     $tf = 'ratingnumberofraters';
 
-                if ($listitem['es_' . $tf] == '' or (is_numeric($listitem['es_' . $tf]) and $listitem['es_' . $tf] == 0))
-                    return true;
-                else
+                if ($listitem['es_' . $tf] == '' or (is_numeric($listitem['es_' . $tf]) and $listitem['es_' . $tf] == 0)) {
+
+                    //return true;
+                } else
                     return false;
             }
         }
@@ -391,11 +381,15 @@ class YoutubeGalleryLayoutThumbnails
         switch ($fld) {
             case 'width':
                 return false;
-                break;
 
+            case 'a':
+            case 'link':
+            case 'viewcount':
+            case 'social':
+            case 'videolist':
+            case '/a':
             case 'height':
                 return false;
-                break;
 
             case 'inwatchgroup':
                 $u = (int)$videolist_row->es_watchusergroup;
@@ -413,14 +407,11 @@ class YoutubeGalleryLayoutThumbnails
                 }
                 return true;
 
-                break;
             case 'odd':
                 if ($item_index % 2 == 0)
                     return true; //not odd
                 else
                     return false; //odd
-
-                break;
 
             case 'even':
                 if ($item_index % 2 == 0)
@@ -428,64 +419,32 @@ class YoutubeGalleryLayoutThumbnails
                 else
                     return true; //not even
 
-                break;
-
             case 'isactive':
 
                 if ($listitem['es_videoid'] == $videoid)
                     return false;
                 else
                     return true;
-                break;
 
             case 'image':
                 if (!$ImageFound)
                     return true;
                 else
                     return false;
-                break;
-
-            case 'a':
-                return false;
-                break;
-
-            case '/a':
-                return false;
-                break;
-
-            case 'link':
-                return false;
-                break;
-
-            case 'viewcount':
-                return false;
-                break;
-
-            case 'social':
-                return false;
-                break;
-
-            case 'videolist':
-                return false;
-                break;
 
             case 'favcount':
                 if ($listitem['es_statisticsfavoritecount'] == 0)
                     return true;
                 else
                     return false;
-                break;
 
             case 'channel':
                 if ($listitem['es_channelusername'] == '')
                     return true;
                 else
                     return false;
-                break;
-
         }
-        return true;
-
+        return false;
     }
 
     public static function getTumbnailData($fld, $aHrefLink, $aLink, $listitem, &$tableFields, $options, &$theme_row, &$gallery_list, &$videolist_row) //NEW

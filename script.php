@@ -30,15 +30,15 @@ class com_YoutubeGalleryInstallerScript
 
 			return false;
 		}
+
+		$component_name='com_youtubegallery';
 		
 		require_once($loader_file);
-		CTLoader($inclide_utilities = true);
+		CTLoader($inclide_utilities = true,false,null,$component_name);
 		$ct = new CT;
 		
 		//Check Custom Tables, create if nessesary
 		$result = IntegrityChecks::check($ct,$check_core_tables = true, $check_custom_tables = false);
-
-		$component_name='com_youtubegallery';
 		
 		$filename = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . $component_name . DIRECTORY_SEPARATOR
 			. 'importfiles' . DIRECTORY_SEPARATOR . 'youtubegallery_tables.txt';
