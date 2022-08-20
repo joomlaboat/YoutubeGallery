@@ -102,7 +102,7 @@ class VideoSource_Vimeo
     protected static function ygHTML5VimeoPlayerAPI($settingline, $vlid, $playerapiid)
     {
 
-        $result = '<div id="' . $playerapiid . 'api"></div><!--DYNAMIC PLAYER-->';
+        $result = '<div id="' . $playerapiid . 'api" data-marker="DYNAMIC PLAYER"></div>';
 
         $result_head = '<script src="https://player.vimeo.com/api/player.js"></script>';
         $document = Factory::getDocument();

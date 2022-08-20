@@ -138,9 +138,7 @@ class VideoSource_YouTube
     protected static function ygHTML5PlayerAPI($width, $height, $youtubeserver, $videoidkeyword, $settingline,
                                                &$options, $vlid, $playerid, &$theme_row, &$full_playlist, $initial_volume, $playerapiid, $withFlash = false)
     {
-        $showHeadScript = false;
-
-        $result = '<div id="' . $playerapiid . 'api"></div><!--DYNAMIC PLAYER-->';
+        $result = '<div id="' . $playerapiid . 'api" data-marker="DYNAMIC PLAYER"></div>';
 
         $showHeadScript = true;
 
