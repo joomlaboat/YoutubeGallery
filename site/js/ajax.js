@@ -66,14 +66,12 @@ function ParseHTTPResponse(httpRequest) {
                 alert("XML parsing error");
                 return null;
             }
-            ;
         } else {
             xmlDoc = CreateMSXMLDocumentObject();
             if (!xmlDoc) {
                 return null;
             }
             xmlDoc.loadXML(httpRequest.responseText);
-
         }
     }
 
@@ -102,11 +100,9 @@ function ParseHTTPResponse(httpRequest) {
 // returns whether the HTTP request was successful
 function IsRequestSuccessful(httpRequest) {
     // IE: sometimes 1223 instead of 204
-    const success = (httpRequest.status == 0 ||
+    return (httpRequest.status == 0 ||
         (httpRequest.status >= 200 && httpRequest.status < 300) ||
         httpRequest.status == 304 || httpRequest.status == 1223);
-
-    return success;
 }
 
 function convertHtmlToText(returnText) {

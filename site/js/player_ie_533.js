@@ -92,10 +92,10 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
                 autoplay: 0,
                 playerVars: this.youtubeplayer_options,
                 videoId: videoid,
-                origin: 'http://demo.oxforddavid.com/?aa=1s',
+                origin: 'https://joomlaboat.com/',
                 events: {
                     "onReady": function onReady(event) {
-                        if (initial_volume != -1) event.target.setVolume(initial_volume);
+                        if (initial_volume !== -1) event.target.setVolume(initial_volume);
                         if (mute_on_play) event.target.mute();
                         if (auto_play) event.target.playVideo();
 
@@ -107,8 +107,8 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
                         }
                     },
                     "onStateChange": function onStateChange(event) {
-                        if (PlayList.length != 0 && allowplaylist) {
-                            if (event.data == YT.PlayerState.ENDED) {
+                        if (PlayList.length !== 0 && allowplaylist) {
+                            if (event.data === YT.PlayerState.ENDED) {
                                 setTimeout(eval(func), 500);
                             }
                         }
@@ -137,7 +137,7 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
                 muted: !!+this.mute_on_play
             };
             this.api_player = new Vimeo.Player(playerid, player_options);
-            if (this.initial_volume != -1) this.api_player.setVolume(this.initial_volume / 100); //Vimeo player volume is from 0 to 1
+            if (this.initial_volume !== -1) this.api_player.setVolume(this.initial_volume / 100); //Vimeo player volume is from 0 to 1
 
             this.api_player.on('play', function () {//alert('Played the first video');
             });
@@ -148,7 +148,7 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
     }, {
         key: "FindNextVideo",
         value: function FindNextVideo() {
-            if (this.PlayList.length == 1 && this.PlayList[0] == '') {
+            if (this.PlayList.length === 1 && this.PlayList[0] === '') {
                 //alert("Video not found");
                 return;
             }
@@ -160,7 +160,7 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
                 return false;
             }
 
-            if (this.PlayList.length == 0) {
+            if (this.PlayList.length === 0) {
                 setTimeout(this.FindNextVideo(), 500);
                 return false;
             }
@@ -174,11 +174,11 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             for (let i = 0; i < l; i++) {
                 g = this.PlayList[i].split("*");
 
-                if (g[0] == v) //0 - id
+                if (g[0] === v) //0 - id
                 {
                     //if current video is the last in the list play the first video
                     d = i + 1;
-                    if (d == l) d = 0;
+                    if (d === l) d = 0;
                     break;
                 }
             }
@@ -198,7 +198,7 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
                 return false;
             }
 
-            if (this.PlayList.length == 0) {
+            if (this.PlayList.length === 0) {
                 setTimeout(this.FindCurrentVideo(), 500);
                 return false;
             }
@@ -209,7 +209,7 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             for (let i = 0; i < l; i++) {
                 const g = this.PlayList[i].split("*");
 
-                if (g[0] == this.CurrentVideoID) {
+                if (g[0] === this.CurrentVideoID) {
                     const videoid = g[0];
                     const objectid = g[1];
                     const videosource = g[2];
@@ -236,9 +236,8 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
         value: function findVideoRecordByID(videoid) {
             for (let i = 0; i < this.videorecords.length; i++) {
                 const rec = this.videorecords[i];
-                if (rec.es_videoid == videoid) return rec;
+                if (rec.es_videoid === videoid) return rec;
             }
-
             return null;
         }
     }, {
@@ -251,7 +250,7 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
                 let found = false;
 
                 for (let i = 0; i < classes.length; i++) {
-                    if (classes[i] == classname) found = true;
+                    if (classes[i] === classname) found = true;
                 }
 
                 if (!found) {
@@ -270,7 +269,7 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
                 const new_classes = [];
 
                 for (let i = 0; i < classes.length; i++) {
-                    if (classes[i] != classname) new_classes.push(classes[i]);
+                    if (classes[i] !== classname) new_classes.push(classes[i]);
                 }
 
                 obj.className = new_classes.join(" ");
@@ -306,17 +305,17 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             this.updateVideoRecords();
             let i = this.VideoSources.indexOf(videosource);
             let playercode = "";
-            if (i != -1) playercode = this.Player[i];
+            if (i !== -1) playercode = this.Player[i];
             playercode = playercode.replace("****youtubegallery-video-id****", videoid);
             const rec = this.findVideoRecordByID(videoid);
 
             if (rec == null) return;
 
-            if (rec.es_customimageurl !== null && rec.es_customimageurl != "" && rec.es_customimageurl.indexOf("#") == -1) {
+            if (rec.es_customimageurl !== null && rec.es_customimageurl !== "" && rec.es_customimageurl.indexOf("#") === -1) {
                 const customimage = rec.es_customimageurl;
                 const n = customimage.indexOf("_small");
 
-                if (n == -1) {
+                if (n === -1) {
                     playercode = playercode.replace("****youtubegallery-video-customimage****", customimage);
 
                     for (i = 0; i < 2; i++) {
@@ -336,13 +335,13 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             ygsc.innerHTML = playercode;
             ygsc.style.display = "block";
 
-            if (playercode.indexOf('data-marker="DYNAMIC PLAYER"') != -1) {
+            if (playercode.indexOf('data-marker="DYNAMIC PLAYER"') !== -1) {
                 this.ApiStart = rec.es_startsecond;
                 this.ApiEnd = rec.es_endsecond;
 
-                if (videosource == "youtube") {
+                if (videosource === "youtube") {
                     this.youtube_SetPlayer_(videoid);
-                } else if (videosource == "vimeo") {
+                } else if (videosource === "vimeo") {
                     this.vimeo_SetPlayer_(videoid);
                 } else {
                     eval("this.youtubegallery_updateplayer_" + videosource + "(videoid,true)");
@@ -380,7 +379,7 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
                 }, 200);
             }
 
-            if (this.openinnewwindow == 5) {
+            if (this.openinnewwindow === 5) {
                 //Jump to the player anchor:"youtubegallery"
                 window.location.hash = "youtubegallery";
             }
@@ -396,9 +395,9 @@ function YoutubeGalleryCleanCode(playercode) {
     do {
         const b = playercode.indexOf("***code_begin***");
         const e = playercode.indexOf("***code_end***");
-        if (b != -1 && e != -1) playercode = playercode.substr(0, b) + playercode.substr(e + 14);
-        if (b == -1 || e == -1) break;
-    } while (1 == 1);
+        if (b !== -1 && e !== -1) playercode = playercode.substr(0, b) + playercode.substr(e + 14);
+        if (b === -1 || e === -1) break;
+    } while (1);
 
     return playercode;
 }

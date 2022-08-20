@@ -6,12 +6,12 @@
  **/
 
 Joomla.submitbutton = function (task) {
-    if (task == '') {
+    if (task === '') {
         return false;
     } else {
         let isValid = true;
         const action = task.split('.');
-        if (action[1] != 'cancel' && action[1] != 'close') {
+        if (action[1] !== 'cancel' && action[1] !== 'close') {
 
             let form = document.getElementById('adminForm');
             if (!document.formvalidator.isValid(form))

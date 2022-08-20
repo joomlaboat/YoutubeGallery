@@ -53,10 +53,7 @@
             document.getElementById("YGVideoLinks").src = "data:text/html;charset=utf-8," + escape(html_string);
             document.getElementById("YGPreview").src = "data:text/html;charset=utf-8," + escape(html_string);
 
-            if (videolist == 0)
-                document.getElementById('yginsertbutton').disabled = true;
-            else
-                document.getElementById('yginsertbutton').disabled = false;
+            document.getElementById('yginsertbutton').disabled = videolist === 0;
 
             const videolist_url = ygSiteBase + 'index.php?option=com_youtubegallery&view=linksform&layout=edit&tmpl=component&id=' + videolist;
             setTimeout(function () {
@@ -87,12 +84,12 @@
             document.getElementById('YGPreviewDiv').style.display = "none";
 
             let url = this.frameurl;
-            if (url.indexOf("?") == -1)
+            if (url.indexOf("?") === -1)
                 url += '?';
             else
                 url += '&';
 
-            if (videolist == "")
+            if (videolist === "")
                 url += 'showlatestvideolist=1';
             else
                 url += 'videolistid=' + videolist;
@@ -108,7 +105,7 @@
             $.each((q || '').split(/[&;]/), function (key, val) {
                 const keys = val.split('=');
 
-                rs[decodeURIComponent(keys[0])] = keys.length == 2 ? decodeURIComponent(keys[1]) : null;
+                rs[decodeURIComponent(keys[0])] = keys.length === 2 ? decodeURIComponent(keys[1]) : null;
             });
 
             return rs;
