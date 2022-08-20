@@ -7,8 +7,8 @@ function _classCallCheck(instance, Constructor) {
 }
 
 function _defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
+    for (let i = 0; i < props.length; i++) {
+        const descriptor = props[i];
         descriptor.enumerable = descriptor.enumerable || false;
         descriptor.configurable = true;
         if ("value" in descriptor) descriptor.writable = true;
@@ -23,12 +23,12 @@ function _createClass(Constructor, protoProps, staticProps) {
 }
 
 String.prototype.replaceAll = function (find, replace) {
-    var str = this; //return str.replace(new RegExp(find, 'g'), replace);
+    const str = this; //return str.replace(new RegExp(find, 'g'), replace);
 
     return str.replace(new RegExp(find.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), replace);
 };
 
-var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
+const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
     function YoutubeGalleryPlayerObject(width_, height_, playerapiid_, initial_volume_, mute_on_play_, auto_play_, allowplaylist_) {
         _classCallCheck(this, YoutubeGalleryPlayerObject);
 
@@ -73,15 +73,15 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
 
             this.videoStopped = false;
             this.CurrentVideoID = videoid;
-            var playerid = this.playerapiid + "api";
+            const playerid = this.playerapiid + "api";
             document.getElementById(playerid).innerHTML = '';
-            var initial_volume = this.initial_volume;
-            var mute_on_play = this.mute_on_play;
-            var auto_play = this.auto_play;
-            var allowplaylist = this.allowplaylist;
-            var PlayList = this.PlayList;
-            var classname = "youtubeplayer" + this.videolistid;
-            var func = classname + '.FindNextVideo();';
+            const initial_volume = this.initial_volume;
+            const mute_on_play = this.mute_on_play;
+            const auto_play = this.auto_play;
+            const allowplaylist = this.allowplaylist;
+            const PlayList = this.PlayList;
+            const classname = "youtubeplayer" + this.videolistid;
+            const func = classname + '.FindNextVideo();';
             this.api_player = new YT.Player(playerid, {
                 width: this.width,
                 id: playerid,
@@ -123,11 +123,11 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             this.vimeoplayer_options.end = this.ApiEnd;
             this.videoStopped = false;
             this.CurrentVideoID = videoid;
-            var playerid = this.playerapiid + "api";
+            const playerid = this.playerapiid + "api";
             document.getElementById(playerid).innerHTML = '';
-            var classname = "youtubeplayer" + this.videolistid;
-            var func = classname + '.FindNextVideo();';
-            var player_options = {
+            const classname = "youtubeplayer" + this.videolistid;
+            const func = classname + '.FindNextVideo();';
+            const player_options = {
                 id: videoid,
                 width: this.width,
                 height: this.height,
@@ -166,12 +166,12 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             }
 
             //this.updateVideoRecords();
-            var d = 0;
-            var v = this.CurrentVideoID;
-            var l = this.PlayList.length;
-            var g = null;
+            let d = 0;
+            const v = this.CurrentVideoID;
+            const l = this.PlayList.length;
+            let g = null;
 
-            for (var i = 0; i < l; i++) {
+            for (let i = 0; i < l; i++) {
                 g = this.PlayList[i].split("*");
 
                 if (g[0] == v) //0 - id
@@ -184,9 +184,9 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             }
 
             g = this.PlayList[d].split("*");
-            var videoid = g[0];
-            var objectid = g[1];
-            var videosource = g[2];
+            const videoid = g[0];
+            const objectid = g[1];
+            const videosource = g[2];
             this.HotVideoSwitch(this.videolistid, videoid, videosource, objectid);
         }
     }, {
@@ -204,15 +204,15 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             }
 
             //this.updateVideoRecords();
-            var l = this.PlayList.length;
+            const l = this.PlayList.length;
 
-            for (var i = 0; i < l; i++) {
-                var g = this.PlayList[i].split("*");
+            for (let i = 0; i < l; i++) {
+                const g = this.PlayList[i].split("*");
 
                 if (g[0] == this.CurrentVideoID) {
-                    var videoid = g[0];
-                    var objectid = g[1];
-                    var videosource = g[2];
+                    const videoid = g[0];
+                    const objectid = g[1];
+                    const videosource = g[2];
                     this.HotVideoSwitch(this.videolistid, videoid, videosource, objectid);
                     break;
                 }
@@ -221,21 +221,21 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
     }, {
         key: "loadVideoRecords",
         value: function loadVideoRecords() {
-            var xmlHttp = new XMLHttpRequest();
+            const xmlHttp = new XMLHttpRequest();
 
             let url = this.WebsiteRoot + '/index.php?option=com_youtubegallery&view=youtubegallery&yg_api=1&listid=' + this.videolistid + '&themeid=' + this.themeid + '&ygstart=' + ygstart;
 
             xmlHttp.open("GET", url, false);
             xmlHttp.send(null);
-            var r = xmlHttp.responseText;
+            const r = xmlHttp.responseText;
 
             this.videorecords = JSON && JSON.parse(r) || $.parseJSON(r);
         }
     }, {
         key: "findVideoRecordByID",
         value: function findVideoRecordByID(videoid) {
-            for (var i = 0; i < this.videorecords.length; i++) {
-                var rec = this.videorecords[i];
+            for (let i = 0; i < this.videorecords.length; i++) {
+                const rec = this.videorecords[i];
                 if (rec.es_videoid == videoid) return rec;
             }
 
@@ -244,13 +244,13 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
     }, {
         key: "element_addClass",
         value: function element_addClass(objname, classname) {
-            var obj = document.getElementById(objname);
+            const obj = document.getElementById(objname);
 
             if (obj) {
-                var classes = obj.className.split(" ");
-                var found = false;
+                const classes = obj.className.split(" ");
+                let found = false;
 
-                for (var i = 0; i < classes.length; i++) {
+                for (let i = 0; i < classes.length; i++) {
                     if (classes[i] == classname) found = true;
                 }
 
@@ -263,13 +263,13 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
     }, {
         key: "element_removeClass",
         value: function element_removeClass(objname, classname) {
-            var obj = document.getElementById(objname);
+            const obj = document.getElementById(objname);
 
             if (obj) {
-                var classes = obj.className.split(" ");
-                var new_classes = [];
+                const classes = obj.className.split(" ");
+                const new_classes = [];
 
-                for (var i = 0; i < classes.length; i++) {
+                for (let i = 0; i < classes.length; i++) {
                     if (classes[i] != classname) new_classes.push(classes[i]);
                 }
 
@@ -279,20 +279,20 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
     }, {
         key: "thumb_addClass",
         value: function thumb_addClass(id, classname) {
-            var objname = "youtubegallery_thumbnail_box_" + this.videolistid + "_" + id;
+            const objname = "youtubegallery_thumbnail_box_" + this.videolistid + "_" + id;
             this.element_addClass(objname, classname);
         }
     }, {
         key: "thumb_removeClass",
         value: function thumb_removeClass(id, classname) {
-            var objname = "youtubegallery_thumbnail_box_" + this.videolistid + "_" + id;
+            const objname = "youtubegallery_thumbnail_box_" + this.videolistid + "_" + id;
             this.element_removeClass(objname, classname);
         }
     }, {
         key: "highlightCurrentThumb",
         value: function highlightCurrentThumb(id) {
-            for (var i = 0; i < this.videorecords.length; i++) {
-                var rec = this.videorecords[i];
+            for (let i = 0; i < this.videorecords.length; i++) {
+                const rec = this.videorecords[i];
                 this.thumb_removeClass(rec.id, "ygThumb-active");
                 this.thumb_addClass(rec.id, "ygThumb-inactive");
             }
@@ -304,17 +304,17 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
         key: "HotVideoSwitch",
         value: function HotVideoSwitch(videolistid, videoid, videosource, id) {
             this.updateVideoRecords();
-            var i = this.VideoSources.indexOf(videosource);
-            var playercode = "";
+            let i = this.VideoSources.indexOf(videosource);
+            let playercode = "";
             if (i != -1) playercode = this.Player[i];
             playercode = playercode.replace("****youtubegallery-video-id****", videoid);
-            var rec = this.findVideoRecordByID(videoid);
+            const rec = this.findVideoRecordByID(videoid);
 
             if (rec == null) return;
 
             if (rec.es_customimageurl !== null && rec.es_customimageurl != "" && rec.es_customimageurl.indexOf("#") == -1) {
-                var customimage = rec.es_customimageurl;
-                var n = customimage.indexOf("_small");
+                const customimage = rec.es_customimageurl;
+                const n = customimage.indexOf("_small");
 
                 if (n == -1) {
                     playercode = playercode.replace("****youtubegallery-video-customimage****", customimage);
@@ -332,7 +332,7 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             playercode = playercode.replace("autoplay=0", "autoplay=1");
             playercode = playercode.replace("****scriptbegin****", "<script ");
             playercode = playercode.replace("****scriptend****", "</script>");
-            var ygsc = document.getElementById("YoutubeGallerySecondaryContainer" + this.videolistid + "");
+            const ygsc = document.getElementById("YoutubeGallerySecondaryContainer" + this.videolistid + "");
             ygsc.innerHTML = playercode;
             ygsc.style.display = "block";
 
@@ -349,16 +349,16 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
                 }
             }
 
-            var title_obj_name = "YoutubeGalleryVideoTitle" + this.videolistid + "";
-            var tObj = document.getElementById(title_obj_name);
-            var description_obj_name = "YoutubeGalleryVideoDescription" + this.videolistid + "";
-            var dObj = document.getElementById(description_obj_name);
-            var t = this;
+            const title_obj_name = "YoutubeGalleryVideoTitle" + this.videolistid + "";
+            const tObj = document.getElementById(title_obj_name);
+            const description_obj_name = "YoutubeGalleryVideoDescription" + this.videolistid + "";
+            const dObj = document.getElementById(description_obj_name);
+            const t = this;
 
             if (tObj) {
                 this.element_removeClass(title_obj_name, "ygTitle-visible");
                 this.element_addClass(title_obj_name, "ygTitle-hidden");
-                var title = rec.es_title;
+                const title = rec.es_title;
                 tObj.innerHTML = title.replaceAll('_quote_', '&quot;');
                 setTimeout(function () {
                     t.element_removeClass(title_obj_name, "ygTitle-hidden");
@@ -369,7 +369,7 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             if (dObj) {
                 this.element_removeClass(description_obj_name, "ygDescription-visible");
                 this.element_addClass(description_obj_name, "ygDescription-hidden");
-                var desc = rec.es_description;
+                let desc = rec.es_description;
                 desc = desc.replaceAll('_thelinebreak_', '<br />');
                 desc = desc.replaceAll('_quote_', '&quot;');
                 desc = desc.replaceAll('_email_', '@');
@@ -394,8 +394,8 @@ var YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
 
 function YoutubeGalleryCleanCode(playercode) {
     do {
-        var b = playercode.indexOf("***code_begin***");
-        var e = playercode.indexOf("***code_end***");
+        const b = playercode.indexOf("***code_begin***");
+        const e = playercode.indexOf("***code_end***");
         if (b != -1 && e != -1) playercode = playercode.substr(0, b) + playercode.substr(e + 14);
         if (b == -1 || e == -1) break;
     } while (1 == 1);
