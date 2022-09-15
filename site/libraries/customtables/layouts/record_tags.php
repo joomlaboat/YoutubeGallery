@@ -19,6 +19,7 @@ use JoomlaBasicMisc;
 use ESTables;
 
 use Joomla\CMS\Router\Route;
+use LayoutProcessor;
 
 class Twig_Record_Tags
 {
@@ -49,8 +50,7 @@ class Twig_Record_Tags
         $forms = new Forms($this->ct);
 
         $field = ['type' => '_id', 'fieldname' => '_id', 'title' => '#', 'description' => '', 'isrequired' => false];
-        $vlu = $forms->renderFieldLabel((object)$field, $allowSortBy);
-        return $vlu;
+        return $forms->renderFieldLabel((object)$field, $allowSortBy);
     }
 
     function link($add_returnto = false, $menu_item_alias = '', $custom_not_base64_returnto = '')
@@ -525,6 +525,90 @@ class Twig_Record_Tags
 
 }
 
+class Twig_Table_Tags
+{
+    var CT $ct;
+
+    function __construct(&$ct)
+    {
+        $this->ct = &$ct;
+    }
+
+    function recordstotal()
+    {
+        if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
+            return 'Table not selected';
+
+        return $this->ct->getNumberOfRecords();
+    }
+
+    function records()
+    {
+        if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
+            return 'Table not selected';
+
+        return $this->ct->Table->recordcount;
+    }
+
+    function fields()
+    {
+        if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
+            return 'Table not selected';
+
+        return count($this->ct->Table->fields);
+    }
+
+    function description()
+    {
+        if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
+            return 'Table not selected';
+
+        return $this->ct->Table->tablerow['description' . $this->ct->Table->Languages->Postfix];
+    }
+
+    function title(): string
+    {
+        if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
+            return 'Table not selected';
+
+        return $this->ct->Table->tabletitle;
+    }
+
+    function name(): ?string
+    {
+        if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
+            return 'Table not selected';
+
+        return $this->ct->Table->tablename;
+    }
+
+    function id()
+    {
+        if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
+            return 'Table not selected';
+
+        return $this->ct->Table->tableid;
+    }
+
+    function recordsperpage()
+    {
+        if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
+            return 'Table not selected';
+
+        return $this->ct->Limit;
+    }
+
+    function recordpagestart()
+    {
+        if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
+            return 'Table not selected';
+
+        return $this->ct->LimitStart;
+    }
+
+
+}
+
 class Twig_Tables_Tags
 {
     var CT $ct;
@@ -607,7 +691,6 @@ class Twig_Tables_Tags
         $layouts = new Layouts($join_ct);
         $pagelayout = $layouts->getLayout($layoutname, false);//It is safer to process layout after rendering the table
 
-
         if ($layouts->tableid === null) {
             $this->ct->app->enqueueMessage('{{ html.records("' . $layoutname . '","' . $record_id_or_filter . '","' . $orderby . '") }} - Layout "' . $layoutname . ' not found.', 'error');
             return '';
@@ -638,7 +721,7 @@ class Twig_Tables_Tags
         //Example {{ html.records("InvoicesPage","firstname=john","lastname") }}
 
         if ($layoutname == '') {
-            $this->ct->app->enqueueMessage('{{ html.records("' . $layoutname . '","' . $filter . '","' . $orderby . '") }} - Layout name not specified.', 'error');
+            $this->ct->app->enqueueMessage('{{ tables.getrecords("' . $layoutname . '","' . $filter . '","' . $orderby . '") }} - Layout name not specified.', 'error');
             return '';
         }
 
@@ -647,16 +730,23 @@ class Twig_Tables_Tags
         $layouts = new Layouts($join_ct);
         $pagelayout = $layouts->getLayout($layoutname, false);//It is safer to process layout after rendering the table
         if ($layouts->tableid === null) {
-            $this->ct->app->enqueueMessage('{{ html.records("' . $layoutname . '","' . $filter . '","' . $orderby . '") }} - Layout "' . $layoutname . ' not found.', 'error');
+            $this->ct->app->enqueueMessage('{{ tables.getrecords("' . $layoutname . '","' . $filter . '","' . $orderby . '") }} - Layout "' . $layoutname . ' not found.', 'error');
             return '';
         }
 
         if ($tables->loadRecords($layouts->tableid, $filter, $orderby, $limit)) {
+
+            if ($join_ct->Env->legacysupport) {
+                $LayoutProc = new LayoutProcessor($join_ct);
+                $LayoutProc->layout = $pagelayout;
+                $pagelayout = $LayoutProc->fillLayout();
+            }
+
             $twig = new TwigProcessor($join_ct, $pagelayout);
             return $twig->process();
         }
 
-        $this->ct->app->enqueueMessage('{{ html.records("' . $layoutname . '","' . $filter . '","' . $orderby . '") }} - Could not load records.', 'error');
+        $this->ct->app->enqueueMessage('{{ tables.getrecords("' . $layoutname . '","' . $filter . '","' . $orderby . '") }} - Could not load records.', 'error');
         return '';
     }
 }

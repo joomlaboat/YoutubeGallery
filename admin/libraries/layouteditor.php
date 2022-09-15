@@ -105,7 +105,7 @@ $document->addCustomTag('<link rel="stylesheet" href="'.$adminpath.'libraries/co
 ';
 
 	$result_js='
-	<script type="text/javascript">
+	<script>
 	websiteroot="'.JURI::root(true).'";
 
 	define_cmLayoutEditor();

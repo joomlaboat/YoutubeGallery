@@ -25,7 +25,6 @@ use Twig\TwigFunction;
 
 use CT_FieldTypeTag_image;
 
-
 $types_path = CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'fieldtypes' . DIRECTORY_SEPARATOR;
 
 if (file_exists($types_path))
@@ -146,7 +145,6 @@ class TwigProcessor
         $this->twig->addGlobal('record', new Twig_Record_Tags($this->ct));
         //{{ record.advancedjoin(function, tablename, field_findwhat, field_lookwhere, field_readvalue, additional_where, order_by_option, value_option_list) }}	-	wizard ok
 
-
         //{{ record.joincount(join_table) }}
         //{{ record.joinavg(join_table,value_field_name) }}
         //{{ record.joinmin(join_table,value_field_name) }}
@@ -225,31 +223,74 @@ class TwigProcessor
         $this->twig->addFilter($filter);
     }
 
+    /**
+     * @throws Twig\Error\RuntimeError
+     * @throws Twig\Error\SyntaxError
+     * @throws Twig\Error\LoaderError
+     */
     public function process(?array $row = null): string
     {
         if ($row !== null)
             $this->ct->Table->record = $row;
 
-        try {
-            $result = @$this->twig->render('index', $this->variables);
-        } catch (Exception $e) {
-            $this->ct->app->enqueueMessage($e->getMessage(), 'error');
-            return $e->getMessage();
+        $isSingleRecord = false;
+
+        if ($row == null and isset($this->ct->LayoutVariables['layout_type']) and in_array($this->ct->LayoutVariables['layout_type'], [1, 5])) {
+
+            if ($this->ct->Params->listing_id != null and $this->ct->Params->listing_id != '')
+                $isSingleRecord = true;
+        }
+
+        if ($isSingleRecord) {
+            $result = '';
+        } else {
+            try {
+                $result = @$this->twig->render('index', $this->variables);
+            } catch (Exception $e) {
+                $this->ct->app->enqueueMessage($e->getMessage(), 'error');
+                return $e->getMessage();
+            }
         }
 
         if ($this->recordBlockFound) {
             $number = 1;
             $record_result = '';
-            foreach ($this->ct->Records as $row) {
-                $row['_number'] = $number;
-                $this->ct->Table->record = $row;
-                $record_result .= @$this->twig->render('record', $this->variables);
+
+            foreach ($this->ct->Records as $blockRow) {
+                $blockRow['_number'] = $number;
+                $this->ct->Table->record = $blockRow;
+                $row_result = @$this->twig->render('record', $this->variables);
+
+                //<tr id=...> is needed for ordering, modal edit, on page delete, publish and refresh functionality
+                $row_result = str_ireplace('<tr ', '<tr id="ctTable_' . $this->ct->Table->tableid . '_' . $blockRow[$this->ct->Table->realidfieldname] . '" ', $row_result);
+                $row_result = str_ireplace('<tr>', '<tr id="ctTable_' . $this->ct->Table->tableid . '_' . $blockRow[$this->ct->Table->realidfieldname] . '">', $row_result);
+
+                if ($isSingleRecord and $blockRow[$this->ct->Table->realidfieldname] == $this->ct->Params->listing_id)
+                    return $row_result; //This allows modal edit form functionality, to load single record after Save click
+                else
+                    $record_result .= $row_result;
+
                 $number++;
             }
 
-            return str_replace($this->recordBlockReplaceCode, $record_result, $result);
+            $result = str_replace($this->recordBlockReplaceCode, $record_result, $result);
         }
 
+        echo '$this->ct->LayoutVariables[layout_type]=' . $this->ct->LayoutVariables['layout_type'] . '*<br/>';
+        die;
+        if ($this->ct->Table->tableid != null) {
+
+            echo '$this->ct->LayoutVariables[layout_type]=' . $this->ct->LayoutVariables['layout_type'] . '*<br/>';
+
+            if ($row == null and isset($this->ct->LayoutVariables['layout_type']) and in_array($this->ct->LayoutVariables['layout_type'], [1, 5])) {
+                echo '$this->ct->LayoutVariables[layout_type]=' . $this->ct->LayoutVariables['layout_type'] . '*<br/>';
+                $result = Ordering::applyOrderingMethods($result, $this->ct->Table->tableid);
+            }
+        }
+
+        if (isset($this->ct->LayoutVariables['ordering_field_type_found']) and $this->ct->LayoutVariables['ordering_field_type_found']) {
+            $result = '<form id="ctTableForm_' . $this->ct->Table->tableid . '" method="post">' . $result . '</form>';
+        }
         return $result;
     }
 }

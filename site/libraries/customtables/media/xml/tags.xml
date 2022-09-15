@@ -38,6 +38,11 @@
              description="Example: Found 23 record(s)" twigclass="html">
         </tag>
 
+        <tag name="checkboxcount" label="Record Selected (as HTML SPAN tag)" startchar="{" endchar="}"
+             description="Renders an HTML SPAN tag that will hold the value - the number of selected records (checkboxes checked)"
+             twigclass="html">
+        </tag>
+
         <tag name="print" label="Print Button" startchar="{" endchar="}" twigclass="html"
              description="A button that opens a new controllers window without a template, only content.">
             <params>
@@ -90,7 +95,9 @@
             </params>
         </tag>
 
-        <tag name="search" label="Search Box" startchar="{" endchar="}" description="" twigclass="html">
+        <tag name="search" label="Search Box" startchar="{" endchar="}"
+             description="An input or select box to enter the search parameter." twigclass="html"
+             image="https://joomlaboat.com/images/components/ct/tags/search-box.png">
             <params>
                 <param type="field" name="field" label="Field(s)" description="Select Table Field to search in."
                        repeatative="0"/>
@@ -112,7 +119,18 @@
         </tag>
 
         <tag name="searchbutton" label="Search Button" startchar="{" endchar="}" description="Renders a Search Button"
-             twigclass="html">
+             twigclass="html" image="https://joomlaboat.com/images/components/ct/tags/search-button.png">
+            <params>
+                <param name="label" label="Button Label" type="string" example="Search"
+                       description="The label of the button. Leaving the label parameter empty will produce an icon only (a magnifying glass). You can also pass HTML code as the label argument to control the button look completely. "/>
+                <param type="string" name="cssclass" label="CSS Class"
+                       description="Name or names of CSS classes separated by space."/>
+            </params>
+        </tag>
+
+        <tag name="searchreset" label="Search Reset Button" startchar="{" endchar="}"
+             description="A button to resets search parameters"
+             twigclass="html" image="https://joomlaboat.com/images/components/ct/tags/search-reset.png">
             <params>
                 <param name="label" label="Button Label" type="string" example="Search"
                        description="The label of the button. Leaving the label parameter empty will produce an icon only (a magnifying glass). You can also pass HTML code as the label argument to control the button look completely. "/>
@@ -141,7 +159,12 @@
         </tag>
 
         <tag name="pagination" label="Pagination Bar" startchar="{" endchar="}"
-             description="renders HTML Pagination Bar." twigclass="html"/>
+             description="renders HTML Pagination Bar." twigclass="html">
+            <params>
+                <param type="radio" name="icons" label="Show arrow icons" default="list"
+                       options="false|Buttons with text,true|Arrow Icons"/>
+            </params>
+        </tag>
 
         <tag name="orderby" label="Order By (Sort By) box" startchar="{" endchar="}" proversion="1"
              description="renders HTML Order By select box." twigclass="html"/>
@@ -220,7 +243,7 @@
         </tag>
 
         <tag name="base64encode" label="Base64 Encode" startchar="{" endchar="}"
-             description="Encodes the given string with base64." twigclass="html" proversion="1">
+             description="Encodes the given string with base64." twigclass="html" proversion="1" deprecated="1">
             <params>
                 <param name="parameter" label="String" type="string" description="The data to encode. "/>
             </params>
@@ -316,8 +339,9 @@
              description="Calculates the average value of all the records that match." twigclass="record">
             <params>
                 <param name="tablename" label="Table" type="table"
-                       description="The name of the Table that has a Table Join type field." example="products"/>
-                <param name="value_of_field" label="Value Field" type="string"
+                       description="The name of the Table that has a Table Join type field." example="products"
+                       fieldchild="fieldtype_param_1"/>
+                <param name="value_of_field" label="Value Field" type="field"
                        description="Field of joined table to read the value from." example="_id"/>
                 <param name="filter" label="Filter" type="string"
                        description="Optional filter, ie. fieldname=some value."/>
@@ -328,8 +352,9 @@
              description="Finds minimum value of all the records that match." twigclass="record">
             <params>
                 <param name="tablename" label="Table" type="table"
-                       description="The name of the Table that has a Table Join type field." example="products"/>
-                <param name="value_of_field" label="Value Field" type="string"
+                       description="The name of the Table that has a Table Join type field." example="products"
+                       fieldchild="fieldtype_param_1"/>
+                <param name="value_of_field" label="Value Field" type="field"
                        description="Field of joined table to read the value from." example="_id"/>
                 <param name="filter" label="Filter" type="string"
                        description="Optional filter, ie. fieldname=some value."/>
@@ -340,8 +365,9 @@
              description="Finds maximum value of all the records that match." twigclass="record">
             <params>
                 <param name="tablename" label="Table" type="table"
-                       description="The name of the Table that has a Table Join type field." example="products"/>
-                <param name="value_of_field" label="Value Field" type="string"
+                       description="The name of the Table that has a Table Join type field." example="products"
+                       fieldchild="fieldtype_param_1"/>
+                <param name="value_of_field" label="Value Field" type="field"
                        description="Field of joined table to read the value from." example="_id"/>
                 <param name="filter" label="Filter" type="string"
                        description="Optional filter, ie. fieldname=some value."/>
@@ -352,8 +378,9 @@
              description="Summarizes values of a selected field of all the records that match." twigclass="record">
             <params>
                 <param name="tablename" label="Table" type="table"
-                       description="The name of the Table that has a Table Join type field." example="products"/>
-                <param name="value_of_field" label="Value Field" type="string"
+                       description="The name of the Table that has a Table Join type field." example="products"
+                       fieldchild="fieldtype_param_1"/>
+                <param name="value_of_field" label="Value Field" type="field"
                        description="Field of joined table to read the value from." example="_id"/>
                 <param name="filter" label="Filter" type="string"
                        description="Optional filter, ie. fieldname=some value."/>
@@ -364,8 +391,9 @@
              description="Returns the value of selected field of all the records that match." twigclass="record">
             <params>
                 <param name="tablename" label="Table" type="table"
-                       description="The name of the Table that has a Table Join type field." example="products"/>
-                <param name="value_of_field" label="Field of joined table to read the value from." type="string"
+                       description="The name of the Table that has a Table Join type field." example="products"
+                       fieldchild="fieldtype_param_1"/>
+                <param name="value_of_field" label="Field of joined table to read the value from." type="field"
                        description="Field of joined table to read the value from." example="_id"/>
                 <param name="filter" label="Filter" type="string"
                        description="Optional filter, ie. fieldname=some value."/>
@@ -406,13 +434,14 @@
                             description="Returns the value of selected field of all the records that match."/>
                     <!-- <option value="smart" label="Hierarchical" description="resolves value of selected field." proversion="1" /> -->
                 </param>
-                <param name="tablename" label="Join With Table" type="string"
-                       description="Table Name to join with (Where to look)" example="sales"/>
-                <param name="findwhat_field" label="Find What Field" type="string" example="_id"
+                <param name="tablename" label="Join With Table" type="table"
+                       description="Table Name to join with (Where to look)" example="sales"
+                       fieldchild="fieldtype_param_3,fieldtype_param_4"/>
+                <param name="findwhat_field" label="Find What Field" type="field" example="_id" currenttable="1"
                        description="The field of the current table. use '_id' to the find current table record id."/>
-                <param name="lookwhere_field" label="Where to Look Field" type="string"
+                <param name="lookwhere_field" label="Where to Look Field" type="field"
                        description="Field of a joined table" example="productid"/>
-                <param name="value_of_field" label="Value Field" type="string"
+                <param name="value_of_field" label="Value Field" type="field"
                        description="Value of joined table field." example="_id"/>
                 <param name="filter" label="Filter" type="string"
                        description="Optional filter, ie. fieldname=some value."/>
@@ -461,8 +490,20 @@
     <!-- Table Tags -->
     <tagset name="table" label="Table" description="Tags related current to current table." priority="1">
 
-        <tag name="records" label="Record Count (number)" startchar="{" endchar="}"
+        <tag name="records" label="Record Count (filtered)" startchar="{" endchar="}"
              description="Returns the number of records in the table that met filter criteria" twigclass="table"/>
+
+        <tag name="recordstotal" label="Total Number of Records" startchar="{" endchar="}"
+             description="Returns the total number of records in the table" hidedefaultexample="1" twigclass="table"/>
+
+        <tag name="recordpagestart" label="Page Start Record number" startchar="{" endchar="}"
+             description="Returns the pagination start from record number" hidedefaultexample="1" twigclass="table"
+             example="{{ table.recordpagestart + table.recordsperpage }}"/>
+
+        <tag name="recordsperpage" label="Number of records per page" startchar="{" endchar="}"
+             description="Returns number of records per page" hidedefaultexample="1" twigclass="table"
+             example="{{ table.recordpagestart + table.recordsperpage }}"
+        />
 
         <tag name="title" label="Table Title" startchar="{" endchar="}"
              description="Returns the current table title." hidedefaultexample="1" twigclass="table"/>
@@ -514,9 +555,10 @@
              twigclass="tables" proversion="1">
             <params>
                 <param name="tablename" label="Table" type="table"
-                       description="The name of the Table that has a Table Join type field." example="products"/>
+                       description="The name of the Table that has a Table Join type field." example="products"
+                       fieldchild="fieldtype_param_1"/>
 
-                <param type="string" name="valuefield" label="Value Field"
+                <param type="field" name="valuefield" label="Value Field"
                        description="Field of joined table to read the value from." example="_id"/>
                 <param type="string" name="recordidorfilter" label="Record ID or filter"
                        description="Example 1: 65, example 2: population>1000000" example="62"/>
@@ -1079,4 +1121,14 @@
         <!--  </params> -->
         <!-- </tag> -->
     </tagset>
+
+    <tagset name="filters" label="Filters" description="Extended Twig Filters. {{ value | filter }}" priority="3"
+            proversion="1">
+        <tag name="base64encode" description="Encodes the given string with base64." examplevalue="'hello world'"/>
+        <tag name="base64decode" description="Decodes a base64 encoded string." examplevalue="'aGVsbG8gd29ybGQ='"/>
+        <tag name="md5" description="Calculates the MD5 hash of string." examplevalue="'hello world'"/>
+        <tag name="ucwords" description="Uppercase the first character of each word in a string."
+             examplevalue="'hello world'"/>
+    </tagset>
+
 </layouts>

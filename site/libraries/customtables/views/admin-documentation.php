@@ -16,6 +16,7 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 }
 
 use Joomla\CMS\Version;
+use JoomlaBasicMisc;
 
 class Documentation
 {
@@ -35,23 +36,11 @@ class Documentation
 
     function getFieldTypes(): string
     {
-        $xml = $this->getXMLData('fieldtypes.xml');
+        $xml = JoomlaBasicMisc::getXMLData('fieldtypes.xml');
         if (count($xml) == 0 or !isset($xml->type))
             return '';
 
         return $this->renderFieldTypes($xml->type);
-    }
-
-    function getXMLData($file)
-    {
-        $xml_content = file_get_contents(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR
-            . 'media' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR . $file);
-
-        if ($xml_content != '') {
-            $xml = simplexml_load_string($xml_content) or die('Cannot load or parse "' . $file . '" file.');
-            return $xml;
-        }
-        return '';
     }
 
     function renderFieldTypes($types): string
@@ -94,6 +83,10 @@ class Documentation
 
                 $result .= '<p>' . $type_att->description . '</p>';
 
+                if (isset($type_att->image)) {
+                    $result .= '<p><img src="' . $type_att->image . '" alt="' . $type_att->label . '" /></p>';
+                }
+
                 if (!empty($type->params) and count($type->params) > 0) {
                     $content = $this->renderParametersInternal($type->params, '', '', '', '', true);
                     if ($content != '')
@@ -124,10 +117,23 @@ class Documentation
                     . '</pre></p>';
 
 
-                $result .= '<hr/><h5>' . common::translate('COM_CUSTOMTABLES_EDITRECPARAMS') . ':</h5><p>Example 1:<pre class="ct_doc_pre">'
-                    . '{{ <i>' . str_replace(' ', '', common::translate('COM_CUSTOMTABLES_FIELDNAME')) . '</i>.edit }}</pre></p>';
+                $result .= '<hr/><h5>' . common::translate('COM_CUSTOMTABLES_EDITRECPARAMS') . ':</h5>';
 
                 if (!empty($type->editparams)) {
+
+                    $editparams_att = $type->editparams->attributes();
+
+                    if (isset($editparams_att->image)) {
+                        $result .= '<p><img src="' . $editparams_att->image . '" alt="' . $editparams_att->label . '" /></p>';
+                    }
+                }
+
+                $result .= '<p>Example 1:<pre class="ct_doc_pre">'
+                    . '{{ <i>' . str_replace(' ', '', common::translate('COM_CUSTOMTABLES_FIELDNAME')) . '</i>.edit }}</pre></p>';
+
+
+                if (!empty($type->editparams)) {
+
                     foreach ($type->editparams as $p) {
                         $params = $p->params;
                         //$result.='<h5>'.common::translate('COM_CUSTOMTABLES_EDITRECPARAMS').':</h5>'
@@ -322,7 +328,12 @@ class Documentation
             $isDeprecated = (bool)(int)$type_att->deprecated;
 
             if (!$isDeprecated) {
+
                 $result .= '# ' . $type_att->ct_name . '<br/><br/>' . $type_att->label . ' - ' . $type_att->description . '<br/><br/>';
+
+                if (isset($type_att->image)) {
+                    $result .= '![' . $type_att->label . '](' . $type_att->image . ')<br/><br/>';
+                }
 
                 if (!empty($type->params) and count($type->params) > 0) {
                     $content = $this->renderParametersGitHub($type->params, '', '', '', '', true);
@@ -502,7 +513,7 @@ class Documentation
 
     function getLayoutTags(): string
     {
-        $xml = $this->getXMLData('tags.xml');
+        $xml = JoomlaBasicMisc::getXMLData('tags.xml');
 
         if (count($xml) == 0)
             return '';
@@ -540,7 +551,9 @@ class Documentation
                 $result .= '</h3>';
 
                 $result .= '<p>' . $tagSetAtt->description . '</p>';
+
                 $result .= $this->renderTagsInternal($tagSet->tag, $tagSetAtt->name);
+
                 $result .= '</div>';
             }
         }
@@ -563,17 +576,24 @@ class Documentation
                 if ($is4Pro)
                     $class = 'ct_doc_pro';
 
+                $label = '';
 
                 if ($tagsetname == 'plugins') {
                     $startchar = '{';
                     $endchar = '}';
+                    $label = $tag_att->label;
+                } elseif ($tagsetname == 'filters') {
+                    $startchar = '{{ ' . $tag_att->examplevalue . ' | ';
+                    $endchar = ' }}';
+                    $label = $tag_att->description;
                 } else {
                     $startchar = '{{ ' . $tag_att->twigclass . '.';
                     $endchar = ' }}';
+                    $label = $tag_att->label;
                 }
 
                 $result .= '<div class="' . $class . ' ct_readmoreClosed" id="ctDocTag_' . $tag_att->twigclass . '_' . $tag_att->name . '">';
-                $result .= '<a name="' . $tag_att->twigclass . '_' . $tag_att->name . '"></a><h4 onClick="readmoreOpenClose(\'ctDocTag_' . $tag_att->twigclass . '_' . $tag_att->name . '\')">' . $startchar . $tag_att->name . $endchar . ' - <span>' . $tag_att->label . '</span>';
+                $result .= '<a name="' . $tag_att->twigclass . '_' . $tag_att->name . '"></a><h4 onClick="readmoreOpenClose(\'ctDocTag_' . $tag_att->twigclass . '_' . $tag_att->name . '\')">' . $startchar . $tag_att->name . $endchar . ' - <span>' . $label . '</span>';
 
                 if ($is4Pro)
                     $result .= '<div class="ct_doc_pro_label"><a href="https://joomlaboat.com/custom-tables#buy-extension" target="_blank">' . common::translate('COM_CUSTOMTABLES_AVAILABLE') . '</a></div>';
@@ -582,6 +602,10 @@ class Documentation
 
                 if ($tagsetname != 'plugins') {
                     $result .= '<p>' . $tag_att->description . '</p>';
+
+                    if (isset($tag_att->image)) {
+                        $result .= '<p><img src="' . $tag_att->image . '" alt="' . $tag_att->label . '" /></p>';
+                    }
 
                     if (!empty($tag->params) and count($tag->params) > 0) {
                         $content = $this->renderParametersInternal($tag->params,
@@ -595,6 +619,11 @@ class Documentation
                             $result .= '<h5>' . common::translate('COM_CUSTOMTABLES_PARAMS') . ':</h5>' . $content;
                     }
                 }
+
+                if ($tag_att->example !== null) {
+                    $result .= '<pre>Example: ' . $tag_att->example . '</pre>';
+                }
+
                 $result .= '</div>';
             }
         }
@@ -609,7 +638,7 @@ class Documentation
             $tagset_att = $tagset->attributes();
 
             if ((int)$tagset_att->deprecated == 0 and $tagset_att->name != 'plugins') {
-                $result .= '# ' . $tagset_att->label . '<br/><br/>';
+                $result .= '# ' . $tagset_att->label . '<br/>' . $tagset_att->description . '<br/><br/>';
                 $result .= $this->renderTagsGitHub($tagset->tag, $tagset_att->name) . '<br/><br/><br/>';
             }
         }
@@ -627,21 +656,42 @@ class Documentation
 
             if (!$isDeprecated) {
 
-                $result .= '## ' . $tag_att->twigclass . '.' . $tag_att->name . '<br/><br/>' . $tag_att->description . '<br/><br/>';
+                if ($tagsetname == 'filters')
+                    $result .= '## {{ ' . $tag_att->examplevalue . ' | ' . $tag_att->name . ' }}<br/><br/>' . $tag_att->description . '<br/><br/>';
+                else
+                    $result .= '## ' . $tag_att->twigclass . '.' . $tag_att->name . '<br/><br/>' . $tag_att->description . '<br/><br/>';
+
+                if (isset($tag_att->image)) {
+                    $result .= '![' . $tag_att->label . '](' . $tag_att->image . ')<br/><br/>';
+                }
 
                 if ($tagsetname != 'plugins') {
 
                     if (!empty($tag->params) and count($tag->params) > 0) {
-                        $content = $this->renderParametersGitHub($tag->params,
-                            '{{ ',
-                            '' . $tag_att->twigclass . '.' . $tag_att->name,
-                            '',
-                            ' }}',
-                            $hidedefaultexample);
+
+                        if ($tagsetname == 'filters') {
+                            $content = $this->renderParametersGitHub($tag->params,
+                                '{{ ',
+                                '' . $tag_att->examplevalue . ' | ' . $tag_att->name,
+                                '',
+                                ' }}',
+                                true);
+                        } else {
+                            $content = $this->renderParametersGitHub($tag->params,
+                                '{{ ',
+                                '' . $tag_att->twigclass . '.' . $tag_att->name,
+                                '',
+                                ' }}',
+                                $hidedefaultexample);
+                        }
 
                         if ($content != '')
                             $result .= '**' . common::translate('COM_CUSTOMTABLES_PARAMS') . '**<br><br>' . $content;
                     }
+                }
+
+                if ($tag_att->example !== null) {
+                    $result .= 'Example: `' . $tag_att->example . '`<br><br>';
                 }
 
                 $result .= '<br/>';

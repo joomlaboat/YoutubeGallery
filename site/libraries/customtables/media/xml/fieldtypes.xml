@@ -25,8 +25,10 @@
     </type>
 
     <type ct_name="checkbox" label="Checkbox (YES/NO)"
-          description="Provides a single checkbox to be checked or unchecked" priority="1">
-        <editparams name="checkbox" label="Input Element Parameters" description="">
+          description="Provides a single checkbox to be checked or unchecked" priority="1"
+          image="https://joomlaboat.com/images/components/ct/field-types/checkbox.png">
+        <editparams name="checkbox" label="Input Element Parameters" description=""
+        >
             <params>
                 <param type="string" name="cssclass" label="CSS Class" description="Name or names of CSS class(s)."/>
                 <param name="attributes" label="Attributes"
@@ -43,8 +45,10 @@
 
     <type ct_name="color" name="color" label="Color"
           description="Provides Color Picker functionality in the Edit Form or hexidecimal value as an output."
-          ct_alias="color" disabled="false" ct_special="false" priority="2">
-        <editparams name="color" label="Format" description="Color Picker format.">
+          ct_alias="color" disabled="false" ct_special="false" priority="2"
+          image="https://joomlaboat.com/images/components/ct/field-types/color.png">
+        <editparams name="color" label="Format" description="Color Picker format."
+        >
             <params>
                 <param name="transparent" label="Transparent" description="Allow transparency - alpha color." default=""
                        type="radio" options="|No,transparent|Yes"/>
@@ -166,7 +170,7 @@
                    description="Folder where all the files will be kept. By default /images" default="" type="folder"/>
             <param name="filetypes" label="File Types" example="doc docx"
                    description="List of acceptable file types (list separated by space)"
-                   default="doc docx xls xlsx pdf pages ppt pptx" type="string"/>
+                   default="doc docx xls xlsx pdf pages ppt pptx rtf" type="string"/>
             <param name="saveas" label="Save As File Name"
                    description="Specify the name of a newly uploaded file. You may use field tags [fieldname]"
                    default="" type="string"/>
@@ -239,7 +243,7 @@
                    description="Folder where all the files will be kept. By default /images" default="" type="folder"/>
             <param name="filetypes" label="File Type" example="pdf ppt"
                    description="List of acceptable file types (list separated by space)"
-                   default="doc docx xls xlsx pdf pages ppt pptx" type="string"/>
+                   default="doc docx xls xlsx pdf pages ppt pptx rtf" type="string"/>
         </params>
 
         <editparams name="filebox" label="Input Element Parameters" description="">
@@ -303,18 +307,28 @@
         </valueparams>
     </type>
 
-    <type ct_name="blob" label="Blob (Save file into the data base)"
+    <type ct_name="blob" label="Blob (Save file into the database)"
           description="A BLOB is a binary large object that can hold an entire file." priority="2">
         <params>
-            <param name="size" label="Max File Size" example="8"
-                   description="Obsolete. The max. upload file size is taken from PHP.ini file. No need to specify anything."
-                   default="" type="int" min="1" max="1000" disabled="false"/>
+            <param name="type" label="Maximum length" example="medium" description="Maximum length of value to be held"
+                   default="" type="list">
+                <option value="tiny"
+                        label="255 Bytes (TINYBLOB)"
+                        description="A binary large object column with a maximum length of 255 (2^8 - 1) bytes. Each TINYBLOB value is stored using a one-byte length prefix that indicates the number of bytes in the value."/>
+                <option value="" label="64KB (BLOB)"
+                        description="A binary large object column with a maximum length of 65535 (2^16 - 1) bytes, or 64KB in storage. Each BLOB value is stored using a two-byte length prefix that indicates the number of bytes in the value."/>
+                <option value="medium" label="16MB (MEDIUMBLOB)"
+                        description="A binary large object column with a maximum length of 16777215 (2^24 - 1) bytes, or 16MB in storage. Each MEDIUMBLOB value is stored using a three-byte length prefix that indicates the number of bytes in the value."/>
+                <option value="long" label="4GB (LONGBLOB)"
+                        description="A binary large object column with a maximum length of 4294967295 (2^32 - 1) bytes, or 4GB in storage. Each LONGBLOB value is stored using a four-byte length prefix that indicates the number of bytes in the value."/>
+            </param>
+
             <param name="filetypes" label="File Types" example="doc docx"
                    description="List of acceptable file types (list separated by space)"
                    default="doc docx xls xlsx pdf pages ppt pptx" type="string"/>
             <param name="filenamefield" label="Field to get the file name from / to"
                    description="Specify the name of the field where to store the original file name. By the default file name will be the current timestamp and guessed file extension."
-                   default="" type="string"/>
+                   type="field"/>
             <param type="string" name="customphp" label="Custom PHP"
                    description="PHP file/function that will process file content before being downloaded by the user. File must be located at /components/com_customtables/customphp."
                    proversion="1"/>
@@ -482,6 +496,46 @@
                        type="string"/>
             </params>
         </editparams>
+
+        <valueparams name="googlemapcoordinates" label="GPS Coordinates / Map"
+                     description="How to show GPS coordinates or a Map.">
+            <params>
+                <param name="format" label="Format" example="map"
+                       description="Format the coordinates output or render a map." default="map" type="list">
+                    <option value="" label="Latitude and Longitude separated by comma"/>
+                    <option value="map" label="Google Map"/>
+                    <option value="latitude" label="Latitude only"/>
+                    <option value="longitude" label="Longitude only"/>
+                </param>
+                <param name="width" label="Map Width" description="Map Width in Pixels or %" style="width:50px;"
+                       default="320" type="string"/>
+                <param name="height" label="Map Height" description="Map Width in Pixels or %" style="width:50px;"
+                       default="240" type="string"/>
+                <param name="zoom" label="Map Zoom"
+                       description="The Google Maps API provides map tiles at various zoom levels for map type imagery. Most roadmap imagery is available from zoom levels 0 to 18"
+                       default="10" type="list">
+                    <option value="0" label="0"/>
+                    <option value="1" label="1"/>
+                    <option value="2" label="2"/>
+                    <option value="3" label="3"/>
+                    <option value="4" label="4"/>
+                    <option value="5" label="5"/>
+                    <option value="6" label="6"/>
+                    <option value="7" label="7"/>
+                    <option value="8" label="8"/>
+                    <option value="9" label="9"/>
+                    <option value="10" label="10"/>
+                    <option value="11" label="11"/>
+                    <option value="12" label="12"/>
+                    <option value="13" label="13"/>
+                    <option value="14" label="14"/>
+                    <option value="15" label="15"/>
+                    <option value="16" label="16"/>
+                    <option value="17" label="17"/>
+                    <option value="18" label="18"/>
+                </param>
+            </params>
+        </valueparams>
     </type>
 
     <type ct_name="id" label="Custom Record ID" description="Autoincrement ID. parameter: start from number"
@@ -779,7 +833,8 @@
 
     <type ct_name="ordering" name="ordering" label="Ordering/Sorting"
           description="Record custom position, a front-end tool to sort records in a custom order." ct_alias="ordering"
-          disabled="false" ct_special="false" priority="3"/>
+          disabled="false" ct_special="false" priority="3"
+          image="https://joomlaboat.com/images/components/ct/field-types/ordering-catalog.png"/>
 
     <type ct_name="phponadd" label="PHP On Add"
           description="Executes PHP script after record has been added saves the return value." rawquotes="0"
@@ -821,10 +876,10 @@
           description="Provides a Multiple Left Join to records of another table." priority="2">
         <params>
             <param name="table" label="Table" description="Type the name of the Custom Table to join/link with."
-                   example="products" default="" type="table"/>
+                   example="products" default="" type="table" fieldchild="fieldtype_param_1"/>
             <param name="fieldname" label="Field Name" example="title"
                    description="Type the field name to return the value from (that can be overwritten in Layout). You may type layout name instead. options: [layout:the layout or tablelesslayout:the layout]"
-                   default="" type="string"/>
+                   default="" type="field"/>
             <param name="selector" label="Selector" example="single" description="How to select records."
                    default="single" type="list">
                 <option value="single" label="Single Record (Dropdown List)"/>
@@ -985,10 +1040,11 @@
           description="Left Join to another table, finds the record and reads value of any field." priority="3">
         <params>
             <param name="table" label="Table" example="products"
-                   description="Type the name of the Custom Table to join/link with." default="" type="table"/>
+                   description="Type the name of the Custom Table to join/link with." default="" type="table"
+                   fieldchild="fieldtype_param_1"/>
             <param name="fieldname" label="Field Name" example="title"
                    description="Type the field name to return the value by default. You may type layout name instead. options: 'layout:layout_name' or 'tablelesslayout:layout_name'"
-                   default="" type="string" tableobject="fieldtype_param_0"/>
+                   default="" type="field"/>
             <param name="filter" label="Filter"
                    description="Limits records using filter. Example: [age>30] where age is a field in joining table"
                    default="" type="string"/>

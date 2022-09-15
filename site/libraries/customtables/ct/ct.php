@@ -18,6 +18,8 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 use Joomla\CMS\Application\WebApplication;
 use Joomla\CMS\Document\Document;
 use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Component\ComponentHelper;
 
@@ -159,6 +161,7 @@ class CT
 
             if ($limit > 0) {
                 $this->db->setQuery($query, 0, $limit);
+                $this->Limit = $limit;
             } else {
                 $the_limit = $this->Limit;
 
@@ -183,10 +186,13 @@ class CT
         } else
             $this->Records = [];
 
+        if ($this->Limit == 0)
+            $this->Limit = 20000;
+
         return true;
     }
 
-    function getNumberOfRecords($where): int
+    function getNumberOfRecords(string $where = ''): int
     {
         $query_check_table = 'SHOW TABLES LIKE ' . $this->db->quote(str_replace('#__', $this->db->getPrefix(), $this->Table->realtablename));
         $this->db->setQuery($query_check_table);
@@ -310,7 +316,7 @@ class CT
             $this->GroupBy = '';
 
         if ($this->Env->frmt != 'html') {
-            //export all records if firmat is csv, xml etc.
+            //export all records if format is csv, xml etc.
             $this->Limit = 0;
             $this->LimitStart = 0;
             return;
@@ -344,10 +350,13 @@ class CT
         if ($this->Env->version < 4) {
             $this->document->addCustomTag('<script src="' . URI::root(true) . '/media/jui/js/jquery.min.js"></script>');
             $this->document->addCustomTag('<script src="' . URI::root(true) . '/media/jui/js/bootstrap.min.js"></script>');
-        } else
-            $this->document->addCustomTag('<link rel="stylesheet" href="' . URI::root(true) . '/media/system/css/fields/switcher.css">');
+        } else {
 
-        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/jquery.uploadfile.min.js"></script>');
+            HTMLHelper::_('jquery.framework');
+            $this->document->addCustomTag('<link rel="stylesheet" href="' . URI::root(true) . '/media/system/css/fields/switcher.css">');
+        }
+
+        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/jquery.uploadfile.js"></script>');
         $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/jquery.form.js"></script>');
 
         $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/ajax.js"></script>');
@@ -371,5 +380,11 @@ class CT
         $this->document->addCustomTag('<link href="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/css/style.css" type="text/css" rel="stylesheet" >');
         $this->document->addCustomTag('<link href="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/css/modal.css" type="text/css" rel="stylesheet" >');
         $this->document->addCustomTag('<link href="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/css/uploadfile.css" rel="stylesheet">');
+
+        Text::script('COM_CUSTOMTABLES_JS_SELECT_RECORDS');
+        Text::script('COM_CUSTOMTABLES_JS_SELECT_DO_U_WANT_TO_DELETE1');
+        Text::script('COM_CUSTOMTABLES_JS_SELECT_DO_U_WANT_TO_DELETE');
+        Text::script('COM_CUSTOMTABLES_JS_NOTHING_TO_SAVE');
+        Text::script('COM_CUSTOMTABLES_JS_SESSION_EXPIRED');
     }
 }

@@ -85,27 +85,59 @@ class Value
             case 'phponadd':
             case 'phponchange':
             case 'phponview':
-            case 'googlemapcoordinates':
             case 'alias':
             case 'radio':
             case 'server':
             case 'email':
             case 'url':
                 return $rowValue;
+            case 'googlemapcoordinates':
+
+                if ($option_list[0] == 'map') {
+
+                    $parts = explode(',', $rowValue);
+                    $lat = $parts[0];
+                    $lng = $parts[1] ?? '';
+                    if ($lat == '' or $lng == '')
+                        return '';
+
+                    $width = $option_list[1] ?? '320px';
+                    if (!str_contains($width, '%') and !str_contains($width, 'px'))
+                        $width .= 'px';
+
+                    $height = $option_list[2] ?? '240px';
+                    if (!str_contains($height, '%') and !str_contains($height, 'px'))
+                        $height .= 'px';
+
+                    $zoom = (int)$option_list[3] ?? '10';
+                    if ($zoom == 0)
+                        $zoom = 10;
+
+                    $boxId = 'ct' . $this->field->fieldname . '_map' . $row[$this->ct->Table->realidfieldname];
+
+                    return '<div id="' . $boxId . '" style="width:' . $width . ';height:' . $height . '">'
+                        . '</div><script>ctValue_googlemapcoordinates("' . $boxId . '", ' . $lat . ',' . $lng . ',' . $zoom . ')</script>';
+
+                } elseif ($option_list[0] == 'latitude')
+                    return explode(',', $rowValue)[0];
+                elseif ($option_list[0] == 'longitude') {
+                    $parts = explode(',', $rowValue);
+                    return ($parts[1] ?? '');
+                }
+                return $rowValue;
 
             case 'multilangstring':
             case 'multilangtext':
-                return $this->multilang($row, $option_list);
+                return $this->multilingual($row, $option_list);
 
             case 'string':
                 return $this->TextFunctions($rowValue, $option_list);
 
             case 'text':
+                return $this->TextFunctions($rowValue, $option_list);
 
-                if ($this->ct->Table->customtablename)
-                    return $this->blobProcess($rowValue, $option_list);
-                else
-                    return $this->TextFunctions($rowValue, $option_list);
+            case 'blob':
+                return $this->blobProcess($rowValue, $option_list);
 
             case 'color':
                 return $this->colorProcess($rowValue, $option_list);
@@ -234,29 +266,45 @@ class Value
 
     protected function orderingProcess($value, $row): string
     {
+        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+            return $value;
+
+        if ($this->ct->Env->isPlugin)
+            return $value;
+
+        if (!in_array($this->ct->LayoutVariables['layout_type'], [1, 5, 6]))//If not Simple Catalog and not Catalog Page and not Catalog Item
+            return $value;
+
+        $edit_userGroup = (int)$this->ct->Params->editUserGroups;
+        $isEditable = CTUser::checkIfRecordBelongsToUser($this->ct, $edit_userGroup);
+
         $orderby_pair = explode(' ', $this->ct->Ordering->orderby);
 
-        if ($orderby_pair[0] == $this->field->realfieldname)
+        if ($orderby_pair[0] == $this->field->realfieldname and $isEditable)
             $iconClass = '';
         else
             $iconClass = ' inactive tip-top hasTooltip" title="' . JHtml::_('tooltipText', 'COM_CUSTOMTABLES_FIELD_ORDERING_DISABLED');
 
-        $result = '
-			<span class="sortable-handler' . $iconClass . '">
-				<i class="icon-menu"></i>
-			</span>';
+        if ($this->ct->Env->version < 4)
+            $result = '<span class="sortable-handler' . $iconClass . '"><i class="ctIconOrdering"></i></span>';
+        else
+            $result = '<span class="sortable-handler' . $iconClass . '"><span class="icon-ellipsis-v" aria-hidden="true"></span></span>';
 
         if ($orderby_pair[0] == $this->field->realfieldname) {
-            $result .= '<input type="text" style="display:none" name="order[]" size="5" value="' . $value . '" class="width-20 text-area-order " />';
+
+            if ($this->ct->Env->version < 4)
+                $result .= '<input type="text" style="display:none" name="order[]" size="5" value="' . $value . '" class="width-20 text-area-order " />';
+            else
+                $result .= '<input type="text" name="order[]" size="5" value="' . $value . '" class="width-20 text-area-order hidden" />';
+
             $result .= '<input type="checkbox" style="display:none" name="cid[]" value="' . $row[$this->ct->Table->realidfieldname] . '" class="width-20 text-area-order " />';
 
             $this->ct->LayoutVariables['ordering_field_type_found'] = true;
         }
-
         return $result;
     }
 
-    protected function multilang(?array $row, array $option_list)
+    protected function multilingual(?array $row, array $option_list)
     {
         $specific_lang = $option_list[4] ?? '';
 
@@ -295,16 +343,16 @@ class Value
                     $count = -1;
 
                 if (isset($parameters[2]) and $parameters[2] == 'true')
-                    $cleanbraces = true;
+                    $cleanBraces = true;
                 else
-                    $cleanbraces = false;
+                    $cleanBraces = false;
 
                 if (isset($parameters[3]) and $parameters[3] == 'true')
-                    $cleanquotes = true;
+                    $cleanQuotes = true;
                 else
-                    $cleanquotes = false;
+                    $cleanQuotes = false;
 
-                return JoomlaBasicMisc::chars_trimtext($content, $count, $cleanbraces, $cleanquotes);
+                return JoomlaBasicMisc::chars_trimtext($content, $count, $cleanBraces, $cleanQuotes);
 
             case "words" :
 
@@ -314,16 +362,16 @@ class Value
                     $count = -1;
 
                 if (isset($parameters[2]) and $parameters[2] == 'true')
-                    $cleanbraces = true;
+                    $cleanBraces = true;
                 else
-                    $cleanbraces = false;
+                    $cleanBraces = false;
 
                 if (isset($parameters[3]) and $parameters[3] == 'true')
-                    $cleanquotes = true;
+                    $cleanQuotes = true;
                 else
-                    $cleanquotes = false;
+                    $cleanQuotes = false;
 
-                return JoomlaBasicMisc::words_trimtext($content, $count, $cleanbraces, $cleanquotes);
+                return JoomlaBasicMisc::words_trimtext($content, $count, $cleanBraces, $cleanQuotes);
 
             case "firstimage" :
 

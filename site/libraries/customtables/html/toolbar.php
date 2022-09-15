@@ -92,7 +92,7 @@ class RecordToolbar
         elseif ($mode == 'publish')
             return $this->renderPublishIcon();
         elseif ($mode == 'checkbox')
-            return '<input type="checkbox" name="esCheckbox' . $this->Table->tableid . '" id="esCheckbox' . $this->rid . '" value="' . $this->listing_id . '" />';
+            return '<input type="checkbox" onClick="ctUpdateCheckboxCounter(' . $this->Table->tableid . ')" name="esCheckbox' . $this->Table->tableid . '" id="esCheckbox' . $this->rid . '" value="' . $this->listing_id . '" />';
 
         return '';
     }
@@ -119,17 +119,14 @@ class RecordToolbar
             $editlink .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
 
         if ($isModal) {
-            $tmp_current_url = base64_encode($this->ct->Env->current_url);//To have  the returnto link that may include listing_id param.
+            $tmp_current_url = base64_encode($this->ct->Env->current_url);//To have the returnto link that may include listing_id param.
             $editlink .= '&amp;returnto=' . $tmp_current_url;
-
             $link = 'javascript:ctEditModal(\'' . $editlink . '\')';
-            $a = '<a href="' . $link . '">' . $img . '</a>';
         } else {
             $returnto = base64_encode($this->ct->Env->current_url);
             $link = $editlink . '&amp;returnto=' . $returnto;
-
-            $a = '<a href="' . $link . '">' . $img . '</a>';
         }
+        $a = '<a href="' . $link . '">' . $img . '</a>';
 
         return '<div id="esEditIcon' . $this->rid . '" class="toolbarIcons">' . $a . '</div>';
     }

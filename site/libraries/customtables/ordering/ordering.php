@@ -17,7 +17,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 
 use Joomla\CMS\Factory;
 use JoomlaBasicMisc;
-use ESTables;
 use Joomla\Utilities\ArrayHelper;
 use JRegistry;
 
@@ -37,6 +36,30 @@ class Ordering
         $this->Params = $Params;
         $this->index = -1;
         $this->fieldList = null;
+    }
+
+    public static function applyOrderingMethods(string $result, int $tableid): string
+    {
+        $options = array();
+        $fList = JoomlaBasicMisc::getListToReplace('table', $options, $result, "<>", ' ', '"');
+        $i = 0;
+        foreach ($fList as $fItem) {
+
+            $params = JoomlaBasicMisc::getHTMLTagParameters(strtolower($options[$i]));
+
+            if (!isset($params['id'])) {
+
+                $params['id'] = 'ctTable_' . $tableid;
+                $params_str = [];
+                foreach ($params as $key => $value)
+                    $params_str[] = $key . '="' . $value . '"';
+
+                $val = '<table ' . implode(' ', $params_str) . '>';
+                $result = str_replace($fItem, $val, $result);
+            }
+            $i++;
+        }
+        return $result;
     }
 
     function parseOrderByString(): bool
@@ -134,7 +157,6 @@ class Ordering
                 return $field->realfieldname;
         }
 
-        return null;
     }
 
     function parseOrderByParam(): void
@@ -231,7 +253,7 @@ class Ordering
                     $order_values[] = $fieldname;
                     $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ZA');
                     $order_values[] = $fieldname . ' desc';
-                } elseif ($fieldType == 'int' or $fieldType == 'float') {
+                } elseif ($fieldType == 'int' or $fieldType == 'float' or $fieldType == 'ordering') {
                     $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_MINMAX');
                     $order_values[] = $fieldname;
                     $order_list[] = $fieldtitle . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_MAXMIN');

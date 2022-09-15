@@ -268,6 +268,11 @@ class Inputbox
                 require_once($file_type_file);
                 return CT_FieldTypeTag_file::renderFileFieldBox($this->ct, $this->field, $this->row);
 
+            case 'blob':
+                $file_type_file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'fieldtypes' . DIRECTORY_SEPARATOR . '_type_file.php';
+                require_once($file_type_file);
+                return CT_FieldTypeTag_file::renderFileFieldBox($this->ct, $this->field, $this->row);
+
             case 'userid':
                 return $this->getUserBox($value);
 
@@ -1381,6 +1386,7 @@ class Inputbox
                             $listing_id = $row[$this->ct->Table->realidfieldname] ?? 0;
 
                             $saveField = new SaveFieldQuerySet($this->ct, $this->ct->Table->record, false);
+                            $saveField->field = $this->field;
                             $value = $saveField->prepare_alias_type_value($listing_id, $value);
                         }
                     }

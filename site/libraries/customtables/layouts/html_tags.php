@@ -164,7 +164,7 @@ class Twig_Html_Tags
             return $vlu;
     }
 
-    function pagination()
+    function pagination($show_arrow_icons = false)
     {
         if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
             return '';
@@ -178,13 +178,12 @@ class Twig_Html_Tags
         if (!is_null($this->ct->Params->ModuleId))
             return '';
 
-        $pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit);
-        $vlu = '<div class="pagination">' . $pagination->getPagesLinks("") . '</div>';
+        $pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit, '', $this->ct->Env->version, $show_arrow_icons);
 
-        if ($this->isTwig)
-            return $vlu;
+        if ($this->ct->Env->version < 4)
+            return '<div class="pagination">' . $pagination->getPagesLinks() . '</div>';
         else
-            return $vlu;
+            return '<div style="display:inline-block">' . $pagination->getPagesLinks() . '</div>';
     }
 
     function limit($the_step = 5)
@@ -198,13 +197,8 @@ class Twig_Html_Tags
         if (!is_null($this->ct->Params->ModuleId))
             return '';
 
-        $pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit);
-        $vlu = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SHOW') . ': ' . $pagination->getLimitBox($the_step);
-
-        if ($this->isTwig)
-            return $vlu;
-        else
-            return $vlu;
+        $pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit, '', $this->ct->Env->version);
+        return JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SHOW') . ': ' . $pagination->getLimitBox($the_step);
     }
 
     function orderby()
@@ -218,12 +212,10 @@ class Twig_Html_Tags
         if (!is_null($this->ct->Params->ModuleId))
             return '';
 
-        $vlu = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ORDER_BY') . ': ' . OrderingHTML::getOrderBox($this->ct->Ordering);
+        if ($this->ct->Params->forceSortBy !== null and $this->ct->Params->forceSortBy != '')
+            $this->ct->app->enqueueMessage(JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_SORT_BY_FIELD_LOCKED'), 'error');
 
-        if ($this->isTwig)
-            return $vlu;
-        else
-            return $vlu;
+        return JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ORDER_BY') . ': ' . OrderingHTML::getOrderBox($this->ct->Ordering);
     }
 
     function goback($defaultLabel = 'COM_CUSTOMTABLES_GO_BACK', $image_icon = '', $attribute = '', $returnto = '')
@@ -300,7 +292,7 @@ class Twig_Html_Tags
 
         foreach ($buttons_array as $mode) {
             if ($mode == 'checkbox') {
-                $html_buttons[] = '<input type="checkbox" id="esCheckboxAll' . $this->ct->Table->tableid . '" onChange="esCheckboxAllclicked(' . $this->ct->Table->tableid . ')" />';
+                $html_buttons[] = '<input type="checkbox" id="esCheckboxAll' . $this->ct->Table->tableid . '" onChange="esCheckboxAllClicked(' . $this->ct->Table->tableid . ')" />';
             } else {
                 if (in_array($mode, $available_modes)) {
                     $rid = 'esToolBar_' . $mode . '_box_' . $this->ct->Table->tableid;
@@ -396,7 +388,7 @@ class Twig_Html_Tags
             return $vlu;
     }
 
-    function search($list_of_fields_string_or_array, $class = '', $reload = false, $improved = false)
+    function search($list_of_fields_string_or_array, $class = '', $reload = false, $improved = false): string
     {
         if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
             return '';
@@ -422,6 +414,8 @@ class Twig_Html_Tags
         foreach ($list_of_fields_string_array as $field_name_string) {
             if ($field_name_string == '_id') {
                 $list_of_fields[] = '_id';
+            } elseif ($field_name_string == '_published') {
+                $list_of_fields[] = '_published';
             } else {
                 //Check if field name is exist in selected table
                 $fld = Fields::FieldRowByName($field_name_string, $this->ct->Table->fields);
@@ -461,7 +455,20 @@ class Twig_Html_Tags
                     'type' => '_id',
                     'typeparams' => '',
                     'fieldtitle' . $this->ct->Languages->Postfix => JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ID'),
-                    'realfieldname' => 'id',
+                    'realfieldname' => $this->ct->Table->realtablename,
+                    'isrequired' => false,
+                    'defaultvalue' => null,
+                    'valuerule' => null,
+                    'valuerulecaption' => null
+                );
+            } elseif ($field_name_string == '_published') {
+                $fld = array(
+                    'id' => 0,
+                    'fieldname' => '_published',
+                    'type' => '_published',
+                    'typeparams' => '',
+                    'fieldtitle' . $this->ct->Languages->Postfix => JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_PUBLISHED'),
+                    'realfieldname' => 'published',
                     'isrequired' => false,
                     'defaultvalue' => null,
                     'valuerule' => null,
@@ -494,29 +501,27 @@ class Twig_Html_Tags
         }
 
         //Add control elements
-        $fieldtitles = $this->getFieldTitles($list_of_fields);
-        $field_title = implode(' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_OR') . ' ', $fieldtitles);
+        $fieldTitles = $this->getFieldTitles($list_of_fields);
+        $field_title = implode(' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_OR') . ' ', $fieldTitles);
 
-        $cssclass = 'ctSearchBox';
+        $cssClass = 'ctSearchBox';
         if ($class != '')
-            $cssclass .= ' ' . $class;
+            $cssClass .= ' ' . $class;
 
         if ($improved)
-            $cssclass .= ' ct_improved_selectbox';
+            $cssClass .= ' ct_improved_selectbox';
 
         $default_Action = $reload ? ' onChange="ctSearchBoxDo();"' : ' ';//action should be a space not empty or this.value=this.value
 
-        $objectname = $first_fld['fieldname'];
+        $objectName = $first_fld['fieldname'];
 
         if (count($first_fld) == 0)
             return 'Unsupported field type or field not found.';
 
-        $vlu = $SearchBox->renderFieldBox('es_search_box_', $objectname, $first_fld,
-            $cssclass, '0',
+        $vlu = $SearchBox->renderFieldBox('es_search_box_', $objectName, $first_fld,
+            $cssClass, '0',
             '', false, '', $default_Action, $field_title);//action should be a space not empty or
-        //0 because its not an edit box and we pass onChange value even " " is the value;
-
-        //$vlu=str_replace('"','&&&&quote&&&&',$vlu);
+        //0 because it's not an edit box, and we pass onChange value even " " is the value;
 
         $field2search = $this->prepareSearchElement($first_fld);
         $vlu .= '<input type=\'hidden\' ctSearchBoxField=\'' . $field2search . '\' />';
@@ -527,12 +532,14 @@ class Twig_Html_Tags
             return $vlu;
     }
 
-    protected function getFieldTitles($list_of_fields)
+    protected function getFieldTitles($list_of_fields): array
     {
-        $field_titles = array();
+        $field_titles = [];
         foreach ($list_of_fields as $fieldname) {
             if ($fieldname == '_id')
                 $field_titles[] = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ID');
+            elseif ($fieldname == '_published')
+                $field_titles[] = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_PUBLISHED');
             else {
                 foreach ($this->ct->Table->fields as $fld) {
                     if ($fld['fieldname'] == $fieldname) {
@@ -551,10 +558,10 @@ class Twig_Html_Tags
             return 'es_search_box_' . $fld['fieldname'] . ':' . implode(';', $fld['fields']) . ':';
         } else {
             if ($fld['type'] == 'customtables') {
-                $exparams = explode(',', $fld['typeparams']);
-                if (count($exparams) > 1) {
-                    $esroot = $exparams[0];
-                    return 'es_search_box_combotree_' . $this->ct->Table->tablename . '_' . $fld['fieldname'] . '_1:' . $fld['fieldname'] . ':' . $esroot;
+                $paramsList = explode(',', $fld['typeparams']);
+                if (count($paramsList) > 1) {
+                    $root = $paramsList[0];
+                    return 'es_search_box_combotree_' . $this->ct->Table->tablename . '_' . $fld['fieldname'] . '_1:' . $fld['fieldname'] . ':' . $root;
                 }
             } else
                 return 'es_search_box_' . $fld['fieldname'] . ':' . $fld['fieldname'] . ':';
@@ -581,6 +588,8 @@ class Twig_Html_Tags
         else
             $class .= ' btn button-apply btn-primary';
 
+        $default_Label = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SEARCH');
+
         if ($label == strip_tags($label)) {
             if ($this->ct->Env->toolbaricons != '') {
                 $img = '<i class=\'' . $this->ct->Env->toolbaricons . ' fa-search\' data-icon=\'' . $this->ct->Env->toolbaricons . ' fa-search\' title=\'' . $label . '\'></i>';
@@ -589,13 +598,50 @@ class Twig_Html_Tags
                 $img = '';
 
                 if ($label == '')
-                    $label = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SEARCH');
+                    $label = $default_Label;
 
                 $labelHtml = ($label !== '' ? '<span>' . $label . '</span>' : '');
             }
-            return '<button class=\'' . $class . '\' onClick=\'ctSearchBoxDo()\'>' . $img . $labelHtml . '</button>';
+            return '<button class=\'' . $class . '\' onClick=\'ctSearchBoxDo()\' title=\'' . $default_Label . '\'>' . $img . $labelHtml . '</button>';
         } else {
-            return '<button class=\'' . $class . '\' onClick=\'ctSearchBoxDo()\'>' . $label . '</button>';
+            return '<button class=\'' . $class . '\' onClick=\'ctSearchBoxDo()\' title=\'' . $default_Label . '\'>' . $label . '</button>';
+        }
+    }
+
+    function searchreset($label = '', $class_ = '')
+    {
+        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+            return '';
+
+        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+            return '';
+
+        if (!is_null($this->ct->Params->ModuleId))
+            return '';
+
+        $class = 'ctSearchBox';
+
+        if (isset($class_) and $class_ != '')
+            $class .= ' ' . $class_;
+        else
+            $class .= ' btn button-apply btn-primary';
+
+        $default_Label = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SEARCHRESET');
+        if ($label == strip_tags($label)) {
+            if ($this->ct->Env->toolbaricons != '') {
+                $img = '<i class=\'' . $this->ct->Env->toolbaricons . ' fa-times\' data-icon=\'' . $this->ct->Env->toolbaricons . ' fa-times\' title=\'' . $label . '\'></i>';
+                $labelHtml = ($label !== '' ? '<span style=\'margin-left:10px;\'>' . $label . '</span>' : '');
+            } else {
+                $img = '';
+
+                if ($label == '')
+                    $label = $default_Label;
+
+                $labelHtml = ($label !== '' ? '<span>' . $label . '</span>' : '');
+            }
+            return '<button class=\'' . $class . '\' onClick=\'ctSearchReset()\' title=\'' . $default_Label . '\'>' . $img . $labelHtml . '</button>';
+        } else {
+            return '<button class=\'' . $class . '\' onClick=\'ctSearchReset()\' title=\'' . $default_Label . '\'>' . $label . '</button>';
         }
     }
 
@@ -1009,5 +1055,10 @@ class Twig_Html_Tags
     function base64encode($str)
     {
         return base64_encode($str);
+    }
+
+    function checkboxcount()
+    {
+        return '<span id="ctTable' . $this->ct->Table->tableid . 'CheckboxCount">0</span>';
     }
 }
