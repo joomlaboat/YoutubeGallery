@@ -70,7 +70,7 @@ class CT
         $this->Filter = null;
     }
 
-    function isRecordNull($row): bool
+    function isRecordNull(?array $row): bool
     {
         if (is_null($row))
             return true;
@@ -181,7 +181,6 @@ class CT
                     $this->db->setQuery($query, $this->LimitStart, $the_limit);
                 }
             }
-
             $this->Records = $this->db->loadAssocList();
         } else
             $this->Records = [];
@@ -216,7 +215,7 @@ class CT
         if (count($rows) == 0)
             $this->Table->recordcount = -1;
         else
-            $this->Table->recordcount = $rows[0]->count;
+            $this->Table->recordcount = intval($rows[0]->count);
 
         return $this->Table->recordcount;
     }
@@ -230,11 +229,11 @@ class CT
             return null;
         }
 
-        $selects = [$this->Table->tablerow['query_selects']];
-
         if ($this->Ordering->ordering_processed_string !== null) {
             $this->Ordering->parseOrderByString();
         }
+
+        $selects = $this->Table->selects;
 
         if ($this->Ordering->orderby !== null) {
             if ($this->Ordering->selects !== null)
@@ -244,9 +243,7 @@ class CT
         }
 
         $query = 'SELECT ' . implode(',', $selects) . ' FROM ' . $this->Table->realtablename . ' ';
-
         $query .= $where;
-
         $query .= ' GROUP BY ' . $this->Table->realtablename . '.' . $this->Table->realidfieldname;
 
         if (count($ordering) > 0)
@@ -268,7 +265,6 @@ class CT
 
                 $KeywordSearcher->groupby = $this->GroupBy;
                 $KeywordSearcher->esordering = $this->Ordering->ordering_processed_string;
-
 
                 $this->Records = $KeywordSearcher->getRowsByKeywords(
                     $eskeysearch_,
@@ -358,23 +354,23 @@ class CT
 
         $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/jquery.uploadfile.js"></script>');
         $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/jquery.form.js"></script>');
-
         $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/ajax.js"></script>');
-        $this->document->addScript(URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/base64.js');
-        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/catalog.js" type="text/javascript"></script>');
-        $this->document->addScript(URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/edit.js');
-        $this->document->addScript(URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/esmulti.js');
-        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/modal.js" type="text/javascript"></script>');
+        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/base64.js"></script>');
+        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/catalog.js"></script>');
+        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/edit.js"></script>');
+        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/esmulti.js"></script>');
+        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/modal.js"></script>');
         $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/uploader.js"></script>');
 
         $params = ComponentHelper::getParams('com_customtables');
         $googlemapapikey = $params->get('googlemapapikey');
 
-        $this->document->addCustomTag('<script type="text/javascript" src="https://maps.google.com/maps/api/js?key=' . $googlemapapikey . '&sensor=false"></script>');
+        $this->document->addCustomTag('<script src="https://maps.google.com/maps/api/js?key=' . $googlemapapikey . '&sensor=false"></script>');
+        $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/combotree.js"></script>');
+        $this->document->addCustomTag('<script>let ctWebsiteRoot = "' . $this->Env->WebsiteRoot . '";</script>');
 
-        $this->document->addScript(URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/combotree.js');
-
-        $this->document->addCustomTag('<script>let ctWebsiteRoot = "' . $this->Env->WebsiteRoot . '";let ctItemId = "' . $this->Params->ItemId . '";</script>');
+        if ($this->Params->ModuleId == null)
+            $this->document->addCustomTag('<script>ctItemId = "' . $this->Params->ItemId . '";</script>');
 
         //Styles
         $this->document->addCustomTag('<link href="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/css/style.css" type="text/css" rel="stylesheet" >');

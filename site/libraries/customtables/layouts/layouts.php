@@ -148,7 +148,6 @@ class Layouts
                 return $content;
             }
         }
-
         return '';
     }
 
@@ -156,44 +155,82 @@ class Layouts
     {
         if (trim($layoutRow['layoutcss']) != '') {
             $layoutContent = trim($layoutRow['layoutcss']);
-            $twig = new TwigProcessor($this->ct, $layoutContent);
-            $layoutContent = $twig->process($this->ct->Table->record);
-
-            $this->ct->document->addCustomTag('<style>' . $layoutContent . '</style>');
+            $twig = new TwigProcessor($this->ct, $layoutContent, $this->ct->LayoutVariables['getEditFieldNamesOnly'] ?? false);
+            $layoutContent = '<style>' . $twig->process($this->ct->Table->record) . '</style>';
+            $this->ct->document->addCustomTag($layoutContent);
         }
 
         if (trim($layoutRow['layoutjs']) != '') {
             $layoutContent = trim($layoutRow['layoutjs']);
-            $twig = new TwigProcessor($this->ct, $layoutContent);
+            $twig = new TwigProcessor($this->ct, $layoutContent, $this->ct->LayoutVariables['getEditFieldNamesOnly'] ?? false);
             $layoutContent = $twig->process($this->ct->Table->record);
-
             $this->ct->document->addCustomTag('<script>' . $layoutContent . '</script>');
         }
     }
 
-    function createDefaultLayout_Edit($fields, $addToolbar = true): string
+    function createDefaultLayout_SimpleCatalog($fields, $addToolbar = true): string
     {
-        $result = '<div class="form-horizontal">
+        $this->layouttype = 1;
+        return 'Simple Catalog';
+    }
 
-';
+    function createDefaultLayout_CSV($fields): string
+    {
+        $this->layouttype = 9;
 
-        $fieldtypes_to_skip = ['log', 'phponview', 'phponchange', 'phponadd', 'md5', 'id', 'server', 'userid', 'viewcount', 'lastviewtime', 'changetime', 'creationtime', 'imagegallery', 'filebox', 'dummy'];
+        $result = '';
+
+        $fieldTypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy', 'ordering'];
+        $fieldTypes_to_pureValue = ['image', 'imagegallery', 'filebox', 'file'];
 
         foreach ($fields as $field) {
-            if (!in_array($field['type'], $fieldtypes_to_skip)) {
-                $result .= '	<div class="control-group">
-';
-                $result .= '		<div class="control-label">{{ ' . $field['fieldname'] . '.title }}</div><div class="controls">{{ ' . $field['fieldname'] . '.edit }}</div>
-';
-                $result .= '	</div>
 
-';
+            if (!in_array($field['type'], $fieldTypes_to_skip)) {
+                if ($result !== '')
+                    $result .= ',';
+
+                $result .= '"{{ ' . $field['fieldname'] . '.title }}"';
             }
         }
 
-        $result .= '</div>
+        $result .= "\r\n{% block record %}";
 
-';
+        $firstField = true;
+        foreach ($fields as $field) {
+
+            if (!in_array($field['type'], $fieldTypes_to_skip)) {
+
+                if (!$firstField)
+                    $result .= ',';
+
+                if (!in_array($field['type'], $fieldTypes_to_pureValue))
+                    $result .= '"{{ ' . $field['fieldname'] . ' }}"';
+                else
+                    $result .= '"{{ ' . $field['fieldname'] . '.value }}"';
+
+                $firstField = false;
+            }
+        }
+        return $result . "\r\n{% endblock %}";
+    }
+
+    function createDefaultLayout_Edit($fields, $addToolbar = true): string
+    {
+        $this->layouttype = 2;
+
+        $result = '<div class="form-horizontal">';
+
+        $fieldTypes_to_skip = ['log', 'phponview', 'phponchange', 'phponadd', 'md5', 'id', 'server', 'userid', 'viewcount', 'lastviewtime', 'changetime', 'creationtime', 'imagegallery', 'filebox', 'dummy'];
+
+        foreach ($fields as $field) {
+            if (!in_array($field['type'], $fieldTypes_to_skip)) {
+                $result .= '<div class="control-group">';
+                $result .= '<div class="control-label">{{ ' . $field['fieldname'] . '.label }}</div><div class="controls">{{ ' . $field['fieldname'] . '.edit }}</div>';
+                $result .= '</div>';
+            }
+        }
+
+        $result .= '</div>';
 
         foreach ($fields as $field) {
             if ($field['type'] === "dummy") {

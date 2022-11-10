@@ -1,5 +1,5 @@
 /**
- * CustomTables Joomla! 3.x Native Component
+ * CustomTables Joomla! 3.x/4.x Native Component
  * @package Custom Tables
  * @subpackage administrator/components/com_customtables/js/layoutwizard.js
  * @author Ivan Komlev <support@joomlaboat.com>
@@ -69,11 +69,8 @@ function loadFieldsData(tableid) {
         });
     } else {
         //for IE
-        let http = null;
         let params = "";
-
-        if (!http)
-            http = CreateHTTPRequestObject();   // defined in ajax.js
+        let http = CreateHTTPRequestObject();   // defined in ajax.js
 
         if (http) {
             http.open("GET", url, true);
@@ -98,7 +95,7 @@ function updateFieldsBox() {
     //field_box_obj.innerHTML='';//<div class="dynamic_values">'+result+'</div>';
 }
 
-function renderTabs(tabset_id, tabs) {
+function renderTabs(tabSetId, tabs) {
     // Tabs is the array of tab elements [{"title":"Tab Title","id":"Tab Name","content":"Tab Content"}...]
 
     if (joomlaVersion < 4) {
@@ -116,7 +113,7 @@ function renderTabs(tabset_id, tabs) {
             result_li += '<li' + (cssclass !== '' ? ' class="' + cssclass + '"' : '') + '><a href="#' + tab.id + '" onclick="resizeModalBox();" data-toggle="tab">' + tab.title + '</a></li>';
             result_div += '<div id="' + tab.id + '" class="tab-pane' + (i === 0 ? ' active' : '') + '">' + tab.content + '</div>';
         }
-        return '<ul class="nav nav-tabs" >' + result_li + '</ul>\n\n<div class="tab-content" id="' + tabset_id + '">' + result_div + '</div>';
+        return '<ul class="nav nav-tabs" >' + result_li + '</ul>\n\n<div class="tab-content" id="' + tabSetId + '">' + result_div + '</div>';
     } else {
         //let result_li = '';
         let result_div = '';
@@ -132,20 +129,20 @@ function renderTabs(tabset_id, tabs) {
         }
 
         //let result_div_li = '<div role="tablist">' + result_li + '</div>';
-        return '<joomla-tab id="' + tabset_id + '" orientation="horizontal" recall="" breakpoint="768">' + result_div + '</joomla-tab>';
+        return '<joomla-tab id="' + tabSetId + '" orientation="horizontal" recall="" breakpoint="768">' + result_div + '</joomla-tab>';
     }
 }
 
 function replaceOldFieldTitleTagsWithTwigStyle() {
     let editor = codemirror_editors[codemirror_active_index];
-    let docuemntText = editor.getValue();
+    let documentText = editor.getValue();
     let count = 0;
     let changesMade = false;
 
     //Titles
     for (let i = 0; i < wizardFields.length; i++) {
         let oldFieldTag = '*' + wizardFields[i].fieldname + '*';
-        if (docuemntText.indexOf(oldFieldTag) !== -1)
+        if (documentText.indexOf(oldFieldTag) !== -1)
             count += 1;
     }
 
@@ -154,7 +151,7 @@ function replaceOldFieldTitleTagsWithTwigStyle() {
             for (let i = 0; i < wizardFields.length; i++) {
                 let oldFieldTag = '*' + wizardFields[i].fieldname + '*';
                 let newFieldTag = '{{ ' + wizardFields[i].fieldname + '.title }}';
-                docuemntText = docuemntText.replace(oldFieldTag, newFieldTag)
+                documentText = documentText.replace(oldFieldTag, newFieldTag)
                 changesMade = true;
             }
         }
@@ -165,7 +162,7 @@ function replaceOldFieldTitleTagsWithTwigStyle() {
     //values
     for (let i = 0; i < wizardFields.length; i++) {
         let oldFieldTag = '|' + wizardFields[i].fieldname + '|';
-        if (docuemntText.indexOf(oldFieldTag) !== -1)
+        if (documentText.indexOf(oldFieldTag) !== -1)
             count += 1;
     }
 
@@ -174,14 +171,14 @@ function replaceOldFieldTitleTagsWithTwigStyle() {
             for (let i = 0; i < wizardFields.length; i++) {
                 let oldFieldTag = '|' + wizardFields[i].fieldname + '|';
                 let newFieldTag = '{{ ' + wizardFields[i].fieldname + '.value }}';
-                docuemntText = docuemntText.replace(oldFieldTag, newFieldTag)
+                documentText = documentText.replace(oldFieldTag, newFieldTag)
                 changesMade = true;
             }
         }
     }
 
     if (changesMade === true) {
-        editor.setValue(docuemntText);
+        editor.setValue(documentText);
         editor.refresh();
     }
 }
@@ -278,7 +275,7 @@ function findFieldObjectByName(fieldname) {
     return null;
 }
 
-function renderFieldTags(startchar, postfix, endchar, fieldtypes_to_skip, param_group) {
+function renderFieldTags(startChar, postfix, endChar, fieldtypes_to_skip, param_group) {
     let result = '';
     const l = wizardFields.length;
 
@@ -307,20 +304,20 @@ function renderFieldTags(startchar, postfix, endchar, fieldtypes_to_skip, param_
                     }
                 }
 
-                button_value = startchar + t + endchar;
+                button_value = startChar + t + endChar;
             } else {
-                alt += ' (UNKNOW FIELD TYPE)';
+                alt += ' (UNKNOWN FIELD TYPE)';
 
-                button_value = '<span class="text_error">' + startchar + t + endchar + '</span>';
+                button_value = '<span class="text_error">' + startChar + t + endChar + '</span>';
             }
 
             result += '<div style="vertical-align:top;display:inline-block;">';
             result += '<div style="display:inline-block;">';
 
             if (joomlaVersion < 4)
-                result += '<a href=\'javascript:addFieldTag("' + startchar + '","' + postfix + '","' + endchar + '","' + btoa(field.fieldname) + '",' + p + ');\' class="btn" alt="' + alt + '" title="' + alt + '">' + button_value + '</a>';
+                result += '<a href=\'javascript:addFieldTag("' + startChar + '","' + postfix + '","' + endChar + '","' + btoa(field.fieldname) + '",' + p + ');\' class="btn" title="' + alt + '">' + button_value + '</a>';
             else
-                result += '<a href=\'javascript:addFieldTag("' + startchar + '","' + postfix + '","' + endchar + '","' + btoa(field.fieldname) + '",' + p + ');\' class="btn-primary" alt="' + alt + '" title="' + alt + '">' + button_value + '</a>';
+                result += '<a href=\'javascript:addFieldTag("' + startChar + '","' + postfix + '","' + endChar + '","' + btoa(field.fieldname) + '",' + p + ');\' class="btn-primary" title="' + alt + '">' + button_value + '</a>';
 
             result += '</div>';
             result += '</div>';
@@ -358,64 +355,90 @@ function showModalFieldTagsList(e) {
     showModal();
 }
 
-function showModalFieldTagForm(tagstartchar, postfix, tagendchar, tag, top, left, line, positions, isnew) {
-    let modalcontentobj = document.getElementById("layouteditor_modal_content_box");
-    let paramvaluestring = "";
+function showModalFieldTagForm(tagStartChar, postfix, tagEndChar, tag, top, left, line, positions, isNew) {
+    let modalContentObject = document.getElementById("layouteditor_modal_content_box");
+    let paramValueString = "";
     let tag_pair = parseQuote(tag, '(', false)
 
     if (tag_pair.length > 1) {
-        temp_params_tag = tag_pair[0].trim();
-        paramvaluestring = findTagParameter(tag);
+
+        let sub_tag_pair = parseQuote(tag_pair[0], '.', false);
+        if (sub_tag_pair.length > 1) {
+            temp_params_tag = sub_tag_pair[0].trim();
+            postfix = '.' + sub_tag_pair[1].trim();
+        } else {
+            temp_params_tag = tag_pair[0].trim();
+        }
+
+        paramValueString = findTagParameter(tag);
     } else {
         tag_pair = parseQuote(tag, ':', false);
         if (tag_pair.length > 1) {
             if (tag_pair[0] === "_value" || tag_pair[0] === "_edit") {
 
+                if (tag_pair[0] === "_value")
+                    postfix = '.value';
+                else if (tag_pair[0] === "_edit")
+                    postfix = '.edit';
+
                 temp_params_tag = tag_pair[1].trim();
 
                 if (tag_pair.length === 2)
-                    paramvaluestring = tag_pair[1];
+                    paramValueString = tag_pair[1];
 
             } else {
                 temp_params_tag = tag_pair[0].trim();
 
                 let pos1 = tag.indexOf(":");
-                paramvaluestring = tag.substring(pos1 + 1, tag.length);
-                //paramvaluestring = tag.replace(temp_params_tag,'');
+                paramValueString = tag.substring(pos1 + 1, tag.length);
             }
         } else {
-            temp_params_tag = tag.trim();
+
+            tag_pair = parseQuote(tag, '.', false);
+            if (tag_pair.length > 1) {
+                temp_params_tag = tag_pair[0].trim();
+                postfix = '.' + tag_pair[1].trim();
+            } else {
+                temp_params_tag = tag.trim();
+            }
         }
     }
 
     const field = findFieldObjectByName(temp_params_tag);
     if (field == null) {
-        modalcontentobj.innerHTML = '<p>Cannot find the field. Probably the field does not belong to selected table.</p>';
+        modalContentObject.innerHTML = '<p>Cannot find the field. Probably the field does not belong to selected table.</p>';
         showModal();
         return;
     }
 
-    const param_group = getParamGroup(tagstartchar, postfix, tagendchar);
+    const param_group = getParamGroup(tagStartChar, postfix, tagEndChar);
 
     if (param_group === '') {
-        modalcontentobj.innerHTML = '<p>Something went wrong. Field Type Tag should not have any parameters in this Layout Type. Try to reload the page.</p>';
+        modalContentObject.innerHTML = '<p>Something went wrong. Field Type Tag should not have any parameters in this Layout Type. Try to reload the page.</p>';
         showModal();
         return;
     }
 
-    const fieldtypeobj = findTheType(field.type);
-    if (fieldtypeobj === null) {
-        modalcontentobj.innerHTML = '<p>Something went wrong. Field Type Tag doesnot not have any parameters. Try to reload the page.</p>';
+    const fieldTypeObject = findTheType(field.type);
+    if (fieldTypeObject === null) {
+        modalContentObject.innerHTML = "<p>Something went wrong. Field Type Tag doesn't have any parameters. Try to reload the page.</p>";
         showModal();
         return;
     }
-    const fieldtype_att = fieldtypeobj["@attributes"];
-    const group_params_object = fieldtypeobj[param_group];
+    const fieldType_att = fieldTypeObject["@attributes"];
+    const group_params_object = fieldTypeObject[param_group];
 
     if (!group_params_object || !group_params_object.params) {
         let cursor_from = {line: line, ch: positions[0]};
         let cursor_to = {line: line, ch: positions[1]};
+
+        let tagPair1 = parseQuote(tag, '(', false);
+        let tagPair2 = parseQuote(tagPair1[0], '.', false);
+        if ((tagPair1.length > 1 || tagPair2.length > 1) && tagPair2[0] + postfix === tagPair1[0])
+            return;
+
         let result = '{{ ' + tag + postfix + ' }}';
+
         let editor = codemirror_editors[codemirror_active_index];
         let doc = editor.getDoc();
         doc.replaceRange(result, cursor_from, cursor_to, "");
@@ -423,24 +446,24 @@ function showModalFieldTagForm(tagstartchar, postfix, tagendchar, tag, top, left
     }
 
     const param_array = getParamOptions(group_params_object.params, 'param');
-    const countparams = param_array.length;
-    const form_content = getParamEditForm(group_params_object, line, positions, isnew, countparams, '{{ ', postfix, ' }}', paramvaluestring);
+    const countParams = param_array.length;
+    const form_content = getParamEditForm(group_params_object, line, positions, isNew, countParams, '{{ ', postfix, ' }}', paramValueString);
 
     if (form_content == null)
         return false;
 
-    let result = '<h3>Field "<b>' + field.fieldtitle + '</b>"  <span style="font-size:smaller;">(<i>Type: ' + fieldtype_att.label + '</i>)</span>';
+    let result = '<h3>Field "<b>' + field.fieldtitle + '</b>"  <span style="font-size:smaller;">(<i>Type: ' + fieldType_att.label + '</i>)</span>';
 
-    if (typeof (fieldtype_att.helplink) !== "undefined")
-        result += ' <a href="' + fieldtype_att.helplink + '" target="_blank">Read more</a>';
+    if (typeof (fieldType_att.helplink) !== "undefined")
+        result += ' <a href="' + fieldType_att.helplink + '" target="_blank">Read more</a>';
 
     result += '</h3>';
 
-    modalcontentobj.innerHTML = result + form_content;
+    modalContentObject.innerHTML = result + form_content;
 
     if (joomlaVersion < 4) {
         jQuery(function ($) {
-            $(modalcontentobj).find(".hasPopover").popover({
+            $(modalContentObject).find(".hasPopover").popover({
                 "html": true,
                 "trigger": "hover focus",
                 "layouteditor_modal_content_box": "body"
@@ -448,12 +471,12 @@ function showModalFieldTagForm(tagstartchar, postfix, tagendchar, tag, top, left
         });
     }
 
-    updateParamString("fieldtype_param_", 1, countparams, "current_tagparameter", null, false);
+    updateParamString("fieldtype_param_", 1, countParams, "current_tagparameter", null, false);
     showModal();
 }
 
 //Used in generated html link
-function addFieldTag(tagstartchar, postfix, tagendchar, tag, param_count) {
+function addFieldTag(tagStartChar, postfix, tagEndChar, tag, param_count) {
     const index = 0;
     const cm = codemirror_editors[index];
 
@@ -462,9 +485,9 @@ function addFieldTag(tagstartchar, postfix, tagendchar, tag, param_count) {
         const positions = [cr.ch, cr.ch];
         const mousepos = cm.cursorCoords(cr, "window");
 
-        showModalFieldTagForm(tagstartchar, postfix, tagendchar, atob(tag), mousepos.top, mousepos.left, cr.line, positions, 1);
+        showModalFieldTagForm(tagStartChar, postfix, tagEndChar, atob(tag), mousepos.top, mousepos.left, cr.line, positions, 1);
     } else {
-        updateCodeMirror(tagstartchar + atob(tag) + postfix + tagendchar);////-----------------todo
+        updateCodeMirror(tagStartChar + atob(tag) + postfix + tagEndChar);////-----------------todo
 
         //in case modal window is open
         const modal = document.getElementById('layouteditor_Modal');
@@ -544,7 +567,7 @@ function FillLayout() {
 function getLayout_Page() {
 
     let result = "";
-    let l = wizardFields.length;
+    //let l = wizardFields.length;
 
     result += '<style>\r\n';
     result += '.datagrid th{text-align:left;}\r\n';
@@ -552,7 +575,6 @@ function getLayout_Page() {
     result += '</style>\r\n';
 
     result += '<legend>{{ table.title }}</legend>\r\n';
-
     result += '<div style="float:right;">{{ html.recordcount }}</div>\r\n';
     result += '<div style="float:left;">{{ html.add }}</div>\r\n';
     result += '\r\n';
@@ -560,56 +582,17 @@ function getLayout_Page() {
     result += '<div class="datagrid">\r\n';
     result += '<div>{{ html.batch("edit","publish","unpublish","refresh","delete") }}</div>\r\n\r\n';
 
-    result += '<table><thead><tr>';
+    result += '<table>';
 
     let fieldtypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy'];
     let fieldtypes_withsearch = ['email', 'string', 'multilangstring', 'text', 'multilangtext', 'sqljoin', 'records', 'user', 'userid', 'int', 'checkbox'];
+    let fieldtypes_allowed_to_orderby = ['string', 'email', 'url', 'sqljoin', 'phponadd', 'phponchange', 'int', 'float', 'ordering', 'changetime', 'creationtime', 'date', 'multilangstring', 'customtables', 'userid', 'user'];
 
-    result += '<th>{{ html.batch("checkbox") }}</th>\r\n';
-    result += '<th>#</th>\r\n';
+    result += renderTableHead(fieldtypes_to_skip, fieldtypes_withsearch, fieldtypes_allowed_to_orderby);
 
-    for (let index = 0; index < l; index++) {
-        let field = wizardFields[index];
-
-        if (fieldtypes_to_skip.indexOf(field.type) === -1) {
-            if (fieldtypes_withsearch.indexOf(field.type) === -1)
-                result += '<th>{{ ' + field.fieldname + '.title }}</th>\r\n';
-            else
-                result += '<th>{{ ' + field.fieldname + '.title }}<br/>{{ html.search("' + field.fieldname + '") }}</th>\r\n';
-        }
-    }
-
-    result += '<th>Action<br/>{{ html.searchbutton }}</th>\r\n';
-    result += '</tr></thead>\r\n\r\n';
     result += '<tbody>\r\n';
-    /*
-        result+='{% block record %}';
 
-        result+='\r\n<tr>\r\n';
-
-        result+='<td>{{ html.toolbar("checkbox") }}</td>\r\n';
-        result+='<td><a href=\'{{ record.link(true) }}\'>{{ record.id }}</a></td>\r\n';
-
-        for (let index=0;index<l;index++)
-        {
-            let field=wizardFields[index];
-
-            if(fieldtypes_to_skip.indexOf(field.type)===-1){
-
-                if(fieldtypes_withsearch.indexOf(field.type)===-1)
-                    result+='<td>{{ '+field.fieldname+' }}</td>\r\n';
-                else
-                    result+='<td>{{ '+field.fieldname+' }}</td>\r\n';
-            }
-        }
-
-        result+='<td>{{ html.toolbar("edit","publish","refresh","delete") }}</td>\r\n';
-
-        result+='</tr>';
-
-        result+='\r\n{% endblock %}\r\n';
-    */
-    result += '{{ records.list("LAYOUT NAME") }}<!-- Please create a "Catalog Item" layout and type the name of that layout instead of LAYOUT NAME -->\r\n';
+    result += '{{ document.layout("LAYOUT NAME") }}<!-- Please create a "Catalog Item" layout and type the name of that layout instead of LAYOUT NAME -->\r\n';
 
     result += '</tbody>\r\n';
     result += '</table>\r\n';
@@ -627,15 +610,23 @@ function getLayout_Item() {
     let fieldtypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy'];
     let user_fieldtypes = ['user', 'userid'];
 
-    result += '<td>{{ html.toolbar("checkbox") }}</td>\r\n';
-    result += '<td><a href="{{ record.link(true) }}">{{ record.id }}</a></td>\r\n';
+    //Look for ordering field type
+    for (let index = 0; index < l; index++) {
+        let field = wizardFields[index];
+        if (field.type == 'ordering') {
+            result += '<td style="text-align:center;">{{ ' + field.fieldname + ' }}</td>\r\n';
+        }
+    }
+
+    result += '<td style="text-align:center;">{{ html.toolbar("checkbox") }}</td>\r\n';
+    result += '<td style="text-align:center;"><a href="{{ record.link(true) }}">{{ record.id }}</a></td>\r\n';
 
     let user_field = '';
 
     for (let index = 0; index < l; index++) {
         let field = wizardFields[index];
 
-        if (fieldtypes_to_skip.indexOf(field.type) === -1)
+        if (field.type != 'ordering' && fieldtypes_to_skip.indexOf(field.type) === -1)
             result += '<td>{{ ' + field.fieldname + ' }}</td>\r\n';
 
         if (user_fieldtypes.indexOf(field.type) !== -1)
@@ -672,63 +663,34 @@ function getLayout_SimpleCatalog() {
     result += '\r\n';
 
     let fieldtypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy'];
-    let fieldtypes_withsearch = ['email', 'string', 'multilangstring', 'text', 'multilangtext', 'sqljoin', 'records', 'user', 'userid', 'int', 'checkbox'];
-
-    //let field_titles = [];
-
-    //field_titles.push('html.batch("checkbox")');
-    //field_titles.push('"#"');
-
-    /*
-    for (let index = 0; index < l; index++) {
-        let field = wizardFields[index];
-
-        if (fieldtypes_to_skip.indexOf(field.type) === -1) {
-
-            if (fieldtypes_withsearch.indexOf(field.type) === -1)
-                field_titles.push(field.fieldname + '.title');
-            else
-                field_titles.push(field.fieldname + '.title ~ "<br/>" ~ html.search(\'' + field.fieldname + '\')');
-        }
-    }
-    */
-
-    //field_titles.push('"Action"');
+    let fieldTypesWithSearch = ['email', 'string', 'multilangstring', 'text', 'multilangtext', 'sqljoin', 'records', 'user', 'userid', 'int', 'checkbox'];
+    let fieldtypes_allowed_to_orderby = ['string', 'email', 'url', 'sqljoin', 'phponadd', 'phponchange', 'int', 'float', 'ordering', 'changetime', 'creationtime', 'date', 'multilangstring', 'customtables', 'userid', 'user'];
 
     result += '\r\n<table>\r\n';
 
-    result += '<thead><tr>';
-
-    result += '<th>{{ html.batch("checkbox") }}</th>\r\n';
-    result += '<th>#</th>\r\n';
-
-    for (let index = 0; index < l; index++) {
-        let field = wizardFields[index];
-
-        if (fieldtypes_to_skip.indexOf(field.type) === -1) {
-            if (fieldtypes_withsearch.indexOf(field.type) === -1)
-                result += '<th>{{ ' + field.fieldname + '.title }}</th>\r\n';
-            else
-                result += '<th>{{ ' + field.fieldname + '.title }}<br/>{{ html.search("' + field.fieldname + '") }}</th>\r\n';
-        }
-    }
-
-    result += '<th>Action<br/>{{ html.searchbutton }}</th>\r\n';
-    result += '</tr></thead>\r\n\r\n';
+    result += renderTableHead(fieldtypes_to_skip, fieldTypesWithSearch, fieldtypes_allowed_to_orderby);
 
     result += '\r\n<tbody>';
     result += '\r\n{% block record %}';
     result += '\r\n<tr>\r\n';
 
-    result += '<td>{{ html.toolbar("checkbox") }}</td>\r\n';
-    result += '<td><a href=\'{{ record.link(true) }}\'>{{ record.id }}</a></td>\r\n';
+    //Look for ordering field type
+    for (let index = 0; index < l; index++) {
+        let field = wizardFields[index];
+        if (field.type == 'ordering') {
+            result += '<td style="text-align:center;">{{ ' + field.fieldname + ' }}</td>\r\n';
+        }
+    }
+
+    result += '<td style="text-align:center;">{{ html.toolbar("checkbox") }}</td>\r\n';
+    result += '<td style="text-align:center;"><a href=\'{{ record.link(true) }}\'>{{ record.id }}</a></td>\r\n';
 
     for (let index = 0; index < l; index++) {
         let field = wizardFields[index];
 
-        if (fieldtypes_to_skip.indexOf(field.type) === -1) {
+        if (field.type != 'ordering' && fieldtypes_to_skip.indexOf(field.type) === -1) {
 
-            if (fieldtypes_withsearch.indexOf(field.type) === -1)
+            if (fieldTypesWithSearch.indexOf(field.type) === -1)
                 result += '<td>{{ ' + field.fieldname + ' }}</td>\r\n';
             else
                 result += '<td>{{ ' + field.fieldname + ' }}</td>\r\n';
@@ -746,6 +708,62 @@ function getLayout_SimpleCatalog() {
     result += '\r\n';
     result += '</div>\r\n';
     result += '<br/><div style=\'text-align:center;\'>{{ html.pagination }}</div>\r\n';
+    return result;
+}
+
+function renderTableHead(fieldtypes_to_skip, fieldTypesWithSearch, fieldtypes_allowed_to_orderby) {
+
+    let l = wizardFields.length;
+    let result = '';
+
+    result += '<thead><tr>\r\n';
+
+    //Look for ordering field type
+    for (let index = 0; index < l; index++) {
+        let field = wizardFields[index];
+        if (field.type == 'ordering') {
+            result += '<th class="short">{{ ' + field.fieldname + '.label(true) }}</th>\r\n';
+        }
+    }
+
+    result += '<th class="short">{{ html.batch("checkbox") }}</th>\r\n';
+    result += '<th class="short">{{ record.label(true) }}</th>\r\n';
+
+    for (let index = 0; index < l; index++) {
+
+        result += renderTableColumnHeader(wizardFields[index], fieldtypes_to_skip, fieldTypesWithSearch, fieldtypes_allowed_to_orderby)
+    }
+
+    result += '<th>Action<br/>{{ html.searchbutton }}</th>\r\n';
+    result += '</tr></thead>\r\n\r\n';
+
+    return result;
+}
+
+function renderTableColumnHeader(field, fieldtypes_to_skip, fieldtypes_withsearch, fieldtypes_allowed_to_orderby) {
+
+    let result = '';
+
+    if (field.type != 'ordering' && fieldtypes_to_skip.indexOf(field.type) === -1) {
+
+        result += '<th>';
+
+        if (field.allowordering && fieldtypes_allowed_to_orderby.indexOf(field.type) !== -1)
+            result += '{{ ' + field.fieldname + '.label(true) }}';
+        else
+            result += '{{ ' + field.fieldname + '.title }}';
+
+        if (fieldtypes_withsearch.indexOf(field.type) !== -1) {
+
+            if (field.type == 'checkbox' || field.type == 'sqljoin' || field.type == 'records')
+                result += '<br/>{{ html.search("' + field.fieldname + '","","reload") }}';
+            else
+                result += '<br/>{{ html.search("' + field.fieldname + '") }}';
+        }
+
+        result += '</th>\r\n';
+    }
+
     return result;
 }
 

@@ -47,11 +47,10 @@ class ESTables
 
         $db = Factory::getDBO();
 
-        if ($tablename == '')
+        if ($tablename === null)
             return 0;
 
         $query = 'SELECT id FROM #__customtables_tables AS s WHERE tablename=' . $db->quote($tablename) . ' LIMIT 1';
-
         $db->setQuery($query);
 
         $rows = $db->loadObjectList();
@@ -126,13 +125,6 @@ class ESTables
         }
         $row['published_field_found'] = $published_field_found;
 
-        if ($published_field_found)
-            $query_selects = '*, ' . $row['realtablename'] . '.' . $row['realidfieldname'] . ' AS listing_id, ' . $row['realtablename'] . '.published AS listing_published';
-        else
-            $query_selects = '*, ' . $row['realtablename'] . '.' . $row['realidfieldname'] . ' AS listing_id, 1 AS listing_published';
-
-        $row['query_selects'] = $query_selects;
-
         return $row;
     }
 
@@ -151,7 +143,7 @@ class ESTables
         return '*, ' . $realtablename_query . ',' . $realidfieldname_query . ', 1 AS published_field_found';
     }
 
-    public static function createTableIfNotExists($database, $dbprefix, $tablename, $tabletitle, $complete_table_name = ''): bool
+    public static function createTableIfNotExists($database, $dbPrefix, $tablename, $tabletitle, $complete_table_name = ''): bool
     {
         $db = Factory::getDBO();
 
@@ -159,7 +151,7 @@ class ESTables
             //PostgreSQL
             //Check if table exists
             if ($complete_table_name == '')
-                $table_name = $dbprefix . 'customtables_table_' . $tablename;
+                $table_name = $dbPrefix . 'customtables_table_' . $tablename;
             elseif ($complete_table_name == '-new-')
                 $table_name = $tablename;
             else
@@ -191,14 +183,14 @@ class ESTables
             }
         } else {
             //Mysql;
-            $rows2 = ESTables::getTableStatus($database, $dbprefix, $tablename);
+            $rows2 = ESTables::getTableStatus($database, $dbPrefix, $tablename);
 
             if (count($rows2) > 0) {
                 if ($complete_table_name == '') {
                     //do not modify third-party tables
                     $row2 = $rows2[0];
 
-                    $table_name = $dbprefix . 'customtables_table_' . $tablename;
+                    $table_name = $dbPrefix . 'customtables_table_' . $tablename;
 
                     if ($row2->Engine != 'InnoDB') {
                         $query = 'ALTER TABLE ' . $table_name . ' ENGINE = InnoDB';
@@ -215,7 +207,7 @@ class ESTables
             } else {
 
                 if ($complete_table_name == '')
-                    $table_name = $dbprefix . 'customtables_table_' . $tablename;
+                    $table_name = $dbPrefix . 'customtables_table_' . $tablename;
                 elseif ($complete_table_name == '-new-')
                     $table_name = $tablename;
                 else
@@ -239,10 +231,10 @@ class ESTables
         return false;
     }
 
-    public static function getTableStatus($database, $dbprefix, $tablename)
+    public static function getTableStatus($database, $dbPrefix, $tablename)
     {
         $db = Factory::getDBO();
-        $query = 'SHOW TABLE STATUS FROM ' . $db->quoteName($database) . ' LIKE ' . $db->quote($dbprefix . 'customtables_table_' . $tablename);
+        $query = 'SHOW TABLE STATUS FROM ' . $db->quoteName($database) . ' LIKE ' . $db->quote($dbPrefix . 'customtables_table_' . $tablename);
         $db->setQuery($query);
 
         return $db->loadObjectList();
@@ -271,18 +263,18 @@ class ESTables
         return $db->insertid();
     }
 
-    public static function renameTableIfNeeded($tableid, $database, $dbprefix, $tablename): void
+    public static function renameTableIfNeeded($tableid, $database, $dbPrefix, $tablename): void
     {
         $db = Factory::getDBO();
         $old_tablename = ESTables::getTableName($tableid);
 
         if ($old_tablename != $tablename) {
             //rename table
-            $tablestatus = ESTables::getTableStatus($database, $dbprefix, $old_tablename);
+            $tablestatus = ESTables::getTableStatus($database, $dbPrefix, $old_tablename);
 
             if (count($tablestatus) > 0) {
-                $query = 'RENAME TABLE ' . $db->quoteName($database . '.' . $dbprefix . 'customtables_table_' . $old_tablename) . ' TO '
-                    . $db->quoteName($database . '.' . $dbprefix . 'customtables_table_' . $tablename) . ';';
+                $query = 'RENAME TABLE ' . $db->quoteName($database . '.' . $dbPrefix . 'customtables_table_' . $old_tablename) . ' TO '
+                    . $db->quoteName($database . '.' . $dbPrefix . 'customtables_table_' . $tablename) . ';';
 
                 $db->setQuery($query);
                 $db->execute();
@@ -384,7 +376,7 @@ class ESTables
 
     public static function getTableRowByName($tablename = '')
     {
-        if ($tablename == '')
+        if ($tablename === null)
             return null;
 
         $row = ESTables::getTableRowByNameAssoc($tablename);
@@ -396,7 +388,7 @@ class ESTables
 
     public static function getTableRowByNameAssoc($tablename = '')
     {
-        if ($tablename == '')
+        if ($tablename === null)
             return null;
 
         $db = Factory::getDBO();
@@ -412,7 +404,7 @@ class ESTables
         //get ID of new table
         $new_table_id = ESTables::getTableID($new_table);
 
-        if ($customtablename == '') {
+        if ($customtablename === null) {
             //Do not copy real third-party tables
 
             if ($db->serverType == 'postgresql')
@@ -436,17 +428,17 @@ class ESTables
         $fields = array('fieldname', 'type', 'typeparams', 'ordering', 'defaultvalue', 'allowordering', 'parentid', 'isrequired', 'valuerulecaption', 'valuerule',
             'customfieldname', 'isdisabled', 'savevalue', 'alwaysupdatevalue', 'created_by', 'modified_by', 'created', 'modified');
 
-        $morethanonelang = false;
+        $moreThanOneLanguage = false;
 
         foreach ($ct->Languages->LanguageList as $lang) {
-            if ($morethanonelang) {
+            if ($moreThanOneLanguage) {
                 $fields[] = 'fieldtitle' . '_' . $lang->sef;
                 $fields[] = 'description' . '_' . $lang->sef;
             } else {
                 $fields[] = 'fieldtitle';
                 $fields[] = 'description';
 
-                $morethanonelang = true;
+                $moreThanOneLanguage = true;
             }
         }
 

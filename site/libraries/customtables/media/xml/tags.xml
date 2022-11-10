@@ -81,11 +81,12 @@
             </params>
         </tag>
 
-        <tag name="batch" label="Batch Toolbar" repeatative="1" startchar="{" endchar="}"
+        <tag name="batch" label="Batch Toolbar" repetitive="1" startchar="{" endchar="}"
              description="Renders the batch toolbar" hidedefaultexample="1"
              twigclass='html'>
             <params>
                 <param name="button" label="Button" type="list" example="edit" description="Select button type">
+                    <option value="" label="- None"/>
                     <option value="refresh" label="Refresh"/>
                     <option value="delete" label="Delete"/>
                     <option value="publish" label="Publish"/>
@@ -100,7 +101,7 @@
              image="https://joomlaboat.com/images/components/ct/tags/search-box.png">
             <params>
                 <param type="field" name="field" label="Field(s)" description="Select Table Field to search in."
-                       repeatative="0"/>
+                       repetitive="0"/>
 
                 <param type="string" name="cssclass" label="CSS Class"
                        description="Name or names of CSS classes separated by space."/>
@@ -140,7 +141,7 @@
         </tag>
 
         <tag name="toolbar" label="Toolbar" startchar="{" endchar="}" description="Renders the toolbar"
-             hidedefaultexample="1" repeatative="1" twigclass="html">
+             hidedefaultexample="1" repetitive="1" twigclass="html">
             <params>
                 <param name="button" label="Button" type="list" example="edit">
                     <option value="" label="- None"/>
@@ -169,10 +170,14 @@
         <tag name="orderby" label="Order By (Sort By) box" startchar="{" endchar="}" proversion="1"
              description="renders HTML Order By select box." twigclass="html"/>
 
-        <tag name="limit" label="Limit records per page" startchar="{" endchar="}" proversion="1"
-             description="renders HTML Limit box to limit the number of records per page." twigclass="html">
+        <tag name="limit" label="A select box to change the number of records per page" startchar="{" endchar="}"
+             proversion="1"
+             description="Renders HTML Limit box to limit the number of records per page. To set default number of records per page go to Menu Item, Filters tab: 'Limit number of records per page'."
+             twigclass="html"
+             image="https://joomlaboat.com/images/components/ct/tags/html-limit.png">
             <params>
-                <param name="step" label="Step" type="list" example="10" default="5">
+                <param name="step" label="Step" type="list" example="10" default="5"
+                       description="This parameter sets the incremental step of the list. If you select 1 then the list of options will be: 1,2,3,4,5,6,10,20">
                     <option value="1" label="1"/>
                     <option value="5" label="5"/>
                     <option value="10" label="10"/>
@@ -232,7 +237,7 @@
              description="Renders the 'Upload CSV file' button" twigclass="html">
         </tag>
 
-        <tag name="tablehead" label="HTML Table Head" repeatative="1" startchar="{" endchar="}" proversion="1"
+        <tag name="tablehead" label="HTML Table Head" repetitive="1" startchar="{" endchar="}" proversion="1"
              description="Renders 'thead' and 'th' HTML tags. This tag helps to create a table header faster."
              hidedefaultexample="1"
              twigclass='html'>
@@ -276,7 +281,7 @@
         <tag name="gobackbutton" label="Go Back Button" startchar="{" endchar="}" separator=":" deprecated="1"
              twigreplacestartchar="{{ html.goback(" twigreplaceendchar=") }}"/>
 
-        <tag name="batchtoolbar" label="Batch Toolbar" repeatative="1" startchar="{" endchar="}"
+        <tag name="batchtoolbar" label="Batch Toolbar" repetitive="1" startchar="{" endchar="}"
              description="Renders the batch toolbar" hidedefaultexample="1"
              twigreplacement="html.batch" deprecated="1"/>
 
@@ -625,7 +630,6 @@
         <tag name="json" label="Field Json Array" startchar="{" endchar="}" proversion="1"
              description="Return the array of fields in JSON format" twigclass="fields"/>
     </tagset>
-
 
     <!-- User Tags -->
     <tagset name="user" label="User" description="Tags related Joomla user accounts." priority="2">
@@ -1041,13 +1045,13 @@
         <!-- Deprecated -->
 
         <tag name="pagetitle" label="Set Page Title" startchar="{" endchar="}" deprecated="1"
-             twigreplacement="document.setPageTitle"/>
+             twigreplacement="document.setpagetitle"/>
         <tag name="headtag" label="HTML Document Head Tag" startchar="{" endchar="}" deprecated="1"
-             twigreplacement="document.setHeadTag"/>
+             twigreplacement="document.setheadtag"/>
         <tag name="metakeywords" label="Set Meta Keywords" startchar="{" endchar="}" deprecated="1"
-             twigreplacement="document.setMetaKeywords"/>
+             twigreplacement="document.setnetakeywords"/>
         <tag name="metadescription" label="Set Meta Description" startchar="{" endchar="}" deprecated="1"
-             twigreplacement="document.setMetaDescription"/>
+             twigreplacement="document.setmetadescription"/>
 
     </tagset>
 

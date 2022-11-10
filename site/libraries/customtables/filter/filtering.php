@@ -3,7 +3,7 @@
  * CustomTables Joomla! 3.x/4.x Native Component
  * @package Custom Tables
  * @author Ivan komlev <support@joomlaboat.com>
- * @link https://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @copyright Copyright (C) 2018-2022. All Rights Reserved
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
@@ -934,13 +934,11 @@ class LinkJoinFilters
         return '';
     }
 
-    static protected function getFilterElement_SqlJoin($typeparams, $control_name, $filterValue, $control_name_postfix = ''): string
+    static protected function getFilterElement_SqlJoin($typeParams, $control_name, $filterValue, $control_name_postfix = ''): string
     {
         $db = Factory::getDBO();
-
         $result = '';
-
-        $pair = explode(',', $typeparams);
+        $pair = explode(',', $typeParams);
 
         $tablename = $pair[0];
         if (isset($pair[1]))
@@ -956,11 +954,20 @@ class LinkJoinFilters
         if (!is_object($fieldrow))
             return '<p style="color:white;background-color:red;">sqljoin: field "' . $field . '" not found</p>';
 
-        $where = '';
-        if ($tableRow['published_field_found'])
-            $where = 'WHERE published=1';
+        $selects = [];
+        $selects[] = $tableRow['realtablename'] . '.' . $tableRow['realidfieldname'];
 
-        $query = 'SELECT ' . $tableRow['query_selects'] . ' FROM ' . $tableRow['realtablename'] . ' ' . $where . ' ORDER BY ' . $fieldrow->realfieldname;
+        $where = '';
+        if ($tableRow['published_field_found']) {
+            $selects[] = $tableRow['realtablename'] . '.published AS listing_published';
+            $where = 'WHERE ' . $tableRow['realtablename'] . '.published=1';
+        } else {
+            $selects[] = '1 AS listing_published';
+        }
+
+        $selects[] = $tableRow['realtablename'] . '.' . $fieldrow->realfieldname;
+
+        $query = 'SELECT ' . implode(',', $selects) . ' FROM ' . $tableRow['realtablename'] . ' ' . $where . ' ORDER BY ' . $fieldrow->realfieldname;
 
         $db->setQuery($query);
         $records = $db->loadAssocList();

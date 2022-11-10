@@ -346,7 +346,7 @@ class SearchInputBox
 		//' . $this->modulename . '_onChange(' . $index . ',v_min+"' . $d . '"+v_max,"' . $this->field->fieldname . '","' . urlencode($where) . '","' . urlencode($wherelist) . '");
 	}
 ';
-        $this->ct->document->addScriptDeclaration($js);
+        $this->document->addCustomTag('<script>' . $js . '</script>');
         //end of header function
 
         $attribs = 'onChange="Update' . $objname_ . 'Values()" class="' . $default_class . '" ';
@@ -564,10 +564,15 @@ class SearchInputBox
         else
             $default_class = 'form-control';
 
-        $result .= '<div class="' . $cssclass . '">' . JHTML::_('ESSQLJoin.render', $this->field->params, $value, true, $this->ct->Languages->Postfix, $objname_,
-                $this->field->title,
-                ' ' . $default_class . ' es_class_sqljoin', $onchange, true) . '</div>';
+        try {
+            $result .= '<div class="' . $cssclass . '">' . JHTML::_('ESSQLJoin.render', $this->field->params, $value, true, $this->ct->Languages->Postfix, $objname_,
+                    $this->field->title,
+                    ' ' . $default_class . ' es_class_sqljoin', $onchange, true) . '</div>';
+        } catch (Exception $e) {
 
+            echo $e->getMessage();
+            die;
+        }
         return $result;
     }
 }

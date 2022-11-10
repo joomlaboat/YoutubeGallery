@@ -71,7 +71,7 @@ class updateFiles
     protected static function processFiles(CT &$ct, $fieldrow, array $old_params, array $new_params, $startindex, $stepsize)
     {
         $db = Factory::getDBO();
-        $query = 'SELECT ' . $ct->Table->tablerow['query_selects'] . ' FROM ' . $ct->Table->realtablename . ' WHERE ' . $fieldrow->realfieldname . ' IS NOT NULL AND ' . $fieldrow->realfieldname . ' != ""';
+        $query = 'SELECT ' . implode(',', $ct->Table->selects) . ' FROM ' . $ct->Table->realtablename . ' WHERE ' . $fieldrow->realfieldname . ' IS NOT NULL AND ' . $fieldrow->realfieldname . ' != ""';
         $db->setQuery($query, $startindex, $stepsize);
 
         $filelist = $db->loadAssocList();
@@ -104,17 +104,7 @@ class updateFiles
                 return $status;
         }
 
-        //Check if the old folder is already empty, if it is empty the delete the folder
-        $files = scandir(JPATH_SITE . DIRECTORY_SEPARATOR . $old_FileFolder);
-        $count = 0;
-        foreach ($files as $file) {
-            if ($file != '.' and $file != '..')
-                $count += 1;
-        }
-
-        if ($count == 0)
-            rmdir(JPATH_SITE . DIRECTORY_SEPARATOR . $old_FileFolder);
-
+        JoomlaBasicMisc::deleteFolderIfEmpty($old_FileFolder);
         return null;
     }
 

@@ -15,7 +15,7 @@ function updateUploadedFileBox(index) {
     }
 }
 
-function checkIfLogedIn(data) {
+function checkIfLoggedIn(data) {
     if (data.indexOf('Please login first') !== -1) {
         alert("Session expired. Please login. You may login in a new tab or windows.");
         return false;
@@ -70,7 +70,7 @@ function ct_getUploader(index, urlstr, maxFileSize, allowedTypes, UploaderForm, 
                 const p = uploaderParams[index];
                 const data_ = data;
 
-                if (checkIfLogedIn(data_)) {
+                if (checkIfLoggedIn(data_)) {
                     let res = null;
                     try {
                         res = JSON.parse(data_);
@@ -80,9 +80,9 @@ function ct_getUploader(index, urlstr, maxFileSize, allowedTypes, UploaderForm, 
                     }
 
                     if (res.status === 'success') {
-                        const filename = res.filename;
-                        const obj = document.getElementById(p.fieldValueInputBox);
-                        obj.value = filename;
+
+                        document.getElementById(p.fieldValueInputBox).value = res.filename;
+                        document.getElementById(p.fieldValueInputBox + '_filename').value = res.originalfilename;
 
                         $("#" + EventMessageBox).html("");
                         p.files_uploaded += 1;
@@ -114,7 +114,7 @@ function ct_getUploader(index, urlstr, maxFileSize, allowedTypes, UploaderForm, 
                     $.post(uploaderParams[index].ct_uploader_url, {op: "delete", name: filename},
                         function (resp, textStatus, jqXHR) {
                             //const data_ = resp;
-                            //if(checkIfLogedIn(data_)){
+                            //if(checkIfLoggedIn(data_)){
                             //	if(textStatus==='success')
                             //		const res = JSON.parse(data_);
                             //}
@@ -124,7 +124,7 @@ function ct_getUploader(index, urlstr, maxFileSize, allowedTypes, UploaderForm, 
                 document.getElementById(uploaderParams[index].fieldValueInputBox).value = "";
 
                 $("#" + EventMessageBox).html("");
-                pd.statusbar.hide(); //You choice to hide/not.
+                pd.statusbar.hide(); //You choose to hide/not.
                 uploaderParams[index].files_uploaded -= 1;
                 updateUploadedFileBox(index);
                 checkRequiredFields();

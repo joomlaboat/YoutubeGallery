@@ -1,3 +1,5 @@
+let ctItemId = 0;
+
 function setTask(event, task, returnLink, submitForm, formName) {
 
     event.preventDefault();
@@ -300,7 +302,7 @@ function checkRequiredFields() {
                     else
                         label = "Unlabeled field";
 
-                    let imageObjectName = 'ct_uploadfile_box_image_image';//requiredFields[i].id + '_image';
+                    let imageObjectName = requiredFields[i].id + '_image';
                     let imageObject = document.getElementById(imageObjectName);
 
                     if (imageObject)

@@ -69,7 +69,7 @@ class Details
     {
         $filter = '';
 
-        if ($this->ct->Params->filter != '' and $this->ct->Params->alias == '') {
+        if ($this->ct->Params->listing_id === null and $this->ct->Params->filter != '' and $this->ct->Params->alias == '') {
 
             $twig = new TwigProcessor($this->ct, $this->ct->Params->filter);
             $filter = $twig->process();
@@ -85,7 +85,7 @@ class Details
 
         $this->ct->getTable($this->ct->Params->tableName, $this->ct->Params->userIdField);
 
-        if ($this->ct->Table->tablename == '')
+        if ($this->ct->Table->tablename === null)
             return false;
 
         if (!is_null($this->ct->Params->alias) and $this->ct->Table->alias_fieldname != '')

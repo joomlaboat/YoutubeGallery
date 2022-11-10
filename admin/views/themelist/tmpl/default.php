@@ -73,7 +73,8 @@ JHtml::_('behavior.tooltip');
 </form>
 
 <p style="text-align:left;">
-    <a href="https://joomlaboat.com/youtube-gallery-themes" target="_blank" style="color:#51A351;">Get more Themes</a>
+    <a href="https://joomlaboat.com/youtube-gallery/youtube-gallery-themes" target="_blank" style="color:#51A351;">Get
+        more Themes</a>
     <span style="margin-left:20px;">|</span>
     <a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact
         Tech-Support)</a>

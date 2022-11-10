@@ -53,7 +53,7 @@ class Twig_Record_Tags
         return $forms->renderFieldLabel((object)$field, $allowSortBy);
     }
 
-    function link($add_returnto = false, $menu_item_alias = '', $custom_not_base64_returnto = '')
+    function link($add_returnto = false, $menu_item_alias = '', $custom_not_base64_returnto = ''): ?string
     {
         $menu_item_id = 0;
         $view_link = '';
@@ -168,8 +168,8 @@ class Twig_Record_Tags
 
         foreach ($join_table_fields as $join_table_field) {
             if ($join_table_field['type'] == 'sqljoin') {
-                $typeparams = JoomlaBasicMisc::csv_explode(',', $join_table_field['typeparams'], '"', false);
-                $join_table_join_to_table = $typeparams[0];
+                $typeParams = JoomlaBasicMisc::csv_explode(',', $join_table_field['typeparams'], '"', false);
+                $join_table_join_to_table = $typeParams[0];
                 if ($join_table_join_to_table == $this->ct->Table->tablename)
                     return intval($this->advancedjoin('count', $join_table, '_id', $join_table_field['fieldname'], '_id', $filter));
             }
@@ -182,7 +182,7 @@ class Twig_Record_Tags
     function advancedjoin($sj_function, $sj_tablename, $field1_findwhat, $field2_lookwhere, $field3_readvalue = '_id', $filter = '',
                           $order_by_option = '', $value_option_list = [])
     {
-        if ($sj_tablename == '') return '';
+        if ($sj_tablename === null or $sj_tablename == '') return '';
 
         $tablerow = ESTables::getTableRowByNameAssoc($sj_tablename);
 
@@ -190,17 +190,17 @@ class Twig_Record_Tags
 
         $field_details = $this->join_getRealFieldName($field1_findwhat, $this->ct->Table->tablerow);
         if ($field_details === null) return '';
-        $field1_findwhat_realname = $field_details[0];
+        $field1_findWhat_realName = $field_details[0];
         $field1_type = $field_details[1];
 
         $field_details = $this->join_getRealFieldName($field2_lookwhere, $tablerow);
         if ($field_details === null) return '';
-        $field2_lookwhere_realname = $field_details[0];
+        $field2_lookWhere_realName = $field_details[0];
         $field2_type = $field_details[1];
 
         $field_details = $this->join_getRealFieldName($field3_readvalue, $tablerow);
         if ($field_details === null) return '';
-        $field3_readvalue_realname = $field_details[0];
+        $field3_readValue_realName = $field_details[0];
 
         $sj_realtablename = $tablerow['realtablename'];
         $sj_realidfieldname = $tablerow['realidfieldname'];
@@ -208,13 +208,13 @@ class Twig_Record_Tags
 
         if ($order_by_option != '') {
             $field_details = $this->join_getRealFieldName($order_by_option, $tablerow);
-            $order_by_option_realname = $field_details[0] ?? '';
+            $order_by_option_realName = $field_details[0] ?? '';
         } else
-            $order_by_option_realname = '';
+            $order_by_option_realName = '';
 
 
-        $query = $this->join_buildQuery($sj_function, $tablerow, $field1_findwhat_realname, $field1_type, $field2_lookwhere_realname,
-            $field2_type, $field3_readvalue_realname, $additional_where, $order_by_option_realname);
+        $query = $this->join_buildQuery($sj_function, $tablerow, $field1_findWhat_realName, $field1_type, $field2_lookWhere_realName,
+            $field2_type, $field3_readValue_realName, $additional_where, $order_by_option_realName);
 
         $this->ct->db->setQuery($query);
 
@@ -249,19 +249,20 @@ class Twig_Record_Tags
         return $vlu;
     }
 
-    protected function join_getRealFieldName($fieldname, $tablerow)
+    protected function join_getRealFieldName($fieldname, $tableRow): ?array
     {
-        $tableid = $tablerow['id'];
+        $tableid = $tableRow['id'];
 
         if ($fieldname == '_id') {
-            return [$tablerow['realidfieldname'], '_id'];
+            return [$tableRow['realidfieldname'], '_id'];
         } elseif ($fieldname == '_published') {
-            if ($tablerow['published_field_found'])
+            if ($tableRow['published_field_found'])
                 return ['published', '_published'];
             else
-                $this->ct->app->enqueueMessage('{{ record.join... }} - Table doesn\' have "published" field.', 'error');
+                $this->ct->app->enqueueMessage('{{ record.join... }} - Table does not have "published" field.', 'error');
         } else {
             $field1_row = Fields::getFieldRowByName($fieldname, $tableid);
+
             if (is_object($field1_row)) {
                 return [$field1_row->realfieldname, $field1_row->type];
             } else
@@ -270,7 +271,7 @@ class Twig_Record_Tags
         return null;
     }
 
-    protected function join_processWhere($additional_where, $sj_realtablename, $sj_realidfieldname)
+    protected function join_processWhere($additional_where, $sj_realtablename, $sj_realidfieldname): string
     {
         if ($additional_where == '')
             return '';
@@ -332,44 +333,44 @@ class Twig_Record_Tags
         return $sj_realtablename . '.es_' . $str;
     }
 
-    protected function join_buildQuery($sj_function, $tablerow, $field1_findwhat, $field1_type, $field2_lookwhere, $field2_type, $field3_readvalue, $additional_where, $order_by_option)
+    protected function join_buildQuery($sj_function, $tableRow, $field1_findWhat, $field1_type, $field2_lookWhere, $field2_type, $field3_readValue, $additional_where, $order_by_option): string
     {
         if ($sj_function == 'count')
-            $query = 'SELECT count(' . $tablerow['realtablename'] . '.' . $field3_readvalue . ') AS vlu ';
+            $query = 'SELECT count(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
         elseif ($sj_function == 'sum')
-            $query = 'SELECT sum(' . $tablerow['realtablename'] . '.' . $field3_readvalue . ') AS vlu ';
+            $query = 'SELECT sum(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
         elseif ($sj_function == 'avg')
-            $query = 'SELECT avg(' . $tablerow['realtablename'] . '.' . $field3_readvalue . ') AS vlu ';
+            $query = 'SELECT avg(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
         elseif ($sj_function == 'min')
-            $query = 'SELECT min(' . $tablerow['realtablename'] . '.' . $field3_readvalue . ') AS vlu ';
+            $query = 'SELECT min(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
         elseif ($sj_function == 'max')
-            $query = 'SELECT max(' . $tablerow['realtablename'] . '.' . $field3_readvalue . ') AS vlu ';
+            $query = 'SELECT max(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
         else {
             //need to resolve record value if it's "records" type
-            $query = 'SELECT ' . $tablerow['realtablename'] . '.' . $field3_readvalue . ' AS vlu '; //value or smart
+            $query = 'SELECT ' . $tableRow['realtablename'] . '.' . $field3_readValue . ' AS vlu '; //value or smart
         }
 
         $query .= ' FROM ' . $this->ct->Table->realtablename . ' ';
 
-        $sj_tablename = $tablerow['tablename'];
+        $sj_tablename = $tableRow['tablename'];
 
         if ($this->ct->Table->tablename != $sj_tablename) {
             // Join not needed when we are in the same table
-            $query .= ' LEFT JOIN ' . $tablerow['realtablename'] . ' ON ';
+            $query .= ' LEFT JOIN ' . $tableRow['realtablename'] . ' ON ';
 
             if ($field1_type == 'records') {
                 if ($field2_type == 'records') {
                     $query .= '1==2'; //todo
                 } else {
-                    $query .= 'INSTR(' . $this->ct->Table->realtablename . '.' . $field1_findwhat . ',CONCAT(",",' . $tablerow['realtablename'] . '.' . $field2_lookwhere . ',","))';
+                    $query .= 'INSTR(' . $this->ct->Table->realtablename . '.' . $field1_findWhat . ',CONCAT(",",' . $tableRow['realtablename'] . '.' . $field2_lookWhere . ',","))';
                 }
             } else {
                 if ($field2_type == 'records') {
-                    $query .= 'INSTR(' . $tablerow['realtablename'] . '.' . $field2_lookwhere
-                        . ',  CONCAT(",",' . $this->ct->Table->realtablename . '.' . $field1_findwhat . ',","))';
+                    $query .= 'INSTR(' . $tableRow['realtablename'] . '.' . $field2_lookWhere
+                        . ',  CONCAT(",",' . $this->ct->Table->realtablename . '.' . $field1_findWhat . ',","))';
                 } else {
-                    $query .= ' ' . $this->ct->Table->realtablename . '.' . $field1_findwhat . ' = '
-                        . ' ' . $tablerow['realtablename'] . '.' . $field2_lookwhere;
+                    $query .= ' ' . $this->ct->Table->realtablename . '.' . $field1_findWhat . ' = '
+                        . ' ' . $tableRow['realtablename'] . '.' . $field2_lookWhere;
                 }
             }
         }
@@ -380,8 +381,6 @@ class Twig_Record_Tags
             //don't attach to specific record when it is the same table, example : to find averages
             $wheres[] = $this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'] . '=' . $this->ct->db->quote($this->ct->Table->record[$this->ct->Table->realidfieldname]);
         }// else {
-        //$wheres[]='#__customtables_table_'.$sj_tablename.'.published=1';//to join with published record only, preferably set in parameters
-        //}
 
         if ($additional_where != '')
             $wheres[] = '(' . $additional_where . ')';
@@ -390,7 +389,7 @@ class Twig_Record_Tags
             $query .= ' WHERE ' . implode(' AND ', $wheres);
 
         if ($order_by_option != '')
-            $query .= ' ORDER BY ' . $tablerow['realtablename'] . '.' . $order_by_option;
+            $query .= ' ORDER BY ' . $tableRow['realtablename'] . '.' . $order_by_option;
 
         $query .= ' LIMIT 1';
 
@@ -441,8 +440,8 @@ class Twig_Record_Tags
 
         foreach ($join_table_fields as $join_table_field) {
             if ($join_table_field['type'] == 'sqljoin') {
-                $typeparams = JoomlaBasicMisc::csv_explode(',', $join_table_field['typeparams'], '"', false);
-                $join_table_join_to_table = $typeparams[0];
+                $typeParams = JoomlaBasicMisc::csv_explode(',', $join_table_field['typeparams'], '"', false);
+                $join_table_join_to_table = $typeParams[0];
                 if ($join_table_join_to_table == $this->ct->Table->tablename)
                     return $this->advancedjoin($function, $join_table, '_id', $join_table_field['fieldname'], $value_field, $filter);
             }
@@ -474,7 +473,7 @@ class Twig_Record_Tags
         return $this->simple_join('value', $join_table, $value_field, 'record.joinvalue', $filter);
     }
 
-    function jointable($layoutname = '', $filter = '', $orderby = '', $limit = 0)
+    function jointable($layoutname = '', $filter = '', $orderby = '', $limit = 0): string
     {
         //Example {{ record.tablejoin("InvoicesPage","_published=1","name") }}
 
@@ -485,7 +484,7 @@ class Twig_Record_Tags
 
         $layouts = new Layouts($this->ct);
 
-        $pagelayout = $layouts->getLayout($layoutname, false);//It is safier to process layout after rendering the table
+        $pageLayout = $layouts->getLayout($layoutname, false);//It is safier to process layout after rendering the table
         if ($layouts->tableid === null) {
             $this->ct->app->enqueueMessage('{{ record.tablejoin("' . $layoutname . '","' . $filter . '","' . $orderby . '") }} - Layout "' . $layoutname . ' not found.', 'error');
             return '';
@@ -497,8 +496,8 @@ class Twig_Record_Tags
 
         foreach ($join_table_fields as $join_table_field) {
             if ($join_table_field['type'] == 'sqljoin') {
-                $typeparams = JoomlaBasicMisc::csv_explode(',', $join_table_field['typeparams'], '"', false);
-                $join_table_join_to_table = $typeparams[0];
+                $typeParams = JoomlaBasicMisc::csv_explode(',', $join_table_field['typeparams'], '"', false);
+                $join_table_join_to_table = $typeParams[0];
                 if ($join_table_join_to_table == $this->ct->Table->tablename) {
                     $complete_filter = $join_table_field['fieldname'] . '=' . $this->ct->Table->record[$this->ct->Table->realidfieldname];
                     if ($filter != '')
@@ -512,11 +511,8 @@ class Twig_Record_Tags
         $tables = new Tables($join_ct);
 
         if ($tables->loadRecords($layouts->tableid, $complete_filter, $orderby, $limit)) {
-            $twig = new TwigProcessor($join_ct, $pagelayout);
-            $vlu = $twig->process();
-
-            //return $vlu;
-            return $vlu;
+            $twig = new TwigProcessor($join_ct, $pageLayout);
+            return $twig->process();
         }
 
         $this->ct->app->enqueueMessage('{{ record.tablejoin("' . $layoutname . '","' . $filter . '","' . $orderby . '") }} - LCould not load records.', 'error');
@@ -534,7 +530,7 @@ class Twig_Table_Tags
         $this->ct = &$ct;
     }
 
-    function recordstotal()
+    function recordstotal(): int
     {
         if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
             return 'Table not selected';
@@ -542,18 +538,18 @@ class Twig_Table_Tags
         return $this->ct->getNumberOfRecords();
     }
 
-    function records()
+    function records(): int
     {
         if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
-            return 'Table not selected';
+            return -1;
 
         return $this->ct->Table->recordcount;
     }
 
-    function fields()
+    function fields(): int
     {
         if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
-            return 'Table not selected';
+            return -1;
 
         return count($this->ct->Table->fields);
     }
@@ -582,31 +578,29 @@ class Twig_Table_Tags
         return $this->ct->Table->tablename;
     }
 
-    function id()
+    function id(): int
     {
         if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
-            return 'Table not selected';
+            return -1;
 
         return $this->ct->Table->tableid;
     }
 
-    function recordsperpage()
+    function recordsperpage(): int
     {
         if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
-            return 'Table not selected';
+            return -1;
 
         return $this->ct->Limit;
     }
 
-    function recordpagestart()
+    function recordpagestart(): int
     {
         if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
-            return 'Table not selected';
+            return -1;
 
         return $this->ct->LimitStart;
     }
-
-
 }
 
 class Twig_Tables_Tags
@@ -673,7 +667,7 @@ class Twig_Tables_Tags
         }
     }
 
-    function getrecord($layoutname = '', $record_id_or_filter = '', $orderby = '')
+    function getrecord($layoutname = '', $record_id_or_filter = '', $orderby = ''): string
     {
         if ($layoutname == '') {
             $this->ct->app->enqueueMessage('{{ html.records("' . $layoutname . '","' . $record_id_or_filter . '","' . $orderby . '") }} - Layout name not specified.', 'error');
@@ -689,7 +683,7 @@ class Twig_Tables_Tags
         $tables = new Tables($join_ct);
 
         $layouts = new Layouts($join_ct);
-        $pagelayout = $layouts->getLayout($layoutname, false);//It is safer to process layout after rendering the table
+        $pageLayout = $layouts->getLayout($layoutname, false);//It is safer to process layout after rendering the table
 
         if ($layouts->tableid === null) {
             $this->ct->app->enqueueMessage('{{ html.records("' . $layoutname . '","' . $record_id_or_filter . '","' . $orderby . '") }} - Layout "' . $layoutname . ' not found.', 'error');
@@ -710,13 +704,11 @@ class Twig_Tables_Tags
                 return '';
         }
 
-        $twig = new TwigProcessor($join_ct, $pagelayout);
-        $vlu = $twig->process($row);
-
-        return $vlu;
+        $twig = new TwigProcessor($join_ct, $pageLayout);
+        return $twig->process($row);
     }
 
-    function getrecords($layoutname = '', $filter = '', $orderby = '', $limit = 0)
+    function getrecords($layoutname = '', $filter = '', $orderby = '', $limit = 0): string
     {
         //Example {{ html.records("InvoicesPage","firstname=john","lastname") }}
 
@@ -728,7 +720,7 @@ class Twig_Tables_Tags
         $join_ct = new CT;
         $tables = new Tables($join_ct);
         $layouts = new Layouts($join_ct);
-        $pagelayout = $layouts->getLayout($layoutname, false);//It is safer to process layout after rendering the table
+        $pageLayout = $layouts->getLayout($layoutname, false);//It is safer to process layout after rendering the table
         if ($layouts->tableid === null) {
             $this->ct->app->enqueueMessage('{{ tables.getrecords("' . $layoutname . '","' . $filter . '","' . $orderby . '") }} - Layout "' . $layoutname . ' not found.', 'error');
             return '';
@@ -738,11 +730,11 @@ class Twig_Tables_Tags
 
             if ($join_ct->Env->legacysupport) {
                 $LayoutProc = new LayoutProcessor($join_ct);
-                $LayoutProc->layout = $pagelayout;
-                $pagelayout = $LayoutProc->fillLayout();
+                $LayoutProc->layout = $pageLayout;
+                $pageLayout = $LayoutProc->fillLayout();
             }
 
-            $twig = new TwigProcessor($join_ct, $pagelayout);
+            $twig = new TwigProcessor($join_ct, $pageLayout);
             return $twig->process();
         }
 

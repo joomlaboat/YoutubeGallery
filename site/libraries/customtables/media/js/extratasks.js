@@ -1,5 +1,5 @@
 /**
- * CustomTables Joomla! 3.x Native Component
+ * CustomTables Joomla! 3.x/4.x Native Component
  * @package Custom Tables
  * @subpackage extratasks.js
  * @author Ivan Komlev <support@joomlaboat.com>
@@ -11,8 +11,9 @@ let extraTasksUpdate_count = 0;
 let extraTasksUpdate_startindex = 0;
 let extraTasksUpdate_stepsize = 10;
 
-function extraTasksUpdate(task, old_params, new_params, tableid, fieldid, tabletitle, fieldtitle) {
+function extraTasksUpdate(task, old_params, new_params, tableid, fieldid, tabletitle, fieldtitle, stepsize = 10) {
     let result = '';
+    extraTasksUpdate_stepsize = stepsize;
 
     switch (task) {
         case 'updateimages':
@@ -24,7 +25,7 @@ function extraTasksUpdate(task, old_params, new_params, tableid, fieldid, tablet
             break;
 
         case 'updateimagegallery':
-            result = '<h3>Processing image files...</h3>';
+            result = '<h3>Processing image gallery files...</h3>';
             break;
 
         case 'updatefilebox':
@@ -37,14 +38,14 @@ function extraTasksUpdate(task, old_params, new_params, tableid, fieldid, tablet
     }
 
     //Delete non ASCII characters, just in case.
-    let op = Base64.decode(old_params).replace(/[^ -~]+/g, "");
-    let np = Base64.decode(new_params).replace(/[^ -~]+/g, "");
+    let op = Base64.decode(old_params).replace(/[^ -~]+/g, "").replaceAll('****quote****', '"');
+    let np = Base64.decode(new_params).replace(/[^ -~]+/g, "").replaceAll('****quote****', '"');
 
     result += '<p><b>Table:</b> ' + tabletitle + '<br/><b>Field:</b> ' + fieldtitle + '</p>';
     result += '<table><tbody><tr><td><b>Old Parameters:</b></td><td>' + op + '</td></tr><tr><td><b>New Parameters:</b></td><td>' + np + '</td></tr></tbody></table>';
     result += '<div id="ctStatus"></div><br/>';
 
-    result += '<div class="progress progress-striped active"><div id="ct_progressbar" class="ctProgressBar" role="progressbar" style="width: 0%;"></div></div><br/><p>Please keep this window open.</p>';
+    result += '<div class="progress progress-striped active"><div id="ct_progressbar" class="ctProgressBar" role="progressbar" style="width:0;"></div></div><br/><p>Please keep this window open.</p>';
 
     ctShowPopUp(result, false);
     ctQueryAPI(task, old_params, new_params, tableid, fieldid);

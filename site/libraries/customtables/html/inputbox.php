@@ -46,31 +46,27 @@ class Inputbox
     var ?array $row;
 
     var string $cssclass;
-    var string $cssstyle;
     var string $attributes;
     var string $onchange;
-
     var array $option_list;
     var string $place_holder;
     var string $prefix;
     var bool $isTwig;
+    protected string $cssStyle;
 
     function __construct(CT &$ct, $fieldRow, array $option_list = [], $isTwig = true, string $onchange = '')
     {
         $this->ct = &$ct;
-
         $this->isTwig = $isTwig;
 
-        // $option_list[0] - CSS Class
-        // $option_list[1] - Optional Parameter
         $this->cssclass = $option_list[0] ?? '';
-        $this->attributes = $option_list[1] ?? '';
-        $this->cssstyle = '';
+        $this->attributes = $option_list[1] ?? '';//Optional Parameter
+        $this->cssStyle = '';
         $this->onchange = $onchange;
 
         if (str_contains($this->cssclass, ':'))//it's a style, change it to attribute
         {
-            $this->cssstyle = $this->cssclass;
+            $this->cssStyle = $this->cssclass;
             $this->cssclass = '';
         }
 
@@ -109,7 +105,7 @@ class Inputbox
         $selector = $selectors[$index];
 
         $tablename = $selector[0];
-        if ($tablename == '') {
+        if ($tablename === null) {
             if ($obEndClean)
                 die(json_encode(['error' => 'Table not selected']));
             else
@@ -211,8 +207,6 @@ class Inputbox
         $this->row = $row;
         $this->field = new Field($this->ct, $this->field->fieldrow, $this->row);
         $this->prefix = $this->ct->Env->field_input_prefix . (!$this->ct->isEditForm ? $this->row[$this->ct->Table->realidfieldname] . '_' : '');
-
-        $this->ct->editFields[] = $this->field->fieldname;
 
         switch ($this->field->type) {
             case 'radio':
@@ -323,7 +317,7 @@ class Inputbox
                 if ($value == '')
                     $value = $this->field->defaultvalue;
 
-                return JHTML::_('ESFileLink.render', $this->prefix . $this->field->fieldname, $value, $this->cssstyle, $this->cssclass, $this->field->params[0], $this->attributes);
+                return JHTML::_('ESFileLink.render', $this->prefix . $this->field->fieldname, $value, $this->cssStyle, $this->cssclass, $this->field->params[0], $this->attributes);
 
             case 'customtables':
                 return $this->render_customtables();
@@ -387,21 +381,20 @@ class Inputbox
 
     protected function render_radio($value): string
     {
-        $result = '<table style="border:none;"><tr>';
+        $result = '<ul>';
         $i = 0;
+
         foreach ($this->field->params as $radiovalue) {
             $v = trim($radiovalue);
-            $result .= '<td><input type="radio"
+            $result .= '<li><input type="radio"
 									name="' . $this->prefix . $this->field->fieldname . '"
 									id="' . $this->prefix . $this->field->fieldname . '_' . $i . '"
 									value="' . $v . '" '
                 . ($value == $v ? ' checked="checked" ' : '')
-                . ' /></td>'
-                . '<td><label for="' . $this->prefix . $this->field->fieldname . '_' . $i . '">' . $v . '</label></td>';
+                . ' /><label for="' . $this->prefix . $this->field->fieldname . '_' . $i . '">' . $v . '</label></li>';
             $i++;
         }
-        $result .= '</tr></table>';
-
+        $result .= '</ul>';
 
         return $result;
     }
@@ -631,8 +624,8 @@ class Inputbox
 
             if (file_exists($file_path)) {
                 $this->ct->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/thirdparty/jsc/include.js"></script>');
-                $this->ct->document->addCustomTag('<script type="text/javascript">$Spelling.SpellCheckAsYouType("' . $fname . '");</script>');
-                $this->ct->document->addCustomTag('<script type="text/javascript">$Spelling.DefaultDictionary = "English";</script>');
+                $this->ct->document->addCustomTag('<script>$Spelling.SpellCheckAsYouType("' . $fname . '");</script>');
+                $this->ct->document->addCustomTag('<script>$Spelling.DefaultDictionary = "English";</script>');
             }
         }
 
@@ -787,7 +780,7 @@ class Inputbox
                     . 'data-valuerule="' . str_replace('"', '&quot;', $this->field->valuerule) . '" '
                     . 'data-valuerulecaption="' . str_replace('"', '&quot;', $this->field->valuerulecaption) . '" '
                     . ($value ? ' checked="checked" ' : '')
-                    . ($this->cssstyle != '' ? ' class="' . $this->cssstyle . '" ' : '')
+                    . ($this->cssStyle != '' ? ' class="' . $this->cssStyle . '" ' : '')
                     . ($this->cssclass != '' ? ' class="' . $this->cssclass . '" ' : '')
                     . ($check_attributes != '' ? ' ' . $check_attributes : '')
                     . '>'
@@ -1092,6 +1085,8 @@ class Inputbox
 
         //$this->option_list[0] - CSS Class
         //$this->option_list[1] - Optional Attributes
+        //$this->option_list[2] - Parent Selector - Array
+        //$this->option_list[3] - Custom Title Layout
 
         $sqljoin_attributes = ' data-valuerule="' . str_replace('"', '&quot;', $this->field->valuerule) . '"'
             . ' data-valuerulecaption="' . str_replace('"', '&quot;', $this->field->valuerulecaption) . '"';
@@ -1125,7 +1120,6 @@ class Inputbox
                 $this->cssclass,
                 $sqljoin_attributes);
         }
-
         return $result;
     }
 

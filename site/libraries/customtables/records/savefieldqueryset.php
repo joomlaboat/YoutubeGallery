@@ -38,15 +38,19 @@ class SaveFieldQuerySet
     public Field $field;
     var ?array $row;
     var bool $isCopy;
+    var array $saveQuery;
 
     function __construct(CT &$ct, $row, $isCopy = false)
     {
         $this->ct = &$ct;
         $this->row = $row;
         $this->isCopy = $isCopy;
+
+        $this->saveQuery = [];
     }
 
     //Return type: null|string|array
+
     function getSaveFieldSet($fieldrow)
     {
         $this->field = new Field($this->ct, $fieldrow, $this->row);
@@ -226,7 +230,7 @@ class SaveFieldQuerySet
                 break;
 
             case 'user':
-                $value = $this->ct->Env->jinput->getVar($this->field->comesfieldname);
+                $value = $this->ct->Env->jinput->post->get($this->field->comesfieldname);
 
                 if (isset($value)) {
                     $value = $this->ct->Env->jinput->getInt($this->field->comesfieldname);
@@ -242,12 +246,18 @@ class SaveFieldQuerySet
 
             case 'userid':
 
-                if ($this->ct->isRecordNull($this->row[$this->ct->Table->realidfieldname]) or $this->isCopy) {
+                if ($this->ct->isRecordNull($this->row) or $this->isCopy) {
 
-                    $value = $this->ct->Env->jinput->getVar($this->field->comesfieldname);
+                    $value = $this->ct->Env->jinput->post->get($this->field->comesfieldname);
 
-                    if (!isset($value) or $value == 0) {
-                        $value = ($this->ct->Env->userid != 0 ? $this->ct->Env->userid : 0);
+                    if ((!isset($value) or $value == 0)) {
+
+                        if (!$this->ct->isRecordNull($this->row)) {
+                            if ($this->row[$this->field->realfieldname] == null or $this->row[$this->field->realfieldname] == "")
+                                $value = ($this->ct->Env->userid != 0 ? $this->ct->Env->userid : 0);
+                        } else {
+                            $value = ($this->ct->Env->userid != 0 ? $this->ct->Env->userid : 0);
+                        }
                     }
 
                     $this->row[$this->field->realfieldname] = $value;
@@ -291,29 +301,87 @@ class SaveFieldQuerySet
                     $this->row[$this->field->realfieldname] = $value;
                     return $this->field->realfieldname . '=' . (float)$value;
                 }
-
                 break;
 
             case 'image':
 
-                $image_type_file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'fieldtypes' . DIRECTORY_SEPARATOR . '_type_image.php';
-                require_once($image_type_file);
+                $to_delete = $this->ct->Env->jinput->post->get($this->field->comesfieldname . '_delete', '', 'CMD');
+                $returnValue = null;
 
-                $value = CT_FieldTypeTag_image::get_image_type_value($this->field, $listing_id);
-                $this->row[$this->field->realfieldname] = $value;
-                return ($value === null ? null : $this->field->realfieldname . '=' . $this->ct->db->Quote($value));
+                if ($to_delete == 'true') {
+
+                    $this->row[$this->field->realfieldname] = null;
+                    $returnValue = $this->field->realfieldname . '=NULL';
+
+                    $ExistingImage = Tree::isRecordExist($listing_id, $this->ct->Table->realidfieldname, $this->field->realfieldname, $this->field->ct->Table->realtablename);
+
+                    if ($ExistingImage !== null and ($ExistingImage != '' or (is_numeric($ExistingImage) and $ExistingImage > 0))) {
+
+                        $imageMethods = new CustomTablesImageMethods;
+                        $ImageFolder = CustomTablesImageMethods::getImageFolder($this->field->params);
+                        $imageMethods->DeleteExistingSingleImage(
+                            $ExistingImage,
+                            JPATH_SITE . DIRECTORY_SEPARATOR . $ImageFolder,
+                            $this->field->params[0],
+                            $this->field->ct->Table->realtablename,
+                            $this->field->realfieldname,
+                            $this->field->ct->Table->realidfieldname);
+                    }
+                }
+
+                $tempValue = $this->ct->Env->jinput->post->getString($this->field->comesfieldname);
+                if ($tempValue !== null and $tempValue != '') {
+
+                    require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'fieldtypes' . DIRECTORY_SEPARATOR . '_type_image.php');
+
+                    $value = CT_FieldTypeTag_image::get_image_type_value($this->field, $this->ct->Table->realidfieldname, $listing_id);
+                    $this->row[$this->field->realfieldname] = $value;
+
+                    return ($value === null ? $this->field->realfieldname . '=NULL' : $this->field->realfieldname . '=' . $this->ct->db->Quote($value));
+                }
+
+                if ($returnValue !== null)
+                    return $returnValue;
+
+                break;
 
             case 'blob':
 
                 $to_delete = $this->ct->Env->jinput->post->get($this->field->comesfieldname . '_delete', '', 'CMD');
                 $value = CT_FieldTypeTag_file::get_blob_value($this->field, $listing_id);
 
+                $fileNameField = '';
+                if (isset($this->field->params[2])) {
+                    $fileNameField_String = $this->field->params[2];
+                    $fileNameField_Row = Fields::FieldRowByName($fileNameField_String, $this->ct->Table->fields);
+                    $fileNameField = $fileNameField_Row['realfieldname'];
+                }
+
                 if ($to_delete == 'true' and $value === null) {
+
                     $this->row[$this->field->realfieldname] = null;
+
+                    if ($fileNameField != '' and !$this->checkIfFieldAlreadyInTheList($fileNameField))
+                        $this->row[$fileNameField] = null;
+
                     return $this->field->realfieldname . '=NULL';
                 } else {
-                    $this->row[$this->field->realfieldname] = $value;
-                    return ($value === null ? null : $this->field->realfieldname . '=FROM_BASE64("' . base64_encode($value) . '")');
+                    $this->row[$this->field->realfieldname] = strlen($value);
+
+                    if ($fileNameField != '') {
+                        $file_id = $this->ct->Env->jinput->post->get($this->field->comesfieldname, '', 'STRING');
+                        $file_name_parts = explode('_', $file_id);
+                        $file_name = implode('_', array_slice($file_name_parts, 3));
+                        $this->row[$fileNameField] = $file_name;
+
+                        $sets = array();
+                        if ($value !== null and !$this->checkIfFieldAlreadyInTheList($fileNameField))
+                            $sets[] = $fileNameField . '=' . $this->ct->db->Quote($file_name);
+
+                        $sets[] = ($value === null ? null : $this->field->realfieldname . '=FROM_BASE64("' . base64_encode($value) . '")');
+                        return $sets;
+                    } else
+                        return ($value === null ? null : $this->field->realfieldname . '=FROM_BASE64("' . base64_encode($value) . '")');
                 }
 
             case 'file':
@@ -452,7 +520,6 @@ class SaveFieldQuerySet
                 }
 
                 break;
-
 
             case 'creationtime':
                 if ($this->row[$this->ct->Table->realidfieldname] == 0 or $this->row[$this->ct->Table->realidfieldname] == '' or $this->isCopy) {
@@ -698,6 +765,17 @@ class SaveFieldQuerySet
         return null;
     }
 
+    function checkIfFieldAlreadyInTheList($fieldName): bool
+    {
+        foreach ($this->saveQuery as $query) {
+            $parts = explode('=', $query);
+
+            if ($parts[0] == $fieldName)
+                return true;
+        }
+        return false;
+    }
+
     protected function get_customtables_type_signature(): ?string
     {
         $value = $this->ct->Env->jinput->getString($this->field->comesfieldname);
@@ -725,8 +803,8 @@ class SaveFieldQuerySet
 
                 $parts = explode(';base64,', $value);
 
-                $deceded_binary = base64_decode($parts[1]);
-                file_put_contents($image_file, $deceded_binary);
+                $decoded_binary = base64_decode($parts[1]);
+                file_put_contents($image_file, $decoded_binary);
 
                 return $ImageID;
             }
@@ -776,20 +854,20 @@ class SaveFieldQuerySet
 
     }
 
-    protected function getMultiSelector($parentid, $parentname, $prefix): ?array
+    protected function getMultiSelector($parentId, $parentName, $prefix): ?array
     {
         $set = false;
-        $resilt_list = array();
+        $resultList = array();
 
-        $rows = $this->getList($parentid);
+        $rows = $this->getList($parentId);
         if (count($rows) < 1)
-            return $resilt_list;
+            return $resultList;
 
         foreach ($rows as $row) {
-            if (strlen($parentname) == 0)
+            if (strlen($parentName) == 0)
                 $ChildList = $this->getMultiSelector($row->id, $row->optionname, $prefix);
             else
-                $ChildList = $this->getMultiSelector($row->id, $parentname . '.' . $row->optionname, $prefix);
+                $ChildList = $this->getMultiSelector($row->id, $parentName . '.' . $row->optionname, $prefix);
 
             if ($ChildList !== null)
                 $count_child = count($ChildList);
@@ -797,16 +875,16 @@ class SaveFieldQuerySet
                 $count_child = 0;
 
             if ($count_child > 0) {
-                $resilt_list = array_merge($resilt_list, $ChildList);
+                $resultList = array_merge($resultList, $ChildList);
             } else {
                 $value = $this->ct->Env->jinput->getString($prefix . '_' . $row->id);
                 if (isset($value)) {
                     $set = true;
 
-                    if (strlen($parentname) == 0)
-                        $resilt_list[] = $row->optionname . '.';
+                    if (strlen($parentName) == 0)
+                        $resultList[] = $row->optionname . '.';
                     else
-                        $resilt_list[] = $parentname . '.' . $row->optionname . '.';
+                        $resultList[] = $parentName . '.' . $row->optionname . '.';
                 }
             }
         }
@@ -814,7 +892,7 @@ class SaveFieldQuerySet
         if (!$set)
             return null;
 
-        return $resilt_list;
+        return $resultList;
     }
 
     protected function getList($parentid)
@@ -827,13 +905,11 @@ class SaveFieldQuerySet
     protected function getComboString($parent): ?string
     {
         $prefix = $this->field->prefix . 'combotree_' . $this->ct->Table->tablename . '_' . $this->field->fieldname;
-
         $i = 1;
         $result = array();
         $v = '';
         $set = false;
         do {
-
             $value = $this->ct->Env->jinput->getCmd($prefix . '_' . $i);
             if (isset($value)) {
                 if ($value != '') {
@@ -843,7 +919,6 @@ class SaveFieldQuerySet
                 $set = true;
             } else
                 break;
-
 
         } while ($v != '');
 
@@ -876,7 +951,7 @@ class SaveFieldQuerySet
         }
     }
 
-    function applyDefaults($fieldrow)
+    function applyDefaults($fieldrow): ?string
     {
         $this->field = new Field($this->ct, $fieldrow, $this->row);
 

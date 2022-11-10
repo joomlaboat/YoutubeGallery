@@ -141,7 +141,7 @@ class Environment
     }
 
     /* USER-AGENTS ================================================== */
-    //http://stackoverflow.com/questions/6524301/detect-mobile-browser
+    //https://stackoverflow.com/questions/6524301/detect-mobile-browser
     protected function check_user_agent($type = NULL): bool
     {
         $user_agent = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');

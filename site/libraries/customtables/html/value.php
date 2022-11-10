@@ -17,6 +17,7 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 
 use CustomTables\DataTypes\Tree;
 use CustomTablesImageMethods;
+use finfo;
 use JoomlaBasicMisc;
 use JHTMLCTTime;
 use tagProcessor_Value;
@@ -52,6 +53,7 @@ class Value
 {
     var CT $ct;
     var Field $field;
+    var ?array $row;
 
     function __construct(CT &$ct)
     {
@@ -63,6 +65,7 @@ class Value
         $this->field = new Field($this->ct, $fieldrow, $row);
 
         $rfn = $this->field->realfieldname;
+        $this->row = $row;
         $rowValue = $row[$rfn] ?? null;
 
         switch ($this->field->type) {
@@ -144,19 +147,21 @@ class Value
 
             case 'file':
 
-                return CT_FieldTypeTag_file::process($rowValue, $this->field, $option_list, $row[$this->ct->Table->realidfieldname]);
+                return CT_FieldTypeTag_file::process($rowValue, $this->field, $option_list, $row[$this->ct->Table->realidfieldname], false, 0);
 
             case 'image':
                 $imageSRC = '';
                 $imagetag = '';
 
-                CT_FieldTypeTag_image::getImageSRClayoutview($option_list, $rowValue, $this->field->params, $imageSRC, $imagetag);
+                CT_FieldTypeTag_image::getImageSRCLayoutView($option_list, $rowValue, $this->field->params, $imageSRC, $imagetag);
 
                 return $imagetag;
 
             case 'signature':
 
-                CT_FieldTypeTag_image::getImageSRClayoutview($option_list, $rowValue, $this->field->params, $imageSRC, $imagetag);
+                $imageSRC = '';
+                $imagetag = '';
+                CT_FieldTypeTag_image::getImageSRCLayoutView($option_list, $rowValue, $this->field->params, $imageSRC, $imagetag);
 
                 $conf = Factory::getConfig();
                 $sitename = $conf->get('config.sitename');
@@ -184,7 +189,6 @@ class Value
                     return '<img src="' . $imagefileweb . '" width="' . $width . '" height="' . $height . '" alt="' . $sitename . '" title="' . $sitename . '" />';
                 }
                 return null;
-
 
             case 'article':
             case 'multilangarticle':
@@ -237,7 +241,7 @@ class Value
                 $processor_file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'fieldtypes' . DIRECTORY_SEPARATOR . '_type_file.php';
                 require_once($processor_file);
 
-                return CT_FieldTypeTag_file::process($rowValue, $this->field, $option_list, $row[$this->ct->Table->realidfieldname]);
+                return CT_FieldTypeTag_file::process($rowValue, $this->field, $option_list, $row[$this->ct->Table->realidfieldname], 0);
 
             case 'log':
                 return CT_FieldTypeTag_log::getLogVersionLinks($this->ct, $rowValue, $row);
@@ -274,6 +278,11 @@ class Value
 
         if (!in_array($this->ct->LayoutVariables['layout_type'], [1, 5, 6]))//If not Simple Catalog and not Catalog Page and not Catalog Item
             return $value;
+
+        $edit_userGroup = (int)$this->ct->Params->editUserGroups;
+        $isEditable = CTUser::checkIfRecordBelongsToUser($this->ct, $edit_userGroup);
+        if (!$isEditable)
+            return '';
 
         $edit_userGroup = (int)$this->ct->Params->editUserGroups;
         $isEditable = CTUser::checkIfRecordBelongsToUser($this->ct, $edit_userGroup);
@@ -383,13 +392,18 @@ class Value
         }
     }
 
-    protected function blobProcess($value, array $option_list)
+    protected function blobProcess(?string $value, array $option_list): ?string
     {
+        if ((int)$value == 0)
+            return null;
+
         $fieldType = Fields::getFieldType($this->ct->Table->realtablename, $this->field->realfieldname);
         if ($fieldType != 'blob' and $fieldType != 'tinyblob' and $fieldType != 'mediumblob' and $fieldType != 'longblob')
             return self::TextFunctions($value, $option_list);
 
-        return '[BLOB - ' . JoomlaBasicMisc::formatSizeUnits(strlen($value)) . ']';
+        $filename = CT_FieldTypeTag_file::getBlobFileName($this->field, $value, $this->row, $this->ct->Table->fields);
+
+        return CT_FieldTypeTag_file::process($filename, $this->field, $option_list, $this->row[$this->ct->Table->realidfieldname], false, intval($value));
     }
 
     protected function colorProcess($value, array $option_list): string
@@ -537,5 +551,4 @@ class Value
             return JHTML::date($PHPDate);
         }
     }
-
 }
