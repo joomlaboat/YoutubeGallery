@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -42,8 +42,8 @@ class YGAPI_VideoSource_DailymotionPlaylist
 
 
         foreach ($streamData->list as $entry) {
-            $videolist[] = 'http://www.dailymotion.com/playlist/' . $entry->id;
-            //http://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x986zk
+            $videolist[] = 'https://www.dailymotion.com/playlist/' . $entry->id;
+            //https://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x986zk
 
         }//foreach ($xml->entry as $entry)
 
@@ -52,7 +52,7 @@ class YGAPI_VideoSource_DailymotionPlaylist
 
     public static function extractDailymotionPlayListID($URL)
     {
-        //http://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x7k9rx
+        //https://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x7k9rx
         $p = explode('/', $URL);
 
         if (count($p) < 4)

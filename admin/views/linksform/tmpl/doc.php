@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -42,17 +42,17 @@ $document->addCustomTag('
                 <ul>
                     <li>
                         <b>Youtube Video</b><br/>
-                        http://www.youtube.com/watch?v=VSGMqfGmjG0<br/>
-                        http://www.youtube.com/watch?v=baLkXC_qWJY&feature=related
+                        https://www.youtube.com/watch?v=VSGMqfGmjG0<br/>
+                        https://www.youtube.com/watch?v=baLkXC_qWJY&feature=related
                     </li>
 
                     <li>
                         <b>Youtube Video Playlist, Channel, Standard Feeds, Search Results and Show</b><br/>
-                        http://www.youtube.com/playlist?list=PL5298F5DAD70298FC&feature=mh_lolz<br/>
-                        http://www.youtube.com/user/ivankomlev/favorites<br/>
-                        http://www.youtube.com/user/designcompasscorp<br/>
-                        http://www.youtube.com/results?search_query=wins+compilation+2012<br/>
-                        http://www.youtube.com/show/californication <b>(Must be resolved - Use "Add Link"
+                        https://www.youtube.com/playlist?list=PL5298F5DAD70298FC&feature=mh_lolz<br/>
+                        https://www.youtube.com/user/ivankomlev/favorites<br/>
+                        https://www.youtube.com/user/ivankomlev<br/>
+                        https://www.youtube.com/results?search_query=wins+compilation+2012<br/>
+                        https://www.youtube.com/show/californication <b>(Must be resolved - Use "Add Link"
                             button)</b><br/>
                         youtubestandard:<i>video_feed</i><br/>
                         <a href="https://joomlaboat.com/youtube-gallery/youtube-gallery-standard-feeds" target="_blank">More
@@ -82,23 +82,23 @@ $document->addCustomTag('
 
                     <li>
                         <b>Break.com</b><br/>
-                        http://www.break.com/pranks/biker-falls-off-dock-wall-2392751
+                        https://www.break.com/pranks/biker-falls-off-dock-wall-2392751
                     </li>
 
                     <li>
                         <b>Daily Motion</b><br/>
-                        http://www.dailymotion.com/video/xrcy5b
+                        https://www.dailymotion.com/video/xrcy5b
                     </li>
 
                     <li>
                         <b>Daily Motion Playlist</b><br/>
-                        http://www.dailymotion.com/playlist/x2jcwc_f669221398_reality/1
+                        https://www.dailymotion.com/playlist/x2jcwc_f669221398_reality/1
                     </li>
 
 
                     <li>
                         <b>College Humor Video</b><br/>
-                        http://www.collegehumor.com/video/65.0.01/what-pi-sounds-like
+                        https://www.collegehumor.com/video/65.0.01/what-pi-sounds-like
                     </li>
 
                     <li>
@@ -109,15 +109,15 @@ $document->addCustomTag('
 
                     <li>
                         <b>Present.me</b><br/>
-                        http://www.present.me/view/82240-video-cv-blog-tutorials
+                        https://www.present.me/view/82240-video-cv-blog-tutorials
                     </li>
 
                     <li>
                         <b>Ustream.tv (recorded)</b><br/>
-                        http://www.ustream.tv/recorded/40925310
+                        https://www.ustream.tv/recorded/40925310
                         <br/>
                         <b>Ustream.tv (live)</b><br/>
-                        http://www.ustream.tv/channel/95.0.02
+                        https://www.ustream.tv/channel/95.0.02
                     </li>
 
                     <li>
@@ -151,10 +151,10 @@ $document->addCustomTag('
                     To do this type comma then "<span style="color:green;">title</span>","<span style="color:green;">description</span>",
                     "<span style="color:green;">imagepath</span>","<span style="color:green;">special_parameters</span>",
                     "<span style="color:green;">startsecond</span>","<span style="color:green;">endsecond</span>"<br/>
-                    Should look like: <b>http://www.youtube.com/watch?v=baLkXC_qWJY</b>,"<b>Video Title</b>","<b>Video
+                    Should look like: <b>https://www.youtube.com/watch?v=baLkXC_qWJY</b>,"<b>Video Title</b>","<b>Video
                         description</b>","<b>images/customthumbnail.jpg</b>"<br/>
                     or<br/>
-                    <b>http://www.youtube.com/watch?v=baLkXC_qWJY</b>,"<b>Video Title</b>",,"<b>images/customthumbnail.jpg</b>"
+                    <b>https://www.youtube.com/watch?v=baLkXC_qWJY</b>,"<b>Video Title</b>",,"<b>images/customthumbnail.jpg</b>"
                     <br/>
                     you may pass #1..#6 to imagepath to select specific video thumbnail.
                     <p>

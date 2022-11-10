@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery API
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -17,9 +17,9 @@ class YGAPI_VideoSource_YoutubeUserUploads
     {
         //https://www.youtube.com/c/albasiranet/featured
         //return '/c/albasiranet/videos';
-        //link example: http://www.youtube.com/user/designcompasscorp
+        //link example: https://www.youtube.com/user/ivankomlev
         //or
-        ////link example: http://www.youtube.com/user/acharnesnews/favorites
+        ////link example: https://www.youtube.com/user/acharnesnews/favorites
         $matches = explode('/', $youtubeURL);
 
 
@@ -34,8 +34,8 @@ class YGAPI_VideoSource_YoutubeUserUploads
 
     public static function extractYouTubeUserFeaturedID($youtubeURL)
     {
-        //link example: http://www.youtube.com/user/designcompasscorp
-        ////link example: http://www.youtube.com/user/acharnesnews/favorites
+        //link example: https://www.youtube.com/user/ivankomlev
+        ////link example: https://www.youtube.com/user/acharnesnews/favorites
         $matches = explode('/', $youtubeURL);
 
         if (count($matches) > 3) {
@@ -115,7 +115,7 @@ class YGAPI_VideoSource_YoutubeUserUploads
             $videolist[] = $videolistitem;
             return $videolist;
         }
-        
+
         $items = $j->items;
 
         $playlistid = '';
@@ -159,9 +159,9 @@ class YGAPI_VideoSource_YoutubeUserUploads
 
     public static function extractYouTubeUserID($youtubeURL)
     {
-        //link example: http://www.youtube.com/user/designcompasscorp
+        //link example: https://www.youtube.com/user/ivankomlev
         //or
-        ////link example: http://www.youtube.com/user/acharnesnews/favorites
+        ////link example: https://www.youtube.com/user/acharnesnews/favorites
         //https://www.youtube.com/c/Whataboutit/videos
 
         $matches = explode('/', $youtubeURL);

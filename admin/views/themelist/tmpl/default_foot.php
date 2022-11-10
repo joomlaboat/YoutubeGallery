@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -10,5 +10,5 @@
 defined('_JEXEC') or die('Restricted Access');
 ?>
 <tr>
-        <td colspan="6"><?php echo $this->pagination->getListFooter(); ?></td>
+    <td colspan="6"><?php echo $this->pagination->getListFooter(); ?></td>
 </tr>

@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -19,31 +19,32 @@ $document->addCustomTag('<link rel="stylesheet" href="components/com_youtubegall
 
 ?>
 
-<form id="adminForm" action="<?php echo JRoute::_('index.php?option=com_youtubegallery'); ?>" method="post" class="form-inline">
-	<div class="row-fluid" style="width:100%;">
-		
-				<!-- Begin Content -->
-		<div class="span10 form-horizontal" style="width:100%;">
-				<ul class="nav nav-tabs">
-						<li class="active"><a href="#api" data-toggle="tab">Activation</a></li>
-						<li><a href="#sef" data-toggle="tab">SEF</a></li>
-				</ul>
-				
-				<div class="tab-content">
+<form id="adminForm" action="<?php echo JRoute::_('index.php?option=com_youtubegallery'); ?>" method="post"
+      class="form-inline">
+    <div class="row-fluid" style="width:100%;">
 
-				<!-- Begin Tabs -->
+        <!-- Begin Content -->
+        <div class="span10 form-horizontal" style="width:100%;">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#api" data-toggle="tab">Activation</a></li>
+                <li><a href="#sef" data-toggle="tab">SEF</a></li>
+            </ul>
 
-				<div class="tab-pane active" id="api">
-					<?php include('api.php');?>
-				</div>
-				
-				<div class="tab-pane" id="sef">
-					<?php include('sef.php');?>
-				</div>
-		</div>
-		
-		
-		<input type="hidden" name="task" value="" />
-		<?php echo JHtml::_('form.token'); ?>
-	</div>
+            <div class="tab-content">
+
+                <!-- Begin Tabs -->
+
+                <div class="tab-pane active" id="api">
+                    <?php include('api.php'); ?>
+                </div>
+
+                <div class="tab-pane" id="sef">
+                    <?php include('sef.php'); ?>
+                </div>
+            </div>
+
+
+            <input type="hidden" name="task" value=""/>
+            <?php echo JHtml::_('form.token'); ?>
+        </div>
 </form>

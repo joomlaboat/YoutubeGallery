@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery for Joomla!
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -455,7 +455,7 @@ class YouTubeGalleryData
         if (!(strpos($link, '://collegehumor.com') === false) or !(strpos($link, '://www.collegehumor.com') === false))
             return 'collegehumor';
 
-        //http://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x7k9rx
+        //https://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x7k9rx
         if (!(strpos($link, '://dailymotion.com/playlist/') === false) or !(strpos($link, '://www.dailymotion.com/playlist/') === false))
             return 'dailymotionplaylist';
 

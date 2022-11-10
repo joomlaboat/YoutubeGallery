@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -20,7 +20,6 @@ jimport('joomla.application.component.controllerform');
  */
 class YoutubeGalleryControllerThemeExport extends JControllerForm
 {
-
     function display($cachable = false, $urlparams = array())
     {
         switch (Factory::getApplication()->input->getVar('task')) {

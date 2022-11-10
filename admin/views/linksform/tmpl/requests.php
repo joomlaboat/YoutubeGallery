@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery for Joomla!
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -33,7 +33,7 @@ switch ($task) {
         $html = Helper::getURLData($theUrl);
 
         if (strpos($html, '{"') === false) {
-            echo 'please check this link: http://www.joomlaboat.com/youtube-gallery/f-a-q/why-i-see-allow-url-fopen-message?cbprofile=2';
+            echo 'please check this link: https://joomlaboat.com/youtube-gallery/f-a-q/why-i-see-allow-url-fopen-message?cbprofile=2';
             break;
         }
 

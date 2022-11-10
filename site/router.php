@@ -2,7 +2,7 @@
 /**
  * Youtube Gallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -13,79 +13,71 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use YouTubeGallery\Helper;
 
-function YouTubeGalleryBuildRoute(&$query) {
+function YouTubeGalleryBuildRoute(&$query)
+{
 
-       $segments = array();
-       if(isset($query['view']))
-       {
-	      if (empty($query['Itemid'])) {
-		     $segments[] = $query['view'];
-	      }
-              unset( $query['view'] );
-       }
+    $segments = array();
+    if (isset($query['view'])) {
+        if (empty($query['Itemid'])) {
+            $segments[] = $query['view'];
+        }
+        unset($query['view']);
+    }
 
-       if(isset($query['video']))
-       {
-	      $segments[] = $query['video'];
-		  
-		  
-		  
-	      unset( $query['video'] );
-       }
-       elseif(isset($query['videoid']))
-       {
-	      $allowsef=YouTubeGalleryDB::getSettingValue('allowsef');
-	      if($allowsef==1)
-	      {
-		     $videoid=$query['videoid'];
+    if (isset($query['video'])) {
+        $segments[] = $query['video'];
 
-		     $db = Factory::getDBO();
 
-		     $db->setQuery('SELECT alias FROM #__youtubegallery_videos WHERE videoid="'.$videoid.'" LIMIT 1');
+        unset($query['video']);
+    } elseif (isset($query['videoid'])) {
+        $allowsef = YouTubeGalleryDB::getSettingValue('allowsef');
+        if ($allowsef == 1) {
+            $videoid = $query['videoid'];
 
-		     $rows = $db->loadObjectList();
+            $db = Factory::getDBO();
 
-		     if(count($rows)!=0)
-		     {
-			    $row=$rows[0];
-			    if($row->alias!='')
-		         	   $segments[] = $row->alias;
+            $db->setQuery('SELECT alias FROM #__youtubegallery_videos WHERE videoid="' . $videoid . '" LIMIT 1');
 
-			    unset( $query['videoid'] );
-		     }
-	      }
-       }
-       return $segments;
+            $rows = $db->loadObjectList();
+
+            if (count($rows) != 0) {
+                $row = $rows[0];
+                if ($row->alias != '')
+                    $segments[] = $row->alias;
+
+                unset($query['videoid']);
+            }
+        }
+    }
+    return $segments;
 
 }
 
 function YouTubeGalleryParseRoute($segments)
 {
-       $vars = array();
-       $vars['view'] = 'youtubegallery';
+    $vars = array();
+    $vars['view'] = 'youtubegallery';
 
-       $sIndex=0;
+    $sIndex = 0;
 
 
-       if(isset($segments[$sIndex]))
-       {
-	      $alias=str_replace(':','-',$segments[$sIndex]);
-	      $alias=preg_replace('/[^a-zA-Z0-9-_]+/', '', $alias);
+    if (isset($segments[$sIndex])) {
+        $alias = str_replace(':', '-', $segments[$sIndex]);
+        $alias = preg_replace('/[^a-zA-Z0-9-_]+/', '', $alias);
 
-	      $db = Factory::getDBO();
+        $db = Factory::getDBO();
 
-	      $db->setQuery('SELECT videoid FROM #__youtubegallery_videos WHERE alias="'.$alias.'" LIMIT 1');
+        $db->setQuery('SELECT videoid FROM #__youtubegallery_videos WHERE alias="' . $alias . '" LIMIT 1');
 
-	      $rows = $db->loadObjectList();
+        $rows = $db->loadObjectList();
 
-	      if(count($rows)==0)
-		     $vars['videoid'] = '';
-	      else
-	      {
-			  $row=$rows[0];
-			  $vars['videoid'] = $row->videoid;
-	      }
+        if (count($rows) == 0)
+            $vars['videoid'] = '';
+        else {
+            $row = $rows[0];
+            $vars['videoid'] = $row->videoid;
+        }
 
-       }
-       return $vars;
+    }
+    return $vars;
 }

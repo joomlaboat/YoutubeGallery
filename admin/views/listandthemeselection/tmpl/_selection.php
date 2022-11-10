@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -77,7 +77,7 @@ JHTML::addIncludePath(JPATH_SITE . DIRECTORY_SEPARATOR . 'administrator' . DIREC
                     <div class="pull-right">
                         <button id="yginsertbutton" class="btn btn-success button-save-selected" type="button"
                                 <?php if (!empty($onClick)) :
-                                // This is for Mootools compatibility  ?>onclick="<?php echo $onClick; ?>"<?php endif; ?>
+                                // This is for Mootools compatibility   ?>onclick="<?php echo $onClick; ?>"<?php endif; ?>
                                 data-dismiss="modal"><?php echo JText::_('COM_YOUTUBEGALLERY_INSERT'); ?></button>
 
                     </div>

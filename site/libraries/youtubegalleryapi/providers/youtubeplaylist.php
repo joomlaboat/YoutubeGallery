@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery API
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -30,7 +30,7 @@ class YGAPI_VideoSource_YoutubePlaylist
 
     public static function extractYouTubeSearchKeywords($youtubeURL)
     {
-        //http://www.youtube.com/results?search_query=%22dogs+101%22&oq=%22dogs+101%22&gs_l=youtube.3..0l10.16119.16453.0.17975.2.2.0.0.0.0.330.649.3-2.2.0...0.0...1ac.1.GQ5tbo9Q0Cg
+        //https://www.youtube.com/results?search_query=%22dogs+101%22&oq=%22dogs+101%22&gs_l=youtube.3..0l10.16119.16453.0.17975.2.2.0.0.0.0.330.649.3-2.2.0...0.0...1ac.1.GQ5tbo9Q0Cg
         $arr = YouTubeGalleryAPIMisc::parse_query($youtubeURL);
 
         $p = urldecode($arr['search_query']);

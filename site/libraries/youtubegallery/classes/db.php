@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery for Joomla!
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 

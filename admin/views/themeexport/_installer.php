@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery Joomla! 3.0/4.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -28,7 +28,7 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 		else
 		{
 		    echo '<h1 style="text-align:center;">Youtube Gallery not found. Please install it first.<br/>
-		    <a href="http://www.joomlaboat.com/youtube-gallery">Youtube Gallery Home Page.</a>
+		    <a href="https://joomlaboat.com/youtube-gallery">Youtube Gallery Home Page.</a>
 		    </h1><br/><br/>';
 		    return false;
 		}

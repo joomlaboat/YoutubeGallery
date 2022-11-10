@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery for Joomla!
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -11,114 +11,104 @@ defined('_JEXEC') or die('Restricted access');
 
 class YouTubeGalleryGalleryList
 {
-	//Find video record description in array by video ID
-	public static function getDescriptionByVideoID($videoid,&$gallery_list)
-	{
-		if(isset($gallery_list) and count($gallery_list)>0)
-		{
-			foreach($gallery_list as $g)
-			{
-				if($g['es_videoid']==$videoid)
-					return $g['es_description'];
-			}
-		}
-		return '';
-	}
-	
-	public static function getPlaylistIdsOnly(&$gallery_list,$current_videoid='',$exclude_source='',$full=false,$allowplaylist=true)
-	{
-		$theList1=array();
-		$theList2=array();
+    //Find video record description in array by video ID
+    public static function getDescriptionByVideoID($videoid, &$gallery_list)
+    {
+        if (isset($gallery_list) and count($gallery_list) > 0) {
+            foreach ($gallery_list as $g) {
+                if ($g['es_videoid'] == $videoid)
+                    return $g['es_description'];
+            }
+        }
+        return '';
+    }
 
-		$current_videoid_found=false;
+    public static function getPlaylistIdsOnly(&$gallery_list, $current_videoid = '', $exclude_source = '', $full = false, $allowplaylist = true)
+    {
+        $theList1 = array();
+        $theList2 = array();
 
-		foreach($gallery_list as $gl_row)
-		{
-			if($gl_row['es_videoid']==$current_videoid)
-			{
-				$current_videoid_found=true;
-			}
-			else
-			{
-				if($exclude_source=='' or $gl_row['es_videosource']==$exclude_source)
-				{
-					$a='';
-					if($current_videoid_found)
-						$a=$gl_row['es_videoid'];
-					else
-						$a=$gl_row['es_videoid'];
+        $current_videoid_found = false;
 
-					if($full)
-						$theList2[]=$a.'*'.$gl_row['id'].'*'.$gl_row['es_videosource'];
-					else
-						$theList2[]=$a;
-				}
-			}
+        foreach ($gallery_list as $gl_row) {
+            if ($gl_row['es_videoid'] == $current_videoid) {
+                $current_videoid_found = true;
+            } else {
+                if ($exclude_source == '' or $gl_row['es_videosource'] == $exclude_source) {
+                    $a = '';
+                    if ($current_videoid_found)
+                        $a = $gl_row['es_videoid'];
+                    else
+                        $a = $gl_row['es_videoid'];
 
-			if(!$allowplaylist)
-				break;
+                    if ($full)
+                        $theList2[] = $a . '*' . $gl_row['id'] . '*' . $gl_row['es_videosource'];
+                    else
+                        $theList2[] = $a;
+                }
+            }
 
-		}//foreach
+            if (!$allowplaylist)
+                break;
 
-		return array_merge($theList1,$theList2);
-	}
+        }//foreach
 
-	public static function getListIndexByVideoID($videoid,&$gallery_list)
-	{
-		$i=0;
-		foreach($gallery_list as $gl_row)
-		{
-			if($gl_row['es_videoid']==$videoid)
-				return $i;
-			$i++;
-		}
-		return -1;
-	}
-	
-	//Find video record title in array by video ID
-	public static function getTitleByVideoID($videoid,&$gallery_list)
-	{
-		$gl_row=YouTubeGalleryGalleryList::getVideoRowByID($videoid,$gallery_list);
-		if($gl_row)
-			return $gl_row['es_title'];
+        return array_merge($theList1, $theList2);
+    }
 
-		return '';
+    public static function getListIndexByVideoID($videoid, &$gallery_list)
+    {
+        $i = 0;
+        foreach ($gallery_list as $gl_row) {
+            if ($gl_row['es_videoid'] == $videoid)
+                return $i;
+            $i++;
+        }
+        return -1;
+    }
 
-	}
+    //Find video record title in array by video ID
+    public static function getTitleByVideoID($videoid, &$gallery_list)
+    {
+        $gl_row = YouTubeGalleryGalleryList::getVideoRowByID($videoid, $gallery_list);
+        if ($gl_row)
+            return $gl_row['es_title'];
 
-	public static function getThumbnailByID($videoid,&$gallery_list)
-	{
-		$gl_row=YouTubeGalleryGalleryList::getVideoRowByID($videoid,$gallery_list);
-		if($gl_row)
-			return $gl_row['es_imageurl'];
+        return '';
 
-		return '';
-	}
+    }
 
-	public static function getVideoSourceByID($videoid,&$gallery_list)
-	{
-		$gl_row=YouTubeGalleryGalleryList::getVideoRowByID($videoid,$gallery_list);
-		if($gl_row)
-			return $gl_row['es_videosource'];
+    public static function getVideoRowByID($videoid, &$gallery_list)
+    {
+        if ($videoid == '' or $videoid == '****youtubegallery-video-id****')
+            return false;
 
-		return '';
-	}
-	
-	public static function getVideoRowByID($videoid,&$gallery_list)
-	{
-		if($videoid=='' or $videoid=='****youtubegallery-video-id****')
-			return false;
+        if (isset($gallery_list) and count($gallery_list) > 0) {
 
-		if(isset($gallery_list) and count($gallery_list)>0)
-		{
+            foreach ($gallery_list as $gl_row) {
+                if ($gl_row['es_videoid'] == $videoid)
+                    return $gl_row;
+            }
+        }
 
-			foreach($gallery_list as $gl_row)
-			{
-				if($gl_row['es_videoid']==$videoid)
-					return $gl_row;
-			}
-		}
-		
-		return false;
-	}
+        return false;
+    }
+
+    public static function getThumbnailByID($videoid, &$gallery_list)
+    {
+        $gl_row = YouTubeGalleryGalleryList::getVideoRowByID($videoid, $gallery_list);
+        if ($gl_row)
+            return $gl_row['es_imageurl'];
+
+        return '';
+    }
+
+    public static function getVideoSourceByID($videoid, &$gallery_list)
+    {
+        $gl_row = YouTubeGalleryGalleryList::getVideoRowByID($videoid, $gallery_list);
+        if ($gl_row)
+            return $gl_row['es_videosource'];
+
+        return '';
+    }
 }

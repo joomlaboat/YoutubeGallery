@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -209,11 +209,11 @@ class ygExportTheme
     <author>' . $user->name . '</author>
     <authorEmail>' . $user->email . '</authorEmail>
     <authorUrl>' . $b . '</authorUrl>
-    <license>http://www.gnu.org/licenseses/gpl-2.0.html GNU/GPL</license>
+    <license>https://www.gnu.org/licenseses/gpl-2.0.html GNU/GPL</license>
     <description><![CDATA[
 
 		      <h3>YoutubaGallery Theme - ' . $themetitle . '</h3>
-<div><a href="http://www.joomlaboat.com/youtube-gallery/youtube-gallery-themes" target="_blank">
+<div><a href="https://joomlaboat.com/youtube-gallery/youtube-gallery-themes" target="_blank">
 More Themes</a></div>
 			 <div><br/>If you use YoutubeGallery, please post a
 			 review at the <a href="http://extensions.joomla.org/extensions/social-web/social-media/video-channels/13075" target="_blank">Joomla! Extensions Directory.</a> Thank you.<div>

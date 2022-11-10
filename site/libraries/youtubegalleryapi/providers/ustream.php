@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery API
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -18,12 +18,12 @@ class YGAPI_VideoSource_Ustream
     public static function extractUstreamID($theLink)
     {
         //Recorded
-        //http://www.ustream.tv/channel/nasa-tv-wallops
-        //http://www.ustream.tv/recorded/40925310 - recorded
+        //https://www.ustream.tv/channel/nasa-tv-wallops
+        //https://www.ustream.tv/recorded/40925310 - recorded
 
         //Live
-        //http://www.ustream.tv/channel/live-iss-stream
-        //http://www.ustream.tv/channel/95.0.02
+        //https://www.ustream.tv/channel/live-iss-stream
+        //https://www.ustream.tv/channel/95.0.02
         $l = explode('/', $theLink);
         if (count($l) > 4)
             return $l[4];
@@ -33,7 +33,7 @@ class YGAPI_VideoSource_Ustream
 
     public static function getVideoData($videoid, &$blankArray)
     {
-        $HTML_SOURCE = Helper::getURLData('http://www.ustream.tv/recorded/' . $videoid);
+        $HTML_SOURCE = Helper::getURLData('https://www.ustream.tv/recorded/' . $videoid);
 
         if ($HTML_SOURCE == '' or $HTML_SOURCE[0] != '<') {
             $blankArray['es_status'] = -1;

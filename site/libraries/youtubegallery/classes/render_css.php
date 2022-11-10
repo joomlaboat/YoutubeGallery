@@ -2,7 +2,7 @@
 /**
  * YoutubeGallery Joomla! 3.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -13,18 +13,18 @@ namespace YouTubeGallery;
 defined('_JEXEC') or die('Restricted access');
 
 use \Joomla\CMS\Factory;
+
 //use \YouTubeGalleryRenderer;
 
 class RendererCSS// extends YouTubeGalleryRenderer
 {
-	public static function renderCSS(&$theme_row,$instance_id)
-	{
-		$headscript_css='
+    public static function renderCSS(&$theme_row, $instance_id)
+    {
+        $headscript_css = '
 <style>';
 
-		if($theme_row->es_useglass)
-		{
-			$headscript_css.='
+        if ($theme_row->es_useglass) {
+            $headscript_css .= '
 .YoutubeGalleryGlassCover
 {
 	position: absolute;
@@ -38,27 +38,27 @@ class RendererCSS// extends YouTubeGalleryRenderer
 	padding:0px;
 }
 ';
-	}
+        }
 
-		if($theme_row->es_responsive==2)
-			$headscript_css.= RendererCSS::getResponsiveCode_CSS($instance_id);
-	
-		$headscript_css.='
+        if ($theme_row->es_responsive == 2)
+            $headscript_css .= RendererCSS::getResponsiveCode_CSS($instance_id);
+
+        $headscript_css .= '
 </style>';
-	
-		$document = Factory::getDocument();
-		$document->addCustomTag($headscript_css);
-	}
 
-	protected static function getResponsiveCode_CSS($instance_id)
-	{
-		//CSS for making YouTubeGallery player responsive (without javascript):
-		$result='
+        $document = Factory::getDocument();
+        $document->addCustomTag($headscript_css);
+    }
 
-div#YoutubeGalleryMainContainer'.$instance_id.' {
+    protected static function getResponsiveCode_CSS($instance_id)
+    {
+        //CSS for making YouTubeGallery player responsive (without javascript):
+        $result = '
+
+div#YoutubeGalleryMainContainer' . $instance_id . ' {
 width: 100% !important;
 }
-div#YoutubeGallerySecondaryContainer'.$instance_id.', .YoutubeGalleryLogoCover'.$instance_id.'{
+div#YoutubeGallerySecondaryContainer' . $instance_id . ', .YoutubeGalleryLogoCover' . $instance_id . '{
 position: relative !important;
 width: 100% !important;
 height: 0 !important; padding-bottom: 56.25% !important; /* 16:9 */
@@ -66,7 +66,7 @@ height: 0 !important; padding-bottom: 56.25% !important; /* 16:9 */
 }
 
 
-div#YoutubeGallerySecondaryContainer'.$instance_id.' iframe {
+div#YoutubeGallerySecondaryContainer' . $instance_id . ' iframe {
 position: absolute !important;
 top: 0 !important;
 left: 0 !important;
@@ -79,7 +79,7 @@ background: #000;
 box-shadow: 1px 1px 7px 0px #222;
 }
 
-div#YoutubeGallerySecondaryContainer'.$instance_id.' object{
+div#YoutubeGallerySecondaryContainer' . $instance_id . ' object{
 width: 100% !important;
 height: 100% !important;
 
@@ -96,6 +96,6 @@ box-shadow: 1px 1px 7px 0px #222;
 
 }
 	';
-		return $result;
-	}
+        return $result;
+    }
 }
