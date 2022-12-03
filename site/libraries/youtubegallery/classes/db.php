@@ -507,18 +507,21 @@ class YouTubeGalleryDB
         $db = Factory::getDBO();
         $fields = array();
 
-        if (isset($g['es_error']))
+        if (isset($g['es_error']) and $g['es_error'] !== null)
             $fields[] = $db->quoteName('es_error') . '=' . $db->quote($g['es_error']);
 
-        $g_title = str_replace('"', '&quot;', $g['es_title']);
-        $g_description = str_replace('"', '&quot;', $g['es_description']);
+        if ($g['es_title'] !== null)
+            $g_title = str_replace('"', '&quot;', $g['es_title']);
 
-        if (isset($g['es_customtitle']))
+        if ($g['es_description'] !== null)
+            $g_description = str_replace('"', '&quot;', $g['es_description']);
+
+        if (isset($g['es_customtitle']) and $g['es_customtitle'] !== null)
             $custom_g_title = str_replace('"', '&quot;', $g['es_customtitle']);
         else
             $custom_g_title = '';
 
-        if (isset($g['es_customdescription']))
+        if (isset($g['es_customdescription']) and $g['es_customdescription'] !== null)
             $custom_g_description = str_replace('"', '&quot;', $g['es_customdescription']);
         else
             $custom_g_description = '';
@@ -536,7 +539,7 @@ class YouTubeGalleryDB
 
         $fields[] = $db->quoteName('es_videoid') . '=' . $db->quote($g['es_videoid']);
 
-        if (isset($g['es_datalink']))
+        if (isset($g['es_datalink']) and $g['es_datalink'] !== null)
             $fields[] = $db->quoteName('es_datalink') . '=' . $db->quote($g['es_datalink']);
 
         if ($g['es_imageurl'] != '')
@@ -548,7 +551,7 @@ class YouTubeGalleryDB
         if ($g['es_description'] != '')
             $fields[] = $db->quoteName('es_description') . '=' . $db->quote($g_description);
 
-        if (isset($g['es_customimageurl']))
+        if (isset($g['es_customimageurl']) and $g['es_customimageurl'] !== null)
             $fields[] = $db->quoteName('es_customimageurl') . '=' . $db->quote($g['es_customimageurl']);
         else
             $fields[] = $db->quoteName('es_customimageurl') . '=""';
@@ -559,17 +562,17 @@ class YouTubeGalleryDB
         $fields[] = $db->quoteName('es_customtitle') . '=' . $db->quote($custom_g_title);
         $fields[] = $db->quoteName('es_customdescription') . '=' . $db->quote($custom_g_description);
 
-        if (isset($g['es_specialparams']))
+        if (isset($g['es_specialparams']) and $g['es_specialparams'] !== null)
             $fields[] = $db->quoteName('es_specialparams') . '=' . $db->quote($g['es_specialparams']);
         else
             $fields[] = $db->quoteName('es_specialparams') . '=""';
 
-        if (isset($g['es_startsecond']))
+        if (isset($g['es_startsecond']) and $g['es_startsecond'] !== null)
             $fields[] = $db->quoteName('es_startsecond') . '=' . (int)$g['es_startsecond'];
         else
             $fields[] = $db->quoteName('es_startsecond') . '=0';
 
-        if (isset($g['es_endsecond']))
+        if (isset($g['es_endsecond']) and $g['es_endsecond'] !== null)
             $fields[] = $db->quoteName('es_endsecond') . '=' . (int)$g['es_endsecond'];
         else
             $fields[] = $db->quoteName('es_endsecond') . '=0';
@@ -578,84 +581,84 @@ class YouTubeGalleryDB
 
         $fields[] = $db->quoteName('es_isvideo') . '=' . (int)$g['es_isvideo'];//$db->quote(($this_is_a_list ? '0' : '1'));
 
-        if (isset($g['es_publisheddate']) and $g['es_publisheddate'] != '') {
+        if (isset($g['es_publisheddate']) and $g['es_publisheddate'] !== null and $g['es_publisheddate'] != '') {
             $publisheddate = date('Y-m-d H:i:s', strtotime($g['es_publisheddate']));
             $fields[] = $db->quoteName('es_publisheddate') . '=' . $db->quote($publisheddate);
         }
 
-        if (isset($g['es_duration'])) {
+        if (isset($g['es_duration']) and $g['es_duration'] !== null) {
             $fields[] = $db->quoteName('es_duration') . '=' . (int)$g['es_duration'];
             $fields[] = $db->quoteName('es_lastupdate') . '=NOW()';
         }
 
-        if (isset($g['es_ratingaverage']))
+        if (isset($g['es_ratingaverage']) and $g['es_ratingaverage'] !== null)
             $fields[] = $db->quoteName('es_ratingaverage') . '=' . (float)$g['es_ratingaverage'];
 
-        if (isset($g['es_ratingmax']))
+        if (isset($g['es_ratingmax']) and $g['es_ratingmax'] !== null)
             $fields[] = $db->quoteName('es_ratingmax') . '=' . (int)$g['es_ratingmax'];
 
-        if (isset($g['es_ratingmin']))
+        if (isset($g['es_ratingmin']) and $g['es_ratingmin'] !== null)
             $fields[] = $db->quoteName('es_ratingmin') . '=' . (int)$g['es_ratingmin'];
 
-        if (isset($g['es_ratingnumberofraters']))
+        if (isset($g['es_ratingnumberofraters']) and $g['es_ratingnumberofraters'] !== null)
             $fields[] = $db->quoteName('es_ratingnumberofraters') . '=' . (int)$g['es_ratingnumberofraters'];
 
-        if (isset($g['es_statisticsfavoritecount']))
+        if (isset($g['es_statisticsfavoritecount']) and $g['es_statisticsfavoritecount'] !== null)
             $fields[] = $db->quoteName('es_statisticsfavoritecount') . '=' . (int)$g['es_statisticsfavoritecount'];
 
-        if (isset($g['es_statisticsviewcount']))
+        if (isset($g['es_statisticsviewcount']) and $g['es_statisticsviewcount'] !== null)
             $fields[] = $db->quoteName('es_statisticsviewcount') . '=' . (int)$g['es_statisticsviewcount'];
 
-        if (isset($g['es_keywords'])) {
+        if (isset($g['es_keywords']) and $g['es_keywords'] !== null) {
             if (is_array($g['es_keywords'])) {
                 $key_words = implode(',', $g['es_keywords']);
                 $fields[] = $db->quoteName('es_keywords') . '=' . $db->quote($key_words);
             }
         }
 
-        if (isset($g['es_likes']))
+        if (isset($g['es_likes']) and $g['es_likes'] !== null)
             $fields[] = $db->quoteName('es_likes') . '=' . (int)$g['es_likes'];
 
-        if (isset($g['es_dislikes']))
+        if (isset($g['es_dislikes']) and $g['es_dislikes'] !== null)
             $fields[] = $db->quoteName('es_dislikes') . '=' . (int)$g['es_dislikes'];
 
-        if (isset($g['es_channelusername']))
+        if (isset($g['es_channelusername']) and $g['es_channelusername'] !== null)
             $fields[] = $db->quoteName('es_channelusername') . '=' . $db->quote($g['es_channelusername']);
 
-        if (isset($g['es_channeltitle']))
+        if (isset($g['es_channeltitle']) and $g['es_channeltitle'] !== null)
             $fields[] = $db->quoteName('es_channeltitle') . '=' . $db->quote($g['es_channeltitle']);
 
-        if (isset($g['es_channelsubscribers']))
+        if (isset($g['es_channelsubscribers']) and $g['es_channelsubscribers'] !== null)
             $fields[] = $db->quoteName('es_channelsubscribers') . '=' . (int)$g['es_channelsubscribers'];
 
-        if (isset($g['es_channelsubscribed']))
+        if (isset($g['es_channelsubscribed']) and $g['es_channelsubscribed'] !== null)
             $fields[] = $db->quoteName('es_channelsubscribed') . '=' . (int)$g['es_channelsubscribed'];
 
-        if (isset($g['es_channellocation']))
+        if (isset($g['es_channellocation']) and $g['es_channellocation'] !== null)
             $fields[] = $db->quoteName('es_channellocation') . '=' . $db->quote($g['es_channellocation']);
 
-        if (isset($g['es_channelcommentcount']))
+        if (isset($g['es_channelcommentcount']) and $g['es_channelcommentcount'] !== null)
             $fields[] = $db->quoteName('es_channelcommentcount') . '=' . (int)$g['es_channelcommentcount'];
 
-        if (isset($g['es_channelviewcount']))
+        if (isset($g['es_channelviewcount']) and $g['es_channelviewcount'] !== null)
             $fields[] = $db->quoteName('es_channelviewcount') . '=' . (int)$g['es_channelviewcount'];
 
-        if (isset($g['es_channelvideocount']))
+        if (isset($g['es_channelvideocount']) and $g['es_channelvideocount'] !== null)
             $fields[] = $db->quoteName('es_channelvideocount') . '=' . (int)$g['es_channelvideocount'];
 
-        if (isset($g['es_channeldescription']))
+        if (isset($g['es_channeldescription']) and $g['es_channeldescription'] !== null)
             $fields[] = $db->quoteName('es_channeldescription') . '=' . $db->quote($g['es_channeldescription']);
 
-        if (isset($g['es_latitude']))
+        if (isset($g['es_latitude']) and $g['es_latitude'] !== null)
             $fields[] = $db->quoteName('es_latitude') . '=' . (float)$g['es_latitude'];
 
-        if (isset($g['es_longitude']))
+        if (isset($g['es_longitude']) and $g['es_longitude'] !== null)
             $fields[] = $db->quoteName('es_longitude') . '=' . (float)$g['es_longitude'];
 
-        if (isset($g['es_altitude']))
+        if (isset($g['es_altitude']) and $g['es_altitude'] !== null)
             $fields[] = $db->quoteName('es_altitude') . '=' . (int)$g['es_altitude'];
 
-        if (isset($g['es_ordering']))
+        if (isset($g['es_ordering']) and $g['es_ordering'] !== null)
             $fields[] = $db->quoteName('es_ordering') . '=' . (int)$g['es_ordering'];
 
         return $fields;

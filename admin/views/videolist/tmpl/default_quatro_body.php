@@ -27,7 +27,7 @@ if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
             <?php
             if ($item->es_isvideo) {
 
-                $images = explode(';', $item->es_imageurl);
+                $images = explode(';', ($item->es_imageurl ?? ''));
                 if (count($images) > 0 and $item->es_imageurl != '') {
                     $index = 0;
                     if ($item->es_customimageurl != '') {

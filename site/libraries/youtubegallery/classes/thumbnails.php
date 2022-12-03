@@ -14,9 +14,9 @@ use YouTubeGallery\Helper;
 
 class YoutubeGalleryLayoutThumbnails
 {
-    public static function NavigationList($the_gallery_list, &$videolist_row, &$theme_row, $AllowPagination, $videoid, $custom_itemid = 0)
+    public static function NavigationList($the_gallery_list, &$videoList_row, &$theme_row, $videoId, $custom_itemid = 0): string
     {
-        $catalogresult = '';
+        $catalogResult = '';
         $gallery_list = $the_gallery_list;
 
         $count = 0;
@@ -29,34 +29,33 @@ class YoutubeGalleryLayoutThumbnails
 
         $thumbnail_item = '';
 
-        foreach ($gallery_list as $listitem) {
+        foreach ($gallery_list as $listItem) {
 
-            if (strpos($listitem['es_title'], '***Video not found***') === false) {
+            if ($listItem['es_title'] !== null and strpos($listItem['es_title'], '***Video not found***') === false) {
                 $aLinkURL = '';
 
                 if (!$isForShadowBox and ($theme_row->es_openinnewwindow == 4 or $theme_row->es_openinnewwindow == 5)) {
-                    $aLink = 'javascript:youtubeplayer' . $videolist_row->id . '.HotVideoSwitch(\'' . $videolist_row->id . '\',\'' . $listitem['es_videoid']
-                        . '\',\'' . $listitem['es_videosource'] . '\',' . $listitem['id'] . ')';
+                    $aLink = 'javascript:youtubeplayer' . $videoList_row->id . '.HotVideoSwitch(\'' . $videoList_row->id . '\',\'' . $listItem['es_videoid']
+                        . '\',\'' . $listItem['es_videosource'] . '\',' . $listItem['id'] . ')';
                 } else
-                    $aLink = YoutubeGalleryLayoutThumbnails::makeLink($listitem, $theme_row->es_rel, $aLinkURL, $videolist_row->id, $theme_row->id, $custom_itemid);
+                    $aLink = YoutubeGalleryLayoutThumbnails::makeLink($listItem, $theme_row->es_rel, $aLinkURL, $videoList_row->id, $theme_row->id, $custom_itemid);
 
                 if ($isForShadowBox and $theme_row->es_rel != '')
                     $aLink .= '&tmpl=component';
 
                 if ($theme_row->es_hrefaddon != '' and $theme_row->es_openinnewwindow != 4 and $theme_row->es_openinnewwindow != 5) {
-                    $hrefaddon = str_replace('?', '', $theme_row->es_hrefaddon);
-                    if ($hrefaddon[0] == '&')
-                        $hrefaddon = substr($hrefaddon, 1);
+                    $hrefAddon = str_replace('?', '', $theme_row->es_hrefaddon);
+                    if ($hrefAddon[0] == '&')
+                        $hrefAddon = substr($hrefAddon, 1);
 
-                    if (strpos($aLink, $hrefaddon) === false) {
+                    if (strpos($aLink, $hrefAddon) === false) {
 
                         if (strpos($aLink, '?') === false)
                             $aLink .= '?';
                         else
                             $aLink .= '&';
 
-
-                        $aLink .= $hrefaddon;
+                        $aLink .= $hrefAddon;
                     }
                 }
 
@@ -79,12 +78,12 @@ class YoutubeGalleryLayoutThumbnails
 
                 }
 
-                $thumbnail_item = YoutubeGalleryLayoutThumbnails::renderThumbnailForNavBar($aHrefLink, $aLink, $videolist_row, $theme_row, $listitem, $videoid, $item_index, $gallery_list);
+                $thumbnail_item = YoutubeGalleryLayoutThumbnails::renderThumbnailForNavBar($aHrefLink, $aLink, $videoList_row, $theme_row, $listItem, $videoId, $item_index, $gallery_list);
 
                 if ($thumbnail_item != '') {
 
-                    $catalogresult .= '<div id="youtubegallery_thumbnail_' . $videolist_row->id . '_' . $count . '" style="display:contents;">'
-                        . '<div id="youtubegallery_thumbnail_box_' . $videolist_row->id . '_' . $listitem['id'] . '" class="ygThumb-inactive" style="display:contents;">'
+                    $catalogResult .= '<div id="youtubegallery_thumbnail_' . $videoList_row->id . '_' . $count . '" style="display:contents;">'
+                        . '<div id="youtubegallery_thumbnail_box_' . $videoList_row->id . '_' . $listItem['id'] . '" class="ygThumb-inactive" style="display:contents;">'
                         . $thumbnail_item . '</div></div>';
                     $count++;
                 }
@@ -95,11 +94,11 @@ class YoutubeGalleryLayoutThumbnails
 
         if ($count < abs($theme_row->es_customlimit)) {
             for ($i = $count + 1; $i <= $theme_row->es_customlimit; $i++) {//'.$thumbnail_item.'
-                $catalogresult .= '<div id="youtubegallery_thumbnail_' . $videolist_row->id . '_' . $i . '" style="display:none;">' . $thumbnail_item . '</div>'; //placeholder for thumbnail
+                $catalogResult .= '<div id="youtubegallery_thumbnail_' . $videoList_row->id . '_' . $i . '" style="display:none;">' . $thumbnail_item . '</div>'; //placeholder for thumbnail
             }
         }
 
-        return '<div id="youtubegallery_thumbnails_' . $videolist_row->id . '">' . $catalogresult . '</div>';
+        return '<div id="youtubegallery_thumbnails_' . $videoList_row->id . '">' . $catalogResult . '</div>';
     }
 
     public static function makeLink(&$listitem, $rel, &$aLinkURL, $videolist_row_id, $theme_row_id, $custom_itemid = 0)

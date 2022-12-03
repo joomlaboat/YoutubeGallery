@@ -13,21 +13,15 @@ $s = false;
 if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
     $s = true;
 
-?>
-<?php foreach ($this->items as $i => $item):
-
+foreach ($this->items as $i => $item):
     $link2edit = 'index.php?option=com_youtubegallery&view=linksform&layout=edit&id=' . $item->id;
-
     ?>
-
-
     <tr class="row<?php echo $i % 2; ?>">
         <td>
-
             <?php
             if ($item->es_isvideo) {
 
-                $images = explode(';', $item->es_imageurl);
+                $images = explode(';', ($item->es_imageurl ?? ''));
                 if (count($images) > 0 and $item->es_imageurl != '') {
 
                     $index = 0;

@@ -129,6 +129,8 @@ class Helper
 
     public static function slugify($text)
     {
+        if ($text === null)
+            return '';
         //or use
 
         // replace non letter or digits by -
@@ -151,6 +153,9 @@ class Helper
 
     public static function html2txt($document)
     {
+        if ($document === null)
+            return '';
+
         $search = array('@<script[^>]*?>.*?</script>@si',  // Strip out javascript
             '@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
             '@<style[^>]*?>.*?</style>@siU',    // Strip style tags properly

@@ -52,8 +52,6 @@ class ImportTables
         }
 
         $jsondata = json_decode(str_replace($keyword, '', $data), true);
-
-
         return ImportTables::processData($ct, $jsondata, $menutype, $msg, $category, $importfields, $importlayouts, $importmenu);
     }
 

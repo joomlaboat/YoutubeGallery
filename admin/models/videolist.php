@@ -42,7 +42,7 @@ class YoutubeGalleryModelVideoList extends JModelList
 
         $where[] = 'es_videolist=' . (int)Factory::getApplication()->input->getInt('listid');
 
-        $search = $this->getState('filter.search');
+        $search = $this->getState('filter.search') ?? '';
         $search = strtolower(trim(preg_replace("/[^a-zA-Z0-9 ]/", "", $search)));
 
         if ($search != '')

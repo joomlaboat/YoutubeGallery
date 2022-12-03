@@ -11,6 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 
 use CustomTables\CT;
 use CustomTables\Fields;
+use CustomTables\ImportTables;
 use CustomTables\IntegrityChecks;
 
 //use CustomTables\ImportTables;
@@ -24,34 +25,29 @@ if (!function_exists('str_contains')) {
     }
 }
 
-
 class com_YoutubeGalleryInstallerScript
 {
     function postflight($route, $adapter)
     {
         com_YoutubeGalleryInstallerScript::enableButtonPlugin();
-
         $path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
-
         $loader_file = $path . 'loader.php';
 
         if (!file_exists($loader_file)) {
             Factory::getApplication()->enqueueMessage('Youtube Gallery is corrupted, please contact the developer.', 'error');
-
             return false;
         }
 
         $component_name = 'com_youtubegallery';
 
-        /*
-         * PHP 7.4 + code
-		require_once($loader_file);
-		CTLoader($inclide_utilities = true,false,null,$component_name);
-		$ct = new CT;
-		
-		//Check Custom Tables, create if nessesary
-		$result = IntegrityChecks::check($ct,$check_core_tables = true, $check_custom_tables = false);
-        */
+        // PHP 7.4 + code
+        require_once($loader_file);
+        CTLoader($include_utilities = true, false, null, $component_name);
+        $ct = new CT;
+
+        //Check Custom Tables, create if necessary
+        $result = IntegrityChecks::check($ct, $check_core_tables = true, $check_custom_tables = false);
+
         //* PHP 7.3 - code
         //self::createTablesPHP73();
 
@@ -60,22 +56,22 @@ class com_YoutubeGalleryInstallerScript
 
         $msg = '';
 
+        $path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR
+            . 'customtables' . DIRECTORY_SEPARATOR;
+        $path_utilities = $path . 'utilities' . DIRECTORY_SEPARATOR;
 
-        //      $path = 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR
-//            . 'customtables' . DIRECTORY_SEPARATOR;
-        //$path_utilities = $path . 'utilities' . DIRECTORY_SEPARATOR;
+        require_once($path_utilities . 'importtables.php');
+        $status = ImportTables::processFile($filename, $menutype = 'YoutubeGallery', $msg);
 
-        //require_once($path_utilities . 'importtables.php');
-        //echo $path_utilities . 'LOADED';
+        //echo 'Status: ' . $status . '<br/>';
         //die;
-        //$status=ImportTables::processFile($filename,$menutype='YoutubeGallery',$msg);
-
         if ($msg != '') {
             Factory::getApplication()->enqueueMessage($msg, 'error');
             return false;
         }
 
         com_YoutubeGalleryInstallerScript::updateYGv3tov4();
+        //die;
         return true;
     }
 
@@ -151,8 +147,8 @@ class com_YoutubeGalleryInstallerScript
 
     function updateYGv3table($old_table, $new_table, $map, $exceptions = array())
     {
-        //if (!ESTables::checkIfTableExists($old_table))
-        //return false;
+        if (!ESTables::checkIfTableExists($old_table))
+            return false;
 
         $db = Factory::getDBO();
         $query = 'SELECT COUNT(*) AS c FROM ' . $new_table . ' LIMIT 1';
@@ -170,7 +166,6 @@ class com_YoutubeGalleryInstallerScript
         foreach ($records as $record) {
             $id = self::insertRecords($new_table, $record, false, $exceptions, true, 'es_', $map);//insert single new record
         }
-
         return false;
     }
 

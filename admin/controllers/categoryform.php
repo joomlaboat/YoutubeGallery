@@ -70,7 +70,7 @@ class YoutubeGalleryControllerCategoryForm extends JControllerForm
         parent::display();
     }
 
-    function save(?string $key = null, ?string $urlVar = null)
+    function save($key = null, $urlVar = null)
     {
         $task = Factory::getApplication()->input->getVar('task');
 
@@ -108,7 +108,7 @@ class YoutubeGalleryControllerCategoryForm extends JControllerForm
     /**
      * Cancels an edit operation
      */
-    function cancel(?string $key = null)
+    function cancel($key = null)
     {
         $this->setRedirect('index.php?option=com_youtubegallery&view=categories');
     }

@@ -166,6 +166,10 @@ class Documentation
                 if (count($param_att) != 0) {
                     $result .= '<li><h6>' . $param_att->label . ($param_att->description != '' ? ' - ' . $param_att->description : '') . '</h6>';
 
+                    if (isset($param_att->image)) {
+                        $result .= '<p><img src="' . $param_att->image . '" alt="' . $param_att->label . '" /></p>';
+                    }
+
                     if (!empty($param_att->type)) {
                         $value_example = '';
                         $result .= $this->renderParamTypeInternal($param, $param_att, $value_example);
@@ -174,7 +178,6 @@ class Documentation
                         if ($value_example != '')
                             $example_values_count++;
                     }
-
                     $result .= '</li>';
                 }
             }
@@ -272,13 +275,13 @@ class Documentation
                 break;
         }
 
-        if (!((int)$param_att->examplenoquotes))
+        if (!((int)$param_att->examplenoquotes) and $value_example != null)
             $value_example = $this->prepareExample($value_example);
 
         return $result;
     }
 
-    function prepareExample($param): string
+    function prepareExample(string $param): string
     {
         $output = preg_replace('/[^0-9]/', '', $param);
         if ($output != '')
@@ -293,23 +296,24 @@ class Documentation
         return '"' . $param . '"';
     }
 
-    function cleanParams($params): array
+    function cleanParams(array $params): array
     {
         $new_params = array();
         $count = 0;
 
         foreach ($params as $param_) {
             $count++;
-            $param = trim($param_);
-            if ($param != '' and $param != '""') {
-                for ($i = 1; $i < $count; $i++)
-                    $new_params[] = '""';
+            if ($param_ !== null) {
+                $param = trim($param_);
+                if ($param != '' and $param != '""') {
+                    for ($i = 1; $i < $count; $i++)
+                        $new_params[] = '""';
 
-                $param = str_replace('<', '&lt;', $param);
-                $param = str_replace('>', '&gt;', $param);
-                $new_params[] = $param;
-
-                $count = 0;
+                    $param = str_replace('<', '&lt;', $param);
+                    $param = str_replace('>', '&gt;', $param);
+                    $new_params[] = $param;
+                    $count = 0;
+                }
             }
         }
         return $new_params;
@@ -399,6 +403,10 @@ class Documentation
                 if (count($param_att) != 0) {
                     $result .= $count . '. ' . $param_att->label . ($param_att->description != '' ? ' - ' . $param_att->description : '') . '<br/>';
 
+                    if (isset($param_att->image)) {
+                        $result .= '![' . $param_att->label . '](' . $param_att->image . ')<br/><br/>';
+                    }
+
                     if (!empty($param_att->type)) {
                         $value_example = '';
                         $result .= $this->renderParamTypeGitHub($param, $param_att, $value_example) . '<br/>';
@@ -434,13 +442,14 @@ class Documentation
         switch ($param_att->type) {
             case 'number':
 
-                $result .= '&nbsp;&nbsp;&nbsp;&nbsp;* **' . common::translate('COM_CUSTOMTABLES_DEFAULT') . '** - ' . $param_att->default . '<br/>';
+                //$result .= '&nbsp;&nbsp;&nbsp;&nbsp;* **' . common::translate('COM_CUSTOMTABLES_DEFAULT') . '** - ' . $param_att->default . '<br/>';
+                $result .= '<pre>    </pre>* **' . common::translate('COM_CUSTOMTABLES_DEFAULT') . '** - ' . $param_att->default . '<br/>';
 
                 if (!empty($param_att->min))
-                    $result .= '&nbsp;&nbsp;&nbsp;&nbsp;* **' . common::translate('COM_CUSTOMTABLES_MIN') . '** - ' . $param_att->min . '<br/>';
+                    $result .= '<pre>    </pre>* **' . common::translate('COM_CUSTOMTABLES_MIN') . '** - ' . $param_att->min . '<br/>';
 
                 if (!empty($param_att->max))
-                    $result .= '&nbsp;&nbsp;&nbsp;&nbsp;* **' . common::translate('COM_CUSTOMTABLES_MAX') . '** - ' . $param_att->max . '<br/>';
+                    $result .= '<pre>    </pre>* **' . common::translate('COM_CUSTOMTABLES_MAX') . '** - ' . $param_att->max . '<br/>';
 
                 $value_example = $param_att->min;
 
@@ -454,9 +463,9 @@ class Documentation
                     $parts = explode('|', $option);
 
                     if ($parts[0] == '')
-                        $result .= '&nbsp;&nbsp;&nbsp;&nbsp;* (' . $parts[1] . ' - default)<br/>';
+                        $result .= '<pre>    </pre>* (' . $parts[1] . ' - default)<br/>';
                     else
-                        $result .= '&nbsp;&nbsp;&nbsp;&nbsp;* **' . $parts[0] . '** - (' . $parts[1] . ')<br/>';
+                        $result .= '<pre>    </pre>* **' . $parts[0] . '** - (' . $parts[1] . ')<br/>';
 
                     if ($value_example == '' && $parts[0] != '')
                         $value_example = $parts[0];
@@ -472,15 +481,18 @@ class Documentation
                     $value_example = $param_att->example;
                 }
 
+                $result .= '<br/>';
                 foreach ($options as $option) {
                     $option_att = $option->attributes();
+
 
                     if ($option_att->value == '')
                         $par = '(Default. ';
                     else
                         $par = '**' . $option_att->value . '** - (';
 
-                    $result .= '&nbsp;&nbsp;&nbsp;&nbsp;* ' . $par . $option_att->label . ((!empty($option_att->description) and $option_att->description != '') ? '. ' . $option_att->description : '') . ')';
+                    //$result .= '&nbsp;&nbsp;&nbsp;&nbsp;* ' . $par . $option_att->label . ((!empty($option_att->description) and $option_att->description != '') ? '. ' . $option_att->description : '') . ')';
+                    $result .= '<pre>    </pre>* ' . $par . $option_att->label . ((!empty($option_att->description) and $option_att->description != '') ? '. ' . $option_att->description : '') . ')';
 
                     $result .= '<br/>';
 
@@ -490,7 +502,7 @@ class Documentation
                 break;
         }
 
-        if (!((int)$param_att->examplenoquotes))
+        if (!((int)$param_att->examplenoquotes) and $value_example !== null)
             $value_example = $this->prepareExample($value_example);
 
         return $result;

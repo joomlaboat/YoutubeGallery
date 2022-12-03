@@ -244,10 +244,8 @@ class YoutubeGalleryLayoutRenderer
         return true;
     }
 
-    function getValue($fld, $params, &$videolist_row, &$theme_row, $gallery_list, $width, $height, $videoid, $AllowPagination, $total_number_of_rows, $custom_itemid = 0)//,$title
+    function getValue($fld, $params, &$videoList_row, &$theme_row, $gallery_list, $width, $height, $videoId, $AllowPagination, $total_number_of_rows, $custom_itemid = 0)//,$title
     {
-        $videodescription_params = array();
-        //,'listnamestyle','activevideotitlestyle'
         $fields_theme = array('bgcolor', 'cssstyle', 'navbarstyle', 'thumbnailstyle',
             'color1', 'color2', 'descr_style', 'rel', 'hrefaddon');
 
@@ -272,54 +270,38 @@ class YoutubeGalleryLayoutRenderer
                     return '';
                 else
                     return 'images/' . $theme_row->es_mediafolder;
-                break;
 
             case 'videolist':
                 if ($params != '') {
                     $pair = explode(',', $params);
                     switch ($pair[0]) {
                         case 'title':
-                            return $videolist_row->es_listname;
-                            break;
-
+                            return $videoList_row->es_listname;
                         case 'description':
-                            return Helper::html2txt($videolist_row->es_description);
-                            break;
-
-                        /*case 'author':
-                            return $videolist_row->author;
-                            break;
-*/
+                            return Helper::html2txt($videoList_row->es_description);
                         case 'playlist':
                             $pl = YoutubeGalleryLayoutRenderer::getPlaylistIdsOnly($gallery_list);
-                            $vlu = implode(',', $pl);
-                            break;
-
+                            return implode(',', $pl);
                         case 'watchgroup':
-                            return $videolist_row->es_watchusergroup;
-                            break;
-
+                            return $videoList_row->es_watchusergroup;
                         case 'authorurl':
-                            return $videolist_row->es_authorurl;
-                            break;
+                            return $videoList_row->es_authorurl;
                         case 'image':
-                            return $videolist_row->es_image;
-                            break;
+                            return $videoList_row->es_image;
                         case 'note':
-                            return $videolist_row->es_note;
-                            break;
+                            return $videoList_row->es_note;
                     }
                 }
 
-                return $videolist_row->es_listname;
-                break;
+                return $videoList_row->es_listname;
 
             case 'listname':
-                return $videolist_row->es_listname;
-                break;
+                return $videoList_row->es_listname;
 
             case 'videotitle':
-                $title = str_replace('"', '_quote_', YouTubeGalleryGalleryList::getTitleByVideoID($videoid, $gallery_list));
+
+                $TitleByVideoID = YouTubeGalleryGalleryList::getTitleByVideoID($videoId, $gallery_list) ?? '';
+                $title = str_replace('"', '_quote_', $TitleByVideoID);
 
                 if ($params != '') {
                     $pair = explode(',', $params);
@@ -332,60 +314,53 @@ class YoutubeGalleryLayoutRenderer
                     $title = Helper::html2txt($title);
                     $title = Helper::PrepareDescription_($title, $words, $chars);
                 }
-                $title = '<div id="YoutubeGalleryVideoTitle' . $videolist_row->id . '">' . $title . '</div>';
-                return $title;
-                break;
+                return '<div id="YoutubeGalleryVideoTitle' . $videoList_row->id . '">' . $title . '</div>';
 
             case 'videodescription':
-                $description = str_replace('"', '&quot;', YouTubeGalleryGalleryList::getDescriptionByVideoID($videoid, $gallery_list));
+                $DescriptionByVideoID = YouTubeGalleryGalleryList::getDescriptionByVideoID($videoId, $gallery_list) ?? '';
+                $description = str_replace('"', '&quot;', $DescriptionByVideoID);
                 $description = Helper::html2txt($description);
 
-                $videodescription_params = array();
-
                 if ($params != '') {
-                    $videodescription_params = explode(',', $params);
-                    $description = Helper::PrepareDescription($description, $videodescription_params);
+                    $videoDescription_params = explode(',', $params);
+                    $description = Helper::PrepareDescription($description, $videoDescription_params);
                 }
-                $description = '<div id="YoutubeGalleryVideoDescription' . $videolist_row->id . '">' . $description . '</div>';
-                return $description;
-                break;
+                return '<div id="YoutubeGalleryVideoDescription' . $videoList_row->id . '">' . $description . '</div>';
 
             case 'videoplayer':
                 $pair = explode(',', $params);
 
                 if ($params != '')
-                    $playerwidth = (int)$pair[0];
+                    $playerWidth = (int)$pair[0];
                 else
-                    $playerwidth = $width;
-
+                    $playerWidth = $width;
 
                 if (isset($pair[1]))
-                    $playerheight = (int)$pair[1];
+                    $playerHeight = (int)$pair[1];
                 else
-                    $playerheight = $height;
+                    $playerHeight = $height;
 
-
-                $containerStyle = 'width:' . $playerwidth . 'px;height:' . $playerheight . 'px;';
+                $containerStyle = 'width:' . $playerWidth . 'px;height:' . $playerHeight . 'px;';
 
                 if ((int)$theme_row->es_playvideo == 0)
                     $containerStyle .= 'display:none;';
                 else
                     $containerStyle .= 'display:block;';
 
-                return '<div id="YoutubeGallerySecondaryContainer' . $videolist_row->id . '" style="' . $containerStyle . '"></div>';
-                break;
+                return '<div id="YoutubeGallerySecondaryContainer' . $videoList_row->id . '" style="' . $containerStyle . '"></div>';
 
             case 'navigationbar': //Obselete
-                return YoutubeGalleryLayoutThumbnails::NavigationList($gallery_list, $videolist_row, $theme_row, $AllowPagination, $videoid, $custom_itemid);
+                return YoutubeGalleryLayoutThumbnails::NavigationList($gallery_list, $videoList_row, $theme_row, $videoId, $custom_itemid);
 
             case 'thumbnails':
-                return YoutubeGalleryLayoutThumbnails::NavigationList($gallery_list, $videolist_row, $theme_row, $AllowPagination, $videoid, $custom_itemid);
+                return YoutubeGalleryLayoutThumbnails::NavigationList($gallery_list, $videoList_row, $theme_row, $videoId, $custom_itemid);
 
             case 'count':
                 if ($params == 'all')
-                    return $videolist_row->TotalVideos;
+                    return $videoList_row->TotalVideos;
                 else
                     return count($gallery_list);
+
             case 'pagination':
                 return Pagination::Pagination($theme_row, $gallery_list, $width, $total_number_of_rows);
 
@@ -396,16 +371,16 @@ class YoutubeGalleryLayoutRenderer
                 return $height;
 
             case 'instanceid':
-                return $videolist_row->id;
+                return $videoList_row->id;
 
             case 'videoid':
-                return $videoid;
+                return $videoId;
 
             case 'link':
                 return $link = Helper::full_url($_SERVER);
 
             case 'social':
-                return YoutubeGallerySocialButtons::SocialButtons('window.location.href', 'yg', $params, $videolist_row->id, $videoid);
+                return YoutubeGallerySocialButtons::SocialButtons('window.location.href', 'yg', $params, $videoList_row->id, $videoId);
 
             case 'video':
 
@@ -422,16 +397,14 @@ class YoutubeGalleryLayoutRenderer
                         'keywords', 'commentcount', 'likes', 'dislikes', 'playlist');
 
 
-                    $listitem = YouTubeGalleryGalleryList::getVideoRowByID($videoid, $gallery_list);
+                    $listitem = YouTubeGalleryGalleryList::getVideoRowByID($videoId, $gallery_list);
 
                     if ($listitem)
-                        return YoutubeGalleryLayoutRenderer::getTumbnailData($pair[0], "", "", $listitem, $tableFields, $options, $theme_row, $gallery_list, $videolist_row);
+                        return YoutubeGalleryLayoutRenderer::getTumbnailData($pair[0], "", "", $listitem, $tableFields, $options, $theme_row, $gallery_list, $videoList_row);
                     else
                         return '';
                 }
-
                 break;
-
-        }//switch($fld)
+        }
     }
 }
