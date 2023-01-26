@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2022 Ivan Komlev
+ * @copyright (C) 2018-2023 Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -43,6 +43,12 @@ class Details
             if ($this->ct->Params->detailsLayout != '') {
                 $Layouts = new Layouts($this->ct);
                 $this->layoutDetailsContent = $Layouts->getLayout($this->ct->Params->detailsLayout);
+
+                if ($Layouts->layouttype === null) {
+                    echo 'Layout "' . $this->ct->Params->detailsLayout . '" not found or the type is not set.';
+                    return false;
+                }
+
                 $this->layoutType = $Layouts->layouttype;
             }
         } else $this->layoutDetailsContent = $layoutDetailsContent;
@@ -100,7 +106,7 @@ class Details
                         . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'layout.php');
                     $LayoutProc = new LayoutProcessor($this->ct);
                     $LayoutProc->layout = $filter;
-                    $filter = $LayoutProc->fillLayout(array(), null, '[]', true);
+                    $filter = $LayoutProc->fillLayout(null, null, '[]', true);
                 }
 
                 $twig = new TwigProcessor($this->ct, $filter);

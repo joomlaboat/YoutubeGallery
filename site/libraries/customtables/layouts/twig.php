@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2022 Ivan Komlev
+ * @copyright (C) 2018-2023 Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -16,6 +16,7 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 }
 
 use Exception;
+use Joomla\CMS\Factory;
 use JoomlaBasicMisc;
 use CT_FieldTypeTag_sqljoin;
 use CT_FieldTypeTag_records;
@@ -38,9 +39,11 @@ class TwigProcessor
     var array $variables = [];
     var bool $recordBlockFound;
     var string $recordBlockReplaceCode;
+    var bool $DoHTMLSpecialChars;
 
-    public function __construct(CT &$ct, $layoutContent, $getEditFieldNamesOnly = false)
+    public function __construct(CT &$ct, $layoutContent, $getEditFieldNamesOnly = false, $DoHTMLSpecialChars = false)
     {
+        $this->DoHTMLSpecialChars = $DoHTMLSpecialChars;
         $ct->LayoutVariables['getEditFieldNamesOnly'] = $getEditFieldNamesOnly;
         $this->ct = $ct;
 
@@ -48,6 +51,11 @@ class TwigProcessor
 
         $tag1 = '{% block record %}';
         $pos1 = strpos($htmlresult_, $tag1);
+
+        if (!class_exists('Twig\Loader\ArrayLoader')) {
+            Factory::getApplication()->enqueueMessage('Twig not loaded. Go to Global Configuration/ Custom Tables Configuration to enable it.', 'error');
+            return;
+        }
 
         if ($pos1 !== false) {
             $this->recordBlockFound = true;
@@ -83,9 +91,7 @@ class TwigProcessor
 
         $this->addGlobals();
         $this->addFieldValueMethods();
-
-        if (!$this->ct->LayoutVariables['getEditFieldNamesOnly'])
-            $this->addTwigFilters();
+        $this->addTwigFilters();
     }
 
     protected function addGlobals()
@@ -99,90 +105,88 @@ class TwigProcessor
         //{{ document.sitename() }}	-	wizard ok
         //{{ document.languagepostfix() }}	-	wizard ok
 
-        if (!$this->ct->LayoutVariables['getEditFieldNamesOnly']) {
-            $this->twig->addGlobal('fields', new Twig_Fields_Tags($this->ct));
-            //{{ fields.list() }}	-	wizard ok
-            //{{ fields.count() }}	-	wizard ok
-            //{{ fields.json() }}	-	wizard ok
+        $this->twig->addGlobal('fields', new Twig_Fields_Tags($this->ct));
+        //{{ fields.list() }}	-	wizard ok
+        //{{ fields.count() }}	-	wizard ok
+        //{{ fields.json() }}	-	wizard ok
 
-            $this->twig->addGlobal('user', new Twig_User_Tags($this->ct));
-            //{{ user.name() }}	-	wizard ok
-            //{{ user.username() }}	-	wizard ok
-            //{{ user.email() }}	-	wizard ok
-            //{{ user.id() }}	-	wizard ok
-            //{{ user.lastvisitdate() }}	-	wizard ok
-            //{{ user.registerdate() }}	-	wizard ok
-            //{{ user.usergroups() }}	-	wizard ok
+        $this->twig->addGlobal('user', new Twig_User_Tags($this->ct));
+        //{{ user.name() }}	-	wizard ok
+        //{{ user.username() }}	-	wizard ok
+        //{{ user.email() }}	-	wizard ok
+        //{{ user.id() }}	-	wizard ok
+        //{{ user.lastvisitdate() }}	-	wizard ok
+        //{{ user.registerdate() }}	-	wizard ok
+        //{{ user.usergroups() }}	-	wizard ok
 
-            $this->twig->addGlobal('url', new Twig_Url_Tags($this->ct));
-            //{{ url.link() }}	-	wizard ok
-            //{{ url.format() }}	-	wizard ok
-            //{{ url.base64() }}	-	wizard ok
-            //{{ url.root() }}	-	wizard ok
-            //{{ url.getint() }}	-	wizard ok
-            //{{ url.getstring() }}	-	wizard ok
-            //{{ url.getuint() }}	-	wizard ok
-            //{{ url.getfloat() }}	-	wizard ok
-            //{{ url.getword() }}	-	wizard ok
-            //{{ url.getalnum() }}	-	wizard ok
-            //{{ url.getcmd() }}	-	wizard ok
-            //{{ url.getstringandencode() }}	-	wizard ok
-            //{{ url.getstringanddecode() }}	-	wizard ok
-            //{{ url.itemid() }}	-	wizard ok
-            //{{ url.set() }}	-	wizard ok
-            //{{ url.server() }}	-	wizard ok
+        $this->twig->addGlobal('url', new Twig_Url_Tags($this->ct));
+        //{{ url.link() }}	-	wizard ok
+        //{{ url.format() }}	-	wizard ok
+        //{{ url.base64() }}	-	wizard ok
+        //{{ url.root() }}	-	wizard ok
+        //{{ url.getint() }}	-	wizard ok
+        //{{ url.getstring() }}	-	wizard ok
+        //{{ url.getuint() }}	-	wizard ok
+        //{{ url.getfloat() }}	-	wizard ok
+        //{{ url.getword() }}	-	wizard ok
+        //{{ url.getalnum() }}	-	wizard ok
+        //{{ url.getcmd() }}	-	wizard ok
+        //{{ url.getstringandencode() }}	-	wizard ok
+        //{{ url.getstringanddecode() }}	-	wizard ok
+        //{{ url.itemid() }}	-	wizard ok
+        //{{ url.set() }}	-	wizard ok
+        //{{ url.server() }}	-	wizard ok
 
-            $this->twig->addGlobal('html', new Twig_Html_Tags($this->ct));
-            //{{ html.add() }}	-	wizard ok
-            //{{ html.batch() }}	-	wizard ok
-            //{{ html.button() }}	-	wizard ok
-            //{{ html.captcha() }}	-	wizard ok
-            //{{ html.goback() }}	-	wizard ok
-            //{{ html.importcsv() }}	-	wizard ok
-            //{{ html.tablehead() }}	-	wizard ok
-            //{{ html.limit() }}	-	wizard ok
-            //{{ html.message() }}	-	wizard ok
-            //{{ html.navigation() }}	-	wizard ok
-            //{{ html.orderby() }}	-	wizard ok
-            //{{ html.pagination() }}	-	wizard ok
-            //{{ html.print() }}	-	wizard ok
-            //{{ html.recordcount }}	-	wizard ok
-            //{{ html.recordlist }}	-	wizard ok
-            //{{ html.search() }}	-	wizard ok
-            //{{ html.searchbutton() }}	-	wizard ok
-            //{{ html.toolbar() }}	-	wizard ok
-            //{{ html.base64encode() }}	-	wizard ok
+        $this->twig->addGlobal('html', new Twig_Html_Tags($this->ct));
+        //{{ html.add() }}	-	wizard ok
+        //{{ html.batch() }}	-	wizard ok
+        //{{ html.button() }}	-	wizard ok
+        //{{ html.captcha() }}	-	wizard ok
+        //{{ html.goback() }}	-	wizard ok
+        //{{ html.importcsv() }}	-	wizard ok
+        //{{ html.tablehead() }}	-	wizard ok
+        //{{ html.limit() }}	-	wizard ok
+        //{{ html.message() }}	-	wizard ok
+        //{{ html.navigation() }}	-	wizard ok
+        //{{ html.orderby() }}	-	wizard ok
+        //{{ html.pagination() }}	-	wizard ok
+        //{{ html.print() }}	-	wizard ok
+        //{{ html.recordcount }}	-	wizard ok
+        //{{ html.recordlist }}	-	wizard ok
+        //{{ html.search() }}	-	wizard ok
+        //{{ html.searchbutton() }}	-	wizard ok
+        //{{ html.toolbar() }}	-	wizard ok
+        //{{ html.base64encode() }}	-	wizard ok
 
-            $this->twig->addGlobal('record', new Twig_Record_Tags($this->ct));
-            //{{ record.advancedjoin(function, tablename, field_findwhat, field_lookwhere, field_readvalue, additional_where, order_by_option, value_option_list) }}	-	wizard ok
+        $this->twig->addGlobal('record', new Twig_Record_Tags($this->ct));
+        //{{ record.advancedjoin(function, tablename, field_findwhat, field_lookwhere, field_readvalue, additional_where, order_by_option, value_option_list) }}	-	wizard ok
 
-            //{{ record.joincount(join_table) }}
-            //{{ record.joinavg(join_table,value_field_name) }}
-            //{{ record.joinmin(join_table,value_field_name) }}
-            //{{ record.joinmax(join_table,value_field_name) }}
-            //{{ record.joinvalue(join_table,value_field_name) }}
-            //{{ record.jointable(layout,filter,orderby,limit) }}
+        //{{ record.joincount(join_table) }}
+        //{{ record.joinavg(join_table,value_field_name) }}
+        //{{ record.joinmin(join_table,value_field_name) }}
+        //{{ record.joinmax(join_table,value_field_name) }}
+        //{{ record.joinvalue(join_table,value_field_name) }}
+        //{{ record.jointable(layout,filter,orderby,limit) }}
 
-            //{{ record.id }}	-	wizard ok
-            //{{ record.number }}	-	wizard ok
-            //{{ record.published }}	-	wizard ok
+        //{{ record.id }}	-	wizard ok
+        //{{ record.number }}	-	wizard ok
+        //{{ record.published }}	-	wizard ok
 
-            $this->variables = [];
+        $this->variables = [];
 
-            //{{ table.id }}	-	wizard ok
-            //{{ table.name }}	-	wizard ok
-            //{{ table.title }}	-	wizard ok
-            //{{ table.description }}	-	wizard ok
-            //{{ table.records }} same as {{ records.count }}	-	wizard ok
-            //{{ table.fields }} same as {{ fields.count() }}	-	wizard ok
+        //{{ table.id }}	-	wizard ok
+        //{{ table.name }}	-	wizard ok
+        //{{ table.title }}	-	wizard ok
+        //{{ table.description }}	-	wizard ok
+        //{{ table.records }} same as {{ records.count }}	-	wizard ok
+        //{{ table.fields }} same as {{ fields.count() }}	-	wizard ok
 
-            //{{ tables.getvalue(tablename,field_name,recordid_or_filter, orderby) }}
-            //{{ tables.getrecord(layoutname,recordid_or_filter, orderby) }}
-            //{{ tables.getrecords(layoutname,filter,orderby,limit) }}
+        //{{ tables.getvalue(tablename,field_name,recordid_or_filter, orderby) }}
+        //{{ tables.getrecord(layoutname,recordid_or_filter, orderby) }}
+        //{{ tables.getrecords(layoutname,filter,orderby,limit) }}
 
-            $this->twig->addGlobal('table', new Twig_Table_Tags($this->ct));
-            $this->twig->addGlobal('tables', new Twig_Tables_Tags($this->ct));
-        }
+        $this->twig->addGlobal('table', new Twig_Table_Tags($this->ct));
+        $this->twig->addGlobal('tables', new Twig_Tables_Tags($this->ct));
     }
 
     protected function addFieldValueMethods()
@@ -204,7 +208,7 @@ class TwigProcessor
                 });
 
                 $this->twig->addFunction($function);
-                $this->variables[$fieldrow['fieldname']] = new fieldObject($this->ct, $fieldrow);
+                $this->variables[$fieldrow['fieldname']] = new fieldObject($this->ct, $fieldrow, $this->DoHTMLSpecialChars);
                 $index++;
             }
         }
@@ -245,6 +249,9 @@ class TwigProcessor
      */
     public function process(?array $row = null): string
     {
+        if (!class_exists('Twig\Loader\ArrayLoader'))
+            return '';
+
         if ($row !== null)
             $this->ct->Table->record = $row;
 
@@ -315,9 +322,11 @@ class fieldObject
 {
     var CT $ct;
     var Field $field;
+    var bool $DoHTMLSpecialChars;
 
-    function __construct(CT &$ct, $fieldrow)
+    function __construct(CT &$ct, $fieldrow, $DoHTMLSpecialChars = false)
     {
+        $this->DoHTMLSpecialChars = $DoHTMLSpecialChars;
         $this->ct = $ct;
         $this->field = new Field($ct, $fieldrow, $this->ct->Table->record);
     }
@@ -326,6 +335,12 @@ class fieldObject
     {
         $valueProcessor = new Value($this->ct);
         $vlu = $valueProcessor->renderValue($this->field->fieldrow, $this->ct->Table->record, []);
+
+        if ($this->DoHTMLSpecialChars) {
+            $vlu = htmlentities($vlu, ENT_IGNORE + ENT_DISALLOWED + ENT_HTML5, "UTF-8");
+            $vlu = htmlspecialchars($vlu, ENT_IGNORE + ENT_DISALLOWED + ENT_HTML5, "UTF-8");
+        }
+
         return strval($vlu);
     }
 
@@ -376,9 +391,15 @@ class fieldObject
                 if ($c != "")
                     $b[] = $c;
             }
-            return implode(',', $b);
+            $vlu = implode(',', $b);
         } else
-            return $this->ct->Table->record[$rfn];
+            $vlu = $this->ct->Table->record[$rfn];
+
+        if ($this->DoHTMLSpecialChars) {
+            $vlu = htmlentities($vlu, ENT_IGNORE + ENT_DISALLOWED + ENT_HTML5, "UTF-8");
+            $vlu = htmlspecialchars($vlu, ENT_IGNORE + ENT_DISALLOWED + ENT_HTML5, "UTF-8");
+        }
+        return $vlu;
     }
 
     public function int(): int
@@ -431,7 +452,6 @@ class fieldObject
             $value = $Inputbox->getDefaultValueIfNeeded($this->ct->Table->record);
 
             if ($this->ct->LayoutVariables['getEditFieldNamesOnly']) {
-
                 $this->ct->editFields[] = $this->field->fieldname;
                 return '';
             } else
@@ -494,6 +514,20 @@ class fieldObject
             return CT_FieldTypeTag_records::resolveRecordTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname], $showPublishedString);
         } else {
             $this->ct->app->enqueueMessage('{{ ' . $this->field->fieldname . '.get }}. Wrong field type "' . $this->field->type . '". ".get" method is only available for Table Join and Records filed types.', 'error');
+            return '';
+        }
+    }
+
+    public function getvalue($fieldname, string $showPublishedString = ''): string
+    {
+        if ($this->field->type == 'sqljoin') {
+            $layoutcode = '{{ ' . $fieldname . '.value }}';
+            return CT_FieldTypeTag_sqljoin::resolveSQLJoinTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname]);
+        } elseif ($this->field->type == 'records') {
+            $layoutcode = '{{ ' . $fieldname . '.value }}';
+            return CT_FieldTypeTag_records::resolveRecordTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname], $showPublishedString);
+        } else {
+            $this->ct->app->enqueueMessage('{{ ' . $this->field->fieldname . '.getvalue }}. Wrong field type "' . $this->field->type . '". ".getvalue" method is only available for Table Join and Records filed types.', 'error');
             return '';
         }
     }

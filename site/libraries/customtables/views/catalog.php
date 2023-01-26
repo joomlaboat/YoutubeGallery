@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2022 Ivan Komlev
+ * @copyright (C) 2018-2023 Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -150,7 +150,7 @@ class Catalog
 
             $LayoutProc = new LayoutProcessor($this->ct);
             $LayoutProc->layout = $pageLayout;
-            $pageLayout = $LayoutProc->fillLayout(array(), null, '');
+            $pageLayout = $LayoutProc->fillLayout(null, null, '');
             $pageLayout = str_replace('&&&&quote&&&&', '"', $pageLayout); // search boxes may return HTMl elements that contain placeholders with quotes like this: &&&&quote&&&&
             $pageLayout = str_replace($catalogTableCode, $catalogTableContent, $pageLayout);
         }

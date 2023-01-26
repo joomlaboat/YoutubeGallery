@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2022 Ivan Komlev
+ * @copyright (C) 2018-2023 Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -101,7 +101,10 @@ class Environment
 
         $this->userid = is_null($this->user) ? 0 : $this->user->id;
 
-        $this->isUserAdministrator = $this->user->authorise('core.edit', 'com_content');
+        $usergroups = $this->user->get('groups');
+        $this->isUserAdministrator = in_array(8, $usergroups);//8 is Super Users
+        //$this->isUserAdministrator = $this->user->authorise('core.edit', 'com_content');
+        
         $this->print = (bool)$this->jinput->getInt('print', 0);
         $this->clean = (bool)$this->jinput->getInt('clean', 0);
         $this->isModal = (bool)$this->jinput->getInt('modal', 0);

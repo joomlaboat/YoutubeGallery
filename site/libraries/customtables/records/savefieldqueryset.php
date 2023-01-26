@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2022 Ivan Komlev
+ * @copyright (C) 2018-2023 Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -45,7 +45,6 @@ class SaveFieldQuerySet
         $this->ct = &$ct;
         $this->row = $row;
         $this->isCopy = $isCopy;
-
         $this->saveQuery = [];
     }
 
@@ -66,7 +65,6 @@ class SaveFieldQuerySet
     protected function getSaveFieldSetType()
     {
         $listing_id = $this->row[$this->ct->Table->realidfieldname];
-
         switch ($this->field->type) {
             case 'records':
                 $value = $this->get_record_type_value();
@@ -76,13 +74,15 @@ class SaveFieldQuerySet
             case 'sqljoin':
 
                 $value = $this->ct->Env->jinput->getInt($this->field->comesfieldname);
-                if (isset($value)) {
-                    $this->row[$this->field->realfieldname] = $value;
 
-                    if ($value == 0)
+                if (isset($value)) {
+                    if ($value == 0) {
+                        $this->row[$this->field->realfieldname] = null;
                         return $this->field->realfieldname . '=NULL';
-                    else
+                    } else {
+                        $this->row[$this->field->realfieldname] = $value;
                         return $this->field->realfieldname . '=' . $value;
+                    }
                 }
 
                 break;
@@ -954,8 +954,7 @@ class SaveFieldQuerySet
     function applyDefaults($fieldrow): ?string
     {
         $this->field = new Field($this->ct, $fieldrow, $this->row);
-
-        if ($this->field->defaultvalue != "" and is_null($this->row[$this->field->realfieldname]) and $this->field->type != 'dummie') {
+        if ($this->field->defaultvalue != "" and (!isset($this->row[$this->field->realfieldname]) or is_null($this->row[$this->field->realfieldname])) and $this->field->type != 'dummie') {
 
             if ($this->ct->Env->legacysupport) {
                 $LayoutProc = new LayoutProcessor($this->ct);
@@ -965,7 +964,6 @@ class SaveFieldQuerySet
 
             $twig = new TwigProcessor($this->ct, $this->field->defaultvalue);
             $value = $twig->process($this->row);
-
             $this->row[$this->field->realfieldname] = $value;
             return $this->field->realfieldname . '=' . $this->ct->db->quote($value);
         }

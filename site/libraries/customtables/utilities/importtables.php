@@ -2,9 +2,9 @@
 /**
  * CustomTables Joomla! 3.x/4.x Native Component
  * @package Custom Tables
- * @author Ivan komlev <support@joomlaboat.com>
+ * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright Copyright (C) 2018-2022. All Rights Reserved
+ * @copyright (C) 2018-2023. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -51,8 +51,8 @@ class ImportTables
             }
         }
 
-        $jsondata = json_decode(str_replace($keyword, '', $data), true);
-        return ImportTables::processData($ct, $jsondata, $menutype, $msg, $category, $importfields, $importlayouts, $importmenu);
+        $JSON_data = json_decode(str_replace($keyword, '', $data), true);
+        return ImportTables::processData($ct, $JSON_data, $menutype, $msg, $category, $importfields, $importlayouts, $importmenu);
     }
 
     protected static function processData(CT &$ct, $jsondata, $menutype, &$msg, $category, $importfields, $importlayouts, $importmenu)
@@ -109,11 +109,7 @@ class ImportTables
         }
 
         //Create mysql table
-        $tabletitle = '';
-        if (isset($table_new['tabletitle']))
-            $tabletitle = $table_new['tabletitle'];
-        else
-            $tabletitle = $table_new['tabletitle_1'];
+        $tabletitle = $table_new['tabletitle'] ?? $table_new['tabletitle_1'];
 
         $query = '
                 CREATE TABLE IF NOT EXISTS #__customtables_table_' . $tablename . '
@@ -128,11 +124,10 @@ class ImportTables
         $db->execute();
 
         ImportTables::updateTableCategory($tableid, $table_new, $categoryname);
-
         return $tableid;
     }
 
-    public static function updateRecords(string $table, array $rows_new, array $rows_old, $addPrefix = true, array $exceptions = array(), bool $force_id = false): void
+    public static function updateRecords(string $table, array $rows_new, array $rows_old, $addPrefix = true, array $exceptions = array(), bool $force_id = false, $save_checked_out = false): void
     {
         if ($addPrefix)
             $mySQLTableName = '#__customtables_' . $table;
@@ -140,12 +135,15 @@ class ImportTables
             $mySQLTableName = $table;
 
         $db = Factory::getDBO();
-
         $sets = array();
         $keys = array_keys($rows_new);
 
-        $ignore_fields = ['asset_id', 'created_by', 'modified_by', 'checked_out',
-            'checked_out_time', 'version', 'hits', 'publish_up', 'publish_down', 'checked_out_time'];
+        $ignore_fields = ['asset_id', 'created_by', 'modified_by', 'version', 'hits', 'publish_up', 'publish_down'];
+
+        if (!$save_checked_out) {
+            $ignore_fields[] = 'checked_out';
+            $ignore_fields[] = 'checked_out_time';
+        }
 
         foreach ($keys as $key) {
             $type = null;
@@ -154,7 +152,7 @@ class ImportTables
                 $fieldname = ImportTables::checkFieldName($key, $force_id, $exceptions);
 
                 if ($fieldname != '' and Fields::checkIfFieldExists($mySQLTableName, $fieldname)) {
-                    if (isset($rows_new[$key]) and (!isset($rows_old[$key]) or $rows_new[$key] != $rows_old[$key])) {
+                    if (array_key_exists($key, $rows_new) and (!array_key_exists($key, $rows_old) or $rows_new[$key] != $rows_old[$key])) {
                         $sets[] = $fieldname . '=' . ImportTables::dbQuoteByType($rows_new[$key], $type);
                     }
                 }
@@ -163,7 +161,6 @@ class ImportTables
 
         if (count($sets) > 0) {
             $query = 'UPDATE ' . $mySQLTableName . ' SET ' . implode(', ', $sets) . ' WHERE id=' . (int)$rows_old['id'];
-
             $db->setQuery($query);
             $db->execute();
         }
@@ -228,22 +225,22 @@ class ImportTables
         return null;
     }
 
-    public static function insertRecords($table, $rows, $addPrefix = true, $exceptions = array(), $force_id = false, $add_field_prefix = '', $field_conversion_map = array())
+    public static function insertRecords($table, $rows, $addPrefix = true, $exceptions = array(), $force_id = false,
+                                         $add_field_prefix = '', $field_conversion_map = array(), $save_checked_out = false)
     {
         if ($addPrefix)
-            $mysqltablename = '#__customtables_' . $table;
+            $mysqlTableName = '#__customtables_' . $table;
         else
-            $mysqltablename = $table;
-
-        $db = Factory::getDBO();
+            $mysqlTableName = $table;
 
         $inserts = array();
-
         $keys = array_keys($rows);
+        $ignore_fields = ['asset_id', 'created_by', 'modified_by', 'version', 'hits', 'publish_up', 'publish_down', 'checked_out_time'];
 
-        $ignore_fields = ['asset_id', 'created_by', 'modified_by', 'checked_out',
-            'checked_out_time', 'version', 'hits', 'publish_up', 'publish_down', 'checked_out_time'];
-
+        if (!$save_checked_out) {
+            $ignore_fields[] = 'checked_out';
+            $ignore_fields[] = 'checked_out_time';
+        }
         $core_fields = ['id', 'published'];
 
         foreach ($keys as $key) {
@@ -273,20 +270,18 @@ class ImportTables
             }
 
             if ($isOk and !in_array($fieldname, $ignore_fields)) {
-                if (!Fields::checkIfFieldExists($mysqltablename, $fieldname, false)) {
+                if (!Fields::checkIfFieldExists($mysqlTableName, $fieldname, false)) {
                     //Add field
                     $isLanguageFieldName = Fields::isLanguageFieldName($fieldname);
 
                     if ($isLanguageFieldName) {
                         //Add language field
-                        //Get non langauge field type
+                        //Get non language field type
+                        $nonLanguageFieldName = Fields::getLanguageLessFieldName($key);
+                        $filedType = Fields::getFieldType($mysqlTableName, $nonLanguageFieldName);
 
-                        $nonLanguageFieldName = Fields::getLanguagelessFieldName($key);
-
-                        $filedtype = Fields::getFieldType($mysqltablename, $nonLanguageFieldName);
-
-                        if ($filedtype != '') {
-                            Fields::AddMySQLFieldNotExist($mysqltablename, $key, $filedtype, '');
+                        if ($filedType != '') {
+                            Fields::AddMySQLFieldNotExist($mysqlTableName, $key, $filedType, '');
                             if ($rows[$key] === null) {
 
                             }
@@ -299,85 +294,83 @@ class ImportTables
                 }
             }
         }
-
-        return ESTables::insertRecords($mysqltablename, $inserts);
+        return ESTables::insertRecords($mysqlTableName, $inserts);
     }
 
-    protected static function updateTableCategory($tableid, &$table_new, $categoryname)
+    protected static function updateTableCategory($tableid, &$table_new, $categoryName)
     {
         if (isset($table_new['tablecategory']))
-            $categoryid_ = $table_new['tablecategory'];
+            $categoryId_ = $table_new['tablecategory'];
         elseif (isset($table_new['catid']))
-            $categoryid_ = $table_new['catid'];
+            $categoryId_ = $table_new['catid'];
         else
-            $categoryid_ = null;
+            $categoryId_ = null;
 
-        if ($categoryid_ == '')
-            $categoryid_ = null;
+        if ($categoryId_ == '')
+            $categoryId_ = null;
 
-        if ($categoryname == '')
-            $categoryname = $table_new['categoryname'];
+        if ($categoryName == '')
+            $categoryName = $table_new['categoryname'];
 
         $db = Factory::getDBO();
-        $categoryid = $categoryid_;
+        $categoryId = $categoryId_;
 
-        if ($categoryid != 0) {
-            $category_row = ImportTables::getRecordByField('#__customtables_categories', 'id', $categoryid, false);
+        if ($categoryId != 0) {
+            $category_row = ImportTables::getRecordByField('#__customtables_categories', 'id', $categoryId, false);
 
             if (is_array($category_row) and count($category_row) > 0) {
-                if ($category_row['categoryname'] == $categoryname) {
+                if ($category_row['categoryname'] == $categoryName) {
                     //Good
-                } else//if($categoryname!='')
-                {
+                } else {
                     //Find Category By name
-                    $categoryid = null;
+                    $categoryId = null;
                 }
 
             } else
-                $categoryid = null;
+                $categoryId = null;
         }
 
-        if (is_null($categoryid)) {
+        if (is_null($categoryId)) {
             //Find Category By name
-            $category_row = ImportTables::getRecordByField('#__customtables_categories', 'categoryname', $categoryname, false);
+            $category_row = ImportTables::getRecordByField('#__customtables_categories', 'categoryname', $categoryName, false);
 
             if (is_array($category_row) and count($category_row) > 0) {
-                $categoryid = $category_row['id'];
+                $categoryId = $category_row['id'];
 
             } else {
                 //Create Category
                 $inserts = array();
-                $inserts[] = 'categoryname=' . $db->Quote($categoryname);
+                $inserts[] = 'categoryname=' . $db->Quote($categoryName);
 
-                $categoryid = ESTables::insertRecords('#__customtables_categories', $inserts);
+                $categoryId = ESTables::insertRecords('#__customtables_categories', $inserts);
             }
         }
 
 
-        if ($categoryid != $categoryid_ or is_null($categoryid)) {
+        if ($categoryId != $categoryId_ or is_null($categoryId)) {
             //Update Category ID in table
-            $mysqltablename = '#__customtables_tables';
+            $mysqlTableName = '#__customtables_tables';
 
-            $query = 'UPDATE ' . $mysqltablename . ' SET tablecategory=' . (int)$categoryid . ' WHERE id=' . (int)$tableid;
+            $query = 'UPDATE ' . $mysqlTableName . ' SET tablecategory=' . (int)$categoryId . ' WHERE id=' . (int)$tableid;
 
             $db->setQuery($query);
             $db->execute();
         }
     }
 
-    public static function getRecordByField($table, $fieldname, $value, $addprefix = true)
+    public static function getRecordByField($table, $fieldname, $value, $addPrefix = true)
     {
-        if ($addprefix)
-            $mysqltablename = '#__customtables_' . $table;
+        if ($addPrefix)
+            $mysqlTableName = '#__customtables_' . $table;
         else
-            $mysqltablename = $table;
+            $mysqlTableName = $table;
 
         $db = Factory::getDBO();
 
         if (is_null($value))
-            $query = 'SELECT * FROM ' . $mysqltablename . ' WHERE ' . $fieldname . ' IS NULL';
+            $query = 'SELECT * FROM ' . $mysqlTableName . ' WHERE ' . $fieldname . ' IS NULL';
         else
-            $query = 'SELECT * FROM ' . $mysqltablename . ' WHERE ' . $fieldname . '=' . $db->Quote($value);
+            $query = 'SELECT * FROM ' . $mysqlTableName . ' WHERE ' . $fieldname . '=' . $db->Quote($value);
 
         $db->setQuery($query);
 
@@ -401,7 +394,6 @@ class ImportTables
                 return false;
             }
         }
-
         return true;
     }
 
@@ -439,7 +431,6 @@ class ImportTables
                 return false;
             }
         }
-
         return true;
     }
 
@@ -448,26 +439,21 @@ class ImportTables
         //This function creates layout and returns its id.
         //If layout with same name already exists then existing layout will be updated, and it's ID will be returned.
 
-        $db = Factory::getDBO();
         $layout_new['tableid'] = $tableid;//replace tableid
         $layoutname = $layout_new['layoutname'];
-        $layoutid = 0;
 
         $layout_old = ImportTables::getRecordByField('layouts', 'layoutname', $layoutname);
-
         $Layouts = new Layouts($ct);
 
         if (is_array($layout_old) and count($layout_old) > 0) {
-            $layoutid = $layout_old['id'];
+            $layoutId = $layout_old['id'];
             ImportTables::updateRecords('layouts', $layout_new, $layout_old);
-            $Layouts->storeAsFile($layout_new);
         } else {
             //Create layout record
-            $layoutid = ImportTables::insertRecords('layouts', $layout_new);
-            $Layouts->storeAsFile($layout_new);
+            $layoutId = ImportTables::insertRecords('layouts', $layout_new);
         }
-
-        return $layoutid;
+        $Layouts->storeAsFile($layout_new);
+        return $layoutId;
     }
 
     protected static function processMenu($menu, $menutype, &$msg)
@@ -482,7 +468,6 @@ class ImportTables
                 return false;
             }
         }
-
         return true;
     }
 
@@ -518,7 +503,6 @@ class ImportTables
             $inserts[] = 'menutype=' . $db->Quote($new_menutype_alias);
             $inserts[] = 'title=' . $db->Quote($new_menuType);
             $inserts[] = 'description=' . $db->Quote('Menu Type created by CustomTables');
-
             $menu_types_id = ESTables::insertRecords('#__menu_types', $inserts);
         }
 
@@ -534,7 +518,6 @@ class ImportTables
                 $lft = ImportTables::menuGetMaxRgt() + 1;
                 $menuitem_new['lft'] = $lft;
                 $menuitem_new['rgt'] = $lft + 1;
-
                 $menuitem_new['link'] = str_replace('com_extrasearch', 'com_customtables', $menuitem_new['link']);
 
                 if ($menuitem_old['parent_id'] != 1)
@@ -556,22 +539,16 @@ class ImportTables
                 $menuitem_new['level'] = $menuitem_old['level'];
                 $menuitem_new['menutype'] = $menuitem_old['menutype'];
             }
-
             ImportTables::updateRecords('#__menu', $menuitem_new, $menuitem_old, false);
-
             $menus[] = [$menuitem_alias, $menuItemId, $menuitem_old['id']];
         } else {
-            $menuitem_new['parent_id'] = 1;
-
-            $menuitem_new['level'] = 1;
-
             $lft = ImportTables::menuGetMaxRgt() + 1;
+            $menuitem_new['parent_id'] = 1;
+            $menuitem_new['level'] = 1;
             $menuitem_new['lft'] = $lft;
             $menuitem_new['rgt'] = $lft + 1;
-
             $menuitem_new['link'] = str_replace('com_extrasearch', 'com_customtables', $menuitem_new['link']);
             $menuitem_new['id'] = null;
-
             $menuitem_new['component_id'] = (int)$component_id;
             $menuitem_new['alias'] = $menuitem_alias;
             $menuitem_new['menytype'] = $new_menutype_alias;
@@ -581,12 +558,9 @@ class ImportTables
 
             //Alias,New ID, Old ID
             $menus[] = [$menuitem_alias, $menuItemId, 0];
-
-
             $menuItemId = ImportTables::insertRecords('#__menu', $menuitem_new, false);
             $menuitem_new['id'] = $menuItemId;
         }
-
         return $menuItemId;
     }
 
@@ -610,7 +584,6 @@ class ImportTables
             if ($menu[2] == $oldparentid)  // 2 - old id
                 return $menu[1];        // 1 - new id
         }
-
         return 1;// Root
     }
 
@@ -626,7 +599,6 @@ class ImportTables
             else
                 ImportTables::insertRecords($mySQLTableName, $record, false, array(), true);//insert single new record
         }
-
         return true;
     }
 

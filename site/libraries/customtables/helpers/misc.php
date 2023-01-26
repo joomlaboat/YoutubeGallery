@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2022 Ivan Komlev
+ * @copyright (C) 2018-2023 Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -742,19 +742,20 @@ class JoomlaBasicMisc
         return $result;
     }
 
-    public static function csv_explode(string $delim, string $str, string $enclose = '"', bool $preserve = false): array
+    public static function csv_explode(string $separator, string $string, string $enclosure = '"', bool $preserve = false): array
     {
-        //$delim=','
+        if (!$preserve)
+            return str_getcsv($string, $separator, $enclosure, "\\");
 
         $resArr = array();
         $n = 0;
-        $expEncArr = explode($enclose, $str);
+        $expEncArr = explode($enclosure, $string);
         foreach ($expEncArr as $EncItem) {
             if ($n++ % 2) {
-                array_push($resArr, array_pop($resArr) . ($preserve ? $enclose : '') . $EncItem . ($preserve ? $enclose : ''));
+                $resArr[] = array_pop($resArr) . $enclosure . $EncItem . $enclosure;
             } else {
-                $expDelArr = explode($delim, $EncItem);
-                array_push($resArr, array_pop($resArr) . array_shift($expDelArr));
+                $expDelArr = explode($separator, $EncItem);
+                $resArr[] = array_pop($resArr) . array_shift($expDelArr);
                 $resArr = array_merge($resArr, $expDelArr);
             }
         }

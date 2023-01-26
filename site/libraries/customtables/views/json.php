@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2022 Ivan Komlev
+ * @copyright (C) 2018-2023 Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -61,7 +61,7 @@ class ViewJSON
             $pageLayoutContent = str_replace($catalogTableCode, $catalogTableContent, $pageLayoutContent);
         }
 
-        $twig = new TwigProcessor($this->ct, $pageLayoutContent);
+        $twig = new TwigProcessor($this->ct, $pageLayoutContent, false, true);
         $pageLayoutContent = $twig->process();
 
         if ($this->ct->Params->allowContentPlugins)

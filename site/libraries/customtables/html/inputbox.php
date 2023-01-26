@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2022 Ivan Komlev
+ * @copyright (C) 2018-2023 Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -123,7 +123,7 @@ class Inputbox
         //$showPublished = 0 - show published
         //$showPublished = 1 - show unpublished
         //$showPublished = 2 - show any
-        $showPublished = (($selector[2] ?? '') == '' ? 2 : ((int)($selector[2] ?? 0) == 1 ? 0 : 1)); //$selector[2] can be "" or "true" or "false"
+        $showPublished = (($selector[2] ?? '') == 'true' ? 2 : 0); //$selector[2] can be "" or "true" or "false"
 
         $filter = $selector[3] ?? '';
 
@@ -497,6 +497,10 @@ class Inputbox
 
     protected function render_alias($value): string
     {
+        $maxlength = 0;
+        if ($this->field->params !== null and count($this->field->params) > 0)
+            $maxlength = (int)$this->field->params[0];
+
         return '<input type="text" '
             . 'name="' . $this->prefix . $this->field->fieldname . '" '
             . 'id="' . $this->prefix . $this->field->fieldname . '" '
@@ -506,7 +510,7 @@ class Inputbox
             . 'data-label="' . $this->field->title . '" '
             . 'data-valuerule="' . str_replace('"', '&quot;', $this->field->valuerule) . '" '
             . 'data-valuerulecaption="' . str_replace('"', '&quot;', $this->field->valuerulecaption) . '" '
-            . 'value="' . $value . '" ' . ((int)$this->field->params[0] > 0 ? 'maxlength="' . (int)$this->field->params[0] . '"' : 'maxlength="255"') . ' ' . $this->attributes . ' />';
+            . 'value="' . $value . '" ' . ($maxlength > 0 ? 'maxlength="' . $maxlength . '"' : 'maxlength="255"') . ' ' . $this->attributes . ' />';
     }
 
     protected function getMultilingualString(): string
@@ -515,11 +519,11 @@ class Inputbox
         if (isset($this->option_list[4])) {
             $language = $this->option_list[4];
 
-            $firstlanguage = true;
+            $firstLanguage = true;
             foreach ($this->ct->Languages->LanguageList as $lang) {
-                if ($firstlanguage) {
+                if ($firstLanguage) {
                     $postfix = '';
-                    $firstlanguage = false;
+                    $firstLanguage = false;
                 } else
                     $postfix = '_' . $lang->sef;
 
@@ -533,11 +537,11 @@ class Inputbox
         //show all languages
         $result .= '<div class="form-horizontal">';
 
-        $firstlanguage = true;
+        $firstLanguage = true;
         foreach ($this->ct->Languages->LanguageList as $lang) {
-            if ($firstlanguage) {
+            if ($firstLanguage) {
                 $postfix = '';
-                $firstlanguage = false;
+                $firstLanguage = false;
             } else
                 $postfix = '_' . $lang->sef;
 
@@ -1088,6 +1092,9 @@ class Inputbox
         //$this->option_list[2] - Parent Selector - Array
         //$this->option_list[3] - Custom Title Layout
 
+        if ($this->ct->isRecordNull($this->row))
+            $value = $this->ct->Env->jinput->getInt($this->ct->Env->field_prefix . $this->field->fieldname, null);
+
         $sqljoin_attributes = ' data-valuerule="' . str_replace('"', '&quot;', $this->field->valuerule) . '"'
             . ' data-valuerulecaption="' . str_replace('"', '&quot;', $this->field->valuerulecaption) . '"';
 
@@ -1098,7 +1105,7 @@ class Inputbox
             $result .= JHTML::_('CTTableJoin.render',
                 $this->prefix . $this->field->fieldname,
                 $this->field,
-                $this->row[$this->ct->Table->realidfieldname],
+                ($this->row !== null ? $this->row[$this->ct->Table->realidfieldname] : null),
                 $value,
                 $this->option_list,
                 $this->onchange,

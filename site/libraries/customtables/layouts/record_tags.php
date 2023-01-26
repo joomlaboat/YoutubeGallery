@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2022 Ivan Komlev
+ * @copyright (C) 2018-2023 Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -33,14 +33,11 @@ class Twig_Record_Tags
     function id()
     {
         if (!isset($this->ct->Table)) {
-            $this->ct->app->enqueueMessage('{{ record.id }} - Table not loaded.', 'error');
-            return '';
+            return '{{ record.id }} - Table not loaded.';
         }
 
-        if (is_null($this->ct->Table->record)) {
-            //$this->ct->app->enqueueMessage('{{ record.id }} - Record not loaded.', 'error');
+        if (is_null($this->ct->Table->record))
             return '';
-        }
 
         return $this->ct->Table->record[$this->ct->Table->realidfieldname];
     }
@@ -55,6 +52,12 @@ class Twig_Record_Tags
 
     function link($add_returnto = false, $menu_item_alias = '', $custom_not_base64_returnto = ''): ?string
     {
+        if ($this->ct->Table->record === null)
+            return '';
+
+        if (count($this->ct->Table->record) == 0)
+            return 'record.link tag cannot be used on empty record.';
+
         $menu_item_id = 0;
         $view_link = '';
 
