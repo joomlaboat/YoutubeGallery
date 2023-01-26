@@ -254,9 +254,9 @@ class YoutubeGalleryLayoutThumbnails
         return $result;
     }
 
-    public static function renderThumbnailLayout($thumbnail_layout, $listitem, $aHrefLink, $aLink, $videoid, &$theme_row, $item_index, &$gallery_list, &$videolist_row)
+    public static function renderThumbnailLayout($thumbnail_layout, $listItem, $aHrefLink, $aLink, $videoId, &$theme_row, $item_index, &$gallery_list, &$videolist_row)
     {
-        $listitem = YouTubeGalleryData::updateSingleVideo($listitem, $videolist_row);
+        $listItem = YouTubeGalleryData::updateSingleVideo($listItem, $videolist_row);
 
         $fields = array('width', 'height', 'imageurl', 'image', 'link', 'a', '/a', 'link', 'title', 'description',
             'videoid', 'videosource', 'publisheddate', 'duration',
@@ -271,79 +271,75 @@ class YoutubeGalleryLayoutThumbnails
             'keywords', 'commentcount', 'likes', 'dislikes', 'latitude', 'longitude', 'altitude');
 
         foreach ($fields as $fld) {
-            $imageFound = (strlen($listitem['es_imageurl']) > 0);
 
-            $isEmpty = YoutubeGalleryLayoutThumbnails::isThumbnailDataEmpty($fld, $listitem, $tableFields, $imageFound, $videoid, $item_index, $videolist_row);
+            if ($listItem !== null)
+                $imageFound = (strlen($listItem['es_imageurl']) > 0);
+            else
+                $imageFound = false;
+
+            $isEmpty = YoutubeGalleryLayoutThumbnails::isThumbnailDataEmpty($fld, $listItem, $tableFields, $imageFound, $videoId, $item_index, $videolist_row);
 
             $ValueOptions = array();
             $ValueList = JoomlaBasicMisc::getListToReplace($fld, $ValueOptions, $thumbnail_layout, '[]');
 
-
-            $ifname = '[if:' . $fld . ']';
-            $endifname = '[endif:' . $fld . ']';
+            $ifName = '[if:' . $fld . ']';
+            $endIfName = '[endif:' . $fld . ']';
 
             if ($isEmpty) {
                 foreach ($ValueList as $ValueListItem)
                     $thumbnail_layout = str_replace($ValueListItem, '', $thumbnail_layout);
 
-                do {
-                    $textlength = strlen($thumbnail_layout);
-
-                    $startif_ = strpos($thumbnail_layout, $ifname);
+                while (1) {
+                    $startif_ = strpos($thumbnail_layout, $ifName);
                     if ($startif_ === false)
                         break;
 
                     if (!($startif_ === false)) {
 
-                        $endif_ = strpos($thumbnail_layout, $endifname);
+                        $endif_ = strpos($thumbnail_layout, $endIfName);
                         if (!($endif_ === false)) {
-                            $p = $endif_ + strlen($endifname);
+                            $p = $endif_ + strlen($endIfName);
                             $thumbnail_layout = substr($thumbnail_layout, 0, $startif_) . substr($thumbnail_layout, $p);
                         }
                     }
-
-                } while (1 == 1);
+                }
             } else {
-                $thumbnail_layout = str_replace($ifname, '', $thumbnail_layout);
-                $thumbnail_layout = str_replace($endifname, '', $thumbnail_layout);
+                $thumbnail_layout = str_replace($ifName, '', $thumbnail_layout);
+                $thumbnail_layout = str_replace($endIfName, '', $thumbnail_layout);
 
                 $i = 0;
                 foreach ($ValueOptions as $ValueOption) {
                     $options = $ValueOptions[$i];
 
-                    $vlu = YoutubeGalleryLayoutThumbnails::getTumbnailData($fld, $aHrefLink, $aLink, $listitem, $tableFields, $options, $theme_row, $gallery_list, $videolist_row); //NEW
+                    $vlu = YoutubeGalleryLayoutThumbnails::getTumbnailData($fld, $aHrefLink, $aLink, $listItem, $tableFields, $options, $theme_row, $gallery_list, $videolist_row); //NEW
                     $thumbnail_layout = str_replace($ValueList[$i], $vlu, $thumbnail_layout);
                     $i++;
                 }
             }// IF NOT
 
-            $ifname = '[ifnot:' . $fld . ']';
-            $endifname = '[endifnot:' . $fld . ']';
+            $ifName = '[ifnot:' . $fld . ']';
+            $endIfName = '[endifnot:' . $fld . ']';
 
             if (!$isEmpty) {
                 foreach ($ValueList as $ValueListItem)
                     $thumbnail_layout = str_replace($ValueListItem, '', $thumbnail_layout);
 
-                do {
-                    $textlength = strlen($thumbnail_layout);
-
-                    $startif_ = strpos($thumbnail_layout, $ifname);
+                while (1) {
+                    $startif_ = strpos($thumbnail_layout, $ifName);
                     if ($startif_ === false)
                         break;
 
                     if (!($startif_ === false)) {
-                        $endif_ = strpos($thumbnail_layout, $endifname);
+                        $endif_ = strpos($thumbnail_layout, $endIfName);
                         if (!($endif_ === false)) {
-                            $p = $endif_ + strlen($endifname);
+                            $p = $endif_ + strlen($endIfName);
                             $thumbnail_layout = substr($thumbnail_layout, 0, $startif_) . substr($thumbnail_layout, $p);
                         }
                     }
-
-                } while (1 == 1);
-
+                }
             } else {
-                $thumbnail_layout = str_replace($ifname, '', $thumbnail_layout);
-                $thumbnail_layout = str_replace($endifname, '', $thumbnail_layout);
+                $thumbnail_layout = str_replace($ifName, '', $thumbnail_layout);
+                $thumbnail_layout = str_replace($endIfName, '', $thumbnail_layout);
                 $vlu = '';
                 $i = 0;
                 foreach ($ValueOptions as $ValueOption) {
@@ -490,16 +486,12 @@ class YoutubeGalleryLayoutThumbnails
                     if ($words != 0 or $chars != 0)
                         $vlu = Helper::PrepareDescription_($vlu, $words, $chars);
                 }
-
                 break;
 
             case 'description':
-
                 $description = str_replace('"', '&quot;', $listitem['es_description']);
                 $description = Helper::html2txt($description);
-
                 $vlu = $description;
-
                 break;
 
             case 'a':
@@ -661,17 +653,17 @@ class YoutubeGalleryLayoutThumbnails
     public static function PrepareImageTag(&$listitem, $options, &$theme_row, $as_tag = true)
     {
         //image title
-        $thumbtitle = $listitem['es_title'];
-        if ($thumbtitle == '') {
-            $mydoc = Factory::getDocument();
-            $thumbtitle = str_replace('"', '', $mydoc->getTitle());
+        $thumbTitle = $listitem['es_title'];
+        if ($thumbTitle == '') {
+            $myDocument = Factory::getDocument();
+            $thumbTitle = str_replace('"', '', $myDocument->getTitle());
         }
 
-        $thumbtitle = str_replace('"', '', $thumbtitle);
-        $thumbtitle = str_replace('\'', '&rsquo;', $thumbtitle);
+        $thumbTitle = str_replace('"', '', $thumbTitle);
+        $thumbTitle = str_replace('\'', '&rsquo;', $thumbTitle);
 
-        if (strpos($thumbtitle, '&amp;') === false)
-            $thumbtitle = str_replace('&', '&amp;', $thumbtitle);
+        if (strpos($thumbTitle, '&amp;') === false)
+            $thumbTitle = str_replace('&', '&amp;', $thumbTitle);
 
         //image src
         if ($listitem['es_imageurl'] == '') {
@@ -683,7 +675,7 @@ class YoutubeGalleryLayoutThumbnails
                 else
                     $imagetag .= 'border:1px solid red;background-color:white;';
 
-                if (strpos($theme_row->es_thumbnailstyle, 'width') === false)
+                if (!str_contains($theme_row->es_thumbnailstyle, 'width'))
                     $imagetag .= 'width:120px;height:90px;';
 
                 $imagetag .= '"></div>';
@@ -701,47 +693,47 @@ class YoutubeGalleryLayoutThumbnails
                     $index = count($images) - 1;
 
                 $imagelink_array = explode(',', $images[$index]);
-                $imagelink = $imagelink_array[0];
+                $imageLink = $imagelink_array[0];
             } else {
                 if (isset($listitem['es_customimageurl']) and $listitem['es_customimageurl'] != '') {
                     if (!(strpos($listitem['es_customimageurl'], '#') === false)) {
                         $index = (int)(str_replace('#', '', $listitem['es_customimageurl']));
                         if ($index < 0)
                             $index = 0;
-                        if ($index >= count($images))
+                        elseif ($index >= count($images))
                             $index = count($images) - 1;
                     } else
-                        $imagelink = $listitem['es_customimageurl'];
+                        $imageLink = $listitem['es_customimageurl'];
                 } else {
                     $imagelink_array = explode(',', $images[$index]);
-                    $imagelink = $imagelink_array[0];
+                    $imageLink = $imagelink_array[0];
                 }
             }
 
             if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
-                $imagelink = str_replace('http://', 'https://', $imagelink);
+                $imageLink = str_replace('http://', 'https://', $imageLink);
             else
-                $imagelink = str_replace('https://', 'http://', $imagelink);
+                $imageLink = str_replace('https://', 'http://', $imageLink);
 
             if ($as_tag) {
-                $imagetag = '<img src="' . $imagelink . '"' . ($theme_row->es_thumbnailstyle != '' ? ' style="' . $theme_row->es_thumbnailstyle . '"' : ' style="border:none;"');
+                $imagetag = '<img src="' . $imageLink . '"' . ($theme_row->es_thumbnailstyle != '' ? ' style="' . $theme_row->es_thumbnailstyle . '"' : ' style="border:none;"');
 
                 if (strpos($theme_row->es_thumbnailstyle, 'width') === false)
                     $imagetag .= ' width="120" height="90"';
 
-                $imagetag .= ' alt="' . $thumbtitle . '" title="' . $thumbtitle . '"';
+                $imagetag .= ' alt="' . $thumbTitle . '" title="' . $thumbTitle . '"';
                 $imagetag .= ' />';
             } else
-                $imagetag = $imagelink;
+                $imagetag = $imageLink;
 
             if ($theme_row->es_prepareheadtags == 1 or $theme_row->es_prepareheadtags == 3)//thumbnails or both
             {
                 $document = Factory::getDocument();
                 $curPageUrl = Helper::curPageURL();
 
-                $imagelink = (strpos($imagelink, 'http://') === false and strpos($imagelink, 'https://') === false ? $curPageUrl . '/' : '') . $imagelink;
+                $imageLink = (strpos($imageLink, 'http://') === false and strpos($imageLink, 'https://') === false ? $curPageUrl . '/' : '') . $imageLink;
 
-                $document->addCustomTag('<link rel="image_src" href="' . $imagelink . '" />'); //all thumbnails
+                $document->addCustomTag('<link rel="image_src" href="' . $imageLink . '" />'); //all thumbnails
             }
         }
         return $imagetag;

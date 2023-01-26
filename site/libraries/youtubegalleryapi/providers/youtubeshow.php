@@ -61,7 +61,7 @@ class YGAPI_VideoSource_YoutubeShow
    $optionalparameters_arr=explode(',',$optionalparameters);
 
    $videolist=array();
-   Helper::parse_query($youtubeURL);
+   JoomlaBasicMisc::parse_query($youtubeURL);
 
 
 

@@ -19,19 +19,12 @@ class VideoSource_YouTube
         if (!(strpos($youtubeURL, '://youtu.be') === false) or !(strpos($youtubeURL, '://www.youtu.be') === false)) {
             //youtu.be
             $list = explode('/', $youtubeURL);
-            if (isset($list[3]))
-                return $list[3];
-            else
-                return '';
+            return $list[3] ?? '';
         } else {
             //youtube.com
-            $arr = Helper::parse_query($youtubeURL);
-            if (isset($arr['v']))
-                return $arr['v'];
-            else
-                return '';
+            $arr = JoomlaBasicMisc::parse_query($youtubeURL);
+            return $arr['v'] ?? '';
         }
-
     }
 
     public static function renderYouTubePlayer($options, $width, $height, &$videolist_row, &$theme_row)//,$startsecond,$endsecond)

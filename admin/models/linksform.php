@@ -285,12 +285,6 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
                 $item->tags->getTagIds($item->id, 'com_youtubegallery.linksform');
             }
         }
-
         return $item;
-    }
-
-    protected function getUniqeFields()
-    {
-        return false;
     }
 }

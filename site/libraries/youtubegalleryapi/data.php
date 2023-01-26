@@ -453,7 +453,7 @@ class YouTubeGalleryAPIData
                     break;
 
                 case 'youtubesearch':
-                    $arr = Helper::parse_query($theLink);
+                    $arr = JoomlaBasicMisc::parse_query($theLink);
 
                     $p = urldecode($arr['search_query']);
                     if (!isset($p) or $p == '')

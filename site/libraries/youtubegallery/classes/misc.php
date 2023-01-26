@@ -50,32 +50,6 @@ class Helper
 
     //URL/Network Functions
 
-    public static function parse_query($var)
-    {
-        $arr = array();
-
-        $var = parse_url($var);
-        if (isset($var['query']))
-            $varquery = $var['query'];
-        else
-            $varquery = '';
-
-
-        if ($varquery == '')
-            return $arr;
-
-        $var = html_entity_decode($varquery);
-        $var = explode('&', $var);
-
-
-        foreach ($var as $val) {
-            $x = explode('=', $val);
-            $arr[$x[0]] = $x[1];
-        }
-        unset($val, $x, $var);
-        return $arr;
-    }
-
     public static function curPageURL($add_REQUEST_URI = true)
     {
         $pageURL = '';

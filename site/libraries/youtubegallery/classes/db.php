@@ -10,7 +10,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
-use YouTubeGallery\Helper;
+use JoomlaBasicMisc;
 
 class YouTubeGalleryDB
 {
@@ -19,24 +19,19 @@ class YouTubeGalleryDB
 
     static public function getRawData($videoid)
     {
-
         $db = Factory::getDBO();
-
         $query = 'SELECT es_rawdata FROM #__customtables_table_youtubegalleryvideos WHERE es_videoid=' . $db->quote($videoid) . ' LIMIT 1';
-
         $db->setQuery($query);
-
         $values = $db->loadAssocList();
 
         if (count($values) == 0)
             return "";
 
         $v = $values[0];
-
         return $v['es_rawdata'];
     }
 
-    static public function setDelayedRequest($videoid, $link)
+    static public function setDelayedRequest($videoid, $link): void
     {
         if ($videoid != '') {
             $value = '*youtubegallery_request*';//.$link;//md5(mt_rand());
@@ -48,7 +43,6 @@ class YouTubeGalleryDB
             $db->setQuery($query);
             $db->execute();
         }
-
     }
 
     static public function setRawData($videoid, $videoData)
