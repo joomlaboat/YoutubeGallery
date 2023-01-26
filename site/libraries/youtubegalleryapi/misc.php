@@ -137,28 +137,6 @@ class YouTubeGalleryAPIMisc
         return implode('&amp;', $a);
     }
 
-    public static function slugify($text)
-    {
-        //or use
-
-        // replace non letter or digits by -
-        $text = preg_replace('~[^\\pL\d]+~u', '-', $text);
-
-        if (function_exists('iconv'))
-            $text = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $text);
-
-        $text = trim($text, '-');
-        $text = strtolower($text);
-
-        // remove unwanted characters
-        $text = preg_replace('~[^-\w]+~', '', $text);
-
-        if (empty($text))
-            return '';
-
-        return $text;
-    }
-
     public static function check_user_agent($type = NULL)
     {
         $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);

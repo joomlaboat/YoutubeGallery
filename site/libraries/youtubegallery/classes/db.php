@@ -667,7 +667,7 @@ class YouTubeGalleryDB
     public static function get_alias($title, $videoid)
     {
         if ($videoid != '') {
-            $alias = Helper::slugify($title);
+            $alias = JoomlaBasicMisc::slugify($title);
 
             if ($alias != "") {
                 $db = Factory::getDBO();

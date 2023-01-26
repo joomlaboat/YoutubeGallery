@@ -56,7 +56,7 @@ class YoutubeGalleryLayoutRenderer
             $isEmpty = YoutubeGalleryLayoutRenderer::isEmpty($fld, $videolist_row, $theme_row, $gallery_list, $videoid, $AllowPagination, $total_number_of_rows);
 
             $ValueOptions = array();
-            $ValueList = Helper::getListToReplace($fld, $ValueOptions, $htmlresult, '[]');
+            $ValueList = JoomlaBasicMisc::getListToReplace($fld, $ValueOptions, $htmlresult, '[]');
 
             $ifname = '[if:' . $fld . ']';
             $endifname = '[endif:' . $fld . ']';

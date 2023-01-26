@@ -276,7 +276,7 @@ class YoutubeGalleryLayoutThumbnails
             $isEmpty = YoutubeGalleryLayoutThumbnails::isThumbnailDataEmpty($fld, $listitem, $tableFields, $imageFound, $videoid, $item_index, $videolist_row);
 
             $ValueOptions = array();
-            $ValueList = Helper::getListToReplace($fld, $ValueOptions, $thumbnail_layout, '[]');
+            $ValueList = JoomlaBasicMisc::getListToReplace($fld, $ValueOptions, $thumbnail_layout, '[]');
 
 
             $ifname = '[if:' . $fld . ']';
