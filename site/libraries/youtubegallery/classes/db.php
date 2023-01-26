@@ -416,7 +416,7 @@ class YouTubeGalleryDB
 
     public static function update_cache_table(&$videolist_row, $update_videolist = false)
     {
-        $videolist_array = Helper::csv_explode("\n", $videolist_row->es_videolist, '"', true);
+        $videolist_array = JoomlaBasicMisc::csv_explode("\n", $videolist_row->es_videolist, '"', true);
 
         $firstvideo = '';
         $videolist = YouTubeGalleryData::formVideoList($videolist_row, $videolist_array, $firstvideo, '', $update_videolist);//$this->theme_row->thumbnailstyle);

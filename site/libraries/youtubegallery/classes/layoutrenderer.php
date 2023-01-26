@@ -384,7 +384,7 @@ class YoutubeGalleryLayoutRenderer
 
             case 'video':
 
-                $pair = Helper::csv_explode(':', $params, '"', false);
+                $pair = JoomlaBasicMisc::csv_explode(':', $params, '"', false);
 
                 if ($pair[0] != "") {
                     $options = '';

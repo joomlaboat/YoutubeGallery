@@ -233,7 +233,7 @@ class ListOfFields
     protected function checkTypeParams(string $type, string $typeParams): string
     {
         if ($type == 'sqljoin' or $type == 'records') {
-            $params = \JoomlaBasicMisc::csv_explode(',', $typeParams, '"', false);
+            $params = JoomlaBasicMisc::csv_explode(',', $typeParams, '"', false);
 
             $error = [];
 

@@ -25,7 +25,7 @@ class YouTubeGalleryData
             $b = str_replace("\n", '', $b);
             $b = trim(str_replace("\r", '', $b));
 
-            $listitem = Helper::csv_explode(',', $b, '"', false);
+            $listitem = JoomlaBasicMisc::csv_explode(',', $b, '"', false);
 
             $theLink = trim($listitem[0]);
             if ($theLink != '') {

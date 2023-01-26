@@ -588,13 +588,10 @@ class YoutubeGalleryLayoutThumbnails
                 if ($options == '')
                     $vlu = $listitem['es_duration'];
                 else {
-                    $parts = Helper::csv_explode(',', $options, '"', false);
-
+                    $parts = JoomlaBasicMisc::csv_explode(',', $options, '"', false);
                     $secs = (int)$listitem['es_duration'];
-
                     $vlu = date($parts[0], mktime(0, 0, $secs));
                 }
-
                 break;
 
             case 'publisheddate':
@@ -607,7 +604,6 @@ class YoutubeGalleryLayoutThumbnails
                 break;
 
             case 'social':
-                $l = '';
                 if (strpos($aLink, 'javascript:') === false) {
                     $a = Helper::curPageURL(false);
                     if (strpos($aLink, $a) === false)
@@ -618,9 +614,7 @@ class YoutubeGalleryLayoutThumbnails
                 } else
                     $l = '(window.location.href.indexOf("?")==-1 ?  window.location.href+"?videoid=' . $listitem['es_videoid'] . '" : window.location.href+"&videoid=' . $listitem['es_videoid'] . '" )';
 
-
                 $vlu = YoutubeGalleryLayoutRenderer::SocialButtons($l, 'ygt', $options, $listitem['id'], $listitem['es_videoid']);
-
                 break;
 
             case 'videolist':
@@ -634,12 +628,7 @@ class YoutubeGalleryLayoutThumbnails
 
                         case 'description':
                             return $videolist_row->es_description;
-                            break;
-                        /*
-                                                case 'author':
-                                                    return $videolist_row->author;
-                                                    break;
-                        */
+
                         case 'playlist':
                             $pl = YoutubeGalleryLayoutRenderer::getPlaylistIdsOnly($gallery_list);
                             $vlu = implode(',', $pl);
@@ -661,22 +650,16 @@ class YoutubeGalleryLayoutThumbnails
                     }
                 }
 
-
-                break;
-
             default:
                 if (in_array($fld, $tableFields))
                     $vlu = $listitem['es_' . $fld];
                 break;
         }
-
         return $vlu;
     }
 
     public static function PrepareImageTag(&$listitem, $options, &$theme_row, $as_tag = true)
     {
-        $imagetag = '';
-
         //image title
         $thumbtitle = $listitem['es_title'];
         if ($thumbtitle == '') {
@@ -750,7 +733,6 @@ class YoutubeGalleryLayoutThumbnails
                 $imagetag .= ' />';
             } else
                 $imagetag = $imagelink;
-
 
             if ($theme_row->es_prepareheadtags == 1 or $theme_row->es_prepareheadtags == 3)//thumbnails or both
             {

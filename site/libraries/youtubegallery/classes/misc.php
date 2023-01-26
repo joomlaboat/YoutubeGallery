@@ -18,24 +18,6 @@ defined('_JEXEC') or die('Restricted access');
 class Helper
 {
     //Text Functions
-    public static function csv_explode(string $delim, string $str = '', string $enclose = '"', bool $preserve = false): array
-    {
-        //$delim=','
-        $resArr = array();
-        $n = 0;
-        $expEncArr = explode($enclose, $str);
-        foreach ($expEncArr as $EncItem) {
-            if ($n++ % 2) {
-                array_push($resArr, array_pop($resArr) . ($preserve ? $enclose : '') . $EncItem . ($preserve ? $enclose : ''));
-            } else {
-                $expDelArr = explode($delim, $EncItem);
-                array_push($resArr, array_pop($resArr) . array_shift($expDelArr));
-                $resArr = array_merge($resArr, $expDelArr);
-            }
-        }
-        return $resArr;
-    }
-
     public static function getListToReplace($par, &$options, &$text, $qtype, $separator = ':', $quote_char = '"')
     {
         $fList = array();
@@ -170,6 +152,19 @@ class Helper
         return Helper::url_origin($s, $use_forwarded_host) . $s['REQUEST_URI'];
     }
 
+    protected static function url_origin($s, $use_forwarded_host = false)
+    {
+        $ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true : false;
+        $sp = strtolower($s['SERVER_PROTOCOL']);
+        $protocol = substr($sp, 0, strpos($sp, '/')) . (($ssl) ? 's' : '');
+        $port = $s['SERVER_PORT'];
+        $port = ((!$ssl && $port == '80') || ($ssl && $port == '443')) ? '' : ':' . $port;
+        $host = ($use_forwarded_host && isset($s['HTTP_X_FORWARDED_HOST'])) ? $s['HTTP_X_FORWARDED_HOST'] : (isset($s['HTTP_HOST']) ? $s['HTTP_HOST'] : $s['SERVER_NAME']);
+        return $protocol . '://' . $host . $port;
+    }
+
+    //URL/Network Functions
+
     public static function parse_query($var)
     {
         $arr = array();
@@ -192,8 +187,6 @@ class Helper
         unset($val, $x, $var);
         return $arr;
     }
-
-    //URL/Network Functions
 
     public static function curPageURL($add_REQUEST_URI = true)
     {
@@ -349,6 +342,9 @@ class Helper
         return false;
     }
 
+    /* USER-AGENTS ================================================== */
+    //http://stackoverflow.com/questions/6524301/detect-mobile-browser
+
     public static function check_user_agent_for_ie()
     {
         $u = $_SERVER['HTTP_USER_AGENT'];
@@ -359,9 +355,6 @@ class Helper
 
         return false;
     }
-
-    /* USER-AGENTS ================================================== */
-    //http://stackoverflow.com/questions/6524301/detect-mobile-browser
 
     public static function object_to_array($data)
     {
@@ -409,6 +402,8 @@ class Helper
 
     }
 
+    //Convert Functions
+
     public static function CreateParamLine(&$settings)
     {
         $a = array();
@@ -421,7 +416,7 @@ class Helper
         return implode('&amp;', $a);
     }
 
-    //Convert Functions
+    //param Functions (Menu Item)
 
     public static function prepareDescriptions($gallery_list)
     {
@@ -456,8 +451,6 @@ class Helper
         }
         return $new_gallery_list;
     }
-
-    //param Functions (Menu Item)
 
     public static function PrepareDescription($description, $videodescription_params)
     {
@@ -502,17 +495,6 @@ class Helper
         $desc = trim($desc);
 
         return $desc;
-    }
-
-    protected static function url_origin($s, $use_forwarded_host = false)
-    {
-        $ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true : false;
-        $sp = strtolower($s['SERVER_PROTOCOL']);
-        $protocol = substr($sp, 0, strpos($sp, '/')) . (($ssl) ? 's' : '');
-        $port = $s['SERVER_PORT'];
-        $port = ((!$ssl && $port == '80') || ($ssl && $port == '443')) ? '' : ':' . $port;
-        $host = ($use_forwarded_host && isset($s['HTTP_X_FORWARDED_HOST'])) ? $s['HTTP_X_FORWARDED_HOST'] : (isset($s['HTTP_HOST']) ? $s['HTTP_HOST'] : $s['SERVER_NAME']);
-        return $protocol . '://' . $host . $port;
     }
 }
 
