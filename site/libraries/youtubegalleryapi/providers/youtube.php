@@ -28,7 +28,7 @@ class YGAPI_VideoSource_YouTube
                 return '';
         } else {
             //youtube.com
-            $arr = YouTubeGalleryAPIMisc::parse_query($youtubeURL);
+            $arr = Helper::parse_query($youtubeURL);
             if (isset($arr['v']))
                 return $arr['v'];
             else

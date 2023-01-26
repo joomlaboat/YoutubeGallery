@@ -61,7 +61,7 @@ class YGAPI_VideoSource_YoutubeShow
    $optionalparameters_arr=explode(',',$optionalparameters);
 
    $videolist=array();
-   $arr=YouTubeGalleryAPIMisc::parse_query($youtubeURL);
+   Helper::parse_query($youtubeURL);
 
 
 

@@ -55,7 +55,10 @@ class Helper
         $arr = array();
 
         $var = parse_url($var);
-        $varquery = $var['query'];
+        if (isset($var['query']))
+            $varquery = $var['query'];
+        else
+            $varquery = '';
 
 
         if ($varquery == '')

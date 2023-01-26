@@ -81,50 +81,6 @@ class YouTubeGalleryAPIMisc
         return 3600;
     }
 
-    public static function parse_query($var)
-    {
-        $arr = array();
-
-        $var = parse_url($var);
-        if (isset($var['query']))
-            $varquery = $var['query'];
-        else
-            $varquery = '';
-
-
-        if ($varquery == '')
-            return $arr;
-
-        $var = html_entity_decode($varquery);
-        $var = explode('&', $var);
-
-
-        foreach ($var as $val) {
-            $x = explode('=', $val);
-            $arr[$x[0]] = $x[1];
-        }
-        unset($val, $x, $var);
-        return $arr;
-    }
-
-    public static function csv_explode(string $delim, $str, $enclose = '"', $preserve = false)
-    {
-        //$delim=','
-        $resArr = array();
-        $n = 0;
-        $expEncArr = explode($enclose, $str);
-        foreach ($expEncArr as $EncItem) {
-            if ($n++ % 2) {
-                array_push($resArr, array_pop($resArr) . ($preserve ? $enclose : '') . $EncItem . ($preserve ? $enclose : ''));
-            } else {
-                $expDelArr = explode($delim, $EncItem);
-                array_push($resArr, array_pop($resArr) . array_shift($expDelArr));
-                $resArr = array_merge($resArr, $expDelArr);
-            }
-        }
-        return $resArr;
-    }
-
     public static function CreateParamLine(&$settings)
     {
         $a = array();
@@ -137,7 +93,7 @@ class YouTubeGalleryAPIMisc
         return implode('&amp;', $a);
     }
 
-    public static function check_user_agent($type = NULL)
+    public static function check_user_agent($type = NULL): bool
     {
         $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
         if ($type == 'bot') {
