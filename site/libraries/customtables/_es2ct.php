@@ -38,7 +38,7 @@ function getESTables()
 
     foreach ($tables as $table) {
         $tablename = $table['Tables_in_' . $database];
-        ///echo '$tablename='.$tablename.'<br/>';
+
         if (strpos($tablename, '_extrasearch_') !== false)//dont change this line _e x t r a  s e a r c h_
         {
             $new_tablename = str_replace('_extrasearch_', '_customtables_', $tablename);//dont change this line. First must be _e x t r a  s e a r c h_

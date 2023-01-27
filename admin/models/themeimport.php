@@ -62,9 +62,6 @@ class YoutubeGalleryModelThemeImport extends JModelList
         $folder_name_created = $this->prepareFolder($folder_name, $path);
         echo 'Folder "tmp' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR . $folder_name_created . '" created.<br/>';
 
-        //echo '$folder_name='.$folder_name.'<br/>';
-
-
         $zip = JArchive::getAdapter('zip');
 
         $zip->extract($path . $uploadedfile, $path . $folder_name_created);

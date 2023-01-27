@@ -274,21 +274,14 @@ class YouTubeGalleryData
 
     public static function updateSingleVideo(array $listItem, &$videoListRow)
     {
-        echo '<hr/>updateSingleVideo:';
-        print_r($listItem);
-
         $videoListId = $videoListRow->id;
 
         if ($listItem['es_lastupdate'] != '' and $listItem['es_lastupdate'] != '0000-00-00 00:00:00' and ($listItem['es_isvideo'] == 1 and $listItem['es_duration'] != 0))
             return $listItem; //no need to update. But this should count the update period. In future version
 
-        echo 'DDD';
-
         $theLink = trim($listItem['es_link']);
         if ($theLink == '')
             return $listItem;
-
-        echo 'CCC';
 
         $item = array();//where to save
 
@@ -302,14 +295,10 @@ class YouTubeGalleryData
             $results = $y->checkLink($theLink, $isNew, true, $videoListRow->id);
 
             if (count($results) == 1) {
-                echo 'DDD';
                 return $results[0];
             }
-            echo 'AAA';
         } else {
-            echo 'BBB';
             YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, $item, $listItem, true);//force the update
-            print_r($listItem);
         }
 
         if (!isset($item['status']) or (int)$item['status'] == 0) {
@@ -328,9 +317,6 @@ class YouTubeGalleryData
 
     protected static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, &$item, &$original_item, $force = false)
     {
-        echo '$original_item:';
-        print_r($original_item);
-        echo '----------------';
         if (!function_exists('curl_init') and !function_exists('file_get_contents')) {
             $es_item = array('es_error' => 'Enable php functions: curl_init or file_get_contents.', 'es_status' => -1);
             $item = YouTubeGalleryData::parse_SingleVideo($es_item);

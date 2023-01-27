@@ -81,12 +81,9 @@ class YGAPI_VideoSource_YoutubePlaylist
         $debug = false;
         if ($theLink == 'https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg') {
             $debug = true;
-            echo '$datalink=' . $datalink . '<br/>';
         }
 
-
         $newlist = YGAPI_VideoSource_YoutubePlaylist::getPlaylistVideos($datalink, $videolistitem, $active_key, $debug, $youtube_data_api_key);//$theLink=='https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg');
-
 
         if ($theLink == 'https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg') {
             print_r($newlist);
