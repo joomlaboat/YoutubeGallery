@@ -2,8 +2,22 @@
 
 defined('JPATH_PLATFORM') or die;
 
-function YGLoadClasses()
+function YGLoadClasses(): void
 {
+//    if (!class_exists('CT')) {
+    $CustomTables_path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
+    $loader_file = $CustomTables_path . 'loader.php';
+
+    if (!file_exists($loader_file)) {
+        $CustomTables_path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
+        $loader_file = $CustomTables_path . 'loader.php';
+    }
+
+    $component_name = 'com_youtubegallery';
+    require_once($loader_file);
+    CTLoader(true, false, null, $component_name);
+//    }
+
     $path = 'classes' . DIRECTORY_SEPARATOR;
 
     require_once($path . 'data.php');
@@ -30,11 +44,4 @@ function YGLoadClasses()
     require_once($path . 'ustreamlive.php');
     require_once($path . 'vimeo.php');
     require_once($path . 'youtube.php');
-
-    $path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
-    $loader_file = $path . 'loader.php';
-
-    $component_name = 'com_youtubegallery';
-    require_once($loader_file);
-    CTLoader(true, false, null, $component_name);
 }

@@ -15,34 +15,6 @@ require_once('data.php');
 
 class YouTubeGalleryAPIMisc
 {
-    static public function APIKey_Youtube()
-    {
-        $keys = YouTubeGalleryAPIMisc::APIKeys_Youtube();
-        if (count($keys) == 0)
-            return '';
-
-        $index = rand(0, count($keys) - 1);
-
-        return $keys[$index];
-    }
-
-    static public function APIKeys_Youtube()
-    {
-        //https://console.developers.google.com/apis/api/youtube/overview?project=ygforjoomla&folder=&organizationId=
-
-        $db = Factory::getDBO();
-        $query = 'SELECT es_youtuvedataapikey FROM #__customtables_table_youtubegallerykeytypes'
-            . ' WHERE es_youtuvedataapikey IS NOT NULL AND es_youtuvedataapikey != "" GROUP BY es_youtuvedataapikey';
-        $db->setQuery($query);
-        $rows = $db->loadAssocList();
-
-        if (count($rows) == 0)
-            return [];
-        $column = $db->loadColumn(0);
-
-        return $column;
-    }
-
     static public function APIKey_Vimeo_Consumer_Key()
     {
         /*
@@ -222,25 +194,26 @@ class YouTubeGalleryAPIMisc
         return (int)$recs[0]['c'];
     }
 
-    function checkLink($theLink, &$isnew, $active_key, $force_update = false, $videolist_id = null, $youtube_data_api_key = '')
+    function checkLink($theLink, &$isNew, $force_update = false, $videoListId = null, $youtube_data_api_key = '')
     {
+        $active_key = true;
         $blankArray = array();
 
-        $vsn = YouTubeGalleryAPIData::getVideoSourceName($theLink);//For link valdation
+        $vsn = YouTubeGalleryAPIData::getVideoSourceName($theLink);//For link validation
 
         if ($vsn != '') {
-            $videoid = YouTubeGalleryAPIData::getVideoID($theLink, $vsn);//For linkvalidation again
+            $videoid = YouTubeGalleryAPIData::getVideoID($theLink, $vsn);//For link validation again
             if ($videoid != '') {
                 if (YouTubeGalleryAPIData::isVideoList($vsn)) {
                     $videos_rows = $this->getVideoRecords($vsn, $videoid, true);
                     if (count($videos_rows) == 0) {
-                        $isnew = 1;
-                        return $this->update_cache_table($theLink, $active_key, $videolist_id, $youtube_data_api_key);//new
+                        $isNew = 1;
+                        return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);//new
                     } else {
-                        $isnew = 0;
+                        $isNew = 0;
 
-                        if ((bool)$force_update)
-                            return $this->update_cache_table($theLink, $active_key, $videolist_id, $youtube_data_api_key);//not new
+                        if ($force_update)
+                            return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);//not new
                         else
                             return $videos_rows;//not new
                     }
@@ -249,14 +222,14 @@ class YouTubeGalleryAPIMisc
                     //Think about updating videos
                     if (count($videos_rows) == 0) {
                         //Video not found in database, try to grab it from the provider
-                        $isnew = 1;
-                        return $this->update_cache_table($theLink, $active_key, $videolist_id, $youtube_data_api_key);//new
+                        $isNew = 1;
+                        return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);//new
                     } else {
-                        $isnew = 0;
+                        $isNew = 0;
 
                         if ((bool)$force_update) {
-                            $recs = $this->update_cache_table($theLink, $active_key, $videolist_id, $youtube_data_api_key);//not new
-                            return $recs;
+                            //not new
+                            return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);
                         } else
                             return $videos_rows;//not new
                     }
@@ -265,15 +238,15 @@ class YouTubeGalleryAPIMisc
                 $blankArray['es_status'] = -4;
                 $blankArray['es_error'] = 'YoutubeGalleryAPI (' . $vsn . '): Not supported video link.';
 
-                if ($videolist_id != null)
-                    $blankArray['es_videolist'] = (int)$videolist_id;
+                if ($videoListId != null)
+                    $blankArray['es_videolist'] = (int)$videoListId;
             }
         } else {
             $blankArray['es_status'] = -3;
             $blankArray['es_error'] = 'YoutubeGalleryAPI: Not supported video source.';
 
-            if ($videolist_id != null)
-                $blankArray['es_videolist'] = (int)$videolist_id;
+            if ($videoListId != null)
+                $blankArray['es_videolist'] = (int)$videoListId;
         }
         return $blankArray;
     }

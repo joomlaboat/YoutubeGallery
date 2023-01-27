@@ -13,74 +13,66 @@ use YouTubeGallery\Helper;
 
 class YouTubeGalleryData
 {
-    public static function formVideoList(&$videolist_row, $rawList, &$firstvideo, $thumbnailstyle, $force = false)
+    public static function formVideoList(&$videolist_row, $rawList, &$firstvideo, $thumbnailstyle, $force = false): array
     {
         $gallery_list = array();
         $ordering = 0;
 
         foreach ($rawList as $b) {
-            $datalink = '';
-            $playlistid = '';
-
             $b = str_replace("\n", '', $b);
             $b = trim(str_replace("\r", '', $b));
+            $listItem = JoomlaBasicMisc::csv_explode(',', $b, '"', false);
 
-            $listitem = JoomlaBasicMisc::csv_explode(',', $b, '"', false);
-
-            $theLink = trim($listitem[0]);
+            $theLink = trim($listItem[0]);
             if ($theLink != '') {
                 $item = array();
-                if (isset($listitem[1]))
-                    $item['es_customtitle'] = $listitem[1];
+                if (isset($listItem[1]))
+                    $item['es_customtitle'] = $listItem[1];
 
-                if (isset($listitem[2]))
-                    $item['es_customdescription'] = $listitem[2];
+                if (isset($listItem[2]))
+                    $item['es_customdescription'] = $listItem[2];
 
-                if (isset($listitem[3]))
-                    $item['es_customimageurl'] = $listitem[3];
+                if (isset($listItem[3]))
+                    $item['es_customimageurl'] = $listItem[3];
 
-                if (isset($listitem[4]))
-                    $item['es_specialparams'] = $listitem[4];
+                if (isset($listItem[4]))
+                    $item['es_specialparams'] = $listItem[4];
 
-                if (isset($listitem[5]))
-                    $item['es_startsecond'] = $listitem[5];
+                if (isset($listItem[5]))
+                    $item['es_startsecond'] = $listItem[5];
 
-                if (isset($listitem[6]))
-                    $item['es_endsecond'] = $listitem[6];
+                if (isset($listItem[6]))
+                    $item['es_endsecond'] = $listItem[6];
 
-                if (isset($listitem[7]))
-                    $item['es_watchgroup'] = $listitem[7];
+                if (isset($listItem[7]))
+                    $item['es_watchgroup'] = $listItem[7];
 
                 YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink, $gallery_list, $item, $ordering, $videolist_row, $force);
             }
         }
-
         return $gallery_list;
     }
 
-    public static function queryJoomlaBoatYoutubeGalleryAPI($theLink, &$gallery_list, &$original_item, &$ordering, $videolist_row, $force = false)
+    public static function queryJoomlaBoatYoutubeGalleryAPI($theLink, &$gallery_list, &$original_item, &$ordering, $videoListRow, $force = false)
     {
-        $updateperiod = 60 * 24 * ($videolist_row->es_updateperiod) * 60;
-        $Playlist_lastupdate = YouTubeGalleryDB::Playlist_lastupdate($theLink);
-        $diff = strtotime(date('Y-m-d H:i:s')) - strtotime($Playlist_lastupdate);
+        $updatePeriod = 60 * 24 * ($videoListRow->es_updateperiod) * 60;
+        $PlaylistLastUpdate = YouTubeGalleryDB::Playlist_lastupdate($theLink);
+        $diff = strtotime(date('Y-m-d H:i:s')) - strtotime($PlaylistLastUpdate);
 
-        $force = $force or $diff > $updateperiod;
+        $force = ($diff > $updatePeriod or $force);
 
-        $youtubedataapi_key = YouTubeGalleryDB::getSettingValue('youtubedataapi_key');
+        $youtubeDataAPIKey = YouTubeGalleryDB::getSettingValue('youtubedataapi_key');
 
         //Check if YouTubeGallery API installed
         $file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR
             . 'libraries' . DIRECTORY_SEPARATOR . 'youtubegalleryapi' . DIRECTORY_SEPARATOR . 'misc.php';
 
-        if (file_exists($file) and $youtubedataapi_key != '') {
+        if (file_exists($file) and $youtubeDataAPIKey != '') {
             require_once($file);
 
             $y = new YouTubeGalleryAPIMisc;
-
-            $isnew = 0;
-            $active_key = true;
-
-            $results = $y->checkLink($theLink, $isnew, $active_key, $force_update = $force, $videolist_id = $videolist_row->id, $youtubedataapi_key);
+            $isNew = 0;
+            $results = $y->checkLink($theLink, $isNew, $force, $videoListRow->id, $youtubeDataAPIKey);
 
             foreach ($results as $result)
                 $gallery_list[] = $result;
@@ -109,9 +101,9 @@ class YouTubeGalleryData
         echo 'Request API server';
         //try
         //{
-        $htmlcode = YouTubeGalleryData::queryTheAPIServer($theLink, '', $force);
+        $htmlCode = YouTubeGalleryData::queryTheAPIServer($theLink, '', $force);
 
-        $j_ = json_decode($htmlcode);
+        $j_ = json_decode($htmlCode);
 
         if (!$j_) {
             $item['es_error'] = 'Connection Error';
@@ -147,7 +139,7 @@ class YouTubeGalleryData
             return false;
         }
         */
-
+        return true;
     }
 
     public static function parse_SingleVideo($item, $original_item = array())
@@ -226,8 +218,7 @@ class YouTubeGalleryData
         $blankArray['es_imageurl'] = $item['es_imageurl'];
         $blankArray['es_channel_title'] = $item['es_channeltitle'];
         $blankArray['es_duration'] = $item['es_duration'];
-        $blankArray['es_statisticsfavoritecount'] = $item['es_statisticsfavoritecount'];
-        $blankArray['es_statisticsviewcount'] = $item['es_statisticsviewcount'];
+
         $blankArray['es_likes'] = $item['es_likes'];
         $blankArray['es_dislikes'] = $item['es_dislikes'];
         $blankArray['es_commentcount'] = $item['es_commentcount'];
@@ -267,8 +258,8 @@ class YouTubeGalleryData
 
         $key = YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 
-        //its very important to encode the youtube link.
-        if (strpos($host, '?') === false)
+        //It's very important to encode the youtube link.
+        if (!str_contains($host, '?'))
             $url = $host . '?';
         else
             $url = $host . '&';
@@ -278,59 +269,68 @@ class YouTubeGalleryData
         if ($force)
             $url .= '&force=1';//to force the update
 
-        $urldata = Helper::getURLData($url);
-        return $urldata;
+        return Helper::getURLData($url);
     }
 
-    public static function updateSingleVideo($listitem, &$videolist_row)
+    public static function updateSingleVideo(array $listItem, &$videoListRow)
     {
-        $videolist_id = $videolist_row->id;
+        echo '<hr/>updateSingleVideo:';
+        print_r($listItem);
 
-        if ($listitem['es_lastupdate'] != '' and $listitem['es_lastupdate'] != '0000-00-00 00:00:00' and ($listitem['es_isvideo'] == 1 and $listitem['es_duration'] != 0))
-            return $listitem; //no need to update. But this should count the update period. In future version
+        $videoListId = $videoListRow->id;
 
-        $theLink = trim($listitem['es_link']);
+        if ($listItem['es_lastupdate'] != '' and $listItem['es_lastupdate'] != '0000-00-00 00:00:00' and ($listItem['es_isvideo'] == 1 and $listItem['es_duration'] != 0))
+            return $listItem; //no need to update. But this should count the update period. In future version
+
+        echo 'DDD';
+
+        $theLink = trim($listItem['es_link']);
         if ($theLink == '')
-            return $listitem;
+            return $listItem;
+
+        echo 'CCC';
 
         $item = array();//where to save
 
         //Check if YouTubeGallery API installed
-        $file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegalleryapi' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'misc.php';
+        $file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'youtubegalleryapi' . DIRECTORY_SEPARATOR . 'misc.php';
         if (file_exists($file)) {
             require_once($file);
 
             $y = new YouTubeGalleryAPIMisc;
+            $isNew = 0;
+            $results = $y->checkLink($theLink, $isNew, true, $videoListRow->id);
 
-            $isnew = 0;
-            $active_key = true;
-
-            $results = $y->checkLink($theLink, $isnew, $active_key, $force_update = true, $videolist_id = $videolist_row->id);
-
-            if (count($results) == 1)
+            if (count($results) == 1) {
+                echo 'DDD';
                 return $results[0];
-
-            return true;
+            }
+            echo 'AAA';
         } else {
-            YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, $item, $listitem, $force = true);//force the update
+            echo 'BBB';
+            YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, $item, $listItem, true);//force the update
+            print_r($listItem);
         }
 
         if (!isset($item['status']) or (int)$item['status'] == 0) {
             $parent_id = null;
 
-            YouTubeGalleryDB::updateDBSingleItem($item, $videolist_id, $parent_id);//,$parent_details,$this_is_a_list,$list_count_left);
+            YouTubeGalleryDB::updateDBSingleItem($item, $videoListId, $parent_id);
 
-            if ($listitem['es_customtitle'])
-                $item['es_title'] = $listitem['es_customtitle'];
+            if ($listItem['es_customtitle'])
+                $item['es_title'] = $listItem['es_customtitle'];
 
-            if ($listitem['es_customdescription'])
-                $item['es_description'] = $listitem['es_customdescription'];
-        } else
-            return $listitem;
+            if ($listItem['es_customdescription'])
+                $item['es_description'] = $listItem['es_customdescription'];
+        }
+        return $listItem;
     }
 
     protected static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, &$item, &$original_item, $force = false)
     {
+        echo '$original_item:';
+        print_r($original_item);
+        echo '----------------';
         if (!function_exists('curl_init') and !function_exists('file_get_contents')) {
             $es_item = array('es_error' => 'Enable php functions: curl_init or file_get_contents.', 'es_status' => -1);
             $item = YouTubeGalleryData::parse_SingleVideo($es_item);
@@ -346,9 +346,9 @@ class YouTubeGalleryData
         }
 
         try {
-            $htmlcode = YouTubeGalleryData::queryTheAPIServer($theLink, '', $force);
+            $htmlCode = YouTubeGalleryData::queryTheAPIServer($theLink, '', $force);
 
-            $j = json_decode($htmlcode);
+            $j = json_decode($htmlCode);
 
             if (!$j) {
                 $es_item = array('es_error' => 'Connection Error', 'es_status' => -1);
@@ -375,45 +375,46 @@ class YouTubeGalleryData
             $item = YouTubeGalleryData::parse_SingleVideo($es_item);
             return false;
         }
+        return true;
     }
 
     public static function getVideoSourceName($link)
     {
-        if (!(strpos($link, '://youtube.com') === false) or !(strpos($link, '://www.youtube.com') === false)) {
-            if (!(strpos($link, '/playlist') === false))
+        if (!(!str_contains($link, '://youtube.com')) or !(strpos($link, '://www.youtube.com') === false)) {
+            if (!(!str_contains($link, '/playlist')))
                 return 'youtubeplaylist';
-            if (strpos($link, '&list=PL') !== false) {
+            if (str_contains($link, '&list=PL')) {
                 return 'youtubeplaylist';
                 //https://www.youtube.com/watch?v=cNw8A5pwbVI&list=PLMaV6BfupUm-xIMRGKfjj-fP0BLq7b6SJ
-            } elseif (!(strpos($link, '/favorites') === false))
+            } elseif (!(!str_contains($link, '/favorites')))
                 return 'youtubeuserfavorites';
-            elseif (!(strpos($link, '/user') === false))
+            elseif (!(!str_contains($link, '/user')))
                 return 'youtubeuseruploads';
-            elseif (!(strpos($link, '/results') === false))
+            elseif (!(!str_contains($link, '/results')))
                 return 'youtubesearch';
-            elseif (!(strpos($link, 'youtube.com/show/') === false))
+            elseif (!(!str_contains($link, 'youtube.com/show/')))
                 return 'youtubeshow';
-            elseif (!(strpos($link, 'youtube.com/channel/') === false))
+            elseif (!(!str_contains($link, 'youtube.com/channel/')))
                 return 'youtubechannel';
             else
                 return 'youtube';
         }
 
-        if (!(strpos($link, '://youtu.be') === false) or !(strpos($link, '://www.youtu.be') === false))
+        if (!(!str_contains($link, '://youtu.be')) or !(strpos($link, '://www.youtu.be') === false))
             return 'youtube';
 
-        if (!(strpos($link, 'youtubestandard:') === false))
+        if (!(!str_contains($link, 'youtubestandard:')))
             return 'youtubestandard';
 
-        if (!(strpos($link, 'videolist:') === false))
+        if (!(!str_contains($link, 'videolist:')))
             return 'videolist';
 
 
-        if (!(strpos($link, '://vimeo.com/user') === false) or !(strpos($link, '://www.vimeo.com/user') === false))
+        if (!(!str_contains($link, '://vimeo.com/user')) or !(strpos($link, '://www.vimeo.com/user') === false))
             return 'vimeouservideos';
-        elseif (!(strpos($link, '://vimeo.com/channels/') === false) or !(strpos($link, '://www.vimeo.com/channels/') === false))
+        elseif (!(!str_contains($link, '://vimeo.com/channels/')) or !(strpos($link, '://www.vimeo.com/channels/') === false))
             return 'vimeochannel';
-        elseif (!(strpos($link, '://vimeo.com/album/') === false) or !(strpos($link, '://www.vimeo.com/album/') === false))
+        elseif (!(!str_contains($link, '://vimeo.com/album/')) or !(strpos($link, '://www.vimeo.com/album/') === false))
             return 'vimeoalbum';
         elseif (!(strpos($link, '://vimeo.com') === false) or !(strpos($link, '://www.vimeo.com') === false)) {
             preg_match('/http:\/\/vimeo.com\/(\d+)$/', $link, $matches);
@@ -430,52 +431,47 @@ class YouTubeGalleryData
                     return 'vimeouservideos'; //or anything else
                 }
             }
-
-            return '';
         }
 
-
-        if (!(strpos($link, '://own3d.tv/l/') === false) or !(strpos($link, '://www.own3d.tv/l/') === false))
+        if (!(!str_contains($link, '://own3d.tv/l/')) or !(strpos($link, '://www.own3d.tv/l/') === false))
             return 'own3dtvlive';
 
-        if (!(strpos($link, '://own3d.tv/v/') === false) or !(strpos($link, '://www.own3d.tv/v/') === false))
+        if (!(!str_contains($link, '://own3d.tv/v/')) or !(strpos($link, '://www.own3d.tv/v/') === false))
             return 'own3dtvvideo';
 
-
-        if (!(strpos($link, 'video.google.com') === false))
+        if (!(!str_contains($link, 'video.google.com')))
             return 'google';
 
-        if (!(strpos($link, 'video.yahoo.com') === false))
+        if (!(!str_contains($link, 'video.yahoo.com')))
             return 'yahoo';
 
-        if (!(strpos($link, '://break.com') === false) or !(strpos($link, '://www.break.com') === false))
+        if (!(!str_contains($link, '://break.com')) or !(strpos($link, '://www.break.com') === false))
             return 'break';
 
-
-        if (!(strpos($link, '://collegehumor.com') === false) or !(strpos($link, '://www.collegehumor.com') === false))
+        if (!(!str_contains($link, '://collegehumor.com')) or !(strpos($link, '://www.collegehumor.com') === false))
             return 'collegehumor';
 
         //https://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x7k9rx
-        if (!(strpos($link, '://dailymotion.com/playlist/') === false) or !(strpos($link, '://www.dailymotion.com/playlist/') === false))
+        if (!(!str_contains($link, '://dailymotion.com/playlist/')) or !(strpos($link, '://www.dailymotion.com/playlist/') === false))
             return 'dailymotionplaylist';
 
-        if (!(strpos($link, '://dailymotion.com') === false) or !(strpos($link, '://www.dailymotion.com') === false))
+        if (!(!str_contains($link, '://dailymotion.com')) or !(strpos($link, '://www.dailymotion.com') === false))
             return 'dailymotion';
 
-        if (!(strpos($link, '://present.me') === false) or !(strpos($link, '://www.present.me') === false))
+        if (!(!str_contains($link, '://present.me')) or !(strpos($link, '://www.present.me') === false))
             return 'presentme';
 
-        if (!(strpos($link, '://tiktok.com/') === false) or !(strpos($link, '://www.tiktok.com/') === false))
+        if (!(!str_contains($link, '://tiktok.com/')) or !(strpos($link, '://www.tiktok.com/') === false))
             return 'tiktok';
 
-        if (!(strpos($link, '://ustream.tv/recorded') === false) or !(strpos($link, '://www.ustream.tv/recorded') === false))
+        if (!(!str_contains($link, '://ustream.tv/recorded')) or !(strpos($link, '://www.ustream.tv/recorded') === false))
             return 'ustream';
 
-        if (!(strpos($link, '://ustream.tv/channel') === false) or !(strpos($link, '://www.ustream.tv/channel') === false))
+        if (!(!str_contains($link, '://ustream.tv/channel')) or !(strpos($link, '://www.ustream.tv/channel') === false))
             return 'ustreamlive';
 
         //http://api.soundcloud.com/tracks/49931.json  - accepts only resolved links
-        if (!(strpos($link, '://api.soundcloud.com/tracks/') === false))
+        if (!(!str_contains($link, '://api.soundcloud.com/tracks/')))
             return 'soundcloud';
 
         return '';

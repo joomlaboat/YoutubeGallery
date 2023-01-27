@@ -32,12 +32,12 @@ class Helper
         return $text;
     }
 
-    public static function full_url($s, $use_forwarded_host = false)
+    public static function full_url($s, $use_forwarded_host = false): string
     {
         return Helper::url_origin($s, $use_forwarded_host) . $s['REQUEST_URI'];
     }
 
-    protected static function url_origin($s, $use_forwarded_host = false)
+    protected static function url_origin($s, $use_forwarded_host = false): string
     {
         $ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true : false;
         $sp = strtolower($s['SERVER_PROTOCOL']);
@@ -49,8 +49,7 @@ class Helper
     }
 
     //URL/Network Functions
-
-    public static function curPageURL($add_REQUEST_URI = true)
+    public static function curPageURL($add_REQUEST_URI = true): string
     {
         $pageURL = '';
 
@@ -74,7 +73,7 @@ class Helper
         if ($add_REQUEST_URI) {
             //clean Facebook staff
             $uri = $_SERVER["REQUEST_URI"];
-            if (!(strpos($uri, 'fb_action_ids=') === false)) {
+            if (!(!str_contains($uri, 'fb_action_ids='))) {
                 $uri = Helper::deleteURLQueryOption($uri, 'fb_action_ids');
                 $uri = Helper::deleteURLQueryOption($uri, 'fb_action_types');
                 $uri = Helper::deleteURLQueryOption($uri, 'fb_source');
@@ -88,37 +87,33 @@ class Helper
         return $pageURL;
     }
 
-    public static function deleteURLQueryOption($urlstr, $opt)
+    public static function deleteURLQueryOption($URLString, $opt): string
     {
         $url_first_part = '';
-        $p = strpos($urlstr, '?');
+        $p = strpos($URLString, '?');
         if (!($p === false)) {
-            $url_first_part = substr($urlstr, 0, $p);
-            $urlstr = substr($urlstr, $p + 1);
+            $url_first_part = substr($URLString, 0, $p);
+            $URLString = substr($URLString, $p + 1);
         }
 
-        $params = array();
-
-        $urlstr = str_replace('&amp;', '&', $urlstr);
-
-        $query = explode('&', $urlstr);
-
-        $newquery = array();
+        $URLString = str_replace('&amp;', '&', $URLString);
+        $query = explode('&', $URLString);
+        $newQuery = array();
 
         for ($q = 0; $q < count($query); $q++) {
             $p = stripos($query[$q], $opt . '=');
             if ($p === false or ($p != 0 and $p === false))
-                $newquery[] = $query[$q];
+                $newQuery[] = $query[$q];
         }
 
-        if ($url_first_part != '' and count($newquery) > 0)
-            $urlstr = $url_first_part . '?' . implode('&', $newquery);
-        elseif ($url_first_part != '' and count($newquery) == 0)
-            $urlstr = $url_first_part;
+        if ($url_first_part != '' and count($newQuery) > 0)
+            $URLString = $url_first_part . '?' . implode('&', $newQuery);
+        elseif ($url_first_part != '' and count($newQuery) == 0)
+            $URLString = $url_first_part;
         else
-            $urlstr = implode('&', $newquery);
+            $URLString = implode('&', $newQuery);
 
-        return $urlstr;
+        return $URLString;
     }
 
     public static function getURLData($url, $format = 'json')
@@ -143,8 +138,16 @@ class Helper
             curl_setopt($ch, CURLOPT_USERAGENT, 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36');
             curl_setopt($ch, CURLOPT_URL, $url);
 
-            $htmlcode = curl_exec($ch);
-            if ($htmlcode === FALSE) {
+            try {
+                $htmlCode = @curl_exec($ch);
+            } catch (\Exception $e) {
+
+                $application = Factory::getApplication();
+                $application->enqueueMessage(curl_error($e->getMessage()), 'error');
+                return '';
+            }
+
+            if ($htmlCode === FALSE) {
                 $application = Factory::getApplication();
                 $application->enqueueMessage(curl_error($ch), 'error');
 
@@ -152,8 +155,8 @@ class Helper
             }
 
             curl_close($ch);
-            return $htmlcode;
-        } elseif (ini_get('allow_url_fopen') == true) {
+            return $htmlCode;
+        } elseif (ini_get('allow_url_fopen')) {
             return file_get_contents($url);
         } else {
             $application = Factory::getApplication();
@@ -164,7 +167,7 @@ class Helper
         }
     }
 
-    public static function check_user_agent($type = NULL)
+    public static function check_user_agent($type = NULL): bool
     {
         $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
         if ($type == 'bot') {
@@ -193,7 +196,7 @@ class Helper
         return false;
     }
 
-    public static function check_user_agent_for_apple()
+    public static function check_user_agent_for_apple(): bool
     {
         $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
         if (preg_match("/iphone|itouch|ipod|ipad/", $user_agent)) {
@@ -230,12 +233,12 @@ class Helper
         return $data;
     }
 
-    public static function ApplyPlayerParameters(&$settings, $youtubeparams)
+    public static function ApplyPlayerParameters(&$settings, $youtubeParams): void
     {
-        if ($youtubeparams == '')
+        if ($youtubeParams == '')
             return;
 
-        $a = str_replace("\n", '', $youtubeparams);
+        $a = str_replace("\n", '', $youtubeParams);
         $a = trim(str_replace("\r", '', $a));
         $l = explode(';', $a);
 
@@ -258,15 +261,13 @@ class Helper
 
                     if (!$found)
                         $settings[] = array($option, $pair[1]);
-                }//if(count($pair)==2)
-            }//if($o!='')
+                }
+            }
         }
-
     }
 
     //Convert Functions
-
-    public static function CreateParamLine(&$settings)
+    public static function CreateParamLine(&$settings): string
     {
         $a = array();
 
@@ -279,64 +280,60 @@ class Helper
     }
 
     //param Functions (Menu Item)
-
-    public static function prepareDescriptions($gallery_list)
+    public static function prepareDescriptions($gallery_list): array
     {
         //-------------------- prepare description
         $params = '';
         $new_gallery_list = array();
-        $videodescription_params = explode(',', $params);
+        $videoDescription_params = explode(',', $params);
 
-        foreach ($gallery_list as $listitem) {
-            $description = $listitem['es_description'];
+        foreach ($gallery_list as $listItem) {
+            $description = $listItem['es_description'];
             $description = str_replace('&quot;', '_quote_', $description);
             $description = str_replace('"', '_quote_', $description);
             $description = str_replace("'", '_quote_', $description);
             $description = str_replace("@", '_email_', $description);
 
             if ($params != '')
-                $description = Helper::PrepareDescription($description, $videodescription_params);
+                $description = Helper::PrepareDescription($description, $videoDescription_params);
 
-            $listitem['es_description'] = $description;
+            $listItem['es_description'] = $description;
 
-            $title = $listitem['es_title'];
+            $title = $listItem['es_title'];
             $title = str_replace('&quot;', '_quote_', $title);
             $title = str_replace('"', '_quote_', $title);
-            $listitem['title'] = str_replace("'", '_quote_', $title);
+            $listItem['title'] = str_replace("'", '_quote_', $title);
 
-            $title = $listitem['es_customtitle'];
+            $title = $listItem['es_customtitle'];
             $title = str_replace('&quot;', '_quote_', $title);
             $title = str_replace('"', '_quote_', $title);
-            $listitem['es_customtitle'] = str_replace("'", '_quote_', $title);
+            $listItem['es_customtitle'] = str_replace("'", '_quote_', $title);
 
-            $new_gallery_list[] = $listitem;
+            $new_gallery_list[] = $listItem;
         }
         return $new_gallery_list;
     }
 
-    public static function PrepareDescription($description, $videodescription_params)
+    public static function PrepareDescription($description, $videoDescriptionParams)
     {
-        if (count($videodescription_params) > 0) {
-            $words = (int)$videodescription_params[0];
-            if (isset($videodescription_params[1]))
-                $chars = (int)$videodescription_params[1];
+        if (count($videoDescriptionParams) > 0) {
+            $words = (int)$videoDescriptionParams[0];
+            if (isset($videoDescriptionParams[1]))
+                $chars = (int)$videoDescriptionParams[1];
             else
                 $chars = 0;
 
             if ($words != 0 or $chars != 0)
                 $description = Helper::PrepareDescription_($description, $words, $chars);
 
-            if (isset($videodescription_params[2]) and $videodescription_params[2] == 'addlinebreaks') {
+            if (isset($videoDescriptionParams[2]) and $videoDescriptionParams[2] == 'addlinebreaks') {
                 $description = nl2br($description);
                 $description = str_replace('<br />', '_thelinebreak_', $description);
             }
         }
 
         $description = str_replace('&quot;', '_quote_', $description);
-        $description = str_replace('@', '_email_', $description);
-
-
-        return $description;
+        return str_replace('@', '_email_', $description);
     }
 
     public static function PrepareDescription_($desc, $words, $chars)
@@ -351,11 +348,8 @@ class Helper
 
         $desc = str_replace("/n", " ", $desc);
         $desc = str_replace("/r", " ", $desc);
-
         $desc = trim(preg_replace('/\s\s+/', ' ', $desc));
-
         $desc = trim($desc);
-
         return $desc;
     }
 }

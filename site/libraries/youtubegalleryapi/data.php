@@ -249,7 +249,7 @@ class YouTubeGalleryAPIData
                         $part = 'id,snippet,contentDetails,statistics';//,status
 
                     if ($youtube_data_api_key == '')
-                        $key = YouTubeGalleryAPIMisc::APIKey_Youtube($active_key);
+                        $key = YouTubeGalleryDB::getSettingValue('youtubedataapi_key');
                     else
                         $key = $youtube_data_api_key;
 

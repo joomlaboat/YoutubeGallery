@@ -10,7 +10,8 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
-use JoomlaBasicMisc;
+
+//use \JoomlaBasicMisc;
 
 class YouTubeGalleryDB
 {
@@ -410,18 +411,17 @@ class YouTubeGalleryDB
 
     public static function update_cache_table(&$videolist_row, $update_videolist = false)
     {
-        $videolist_array = JoomlaBasicMisc::csv_explode("\n", $videolist_row->es_videolist, '"', true);
+        $videoListArray = JoomlaBasicMisc::csv_explode("\n", $videolist_row->es_videolist, '"', true);
 
-        $firstvideo = '';
-        $videolist = YouTubeGalleryData::formVideoList($videolist_row, $videolist_array, $firstvideo, '', $update_videolist);//$this->theme_row->thumbnailstyle);
-
+        $firstVideo = '';
+        $videoList = YouTubeGalleryData::formVideoList($videolist_row, $videoListArray, $firstVideo, '', $update_videolist);//$this->theme_row->thumbnailstyle);
 
         $db = Factory::getDBO();
         $parent_id = null;
 
         $ListOfVideosNotToDelete = array();
 
-        foreach ($videolist as $g) {
+        foreach ($videoList as $g) {
             if (isset($g['es_videoid'])) {
                 $ListOfVideosNotToDelete[] = '!(es_videoid=' . $db->quote($g['es_videoid']) . ' AND es_videosource=' . $db->quote($g['es_videosource']) . ')';
                 YouTubeGalleryDB::updateDBSingleItem($g, (int)$videolist_row->id, $parent_id);
@@ -429,7 +429,6 @@ class YouTubeGalleryDB
         }
 
         //Delete All videos of this video list that has been deleted form the list and allowed for updates.
-
         $query = 'DELETE FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$videolist_row->id;
         if (count($ListOfVideosNotToDelete) > 0)
             $query .= ' AND ' . implode(' AND ', $ListOfVideosNotToDelete);
@@ -496,7 +495,7 @@ class YouTubeGalleryDB
         }
     }
 
-    protected static function prepareQuerySets($g, $videolist_id, &$parent_id)
+    protected static function prepareQuerySets($g, $videoListId, &$parent_id): array
     {
         $db = Factory::getDBO();
         $fields = array();
@@ -520,8 +519,8 @@ class YouTubeGalleryDB
         else
             $custom_g_description = '';
 
-        if ($videolist_id != 0)
-            $fields[] = $db->quoteName('es_videolist') . '=' . $db->quote($videolist_id);
+        if ($videoListId != 0)
+            $fields[] = $db->quoteName('es_videolist') . '=' . $db->quote($videoListId);
 
         if ((int)$g['es_isvideo'] == 0)
             $parent_id = null;
@@ -576,8 +575,8 @@ class YouTubeGalleryDB
         $fields[] = $db->quoteName('es_isvideo') . '=' . (int)$g['es_isvideo'];//$db->quote(($this_is_a_list ? '0' : '1'));
 
         if (isset($g['es_publisheddate']) and $g['es_publisheddate'] !== null and $g['es_publisheddate'] != '') {
-            $publisheddate = date('Y-m-d H:i:s', strtotime($g['es_publisheddate']));
-            $fields[] = $db->quoteName('es_publisheddate') . '=' . $db->quote($publisheddate);
+            $publishedDate = date('Y-m-d H:i:s', strtotime($g['es_publisheddate']));
+            $fields[] = $db->quoteName('es_publisheddate') . '=' . $db->quote($publishedDate);
         }
 
         if (isset($g['es_duration']) and $g['es_duration'] !== null) {
@@ -685,12 +684,9 @@ class YouTubeGalleryDB
     protected static function isVideo_record_exist($videosource, $listid, $videoid)
     {
         $db = Factory::getDBO();
-
         $query = 'SELECT id, es_allowupdates FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$listid . ' AND ' . $db->quoteName('es_videosource') . '=' . $db->quote($videosource) . ' AND ' . $db->quoteName('es_videoid') . '=' . $db->quote($videoid) . ' LIMIT 1';
-
         $db->setQuery($query);
         $db->execute();
-
         $videos_rows = $db->loadAssocList();
 
         if (count($videos_rows) == 0)
