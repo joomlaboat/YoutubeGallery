@@ -17,7 +17,7 @@ use Joomla\Utilities\ArrayHelper;
  */
 abstract class YoutubeGalleryHelper
 {
-    public static function addSubmenu($submenu)
+    public static function addSubmenu($submenu): void
     {
         JSubMenuHelper::addEntry(JText::_('Video Lists'), 'index.php?option=com_youtubegallery&view=linkslist', $submenu === 'linkslist');
         JSubMenuHelper::addEntry(JText::_('Themes'), 'index.php?option=com_youtubegallery&view=themelist', $submenu === 'themelist');
@@ -25,7 +25,7 @@ abstract class YoutubeGalleryHelper
         JSubMenuHelper::addEntry(JText::_('Settings'), 'index.php?option=com_youtubegallery&view=settings&layout=edit', $submenu === 'settingst');
     }
 
-    public static function deleteRecord($viewLabel, $tableShortName)
+    public static function deleteRecord($viewLabel, $tableShortName): void
     {
         $cid = Factory::getApplication()->input->post->get('cid', array(), 'array');
         $cid = ArrayHelper::toInteger($cid);
@@ -48,7 +48,7 @@ abstract class YoutubeGalleryHelper
         Factory::getApplication()->enqueueMessage(JText::sprintf($msg, count($cid)), 'success');
     }
 
-    protected static function deleteSingleRecord($id, $tableShortName)
+    protected static function deleteSingleRecord($id, $tableShortName): bool
     {
         $db = Factory::getDBO();
         $query = 'DELETE FROM #__customtables_table_' . $tableShortName . ' WHERE id=' . (int)$id;
@@ -57,7 +57,7 @@ abstract class YoutubeGalleryHelper
         return true;
     }
 
-    public static function checkArray($array, $removeEmptyString = false)
+    public static function checkArray($array, $removeEmptyString = false): bool
     {
         if (isset($array) && is_array($array) && count((array)$array) > 0) {
             // also make sure the empty strings are removed
@@ -81,7 +81,7 @@ abstract class YoutubeGalleryHelper
      *
      * @returns bool true on success
      **/
-    public static function checkString($string)
+    public static function checkString($string): bool
     {
         if (isset($string) && is_string($string) && strlen($string) > 0) {
             return true;
@@ -96,7 +96,7 @@ abstract class YoutubeGalleryHelper
      *
      * @returns bool true on success
      **/
-    public static function checkObject($object)
+    public static function checkObject($object): bool
     {
         if (isset($object) && is_object($object)) {
             return count((array)$object) > 0;
@@ -104,7 +104,7 @@ abstract class YoutubeGalleryHelper
         return false;
     }
 
-    public function setRecordStatus($task, $viewLabel, $tableShortName)
+    public static function setRecordStatus($task, $viewLabel, $tableShortName): void
     {
         if ($task == 'publish')
             $status = 1;
@@ -144,7 +144,7 @@ abstract class YoutubeGalleryHelper
         Factory::getApplication()->enqueueMessage(JText::sprintf($msg, count($cid)), 'success');
     }
 
-    protected static function setPublishStatusSingleRecord($id, $status, $tableShortName)
+    protected static function setPublishStatusSingleRecord($id, $status, $tableShortName): bool
     {
         $db = Factory::getDBO();
 

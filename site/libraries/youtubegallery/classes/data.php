@@ -53,10 +53,10 @@ class YouTubeGalleryData
         return $gallery_list;
     }
 
-    public static function queryJoomlaBoatYoutubeGalleryAPI($theLink, &$gallery_list, &$original_item, &$ordering, $videoListRow, $force = false)
+    public static function queryJoomlaBoatYoutubeGalleryAPI($theLink, &$gallery_list, &$original_item, &$ordering, $videoListRow, $force = false): bool
     {
         $updatePeriod = 60 * 24 * ($videoListRow->es_updateperiod) * 60;
-        $PlaylistLastUpdate = YouTubeGalleryDB::Playlist_lastupdate($theLink);
+        $PlaylistLastUpdate = YouTubeGalleryDB::Playlist_LastUpdate($theLink);
         $diff = strtotime(date('Y-m-d H:i:s')) - strtotime($PlaylistLastUpdate);
 
         $force = ($diff > $updatePeriod or $force);
@@ -142,7 +142,7 @@ class YouTubeGalleryData
         return true;
     }
 
-    public static function parse_SingleVideo($item, $original_item = array())
+    public static function parse_SingleVideo($item, $original_item = array()): array
     {
         //[channel_totaluploadviews] => 0 not used
 
@@ -315,7 +315,7 @@ class YouTubeGalleryData
         return $listItem;
     }
 
-    protected static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, &$item, &$original_item, $force = false)
+    protected static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, &$item, &$original_item, $force = false): bool
     {
         if (!function_exists('curl_init') and !function_exists('file_get_contents')) {
             $es_item = array('es_error' => 'Enable php functions: curl_init or file_get_contents.', 'es_status' => -1);
@@ -364,7 +364,7 @@ class YouTubeGalleryData
         return true;
     }
 
-    public static function getVideoSourceName($link)
+    public static function getVideoSourceName($link): string
     {
         if (!(!str_contains($link, '://youtube.com')) or !(strpos($link, '://www.youtube.com') === false)) {
             if (!(!str_contains($link, '/playlist')))

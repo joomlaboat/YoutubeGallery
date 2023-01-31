@@ -23,7 +23,7 @@ class YouTubeGalleryGalleryList
         return '';
     }
 
-    public static function getPlaylistIdsOnly(&$gallery_list, $current_videoid = '', $exclude_source = '', $full = false, $allowplaylist = true)
+    public static function getPlaylistIdsOnly(&$gallery_list, $current_videoid = '', $exclude_source = '', $full = false, $allowplaylist = true): array
     {
         $theList1 = array();
         $theList2 = array();
@@ -56,7 +56,7 @@ class YouTubeGalleryGalleryList
         return array_merge($theList1, $theList2);
     }
 
-    public static function getListIndexByVideoID($videoid, &$gallery_list)
+    public static function getListIndexByVideoID($videoid, &$gallery_list): int
     {
         $i = 0;
         foreach ($gallery_list as $gl_row) {

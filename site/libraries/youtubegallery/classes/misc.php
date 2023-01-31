@@ -336,7 +336,7 @@ class Helper
         return str_replace('@', '_email_', $description);
     }
 
-    public static function PrepareDescription_($desc, $words, $chars)
+    public static function PrepareDescription_($desc, $words, $chars): string
     {
         if ($chars == 0 and $words > 0) {
             preg_match('/([^\\s]*(?>\\s+|$)){0,' . $words . '}/', $desc, $matches);

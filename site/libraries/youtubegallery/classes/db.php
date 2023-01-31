@@ -46,7 +46,7 @@ class YouTubeGalleryDB
         }
     }
 
-    static public function setRawData($videoid, $videoData)
+    static public function setRawData($videoid, $videoData): void
     {
         if ($videoid != '') {
             $db = Factory::getDBO();
@@ -56,7 +56,7 @@ class YouTubeGalleryDB
         }
     }
 
-    public static function Playlist_lastupdate($theLink)
+    public static function Playlist_LastUpdate($theLink)
     {
         $db = Factory::getDBO();
         $query = 'SELECT es_lastupdate FROM #__customtables_table_youtubegalleryvideos WHERE es_link=' . $db->quote($theLink) . ' LIMIT 1';
@@ -93,7 +93,7 @@ class YouTubeGalleryDB
         return $vlu;
     }
 
-    public static function getVideoIDbyAlias($alias)
+    public static function getVideoIDbyAlias($alias): string
     {
         $db = Factory::getDBO();
 
@@ -132,7 +132,7 @@ class YouTubeGalleryDB
         return $values[0];
     }
 
-    function getVideoListTableRow($listid)
+    function getVideoListTableRow($listid): bool
     {
         $db = Factory::getDBO();
 
@@ -175,7 +175,7 @@ class YouTubeGalleryDB
         return true;
     }
 
-    function getThemeTableRow($themeid)
+    function getThemeTableRow($themeid): bool
     {
         $db = Factory::getDBO();
 
@@ -386,7 +386,7 @@ class YouTubeGalleryDB
         }
     }
 
-    function update_playlist($force_update = false)
+    function update_playlist($force_update = false): void
     {
         $start = strtotime($this->videolist_row->es_lastplaylistupdate);
         $end = strtotime(date('Y-m-d H:i:s'));
@@ -409,7 +409,7 @@ class YouTubeGalleryDB
         }
     }
 
-    public static function update_cache_table(&$videolist_row, $update_videolist = false)
+    public static function update_cache_table(&$videolist_row, $update_videolist = false): void
     {
         $videoListArray = JoomlaBasicMisc::csv_explode("\n", $videolist_row->es_videolist, '"', true);
 

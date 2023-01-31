@@ -14,7 +14,7 @@ use YouTubeGallery\Helper;
 
 class YoutubeGalleryHotPlayer
 {
-    public static function addHotReloadScript(&$gallery_list, $width, $height, &$videolist_row, &$theme_row)
+    public static function addHotReloadScript(&$gallery_list, $width, $height, &$videolist_row, &$theme_row): void
     {
         $jinput = Factory::getApplication()->input;
         $ygstart = $jinput->getInt('ygstart', 0);

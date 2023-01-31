@@ -26,6 +26,5 @@ class JHTMLTheme
             $value = $themes[0]['id'];
 
         return JHTML::_('select.genericlist', $themes, $control_name, 'class="inputbox"' . $attribute, 'id', 'es_themename', $value);
-
     }
 }

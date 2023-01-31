@@ -22,15 +22,15 @@ class JHTMLVideoList
         $query = 'SELECT id, es_listname FROM #__customtables_table_youtubegalleryvideolists ORDER BY es_listname';
 
         $db->setQuery($query);
-        $videolists = $db->loadAssocList();
-        if (!$videolists) $videolists = array();
+        $videoLists = $db->loadAssocList();
+        if (!$videoLists) $videoLists = array();
 
         $input = Factory::getApplication()->input;
         if ($input->getInt('showlatestvideolist') == 1) {
-            if ($value == 0 and count($videolists) > 0) {
+            if ($value == 0 and count($videoLists) > 0) {
                 //find the latest Video List
                 $value = 0;
-                foreach ($videolists as $v) {
+                foreach ($videoLists as $v) {
                     $id = (int)$v['id'];
                     if ($id > $value)
                         $value = $id;
@@ -38,11 +38,8 @@ class JHTMLVideoList
             }
         }
 
-        $videolists = array_merge(array(array('id' => '', 'es_listname' => '- ' . JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_ADD'))), $videolists);
+        $videoLists = array_merge(array(array('id' => '', 'es_listname' => '- ' . JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_ADD'))), $videoLists);
 
-        return JHTML::_('select.genericlist', $videolists, $control_name, 'class="inputbox"' . $attribute, 'id', 'es_listname', $value);
-
-
+        return JHTML::_('select.genericlist', $videoLists, $control_name, 'class="inputbox"' . $attribute, 'id', 'es_listname', $value);
     }
-
 }
