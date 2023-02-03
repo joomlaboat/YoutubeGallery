@@ -1271,11 +1271,10 @@ class Inputbox
         else
             $img_width = 250;
 
-        $imageSRCList = array();
-        $imageTagList = array();
+        $imageSRCList = CT_FieldTypeTag_imagegallery::getImageGallerySRC($getGalleryRows, $image_prefix, $this->field->fieldname,
+            $this->field->params, $this->ct->Table->tableid);
 
-        if (CT_FieldTypeTag_imagegallery::getImageGallerySRC($getGalleryRows, $image_prefix, $listing_id, $this->field->fieldname,
-            $this->field->params, $imageSRCList, $imageTagList, $this->ct->Table->tableid)) {
+        if (count($imageSRCList) > 0) {
 
             $result .= '<div style="width:100%;overflow:scroll;border:1px dotted grey;background-image: url(\'' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/images/icons/bg.png\');">
 
@@ -1283,7 +1282,7 @@ class Inputbox
 
             foreach ($imageSRCList as $img) {
                 $result .= '<td>';
-                $result .= '<a href="' . $img . '" target="_blank"><img src="' . $img . '" width="' . $img_width . '" />';
+                $result .= '<a href="' . $img . '" target="_blank"><img src="' . $img . '" style="width:' . $img_width . 'px;" />';
                 $result .= '</td>';
             }
 

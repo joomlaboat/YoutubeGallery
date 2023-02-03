@@ -75,7 +75,7 @@ class Value
                 return number_format((int)$rowValue, 0, '', $thousand_sep);
 
             case 'float':
-                $decimals = $option_list[0] != '' ? (int)$option_list[0] : ($this->field->params[0] != '' ? (int)$this->field->params[0] : 2);
+                $decimals = $option_list[0] != '' ? (int)$option_list[0] : (count($this->field->params) > 0 and $this->field->params[0] != '' ? (int)$this->field->params[0] : 2);
                 $decimals_sep = $option_list[1] ?? '.';
                 $thousand_sep = $option_list[2] ?? '';
                 return number_format((float)$rowValue, $decimals, $decimals_sep, $thousand_sep);
@@ -186,7 +186,7 @@ class Value
                     $width = $this->field->params[0] ?? 300;
                     $height = $this->field->params[1] ?? 150;
 
-                    return '<img src="' . $imagefileweb . '" width="' . $width . '" height="' . $height . '" alt="' . $sitename . '" title="' . $sitename . '" />';
+                    return '<img src="' . $imagefileweb . '" alt="' . $sitename . '" title="' . $sitename . '" />';
                 }
                 return null;
 
@@ -201,13 +201,10 @@ class Value
                 if ($option_list[0] == '_count')
                     return count($getGalleryRows);
 
-                $imageSRCList = '';
-                $imageTagList = '';
+                $imageSRCList = CT_FieldTypeTag_imagegallery::getImageGallerySRC($getGalleryRows, $option_list[0] ?? '', $this->field->fieldname, $this->field->params, $this->ct->Table->tableid, true);
+                $imageTagList = CT_FieldTypeTag_imagegallery::getImageGalleryTagList($imageSRCList);
 
-                CT_FieldTypeTag_imagegallery::getImageGallerySRC($getGalleryRows, $option_list[0],
-                    $row[$this->ct->Table->realidfieldname], $this->field->fieldname, $this->field->params, $imageSRCList, $imageTagList, $this->ct->Table->tableid);
-
-                return $imageTagList;
+                return implode('', $imageTagList);
 
             case 'filebox':
 

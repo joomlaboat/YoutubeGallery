@@ -15,14 +15,12 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
     die('Restricted access');
 }
 
-use Joomla\CMS\Application\WebApplication;
 use Joomla\CMS\Document\Document;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Component\ComponentHelper;
-
 use CustomTablesKeywordSearch;
 use mysql_xdevapi\Exception;
 
@@ -363,9 +361,11 @@ class CT
         $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/uploader.js"></script>');
 
         $params = ComponentHelper::getParams('com_customtables');
-        $googlemapapikey = $params->get('googlemapapikey');
+        $googleMapAPIKey = $params->get('googlemapapikey');
 
-        $this->document->addCustomTag('<script src="https://maps.google.com/maps/api/js?key=' . $googlemapapikey . '&sensor=false"></script>');
+        if ($googleMapAPIKey !== null and $googleMapAPIKey != '')
+            $this->document->addCustomTag('<script src="https://maps.google.com/maps/api/js?key=' . $googleMapAPIKey . '&sensor=false"></script>');
+
         $this->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/js/combotree.js"></script>');
         $this->document->addCustomTag('<script>let ctWebsiteRoot = "' . $this->Env->WebsiteRoot . '";</script>');
 
