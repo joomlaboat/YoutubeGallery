@@ -48,9 +48,6 @@ class com_YoutubeGalleryInstallerScript
         //Check Custom Tables, create if necessary
         $result = IntegrityChecks::check($ct, $check_core_tables = true, $check_custom_tables = false);
 
-        //* PHP 7.3 - code
-        //self::createTablesPHP73();
-
         $filename = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . $component_name . DIRECTORY_SEPARATOR
             . 'importfiles' . DIRECTORY_SEPARATOR . 'youtubegallery_tables.txt';
 
@@ -61,17 +58,14 @@ class com_YoutubeGalleryInstallerScript
         $path_utilities = $path . 'utilities' . DIRECTORY_SEPARATOR;
 
         require_once($path_utilities . 'importtables.php');
-        $status = ImportTables::processFile($filename, $menutype = 'YoutubeGallery', $msg);
+        $status = ImportTables::processFile($filename, 'YoutubeGallery', $msg);
 
-        //echo 'Status: ' . $status . '<br/>';
-        //die;
         if ($msg != '') {
             Factory::getApplication()->enqueueMessage($msg, 'error');
             return false;
         }
 
         com_YoutubeGalleryInstallerScript::updateYGv3tov4();
-        //die;
         return true;
     }
 
@@ -297,185 +291,5 @@ class com_YoutubeGalleryInstallerScript
         $db->setQuery($query);
         $db->execute();
         return $db->insertid();
-    }
-
-    function createTablesPHP73()
-    {
-        $db = Factory::getDBO();
-
-        $queries = array();
-        $queries[] = "CREATE TABLE #__customtables_table_youtubegallerycategories (
-    id int NOT NULL,
-  published tinyint NOT NULL DEFAULT '1',
-  es_categoryname varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Category Name',
-  es_parentid int DEFAULT NULL COMMENT 'Parent',
-  es_description text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Description',
-  es_image varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Image'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Youtube Gallery Categories';";
-
-        $queries[] = "CREATE TABLE #__customtables_table_youtubegallerykeytypes (
-    id int UNSIGNED NOT NULL,
-  published tinyint(1) NOT NULL DEFAULT '1',
-  es_name varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  es_youtuvedataapikey varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='YoutubeGallery Key Types';";
-
-        $queries[] = "CREATE TABLE #__customtables_table_youtubegalleryrequests (
-    id int UNSIGNED NOT NULL,
-  published tinyint(1) NOT NULL DEFAULT '1',
-  es_link varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  es_videoitems varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  es_key varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  es_serveraddress varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  es_created datetime DEFAULT NULL,
-  es_status int DEFAULT NULL,
-  es_count int DEFAULT NULL,
-  es_isnew tinyint NOT NULL DEFAULT '0',
-  es_rawdata text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  es_keytype int DEFAULT NULL,
-  es_youtuvedataapikey varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='YoutubeGallery Requests';";
-
-        $queries[] = "CREATE TABLE #__customtables_table_youtubegallerysettings (
-    id int NOT NULL,
-  published tinyint NOT NULL DEFAULT '1',
-  es_option varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Option',
-  es_value varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Value'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Youtube Gallery Settings';";
-
-        $queries[] = "CREATE TABLE #__customtables_table_youtubegallerythemes (
-    id int NOT NULL,
-  published tinyint NOT NULL DEFAULT '1',
-  es_themename varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Theme name',
-  es_width int DEFAULT NULL COMMENT 'Player Area Width',
-  es_height int DEFAULT NULL COMMENT 'Player Area Height',
-  es_playvideo tinyint NOT NULL DEFAULT '0' COMMENT 'Show First Video',
-  es_orderby varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Order By',
-  es_customlimit int DEFAULT NULL COMMENT 'Pagination Limit',
-  es_navbarstyle varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Navigation bar CSS Style',
-  es_bgcolor varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Thumbnail Background color',
-  es_thumbnailstyle varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Thumbnail CSS Style',
-  es_listnamestyle varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Video List Name CSS Style',
-  es_activevideotitlestyle varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Active Video Title CSS Style',
-  es_descrstyle varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Active Video Description CSS Style',
-  es_cssstyle varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'CSS Style',
-  es_autoplay tinyint NOT NULL DEFAULT '0' COMMENT 'Autoplay',
-  es_repeat tinyint NOT NULL DEFAULT '0' COMMENT ' Repeat (loop single video)',
-  es_fullscreen tinyint NOT NULL DEFAULT '0' COMMENT 'Fullscreen',
-  es_allowplaylist tinyint NOT NULL DEFAULT '0' COMMENT 'Allow Playlist',
-  es_related tinyint NOT NULL DEFAULT '0' COMMENT 'Related Videos',
-  es_controls tinyint NOT NULL DEFAULT '0' COMMENT 'Controls',
-  es_border tinyint NOT NULL DEFAULT '0' COMMENT 'Show Border',
-  es_colorone varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Primary Border Color',
-  es_colortwo varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT ' Mute Player Yes No Initial Volume (0-100), -1 for system default Youtube Parameters',
-  es_muteonplay tinyint NOT NULL DEFAULT '0' COMMENT 'Mute Player',
-  es_volume int DEFAULT NULL COMMENT 'Initial Volume (0-100), -1 for system default',
-  es_youtubeparams varchar(450) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Youtube Parameters',
-  es_customlayout text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Custom Layout',
-  es_customnavlayout text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Thumbnail Layout',
-  es_headscript text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'HTML document head script',
-  es_openinnewwindow int DEFAULT NULL COMMENT 'Switch Video As',
-  es_rel varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Rel option to apply any shadow/lightbox',
-  es_hrefaddon varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'HREF addon',
-  es_useglass tinyint NOT NULL DEFAULT '0' COMMENT 'Use glass cover',
-  es_logocover varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Logo Cover',
-  es_prepareheadtags int DEFAULT NULL COMMENT 'Prepare Head Tags',
-  es_changepagetitle int DEFAULT NULL COMMENT 'Change Page Title',
-  es_responsive int DEFAULT NULL COMMENT 'Responsive',
-  es_nocookie tinyint NOT NULL DEFAULT '0' COMMENT 'No Cookie',
-  es_mediafolder varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Media Folder',
-  es_themedescription text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Theme Description'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Youtube Gallery Themes';";
-
-        $queries[] = "CREATE TABLE #__customtables_table_youtubegalleryvideolists (
-    id int NOT NULL,
-  published tinyint NOT NULL DEFAULT '1',
-  es_listname varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'List Name',
-  es_videolist text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Video Links (Source)',
-  es_catid int DEFAULT NULL COMMENT 'Category',
-  es_updateperiod decimal(20,2) DEFAULT NULL COMMENT 'Cache Update Period',
-  es_description text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Video List Description',
-  es_authorurl varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Link to the author page',
-  es_watchusergroup int UNSIGNED DEFAULT NULL COMMENT ' Who may watch the Videos',
-  es_image varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Image',
-  es_note varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Additional Note',
-  es_lastplaylistupdate datetime DEFAULT NULL COMMENT 'Last playlist update time'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Youtube Gallery Video Lists ';";
-
-        $queries[] = "CREATE TABLE #__customtables_table_youtubegalleryvideos (
-    id int NOT NULL,
-  published tinyint NOT NULL DEFAULT '1',
-  es_videosource varchar(30) DEFAULT NULL COMMENT 'Video Source',
-  es_videoid varchar(128) DEFAULT NULL COMMENT 'Video ID',
-  es_imageurl varchar(1024) DEFAULT NULL COMMENT 'Image URL',
-  es_description text COMMENT 'Description',
-  es_customimageurl varchar(1024) DEFAULT NULL COMMENT 'Custom Image URL',
-  es_customtitle varchar(1024) DEFAULT NULL COMMENT 'Custom Title',
-  es_customdescription text COMMENT 'Custom Description',
-  es_specialparams varchar(255) DEFAULT NULL COMMENT 'Special Params',
-  es_lastupdate datetime DEFAULT NULL COMMENT 'Last Update ',
-  es_allowupdates tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Allow Updates',
-  es_status int DEFAULT NULL COMMENT 'Status',
-  es_isvideo tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Is Video',
-  es_link varchar(1024) DEFAULT NULL COMMENT 'Link',
-  es_ordering int DEFAULT NULL COMMENT 'Ordering',
-  es_publisheddate datetime DEFAULT NULL COMMENT 'Published Date',
-  es_duration int DEFAULT NULL COMMENT 'Duration',
-  es_ratingaverage decimal(20,2) DEFAULT NULL COMMENT 'Rating Average',
-  es_ratingmax int DEFAULT NULL COMMENT 'Rating Max',
-  es_ratingmin int DEFAULT NULL COMMENT 'Rating Min',
-  es_ratingnumberofraters int DEFAULT NULL COMMENT 'Rating Number of Raters',
-  es_statisticsfavoritecount int DEFAULT NULL COMMENT 'Statistics Favorite Count',
-  es_statisticsviewcount int DEFAULT NULL COMMENT 'StatisticsView Count',
-  es_keywords varchar(1024) DEFAULT NULL COMMENT 'Keywords',
-  es_startsecond int DEFAULT NULL COMMENT 'Start Second ',
-  es_endsecond int DEFAULT NULL COMMENT 'End Second',
-  es_likes int DEFAULT NULL COMMENT 'Likes',
-  es_dislikes int DEFAULT NULL COMMENT 'Dislikes',
-  es_commentcount int DEFAULT NULL COMMENT 'Comment Count ',
-  es_channelusername varchar(255) DEFAULT NULL COMMENT 'Channel Username',
-  es_channeltitle varchar(255) DEFAULT NULL COMMENT 'Channel Title',
-  es_channelsubscribers int DEFAULT NULL COMMENT 'Channel Subscribers',
-  es_channelsubscribed int DEFAULT NULL COMMENT 'Channel Subscribed',
-  es_channellocation varchar(5) DEFAULT NULL COMMENT 'Channel Location',
-  es_channelcommentcount int DEFAULT NULL COMMENT 'Channel Comment Count',
-  es_channelviewcount int DEFAULT NULL COMMENT 'Channel Viewcount',
-  es_channelvideocount int DEFAULT NULL COMMENT 'Channel Videocount',
-  es_channeldescription text COMMENT 'Channel Description',
-  es_channeltotaluploadviews int DEFAULT NULL COMMENT 'Channel Total Upload Views',
-  es_alias varchar(255) DEFAULT NULL COMMENT 'Alias',
-  es_rawdata text COMMENT 'Rawdata',
-  es_datalink varchar(1024) DEFAULT NULL COMMENT 'Data Link',
-  es_error varchar(1024) DEFAULT NULL COMMENT 'Error',
-  es_title varchar(1024) DEFAULT NULL COMMENT 'Title',
-  es_trackid varchar(128) DEFAULT NULL COMMENT 'Track ID',
-  es_videoids text COMMENT 'Video IDs',
-  es_latitude decimal(20,7) DEFAULT NULL,
-  es_longitude decimal(20,7) DEFAULT NULL,
-  es_altitude int DEFAULT NULL COMMENT 'Altitude',
-  es_videolist int DEFAULT NULL COMMENT 'listid',
-  es_parentid int DEFAULT NULL COMMENT 'Parent (Playlist or Channel)'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Youtube Gallery Videos';";
-
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegallerycategories ADD PRIMARY KEY (id);";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegallerykeytypes ADD PRIMARY KEY (id);";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegalleryrequests ADD PRIMARY KEY (id);";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegallerysettings ADD PRIMARY KEY (id);";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegallerythemes ADD PRIMARY KEY (id);";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegalleryvideolists ADD PRIMARY KEY (id);";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegalleryvideos ADD PRIMARY KEY (id);";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegallerycategories MODIFY id int NOT NULL AUTO_INCREMENT;";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegallerykeytypes MODIFY id int UNSIGNED NOT NULL AUTO_INCREMENT;";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegalleryrequests MODIFY id int UNSIGNED NOT NULL AUTO_INCREMENT;";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegallerysettings MODIFY id int NOT NULL AUTO_INCREMENT;";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegallerythemes MODIFY id int NOT NULL AUTO_INCREMENT;";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegalleryvideolists MODIFY id int NOT NULL AUTO_INCREMENT;";
-        $queries[] = "ALTER TABLE #__customtables_table_youtubegalleryvideos MODIFY id int NOT NULL AUTO_INCREMENT;";
-
-        foreach ($queries as $query) {
-            $db->setQuery($query);
-            $db->execute();
-        }
-
     }
 }
