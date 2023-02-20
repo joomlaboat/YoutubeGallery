@@ -82,7 +82,7 @@ class VideoSource_SoundCloud
             . ' height="' . $height . '"'
             . ' alt="' . $title . '"'
             . ' frameborder="' . ((int)$options['es_border'] == 1 ? 'yes' : 'no') . '"'
-            . ($theme_row->responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videolist_row->id . '();"' : '')
+            . ($theme_row->es_responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videolist_row->id . '();"' : '')
             . '>'
             . '</iframe>';
 

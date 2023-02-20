@@ -54,7 +54,7 @@ class VideoSource_DailyMotion
         $settings[] = array('autoplay', (int)$options['es_autoplay']);
         $settings[] = array('related', $options['es_relatedvideos']);
         $settings[] = array('controls', $options['es_controls']);
-        if ($theme_row->logocover)
+        if ($theme_row->es_logocover)
             $settings[] = array('logo', '0');
         else
             $settings[] = array('logo', '1');
@@ -76,7 +76,7 @@ class VideoSource_DailyMotion
             . ' id="' . $playerid . '"'
             . ' alt="' . $title . '"'
             . ' frameborder="0" width="' . $width . '" height="' . $height . '" src="https://www.dailymotion.com/embed/video/' . $videoidkeyword . '?' . $settingline . '"'
-            . ($theme_row->responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videolist_row->id . '();"' : '')
+            . ($theme_row->es_responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videolist_row->id . '();"' : '')
             . '></iframe>';
 
         return $result;

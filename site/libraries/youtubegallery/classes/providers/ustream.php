@@ -61,7 +61,7 @@ class VideoSource_Ustream
             $result .= ' alt="' . $options['es_title'] . '"';
 
         $result .= ' frameborder="0" width="' . $width . '" height="' . $height . '" src="https://www.ustream.tv/embed/recorded/' . $videoidkeyword . '?' . $settingline . '"'
-            . ($theme_row->responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videolist_row->id . '();"' : '')
+            . ($theme_row->es_responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videolist_row->id . '();"' : '')
             . ' scrolling="no" style="border: 0px none transparent;"></iframe>';
 
         return $result;

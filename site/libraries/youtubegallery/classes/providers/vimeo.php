@@ -35,16 +35,13 @@ class VideoSource_Vimeo
     public static function renderVimeoPlayer($options, $width, $height, &$videolist_row, &$theme_row)
     {
         $videoidkeyword = '****youtubegallery-video-id****';
-
         $playerid = 'youtubegalleryplayerid_' . $videolist_row->id;
 
         $settings = array();
 
         $settings[] = array('loop', (int)$options['es_repeat']);//Whether to restart the video automatically after reaching the end.
-
         $settings[] = array('autoplay', (int)$options['es_autoplay']);//Whether to start playback of the video automatically. This feature might not work on all devices.
-
-        $settings[] = array('muted', (int)$theme_row->muteonplay);//Whether the video is muted upon loading.
+        $settings[] = array('muted', (int)$theme_row->es_muteonplay);//Whether the video is muted upon loading.
         //The true value is required for the autoplay behavior in some browsers.
 
         /*
