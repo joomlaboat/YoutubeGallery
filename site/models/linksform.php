@@ -7,9 +7,9 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Document\Factory;
-
 defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\Factory;
 
 // import Joomla modelform library
 jimport('joomla.application.component.modeladmin');
