@@ -4,7 +4,6 @@ defined('JPATH_PLATFORM') or die;
 
 function YGLoadClasses(): void
 {
-//    if (!class_exists('CT')) {
     $CustomTables_path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
     $loader_file = $CustomTables_path . 'loader.php';
 
@@ -16,7 +15,6 @@ function YGLoadClasses(): void
     $component_name = 'com_youtubegallery';
     require_once($loader_file);
     CTLoader(true, false, null, $component_name);
-//    }
 
     $path = 'classes' . DIRECTORY_SEPARATOR;
 
