@@ -490,13 +490,6 @@
         </valueparams>
     </type>
 
-    <!--
-    <type ct_name="virtual" name="virtual" label="Virtual Field"
-          description="Virtual field the value of which is computed - processed by Twig."
-          ct_alias="virtual" disabled="false" ct_special="false" priority="1">
-    </type>
-    -->
-
     <type ct_name="float" name="float" label="Float (Decimal) Number" description="Provides a decimal number inputbox."
           ct_alias="float" disabled="false" ct_special="false" priority="1">
         <params>
@@ -900,8 +893,57 @@
                 <param name="attributes" label="Attributes"
                        description="Optional attributes like: disabled, onclick, onchange etc." default=""
                        type="string"/>
+                <param name="parent-selector" label="Parent Selector"
+                       description="Used for multilevel dependencies like Country, City, Street. List of parameters to set the sub-level select box. Example: [city_table_name, city_field_name, allow_unpublished(true or false), filter(population>100000), order_by(name)]. It is also possible to pass multiple selectors. Example: [ [city_table_name, city_field_name],[country_table_name, country_field_name, false]]"
+                       default="" type="array"
+                       examplenoquotes="1"
+                       example="[[city_table_name, city_field_name],[country_table_name, country_field_name, false]]"/>
+                <param type="layout" name="layout" label="Title Layout"
+                       description="Optional parameter set the option title format, instead of the field name set in the field type parameter. The layout may contain the field names surrounded by curly brackets. Example: {{ name }} - {{ title }}"
+                       layouttype="catalogitem,simplecatalog,record,details,email,xml,csv,json"
+                       image="https://joomlaboat.com/images/components/ct/field-types/tablejoin-customtitle.png"/>
             </params>
         </editparams>
+
+        <subvalueparams name="get" label="Read processed value of selected field of joined table.">
+            <param name="fieldName" label="Field name"
+                   description="Specify the name of the field to get the value from."
+                   type="field"/>
+            <param name="showPublished" label="Show Published Records"
+                   description="Filter the list of records, show published, unpublished or all records." hidden="false"
+                   default="published" type="list">
+                <option value="published" label="Only Published"/>
+                <option value="unpublished" label="Only Unpublished"/>
+                <option value="all" label="Show all records"/>
+            </param>
+        </subvalueparams>
+
+        <subvalueparams name="getvalue" label="Read unprocessed value of selected field of joined table.">
+            <param name="fieldName" label="Field name"
+                   description="Specify the name of the field to get the value from."
+                   type="field"/>
+            <param name="showPublished" label="Show Published Records"
+                   description="Filter the list of records, show published, unpublished or all records." hidden="false"
+                   default="published" type="list">
+                <option value="published" label="Only Published"/>
+                <option value="unpublished" label="Only Unpublished"/>
+                <option value="all" label="Show all records"/>
+            </param>
+        </subvalueparams>
+
+        <subvalueparams name="layout" label="Render the value of joined table using selected layout.">
+            <param type="layout" name="layout" label="Layout"
+                   description="The layout to render joined table record."
+                   layouttype="catalogitem,simplecatalog,record,details,email,xml,csv,json"/>
+            <param name="showPublished" label="Show Published Records"
+                   description="Filter the list of records, show published, unpublished or all records." hidden="false"
+                   default="published" type="list">
+                <option value="published" label="Only Published"/>
+                <option value="unpublished" label="Only Unpublished"/>
+                <option value="all" label="Show all records"/>
+            </param>
+        </subvalueparams>
+
     </type>
 
     <type ct_name="ordering" name="ordering" label="Ordering/Sorting"
@@ -1126,6 +1168,24 @@
                        image="https://joomlaboat.com/images/components/ct/field-types/tablejoin-customtitle.png"/>
             </params>
         </editparams>
+
+        <subvalueparams name="get" label="Read selected field processed value from joined table.">
+            <param name="fieldName" label="Field name"
+                   description="Specify the name of the field to get the value from."
+                   type="field"/>
+        </subvalueparams>
+
+        <subvalueparams name="getvalue" label="Read unprocessed value of selected field of joined table.">
+            <param name="fieldName" label="Field name"
+                   description="Specify the name of the field to get the value from."
+                   type="field"/>
+        </subvalueparams>
+
+        <subvalueparams name="layout" label="Render the value of joined table using selected layout.">
+            <param type="layout" name="layout" label="Layout"
+                   description="The layout to render joined table record."
+                   layouttype="catalogitem,simplecatalog,record,details,email,xml,csv,json"/>
+        </subvalueparams>
     </type>
 
     <type ct_name="text" name="text" label="Text Area (Multiple Lines)"
@@ -1374,6 +1434,28 @@
                        type="string"/>
             </params>
         </editparams>
+    </type>
+
+
+    <type ct_name="virtual" name="virtual" label="Virtual Field"
+          description="Virtual field is the field the value of which is computed - processed by Twig. Similar to Layout processing."
+          ct_alias="virtual" disabled="false" ct_special="false" priority="1">
+        <params>
+            <param name="layout" label="Layout" description="Value Layout" default="" type="fieldlayout"/>
+
+            <param name="storage" label="Value Storage" type="list" default="virtual"
+                   description="Store the value for future use in search or order by.">
+                <option value="virtual" label="Virtual (Computed on request)"/>
+                <option value="storedstring" label="Stored String"/>
+                <option value="storedintegersigned" label="Stored Integer Signed"/>
+                <option value="storedintegerunsigned" label="Stored Integer Unsigned"/>
+            </param>
+
+            <param name="length" label="Length"
+                   description="Number of characters. Applied for Stored String only."
+                   hidden="false" default="255" type="number" min="1" max="4096"
+                   example="30"/>
+        </params>
     </type>
 </fieldtypes>
 

@@ -68,7 +68,7 @@ class Filtering
     {
         if ($parse) {
             //Parse using layout, has no effect to layout itself
-            if ($this->ct->Env->legacysupport) {
+            if ($this->ct->Env->legacySupport) {
 
                 require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'layout.php');
 
@@ -79,6 +79,9 @@ class Filtering
 
             $twig = new TwigProcessor($this->ct, $paramWhere);
             $paramWhere = $twig->process();
+
+            if ($twig->errorMessage !== null)
+                $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
 
             if ($this->ct->Params->allowContentPlugins)
                 $paramWhere = JoomlaBasicMisc::applyContentPlugins($paramWhere);
@@ -140,7 +143,7 @@ class Filtering
                         $fieldNames = explode(';', $fieldNamesString);
                         $value = trim($whr[1]);
 
-                        if ($this->ct->Env->legacysupport) {
+                        if ($this->ct->Env->legacySupport) {
 
                             require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables'
                                 . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'layout.php');
@@ -151,6 +154,9 @@ class Filtering
 
                         $twig = new TwigProcessor($this->ct, $value);
                         $value = $twig->process();
+
+                        if ($twig->errorMessage !== null)
+                            $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
 
                         foreach ($fieldNames as $fieldname_) {
                             $fieldname_parts = explode(':', $fieldname_);

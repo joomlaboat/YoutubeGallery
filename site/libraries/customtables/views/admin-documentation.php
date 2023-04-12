@@ -102,8 +102,8 @@ class Documentation
                         $result .= $this->renderParametersInternal($params,
                             '{{ ',
                             '<i>' . str_replace(' ', '', common::translate('COM_CUSTOMTABLES_FIELDNAME')) . '</i>',
-                            '(',
-                            ') }}',
+                            '',
+                            ' }}',
                             $hideDefaultExample);
                         break;
                     }
@@ -133,17 +133,37 @@ class Documentation
 
                     foreach ($type->editparams as $p) {
                         $params = $p->params;
-                        //$result.='<h5>'.common::translate('COM_CUSTOMTABLES_EDITRECPARAMS').':</h5>'
                         $result .= $this->renderParametersInternal($params,
                             '{{ ',
                             '<i>' . str_replace(' ', '', common::translate('COM_CUSTOMTABLES_FIELDNAME')) . '</i>',
-                            '.edit(',
-                            ') }}',
+                            '.edit',
+                            ' }}',
                             $hideDefaultExample);
                         break;
                     }
 
                 }
+
+                if (!empty($type->subvalueparams)) {
+
+                    foreach ($type->subvalueparams as $p) {
+
+                        $params_att = $p->attributes();
+                        //print_r($p);
+                        //$params = $p->params;
+                        $result .= '<h5>' . $params_att->label . ':</h5>';
+                        /*$result .= $this->renderParametersInternal($params,
+                            '{{ ',
+                            '<i>' . str_replace(' ', '', common::translate('COM_CUSTOMTABLES_FIELDNAME')) . '</i>',
+                            '.edit',
+                            ' }}',
+                            $hideDefaultExample);
+                        break;
+                        */
+                    }
+
+                }
+
                 $result .= '</div>';
             }
         }
@@ -189,12 +209,12 @@ class Documentation
         if ($tag_name == '') {
             if (!(int)$hideDefaultExample) {
                 $result_new .= '<p>' . common::translate('COM_CUSTOMTABLES_EXAMPLE') . ': <pre class="ct_doc_pre">'
-                    . $opening_char . $tag_name . $postfix . $cleanedParamsStr . $closing_char . '</pre></p>';
+                    . $opening_char . $tag_name . $postfix . ($cleanedParamsStr != "" ? '(' . $cleanedParamsStr . ')' : '') . $closing_char . '</pre></p>';
             }
         } else {
             if ($example_values_count > 0) {
                 $result_new .= '<p>' . common::translate('COM_CUSTOMTABLES_EXAMPLE') . ': <pre class="ct_doc_pre">'
-                    . $opening_char . $tag_name . $postfix . $cleanedParamsStr . $closing_char . '</pre></p>';
+                    . $opening_char . $tag_name . $postfix . ($cleanedParamsStr != "" ? '(' . $cleanedParamsStr . ')' : '') . $closing_char . '</pre></p>';
             }
         }
         return '<ol>' . $result . '</ol>' . $result_new;
@@ -351,8 +371,8 @@ class Documentation
 
                         $result .= $this->renderParametersGitHub($params,
                             '{{ ', str_replace(' ', '', common::translate('COM_CUSTOMTABLES_FIELDNAME')),
-                            '(',
-                            ') }}',
+                            '',
+                            ' }}',
                             $hideDefaultExample);
                         break;
 
@@ -375,8 +395,8 @@ class Documentation
                         $result .= $this->renderParametersGitHub($params,
                             '{{ ',
                             str_replace(' ', '', common::translate('COM_CUSTOMTABLES_FIELDNAME')),
-                            '.edit(',
-                            ') }}',
+                            '.edit',
+                            ' }}',
                             $hideDefaultExample);
                         break;
                     }
@@ -426,10 +446,10 @@ class Documentation
 
         if ($tag_name == '') {
             if (!(int)$hidedefaultexample)
-                $result_new .= '`' . $opening_char . $tag_name . $postfix . $cleanedParamsStr . $closing_char . '`<br/>';
+                $result_new .= '`' . $opening_char . $tag_name . $postfix . ($cleanedParamsStr != "" ? '(' . $cleanedParamsStr . ')' : '') . $closing_char . '`<br/>';
         } else {
             if ($example_values_count > 0)
-                $result_new .= '`' . $opening_char . $tag_name . $postfix . $cleanedParamsStr . $closing_char . '`<br/>';
+                $result_new .= '`' . $opening_char . $tag_name . $postfix . ($cleanedParamsStr != "" ? '(' . $cleanedParamsStr . ')' : '') . $closing_char . '`<br/>';
         }
         return $result . $result_new;
     }

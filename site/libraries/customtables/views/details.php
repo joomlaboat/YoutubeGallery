@@ -32,7 +32,7 @@ class Details
         $this->layoutType = 0;
     }
 
-    function load($layoutDetailsContent = null): ?string
+    function load($layoutDetailsContent = null): bool
     {
         if (!$this->loadRecord())
             return false;
@@ -56,18 +56,10 @@ class Details
         $this->ct->LayoutVariables['layout_type'] = $this->layoutType;
 
         if (!is_null($this->row)) {
-            //$returnto = $this->ct->Params->returnTo;
-
-            //if ((!isset($this->row[$this->ct->Table->realidfieldname]) or (int)$this->row[$this->ct->Table->realidfieldname] == 0) and $returnto != '') {
-            //  $this->ct->app->redirect($returnto);
-            //}
-
-
             //Save view log
             $this->SaveViewLogForRecord($this->row);
             $this->UpdatePHPOnView();
         }
-
         return true;
     }
 
@@ -79,6 +71,9 @@ class Details
 
             $twig = new TwigProcessor($this->ct, $this->ct->Params->filter);
             $filter = $twig->process();
+
+            if ($twig->errorMessage !== null)
+                $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
         }
 
         if (!is_null($this->ct->Params->recordsTable) and !is_null($this->ct->Params->recordsUserIdField) and !is_null($this->ct->Params->recordsField)) {
@@ -100,7 +95,7 @@ class Details
         if ($filter != '') {
             if ($this->ct->Params->alias == '') {
                 //Parse using layout
-                if ($this->ct->Env->legacysupport) {
+                if ($this->ct->Env->legacySupport) {
 
                     require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables'
                         . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'layout.php');
@@ -111,6 +106,9 @@ class Details
 
                 $twig = new TwigProcessor($this->ct, $filter);
                 $filter = $twig->process();
+
+                if ($twig->errorMessage !== null)
+                    $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
             }
 
             $this->row = $this->getDataByFilter($filter);
@@ -324,7 +322,7 @@ class Details
     {
         $layoutDetailsContent = $this->layoutDetailsContent;
 
-        if ($this->ct->Env->legacysupport) {
+        if ($this->ct->Env->legacySupport) {
 
             require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR
                 . 'libraries' . DIRECTORY_SEPARATOR . 'layout.php');
@@ -337,6 +335,9 @@ class Details
 
         $twig = new TwigProcessor($this->ct, $layoutDetailsContent);
         $layoutDetailsContent = $twig->process($this->row);
+
+        if ($twig->errorMessage !== null)
+            $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
 
         if ($this->ct->Params->allowContentPlugins)
             $layoutDetailsContent = JoomlaBasicMisc::applyContentPlugins($layoutDetailsContent);

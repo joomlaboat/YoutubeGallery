@@ -348,7 +348,7 @@ class SaveFieldQuerySet
             case 'blob':
 
                 $to_delete = $this->ct->Env->jinput->post->get($this->field->comesfieldname . '_delete', '', 'CMD');
-                $value = CT_FieldTypeTag_file::get_blob_value($this->field, $listing_id);
+                $value = CT_FieldTypeTag_file::get_blob_value($this->field);
 
                 $fileNameField = '';
                 if (isset($this->field->params[2])) {
@@ -951,12 +951,12 @@ class SaveFieldQuerySet
         }
     }
 
-    function applyDefaults($fieldrow): ?string
+    function applyDefaults($fieldRow): ?string
     {
-        $this->field = new Field($this->ct, $fieldrow, $this->row);
-        if ($this->field->defaultvalue != "" and (!isset($this->row[$this->field->realfieldname]) or is_null($this->row[$this->field->realfieldname])) and $this->field->type != 'dummie') {
+        $this->field = new Field($this->ct, $fieldRow, $this->row);
+        if (!Fields::isVirtualField($fieldRow) and $this->field->defaultvalue != "" and (!isset($this->row[$this->field->realfieldname]) or is_null($this->row[$this->field->realfieldname])) and $this->field->type != 'dummie') {
 
-            if ($this->ct->Env->legacysupport) {
+            if ($this->ct->Env->legacySupport) {
                 $LayoutProc = new LayoutProcessor($this->ct);
                 $LayoutProc->layout = $this->field->defaultvalue;
                 $this->field->defaultvalue = $LayoutProc->fillLayout($this->row);
@@ -964,8 +964,41 @@ class SaveFieldQuerySet
 
             $twig = new TwigProcessor($this->ct, $this->field->defaultvalue);
             $value = $twig->process($this->row);
+
+            if ($twig->errorMessage !== null)
+                $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
+
             $this->row[$this->field->realfieldname] = $value;
             return $this->field->realfieldname . '=' . $this->ct->db->quote($value);
+        } elseif ($fieldRow['type'] == 'virtual') {
+            $paramsList = JoomlaBasicMisc::csv_explode(',', $fieldRow['typeparams'], '"', false);
+            $storage = $paramsList[1] ?? '';
+
+            if ($storage == "storedintegersigned" or $storage == "storedintegerunsigned" or $storage == "storedstring") {
+
+                try {
+
+                    $code = str_replace('****quote****', '"', $paramsList[0]);
+                    $code = str_replace('****apos****', "'", $code);
+
+                    $twig = new TwigProcessor($this->ct, $code, false, false, true);
+                    $value = @$twig->process($this->row);
+
+                    if ($twig->errorMessage !== null) {
+                        $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
+                        return null;
+                    }
+
+                } catch (Exception $e) {
+                    $this->ct->app->enqueueMessage($e->getMessage(), 'error');
+                    return null;
+                }
+
+                if ($storage == "storedintegersigned" or $storage == "storedintegerunsigned")
+                    return $this->field->realfieldname . '=' . (int)$value;
+
+                return $this->field->realfieldname . '=' . $this->ct->db->quote($value);
+            }
         }
         return null;
     }

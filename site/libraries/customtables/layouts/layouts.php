@@ -157,7 +157,11 @@ class Layouts
         if (trim($layoutRow['layoutcss']) != '') {
             $layoutContent = trim($layoutRow['layoutcss']);
             $twig = new TwigProcessor($this->ct, $layoutContent, $this->ct->LayoutVariables['getEditFieldNamesOnly'] ?? false);
-            $layoutContent = '<style>' . $twig->process($this->ct->Table->record) . '</style>';
+            $layoutContent = '<style>' . $twig->process($this->ct->Table->record ?? null) . '</style>';
+
+            if ($twig->errorMessage !== null)
+                $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
+
             $this->ct->document->addCustomTag($layoutContent);
         }
 
@@ -165,6 +169,10 @@ class Layouts
             $layoutContent = trim($layoutRow['layoutjs']);
             $twig = new TwigProcessor($this->ct, $layoutContent, $this->ct->LayoutVariables['getEditFieldNamesOnly'] ?? false);
             $layoutContent = $twig->process($this->ct->Table->record);
+
+            if ($twig->errorMessage !== null)
+                $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
+
             $this->ct->document->addCustomTag('<script>' . $layoutContent . '</script>');
         }
     }
@@ -190,7 +198,7 @@ class Layouts
 
         $fieldtypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy'];
         $fieldTypesWithSearch = ['email', 'string', 'multilangstring', 'text', 'multilangtext', 'sqljoin', 'records', 'user', 'userid', 'int', 'checkbox'];
-        $fieldtypes_allowed_to_orderby = ['string', 'email', 'url', 'sqljoin', 'phponadd', 'phponchange', 'int', 'float', 'ordering', 'changetime', 'creationtime', 'date', 'multilangstring', 'customtables', 'userid', 'user'];
+        $fieldtypes_allowed_to_orderby = ['string', 'email', 'url', 'sqljoin', 'phponadd', 'phponchange', 'int', 'float', 'ordering', 'changetime', 'creationtime', 'date', 'multilangstring', 'customtables', 'userid', 'user', 'virtual'];
 
         $result .= PHP_EOL . '<table>' . PHP_EOL;
 
@@ -269,7 +277,7 @@ class Layouts
         return $result;
     }
 
-    function renderTableColumnHeader($field, $addToolbar, $fieldtypes_to_skip, $fieldtypes_withsearch, $fieldtypes_allowed_to_orderby): string
+    function renderTableColumnHeader($field, $addToolbar, $fieldtypes_to_skip, $fieldtypesWithSearch, $fieldtypes_allowed_to_orderby): string
     {
         $result = '';
 
@@ -278,11 +286,16 @@ class Layouts
             $result .= '<th>';
 
             if ($field['allowordering'] && in_array($field['type'], $fieldtypes_allowed_to_orderby))
-                $result .= '{{ ' . $field['fieldname'] . '.label(true) }}';
+
+                if (Fields::isVirtualField($field))
+                    $result .= '{{ ' . $field['fieldname'] . '.title }}';
+                else
+                    $result .= '{{ ' . $field['fieldname'] . '.label(true) }}';
+
             else
                 $result .= '{{ ' . $field['fieldname'] . '.title }}';
 
-            if ($addToolbar and in_array($field['type'], $fieldtypes_withsearch)) {
+            if ($addToolbar and in_array($field['type'], $fieldtypesWithSearch)) {
 
                 if ($field['type'] == 'checkbox' || $field['type'] == 'sqljoin' || $field['type'] == 'records')
                     $result .= '<br/>{{ html.search("' . $field['fieldname'] . '","","reload") }}';
@@ -339,10 +352,9 @@ class Layouts
     function createDefaultLayout_Edit($fields, $addToolbar = true): string
     {
         $this->layouttype = 2;
-
         $result = '<div class="form-horizontal">';
 
-        $fieldTypes_to_skip = ['log', 'phponview', 'phponchange', 'phponadd', 'md5', 'id', 'server', 'userid', 'viewcount', 'lastviewtime', 'changetime', 'creationtime', 'imagegallery', 'filebox', 'dummy'];
+        $fieldTypes_to_skip = ['log', 'phponview', 'phponchange', 'phponadd', 'md5', 'id', 'server', 'userid', 'viewcount', 'lastviewtime', 'changetime', 'creationtime', 'imagegallery', 'filebox', 'dummy', 'virtual'];
 
         foreach ($fields as $field) {
             if (!in_array($field['type'], $fieldTypes_to_skip)) {
@@ -356,7 +368,7 @@ class Layouts
 
         foreach ($fields as $field) {
             if ($field['type'] === "dummy") {
-                $result .= '<p><span style="color: #FB1E3D; ">*</span> {{ ' . $field['fieldname'] . '.edit }}</p>
+                $result .= '<p><span style="color: #FB1E3D; ">*</span> {{ ' . $field['fieldname'] . ' }}</p>
 ';
                 break;
             }

@@ -42,12 +42,15 @@ class TwigProcessor
     var bool $recordBlockFound;
     var string $recordBlockReplaceCode;
     var bool $DoHTMLSpecialChars;
+    var bool $getEditFieldNamesOnly;
+    var ?string $errorMessage;
 
-    public function __construct(CT &$ct, $layoutContent, $getEditFieldNamesOnly = false, $DoHTMLSpecialChars = false)
+    public function __construct(CT &$ct, $layoutContent, $getEditFieldNamesOnly = false, $DoHTMLSpecialChars = false, $parseParams = true)
     {
         $this->DoHTMLSpecialChars = $DoHTMLSpecialChars;
-        $ct->LayoutVariables['getEditFieldNamesOnly'] = $getEditFieldNamesOnly;
         $this->ct = $ct;
+        $this->getEditFieldNamesOnly = $getEditFieldNamesOnly;
+        $this->ct->LayoutVariables['getEditFieldNamesOnly'] = $getEditFieldNamesOnly;
 
         $htmlresult_ = '{% autoescape false %}' . $layoutContent . '{% endautoescape %}';
 
@@ -92,8 +95,10 @@ class TwigProcessor
         $this->twig = new \Twig\Environment($loader);
 
         $this->addGlobals();
-        $this->addFieldValueMethods();
+        $this->addFieldValueMethods($parseParams);
         $this->addTwigFilters();
+
+        $this->errorMessage = null;
     }
 
     protected function addGlobals(): void
@@ -191,7 +196,7 @@ class TwigProcessor
         $this->twig->addGlobal('tables', new Twig_Tables_Tags($this->ct));
     }
 
-    protected function addFieldValueMethods(): void
+    protected function addFieldValueMethods($parseParams = true): void
     {
         if (isset($this->ct->Table->fields)) {
             $index = 0;
@@ -210,7 +215,7 @@ class TwigProcessor
                 });
 
                 $this->twig->addFunction($function);
-                $this->variables[$fieldrow['fieldname']] = new fieldObject($this->ct, $fieldrow, $this->DoHTMLSpecialChars);
+                $this->variables[$fieldrow['fieldname']] = new fieldObject($this->ct, $fieldrow, $this->DoHTMLSpecialChars, $this->getEditFieldNamesOnly, $parseParams);
                 $index++;
             }
         }
@@ -268,15 +273,12 @@ class TwigProcessor
         if ($isSingleRecord) {
             $result = '';
         } else {
-            //try {
-            $result = $this->twig->render('index', $this->variables);
-            /*
-        } catch (Exception $e) {
-            $this->ct->app->enqueueMessage($e->getMessage(), 'error');
-            echo $e->getMessage();
-            die;
-            return 'Error:' . $e->getMessage();
-        }*/
+            try {
+                $result = @$this->twig->render('index', $this->variables);
+            } catch (Exception $e) {
+                $this->errorMessage = $e->getMessage();
+                return 'Error:' . $e->getMessage();
+            }
         }
 
         if ($this->recordBlockFound) {
@@ -326,12 +328,14 @@ class fieldObject
     var CT $ct;
     var Field $field;
     var bool $DoHTMLSpecialChars;
+    var bool $getEditFieldNamesOnly;
 
-    function __construct(CT &$ct, $fieldrow, $DoHTMLSpecialChars = false)
+    function __construct(CT &$ct, $fieldrow, $DoHTMLSpecialChars = false, $getEditFieldNamesOnly = false, $parseParams = true)
     {
         $this->DoHTMLSpecialChars = $DoHTMLSpecialChars;
         $this->ct = $ct;
-        $this->field = new Field($ct, $fieldrow, $this->ct->Table->record);
+        $this->field = new Field($ct, $fieldrow, $this->ct->Table->record, $parseParams);
+        $this->getEditFieldNamesOnly = $getEditFieldNamesOnly;
     }
 
     public function __toString()
@@ -365,11 +369,6 @@ class fieldObject
         return 'unknown';
     }
 
-    public function fieldname()
-    {
-        return $this->field->fieldname;
-    }
-
     public function v()
     {
         return $this->value();
@@ -377,6 +376,9 @@ class fieldObject
 
     public function value()
     {
+        if ($this->ct->Table->record === null)
+            return '';
+
         $options = func_get_args();
         $rfn = $this->field->realfieldname;
 
@@ -404,8 +406,9 @@ class fieldObject
 
         } elseif ($this->field->type == 'filebox') {
             $vlu = implode(',', CT_FieldTypeTag_FileBox::getFileBoxRows($this->ct->Table->tablename, $this->field->fieldname, $this->ct->Table->record[$this->ct->Table->realidfieldname]));
-        } else
-            $vlu = (string)$this->ct->Table->record[$rfn];
+        } else {
+            $vlu = $this->ct->Table->record[$rfn];
+        }
 
         if ($this->DoHTMLSpecialChars) {
             $vlu = htmlentities($vlu, ENT_IGNORE + ENT_DISALLOWED + ENT_HTML5, "UTF-8");
@@ -434,6 +437,11 @@ class fieldObject
         return $this->field->title;
     }
 
+    public function l($allowSortBy = false)
+    {
+        $this->label($allowSortBy);
+    }
+
     public function label($allowSortBy = false)
     {
         $forms = new Forms($this->ct);
@@ -457,13 +465,16 @@ class fieldObject
 
     public function edit()
     {
+        if (Fields::isVirtualField($this->field->fieldrow))
+            return $this->value();
+
         $args = func_get_args();
 
         if ($this->ct->isEditForm) {
             $Inputbox = new Inputbox($this->ct, $this->field->fieldrow, $args);
             $value = $Inputbox->getDefaultValueIfNeeded($this->ct->Table->record);
 
-            if ($this->ct->LayoutVariables['getEditFieldNamesOnly']) {
+            if ($this->getEditFieldNamesOnly) {
                 $this->ct->editFields[] = $this->field->fieldname;
                 return '';
             } else
@@ -516,13 +527,13 @@ class fieldObject
         }
     }
 
-    public function get($fieldname, string $showPublishedString = ''): string
+    public function get($fieldName, string $showPublishedString = ''): string
     {
         if ($this->field->type == 'sqljoin') {
-            $layoutcode = '{{ ' . $fieldname . ' }}';
+            $layoutcode = '{{ ' . $fieldName . ' }}';
             return CT_FieldTypeTag_sqljoin::resolveSQLJoinTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname]);
         } elseif ($this->field->type == 'records') {
-            $layoutcode = '{{ ' . $fieldname . ' }}';
+            $layoutcode = '{{ ' . $fieldName . ' }}';
             return CT_FieldTypeTag_records::resolveRecordTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname], $showPublishedString);
         } else {
             $this->ct->app->enqueueMessage('{{ ' . $this->field->fieldname . '.get }}. Wrong field type "' . $this->field->type . '". ".get" method is only available for Table Join and Records filed types.', 'error');
@@ -530,13 +541,13 @@ class fieldObject
         }
     }
 
-    public function getvalue($fieldname, string $showPublishedString = ''): string
+    public function getvalue($fieldName, string $showPublishedString = ''): string
     {
         if ($this->field->type == 'sqljoin') {
-            $layoutcode = '{{ ' . $fieldname . '.value }}';
+            $layoutcode = '{{ ' . $fieldName . '.value }}';
             return CT_FieldTypeTag_sqljoin::resolveSQLJoinTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname]);
         } elseif ($this->field->type == 'records') {
-            $layoutcode = '{{ ' . $fieldname . '.value }}';
+            $layoutcode = '{{ ' . $fieldName . '.value }}';
             return CT_FieldTypeTag_records::resolveRecordTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname], $showPublishedString);
         } else {
             $this->ct->app->enqueueMessage('{{ ' . $this->field->fieldname . '.getvalue }}. Wrong field type "' . $this->field->type . '". ".getvalue" method is only available for Table Join and Records filed types.', 'error');
@@ -544,7 +555,7 @@ class fieldObject
         }
     }
 
-    public function layout(string $layoutname, string $showPublishedString = ''): string
+    public function layout(string $layoutName, string $showPublishedString = ''): string
     {
         if ($this->field->type != 'sqljoin' and $this->field->type != 'records') {
             $this->ct->app->enqueueMessage('{{ ' . $this->field->fieldname . '.get }}. Wrong field type "' . $this->field->type . '". ".get" method is only available for Table Join and Records filed types.', 'error');
@@ -552,17 +563,17 @@ class fieldObject
         }
 
         $Layouts = new Layouts($this->ct);
-        $layoutcode = $Layouts->getLayout($layoutname);
+        $layoutCode = $Layouts->getLayout($layoutName);
 
-        if ($layoutcode == '') {
-            $this->ct->app->enqueueMessage('{{ ' . $this->field->fieldname . '.layout("' . $layoutname . '") }} Layout "' . $layoutname . '" not found or is empty.', 'error');
+        if ($layoutCode == '') {
+            $this->ct->app->enqueueMessage('{{ ' . $this->field->fieldname . '.layout("' . $layoutName . '") }} Layout "' . $layoutName . '" not found or is empty.', 'error');
             return '';
         }
 
         if ($this->field->type == 'sqljoin') {
-            return CT_FieldTypeTag_sqljoin::resolveSQLJoinTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname]);
+            return CT_FieldTypeTag_sqljoin::resolveSQLJoinTypeValue($this->field, $layoutCode, $this->ct->Table->record[$this->field->realfieldname]);
         } elseif ($this->field->type == 'records') {
-            return CT_FieldTypeTag_records::resolveRecordTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname], $showPublishedString);
+            return CT_FieldTypeTag_records::resolveRecordTypeValue($this->field, $layoutCode, $this->ct->Table->record[$this->field->realfieldname], $showPublishedString);
         }
         return 'impossible';
     }

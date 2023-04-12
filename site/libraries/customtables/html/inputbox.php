@@ -60,9 +60,16 @@ class Inputbox
         $this->isTwig = $isTwig;
 
         $this->cssclass = $option_list[0] ?? '';
-        $this->attributes = $option_list[1] ?? '';//Optional Parameter
+        $this->attributes = str_replace('****quote****', '"', $option_list[1] ?? '');//Optional Parameter
+
+        preg_match('/onchange="([^"]*)"/', $this->attributes, $matches);
+        $onchange_value = $matches[1] ?? '';
+
+        $this->attributes = str_replace($onchange_value, '', $this->attributes);
+        $this->attributes = str_replace('onchange=""', '', $this->attributes);
+        $this->attributes = str_replace("onchange=''", '', $this->attributes);
         $this->cssStyle = '';
-        $this->onchange = $onchange;
+        $this->onchange = ($onchange_value != '' and $onchange_value[strlen($onchange_value) - 1] != ';') ? $onchange_value . ';' . $onchange : $onchange_value . $onchange;
 
         if (str_contains($this->cssclass, ':'))//it's a style, change it to attribute
         {
@@ -80,7 +87,7 @@ class Inputbox
 
         $this->field = new Field($this->ct, $fieldRow);
 
-        $this->cssclass .= ($this->ct->Env->version < 4 ? ' inputbox' : ' form-control') . ($this->field->isrequired ? ' required' : '');
+        $this->cssclass .= ($this->ct->Env->version < 4 ? ' inputbox' : ' form-control') . ($this->field->isrequired == 1 ? ' required' : '');
         $this->option_list = $option_list;
         $this->place_holder = $this->field->title;
     }
@@ -104,26 +111,27 @@ class Inputbox
     {
         $selector = $selectors[$index];
 
-        $tablename = $selector[0];
-        if ($tablename === null) {
+        $tableName = $selector[0];
+        if ($tableName === null) {
             if ($obEndClean)
                 die(json_encode(['error' => 'Table not selected']));
             else
                 return 'Table not selected';
         }
 
-        $ct->getTable($tablename);
+        $ct->getTable($tableName);
         if (is_null($ct->Table->tablename))
-            die(json_encode(['error' => 'Table "' . $tablename . '"not found']));
+            die(json_encode(['error' => 'Table "' . $tableName . '"not found']));
 
-        $fieldname_or_layout = $selector[1];
-        if ($fieldname_or_layout === null or $fieldname_or_layout == '')
-            $fieldname_or_layout = $ct->Table->fields[0]['fieldname'];//Get first field if not specified
+        $fieldName_or_layout = $selector[1];
+        if ($fieldName_or_layout === null or $fieldName_or_layout == '')
+            $fieldName_or_layout = $ct->Table->fields[0]['fieldname'];//Get first field if not specified
 
         //$showPublished = 0 - show published
         //$showPublished = 1 - show unpublished
         //$showPublished = 2 - show any
-        $showPublished = (($selector[2] ?? '') == 'true' ? 2 : 0); //$selector[2] can be "" or "true" or "false"
+        $showPublishedString = $selector[2] ?? '';
+        $showPublished = ($showPublishedString == 'true' ? 2 : 0); //$selector[2] can be "" or "true" or "false"
 
         $filter = $selector[3] ?? '';
 
@@ -133,16 +141,16 @@ class Inputbox
             if ($fld['type'] == 'sqljoin' or $fld['type'] == 'records') {
                 $type_params = JoomlaBasicMisc::csv_explode(',', $fld['typeparams']);
 
-                $join_tablename = $type_params[0];
-                $join_to_tablename = $selector[5];
+                $join_tableName = $type_params[0];
+                $join_to_tableName = $selector[5];
 
                 if ($additional_filter != '') {
-                    if ($join_tablename == $join_to_tablename) {
+                    if ($join_tableName == $join_to_tableName) {
                         $filter .= ' and ' . $fld['fieldname'] . '=' . $additional_filter;
                     }
                 } else {
                     //Check if this table has self-parent field - the TableJoin field linked with the same table.
-                    if ($join_tablename == $tablename) {
+                    if ($join_tableName == $tableName) {
 
                         if ($subFilter == '')
                             $additional_where = '(' . $fld['realfieldname'] . ' IS NULL OR ' . $fld['realfieldname'] . '="")';
@@ -157,37 +165,49 @@ class Inputbox
         if ($additional_where != '')
             $ct->Filter->where[] = $additional_where;
 
-        $orderby = $selector[4] ?? '';
+        /*
+        if (count($selectors) > $index + 1) {
+            $currentFilter = $selectors[$index];
+            $nextFilter = $selectors[$index + 1];
+            $ct->Filter->where[] = '(SELECT COUNT(id) FROM #__customtables_table_' . $nextFilter[0]
+                . ' WHERE #__customtables_table_' . $nextFilter[0] . '.es_' . $nextFilter[4] . '=#__customtables_table_' . $currentFilter[0] . '.id) >0';
+        }
+        */
+
+        $orderBy = $selector[4] ?? '';
 
         //sorting
-        $ct->Ordering->ordering_processed_string = $orderby;
+        $ct->Ordering->ordering_processed_string = $orderBy;
         $ct->Ordering->parseOrderByString();
 
         $ct->getRecords();
 
-        if (!str_contains($fieldname_or_layout, '{{') and !str_contains($fieldname_or_layout, 'layout')) {
-            $fieldname_or_layout_tag = '{{ ' . $fieldname_or_layout . ' }}';
+        if (!str_contains($fieldName_or_layout, '{{') and !str_contains($fieldName_or_layout, 'layout')) {
+            $fieldName_or_layout_tag = '{{ ' . $fieldName_or_layout . ' }}';
         } else {
-            $pair = explode(':', $fieldname_or_layout);
+            $pair = explode(':', $fieldName_or_layout);
 
             if (count($pair) == 2) {
                 $layout_mode = true;
                 if ($pair[0] != 'layout' and $pair[0] != 'tablelesslayout')
-                    die(json_encode(['error' => JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_UNKNOWN_FIELD_LAYOUT') . ' "' . $fieldname_or_layout . '"']));
+                    die(json_encode(['error' => JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_UNKNOWN_FIELD_LAYOUT') . ' "' . $fieldName_or_layout . '"']));
 
                 $Layouts = new Layouts($ct);
-                $fieldname_or_layout_tag = $Layouts->getLayout($pair[1]);
+                $fieldName_or_layout_tag = $Layouts->getLayout($pair[1]);
 
-                if (!isset($fieldname_or_layout_tag) or $fieldname_or_layout_tag == '')
-                    die(JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_LAYOUT_NOT_FOUND') . ' "' . $pair[1] . '"');
+                if (!isset($fieldName_or_layout_tag) or $fieldName_or_layout_tag == '') {
+                    $result_js = ['error' => JoomlaBasicMisc::JTextExtended(
+                            'COM_CUSTOMTABLES_ERROR_LAYOUT_NOT_FOUND') . ' "' . $pair[1] . '"'];
+                    return json_encode($result_js);
+                }
             } else
-                $fieldname_or_layout_tag = $fieldname_or_layout;
+                $fieldName_or_layout_tag = $fieldName_or_layout;
         }
 
-        $itemLayout = '{"id":"{{ record.id }}","label":"' . $fieldname_or_layout_tag . '"}';
+        $itemLayout = '{"id":"{{ record.id }}","label":"' . $fieldName_or_layout_tag . '"}';
         $pageLayoutContent = '[{% block record %}{% if record.number>1 %},{% endif %}' . $itemLayout . '{% endblock %}]';
 
-        $paramsArray['establename'] = $tablename;
+        $paramsArray['establename'] = $tableName;
 
         $params = new Registry;
         $params->loadArray($paramsArray);
@@ -252,7 +272,7 @@ class Inputbox
                 $image_type_file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'fieldtypes' . DIRECTORY_SEPARATOR . '_type_image.php';
                 require_once($image_type_file);
 
-                return CT_FieldTypeTag_image::renderImageFieldBox($this->field, $this->prefix, $this->row, $this->cssclass, $this->attributes);
+                return CT_FieldTypeTag_image::renderImageFieldBox($this->field, $this->prefix, $this->row);
 
             case 'signature':
                 return $this->render_signature();
@@ -369,7 +389,7 @@ class Inputbox
 
             case 'multilangarticle':
                 if (!$this->ct->isRecordNull($this->row))
-                    return $this->render_multilangarticle();
+                    return $this->renderMultilingualArticle();
                 break;
         }
         return '';
@@ -380,8 +400,8 @@ class Inputbox
         $result = '<ul>';
         $i = 0;
 
-        foreach ($this->field->params as $radiovalue) {
-            $v = trim($radiovalue);
+        foreach ($this->field->params as $radioValue) {
+            $v = trim($radioValue);
             $result .= '<li><input type="radio"
 									name="' . $this->prefix . $this->field->fieldname . '"
 									id="' . $this->prefix . $this->field->fieldname . '_' . $i . '"
@@ -525,7 +545,7 @@ class Inputbox
 
                 if ($language == $lang->sef) {
                     //show single edit box
-                    return $this->getMultilangStringItem($postfix, $lang->sef);
+                    return $this->getMultilingualStringItem($postfix, $lang->sef);
                 }
             }
         }
@@ -544,14 +564,14 @@ class Inputbox
             $result .= '
 			<div class="control-group">
 				<div class="control-label">' . $lang->caption . '</div>
-				<div class="controls">' . $this->getMultilangStringItem($postfix, $lang->sef) . '</div>
+				<div class="controls">' . $this->getMultilingualStringItem($postfix, $lang->sef) . '</div>
 			</div>';
         }
         $result .= '</div>';
         return $result;
     }
 
-    protected function getMultilangStringItem($postfix, $langsef): string
+    protected function getMultilingualStringItem($postfix, $langSEF): string
     {
         $attributes_ = '';
         $addDynamicEvent = false;
@@ -570,7 +590,7 @@ class Inputbox
         if ($addDynamicEvent) {
             $href = 'onchange="ct_UpdateSingleValue(\'' . $this->ct->Env->WebsiteRoot . '\','
                 . $this->ct->Params->ItemId . ',\'' . $this->field->fieldname . $postfix . '\','
-                . $this->row[$this->ct->Table->realidfieldname] . ',\'' . $langsef . '\',' . (int)$this->ct->Params->ModuleId . ')"';
+                . $this->row[$this->ct->Table->realidfieldname] . ',\'' . $langSEF . '\',' . (int)$this->ct->Params->ModuleId . ')"';
 
             $attributes_ = ' ' . $href;
         }
@@ -590,12 +610,7 @@ class Inputbox
     protected function render_text($value): string
     {
         $result = '';
-        $fname = $this->prefix . $this->field->fieldname;
-
-        //if(strpos($this->attributes,'onchange="')!==false)
-        //$attributes = str_replace('onchange="','onchange="'.$this->onchange,$this->attributes);// onchange event already exists add one before
-        //else
-        //$attributes = $this->attributes.' onchange="'.$onchange;
+        $fullFieldName = $this->prefix . $this->field->fieldname;
 
         if (in_array('rich', $this->field->params)) {
             $w = 500;
@@ -606,10 +621,10 @@ class Inputbox
             $editor_name = $this->ct->app->get('editor');
             $editor = Editor::getInstance($editor_name);
 
-            $result .= '<div>' . $editor->display($fname, $value, $w, $h, $c, $l) . '</div>';
+            $result .= '<div>' . $editor->display($fullFieldName, $value, $w, $h, $c, $l) . '</div>';
         } else {
-            $result .= '<textarea name="' . $fname . '" '
-                . 'id="' . $fname . '" '
+            $result .= '<textarea name="' . $fullFieldName . '" '
+                . 'id="' . $fullFieldName . '" '
                 . 'class="' . $this->cssclass . '" '
                 . $this->attributes . ' '
                 . 'data-label="' . $this->field->title . '"'
@@ -624,7 +639,7 @@ class Inputbox
 
             if (file_exists($file_path)) {
                 $this->ct->document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/thirdparty/jsc/include.js"></script>');
-                $this->ct->document->addCustomTag('<script>$Spelling.SpellCheckAsYouType("' . $fname . '");</script>');
+                $this->ct->document->addCustomTag('<script>$Spelling.SpellCheckAsYouType("' . $fullFieldName . '");</script>');
                 $this->ct->document->addCustomTag('<script>$Spelling.DefaultDictionary = "English";</script>');
             }
         }
@@ -661,7 +676,7 @@ class Inputbox
                 }
             }
 
-            $result .= ($this->field->isrequired ? ' ' . $RequiredLabel : '');
+            $result .= ($this->field->isrequired == 1 ? ' ' . $RequiredLabel : '');
 
             $result .= '<div id="' . $fieldname . '_div" class="multilangtext">';
 
@@ -676,15 +691,15 @@ class Inputbox
                 $editor_name = $this->ct->app->get('editor');
                 $editor = Editor::getInstance($editor_name);
 
-                $fname = $this->prefix . $fieldname;
-                $result .= '<div>' . $editor->display($fname, $value, $w, $h, $c, $l) . '</div>';
+                $fullFieldName = $this->prefix . $fieldname;
+                $result .= '<div>' . $editor->display($fullFieldName, $value, $w, $h, $c, $l) . '</div>';
             } else {
                 $result .= '<textarea name="' . $this->prefix . $fieldname . '" '
                     . 'id="' . $this->prefix . $fieldname . '" '
-                    . 'class="' . $this->cssclass . ' ' . ($this->field->isrequired ? 'required' : '') . '">' . $value . '</textarea>'
+                    . 'class="' . $this->cssclass . ' ' . ($this->field->isrequired == 1 ? 'required' : '') . '">' . $value . '</textarea>'
                     . '<span class="language_label">' . $lang->caption . '</span>';
 
-                $result .= ($this->field->isrequired ? ' ' . $RequiredLabel : '');
+                $result .= ($this->field->isrequired == 1 ? ' ' . $RequiredLabel : '');
             }
 
             $result .= '</div>';
@@ -909,9 +924,9 @@ class Inputbox
             $where_string = '#__usergroups.title!=' . $this->ct->db->quote('Super Users');
         } else {
             $where = [];
-            foreach ($availableUserGroupsList as $availableusergroup) {
-                if ($availableusergroup != '')
-                    $where[] = '#__usergroups.title=' . $this->ct->db->quote($availableusergroup);
+            foreach ($availableUserGroupsList as $availableUserGroup) {
+                if ($availableUserGroup != '')
+                    $where[] = '#__usergroups.title=' . $this->ct->db->quote($availableUserGroup);
             }
             $where_string = '(' . implode(' OR ', $where) . ')';
         }
@@ -1089,7 +1104,7 @@ class Inputbox
         //$this->option_list[3] - Custom Title Layout
 
         if ($this->ct->isRecordNull($this->row))
-            $value = $this->ct->Env->jinput->getInt($this->ct->Env->field_prefix . $this->field->fieldname, null);
+            $value = $this->ct->Env->jinput->getInt($this->ct->Env->field_prefix . $this->field->fieldname);
 
         $sqljoin_attributes = ' data-valuerule="' . str_replace('"', '&quot;', $this->field->valuerule) . '"'
             . ' data-valuerulecaption="' . str_replace('"', '&quot;', $this->field->valuerulecaption) . '"';
@@ -1143,6 +1158,10 @@ class Inputbox
 
         $esr_table = $this->field->params[0];
         $esr_field = $this->field->params[1] ?? '';
+
+        if (isset($this->option_list[3])) {
+            $esr_field = 'layout:' . $this->option_list[3];
+        }
 
         $esr_selector = $this->field->params[2] ?? '';
 
@@ -1223,7 +1242,7 @@ class Inputbox
             . 'data-valuerule="' . str_replace('"', '&quot;', $this->field->valuerule) . '" '
             . 'data-valuerulecaption="' . str_replace('"', '&quot;', $this->field->valuerulecaption); // closing quote is not needed because
 
-        $attributes['required'] = ($this->field->isrequired ? 'required' : ''); //not working, don't know why.
+        $attributes['required'] = ($this->field->isrequired == 1 ? 'required' : ''); //not working, don't know why.
 
         $result .= JHTML::calendar($value, $this->prefix . $this->field->fieldname, $this->prefix . $this->field->fieldname,
             '%Y-%m-%d', $attributes);
@@ -1319,7 +1338,7 @@ class Inputbox
         return $result;
     }
 
-    protected function render_multilangarticle(): string
+    protected function renderMultilingualArticle(): string
     {
         $result = '
 		<table>
@@ -1376,7 +1395,7 @@ class Inputbox
 
                 //Process default value, not processing PHP tag
                 if ($value != '') {
-                    if ($this->ct->Env->legacysupport) {
+                    if ($this->ct->Env->legacySupport) {
                         tagProcessor_General::process($this->ct, $value, $row);
                         tagProcessor_Item::process($this->ct, $value, $row);
                         tagProcessor_If::process($this->ct, $value, $row);
@@ -1386,6 +1405,9 @@ class Inputbox
 
                     $twig = new TwigProcessor($this->ct, $value);
                     $value = $twig->process($row);
+
+                    if ($twig->errorMessage !== null)
+                        $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
 
                     if ($value != '') {
                         if ($this->ct->Params->allowContentPlugins)
