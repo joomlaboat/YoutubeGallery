@@ -420,14 +420,19 @@ class YouTubeGalleryDB
         $parent_id = null;
 
         $ListOfVideosNotToDelete = array();
+        $customOrdering = 1;
 
         foreach ($videoList as $g) {
             if (isset($g['es_videoid'])) {
                 $ListOfVideosNotToDelete[] = '!(es_videoid=' . $db->quote($g['es_videoid']) . ' AND es_videosource=' . $db->quote($g['es_videosource']) . ')';
+
+                if (!isset($g['es_ordering']) or $g['es_ordering'] == '') {
+                    $g['es_ordering'] = $customOrdering;
+                    $customOrdering += 1;
+                }
                 YouTubeGalleryDB::updateDBSingleItem($g, (int)$videolist_row->id, $parent_id);
             }
         }
-
         //Delete All videos of this video list that has been deleted form the list and allowed for updates.
         $query = 'DELETE FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$videolist_row->id;
         if (count($ListOfVideosNotToDelete) > 0)

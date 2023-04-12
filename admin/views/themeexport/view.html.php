@@ -7,6 +7,7 @@
  **/
 
 // No direct access to this file
+use Joomla\Archive\Zip;
 use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die('Restricted access');
@@ -42,28 +43,25 @@ class ygExportTheme
         }
 
         // get the Data
-
         $ygDB = new YouTubeGalleryDB;
         if (!$ygDB->getThemeTableRow($id))
             return '<p>No video found</p>';
 
-        $themename = $ygDB->theme_row->es_themename;
+        $themeName = $ygDB->theme_row->es_themename;
 
         // Prepare Folder
-        $folder_base_name = ygExportTheme::cleanThemeName($themename);
+        $folder_base_name = ygExportTheme::cleanThemeName($themeName);
 
         $folder = ygExportTheme::prepareFolder($folder_base_name);
         if ($folder == '')
             return '';
         echo 'Folder "tmp/youtubegallery/' . $folder . '" created.<br/>';
 
-
         //Copy Files
         if ($ygDB->theme_row->es_mediafolder != '')
             $files_to_archive = ygExportTheme::copyFiles('images' . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $ygDB->theme_row->es_mediafolder), 'tmp' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR . $folder);
 
         $path = JPATH_SITE . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR;
-
 
         //Save About info
         if ($ygDB->theme_row->es_themedescription != '') {
@@ -82,49 +80,40 @@ class ygExportTheme
         file_put_contents($path . $folder . DIRECTORY_SEPARATOR . $filename, $save_as);
         echo 'File "' . $filename . '" created.<br/>';
 
-
         //Save XML file
-        $xmlfile = ygExportTheme::saveXMLFile($folder_base_name, $themename);
-        $xmlfilename = 'YoutubeGalleryTheme_' . $folder_base_name . '.xml';
-        file_put_contents($path . $folder . DIRECTORY_SEPARATOR . $xmlfilename, $xmlfile);
-        echo 'File "' . $xmlfilename . '" created.<br/>';
+        $xmlFile = ygExportTheme::saveXMLFile($folder_base_name, $themeName);
+        $xmlFileName = 'YoutubeGalleryTheme_' . $folder_base_name . '.xml';
+        file_put_contents($path . $folder . DIRECTORY_SEPARATOR . $xmlFileName, $xmlFile);
+        echo 'File "' . $xmlFileName . '" created.<br/>';
 
         //Save Script file
-        $scriptfile = ygExportTheme::saveScriptFile($folder_base_name);
-        file_put_contents($path . $folder . DIRECTORY_SEPARATOR . 'install.php', $scriptfile);
+        $scriptFile = ygExportTheme::saveScriptFile($folder_base_name);
+        file_put_contents($path . $folder . DIRECTORY_SEPARATOR . 'install.php', $scriptFile);
         echo 'File "install.php" created.<br/>';
 
-
         //create ZIP archive
-
         jimport('joomla.filesystem.archive');
 
         $filesArray = array();
-        $archivename = $path . $folder . '.zip';
-
+        $archiveName = $path . $folder . '.zip';
         $files = JFolder::files($path . $folder, '.*', true, true);
 
         foreach ($files as $file) {
-            $data = JFile::read($file);
+            $data = file_get_contents($file);
             $filesArray[] = array('name' => ygExportTheme::getFileNameOnly($file), 'data' => $data);
         }
 
-        $zip = JArchive::getAdapter('zip');
-        $zip->create($archivename, $filesArray);
+
+        $zip = new Zip();
+        $zip->create($archiveName, $filesArray);
 
         echo 'File "tmp/youtubegallery/' . $folder . '.zip" created.<br/>';
-
         JFolder::delete($path . $folder);
         echo 'Folder "tmp/youtubegallery/' . $folder . '" deleted.<br/>';
-
         echo '</p>';
 
         // Display the template
-
-        $theme_zip_file = $folder . '.zip';
-
-        return $theme_zip_file;
-
+        return $folder . '.zip';
     }
 
     static protected function cleanThemeName($originalName)
