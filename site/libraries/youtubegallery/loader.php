@@ -6,13 +6,14 @@ function YGLoadClasses(): void
 {
     $CustomTables_path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
     $loader_file = $CustomTables_path . 'loader.php';
+    $component_name = 'com_customtables';
 
     if (!file_exists($loader_file)) {
         $CustomTables_path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
         $loader_file = $CustomTables_path . 'loader.php';
+        $component_name = 'com_youtubegallery';
     }
 
-    $component_name = 'com_youtubegallery';
     require_once($loader_file);
     CTLoader(true, false, null, $component_name);
 

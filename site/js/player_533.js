@@ -87,7 +87,6 @@ const YoutubeGalleryPlayerObject = class {
                 "onStateChange": function (event) {
                     if (PlayList.length !== 0 && allowplaylist) {
                         if (event.data === YT.PlayerState.ENDED) {
-                            alert("eval104");
                             setTimeout(eval(func), 500);
                         }
                     }
