@@ -104,7 +104,7 @@ class Twig_Record_Tags
         return Route::_($view_link);
     }
 
-    function published($type, $second_variable = null)
+    function published(string $type = '', string $customTextPositive = "Published", string $customTextNegative = "Unpublished")
     {
         if (!isset($this->ct->Table)) {
             $this->ct->app->enqueueMessage('{{ record.published }} - Table not loaded.', 'error');
@@ -116,18 +116,14 @@ class Twig_Record_Tags
             return null;
         }
 
-        if ($type == 'yesno' or $type == '')
-            return (int)$this->ct->Table->record['listing_published'] == 1 ? JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_YES') : JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_NO');
-        elseif ($type == 'bool' or $type == 'boolean')
+        if ($type == 'bool' or $type == 'boolean')
             return ((int)$this->ct->Table->record['listing_published'] ? 'true' : 'false');
         elseif ($type == 'number')
             return (int)$this->ct->Table->record['listing_published'];
-        else {
-            if ($second_variable !== null)
-                return $this->ct->Table->record['listing_published'] == 1 ? $second_variable : '';
-            else
-                return (int)$this->ct->Table->record['listing_published'];
-        }
+        elseif ($type == 'custom')
+            return $this->ct->Table->record['listing_published'] == 1 ? $customTextPositive : $customTextNegative;
+        else
+            return (int)$this->ct->Table->record['listing_published'] == 1 ? JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_YES') : JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_NO');
     }
 
     function number(): ?int
@@ -252,29 +248,29 @@ class Twig_Record_Tags
         return $vlu;
     }
 
-    protected function join_getRealFieldName($fieldname, $tableRow): ?array
+    protected function join_getRealFieldName($fieldName, $tableRow): ?array
     {
-        $tableid = $tableRow['id'];
+        $tableId = $tableRow['id'];
 
-        if ($fieldname == '_id') {
+        if ($fieldName == '_id') {
             return [$tableRow['realidfieldname'], '_id'];
-        } elseif ($fieldname == '_published') {
+        } elseif ($fieldName == '_published') {
             if ($tableRow['published_field_found'])
                 return ['published', '_published'];
             else
                 $this->ct->app->enqueueMessage('{{ record.join... }} - Table does not have "published" field.', 'error');
         } else {
-            $field1_row = Fields::getFieldRowByName($fieldname, $tableid);
+            $field1_row = Fields::getFieldRowByName($fieldName, $tableId);
 
             if (is_object($field1_row)) {
                 return [$field1_row->realfieldname, $field1_row->type];
             } else
-                $this->ct->app->enqueueMessage('{{ record.join... }} - Field "' . $fieldname . '" not found.', 'error');
+                $this->ct->app->enqueueMessage('{{ record.join... }} - Field "' . $fieldName . '" not found.', 'error');
         }
         return null;
     }
 
-    protected function join_processWhere($additional_where, $sj_realtablename, $sj_realidfieldname): string
+    protected function join_processWhere($additional_where, $sj_realTableName, $sj_realIdFieldName): string
     {
         if ($additional_where == '')
             return '';
@@ -289,7 +285,7 @@ class Twig_Record_Tags
                     $b = str_replace('$now', 'now()', $b);
 
                     //read $get_ values
-                    $b = $this->join_ApplyQueryGetValue($b, $sj_realtablename, $sj_realidfieldname);
+                    $b = $this->join_ApplyQueryGetValue($b, $sj_realTableName, $sj_realIdFieldName);
 
                     $w[] = $b;
                 } else

@@ -312,15 +312,34 @@ class Fields
             $conf = Factory::getConfig();
             $database = $conf->get('db');
 
-            $query = 'SELECT COLUMN_NAME AS column_name,'
-                . 'DATA_TYPE AS data_type,'
-                . 'COLUMN_TYPE AS column_type,'
-                . 'IF(COLUMN_TYPE LIKE \'%unsigned\', \'YES\', \'NO\') AS is_unsigned,'
-                . 'IS_NULLABLE AS is_nullable,'
-                . 'COLUMN_DEFAULT AS column_default,'
-                . 'EXTRA AS extra,'
-                . 'GENERATION_EXPRESSION AS generation_expression'
-                . ' FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=' . $db->quote($database) . ' AND TABLE_NAME=' . $db->quote($realtablename);
+
+            //Check MySQL Version:
+            $query = 'select @@version';
+            $db->setQuery($query);
+            $versionValue = $db->loadAssocList();
+
+            $mySQLVersion = floatval($versionValue[0]['@@version']);
+            if ($mySQLVersion < 5.7) {
+                $query = 'SELECT COLUMN_NAME AS column_name,'
+                    . 'DATA_TYPE AS data_type,'
+                    . 'COLUMN_TYPE AS column_type,'
+                    . 'IF(COLUMN_TYPE LIKE \'%unsigned\', \'YES\', \'NO\') AS is_unsigned,'
+                    . 'IS_NULLABLE AS is_nullable,'
+                    . 'COLUMN_DEFAULT AS column_default,'
+                    . 'EXTRA AS extra,'
+                    . '"" AS generation_expression'
+                    . ' FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=' . $db->quote($database) . ' AND TABLE_NAME=' . $db->quote($realtablename);
+            } else {
+                $query = 'SELECT COLUMN_NAME AS column_name,'
+                    . 'DATA_TYPE AS data_type,'
+                    . 'COLUMN_TYPE AS column_type,'
+                    . 'IF(COLUMN_TYPE LIKE \'%unsigned\', \'YES\', \'NO\') AS is_unsigned,'
+                    . 'IS_NULLABLE AS is_nullable,'
+                    . 'COLUMN_DEFAULT AS column_default,'
+                    . 'EXTRA AS extra,'
+                    . 'GENERATION_EXPRESSION AS generation_expression'
+                    . ' FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=' . $db->quote($database) . ' AND TABLE_NAME=' . $db->quote($realtablename);
+            }
         }
 
         $db->setQuery($query);
@@ -619,20 +638,20 @@ class Fields
         return $rows[0]->fieldname;
     }
 
-    public static function getFieldRowByName($fieldname, $tableid = 0, $sj_tablename = '')
+    public static function getFieldRowByName(string $fieldName, ?int $tableId = null, string $tableName = '')
     {
         $db = Factory::getDBO();
 
-        if ($fieldname == '')
+        if ($fieldName == '')
             return array();
 
-        if ($sj_tablename == '')
-            $query = 'SELECT ' . Fields::getFieldRowSelects() . ' FROM #__customtables_fields AS s WHERE s.published=1 AND tableid=' . (int)$tableid . ' AND fieldname=' . $db->quote(trim($fieldname)) . ' LIMIT 1';
+        if ($tableName == '')
+            $query = 'SELECT ' . Fields::getFieldRowSelects() . ' FROM #__customtables_fields AS s WHERE s.published=1 AND tableid=' . $tableId . ' AND fieldname=' . $db->quote(trim($fieldName)) . ' LIMIT 1';
         else {
             $query = 'SELECT ' . Fields::getFieldRowSelects() . ' FROM #__customtables_fields AS s
 
-			INNER JOIN #__customtables_tables AS t ON t.tablename=' . $db->quote($sj_tablename) . '
-			WHERE s.published=1 AND s.tableid=t.id AND s.fieldname=' . $db->quote(trim($fieldname)) . ' LIMIT 1';
+			INNER JOIN #__customtables_tables AS t ON t.tablename=' . $db->quote($tableName) . '
+			WHERE s.published=1 AND s.tableid=t.id AND s.fieldname=' . $db->quote(trim($fieldName)) . ' LIMIT 1';
         }
 
         $db->setQuery($query);
@@ -1402,6 +1421,7 @@ class Fields
 
             if ($type->extra == 'STORED GENERATED')
                 $elements[] = 'AS (' . $ct_fieldTypeArray['generation_expression'] . ') STORED';
+
         } elseif (isset($type->required_or_generated)) {
 
             $type->default = null;
@@ -1538,7 +1558,7 @@ class Fields
         return $newRow;
     }
 
-    public static function addField(CT $ct, $realtablename, $realfieldname, $fieldType, $PureFieldType, $fieldTitle, array $fieldRow): void
+    public static function addField(CT $ct, string $realtablename, string $realfieldname, string $fieldType, string $PureFieldType, string $fieldTitle, array $fieldRow): void
     {
         if ($PureFieldType == '')
             return;
