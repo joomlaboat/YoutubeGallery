@@ -208,6 +208,9 @@ class Twig_Html_Tags
 
     function goback($defaultLabel = 'COM_CUSTOMTABLES_GO_BACK', $image_icon = '', $attribute = '', $returnto = '')
     {
+        if ($defaultLabel === null)
+            $defaultLabel = 'COM_CUSTOMTABLES_GO_BACK';
+
         $label = JoomlaBasicMisc::JTextExtended($defaultLabel);
 
         if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
@@ -778,10 +781,14 @@ class Twig_Html_Tags
     {
         if ($this->ct->app->getName() == 'administrator')   //since   3.2
             $formName = 'adminForm';
-        else
-            $formName = 'eseditForm';
-
-        $formName .= $this->ct->Params->ModuleId;
+        else {
+            if ($this->ct->Env->isModal)
+                $formName = 'ctEditModalForm';
+            else {
+                $formName = 'ctEditForm';
+                $formName .= $this->ct->Params->ModuleId;
+            }
+        }
 
         if ($this->ct->Env->frmt != '' and $this->ct->Env->frmt != 'html')
             return '';
@@ -839,16 +846,23 @@ class Twig_Html_Tags
             return $vlu;
     }
 
-    protected function renderSaveButton($optional_class, $title, $formName)
+    protected function renderSaveButton($optional_class, $title, $formName): string
     {
         if ($title == '')
             $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SAVE');
 
+        return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_save", $this->ct->Env->encoded_current_url,
+            true, "saveandcontinue");
+    }
+
+    protected function renderButtonHTML($optional_class, string $title, $formName, string $buttonId,
+                                        string $redirect, bool $checkCaptcha, string $task): string
+    {
         if ($this->ct->Env->frmt == 'json')
             return $title;
 
         $attribute = '';
-        if (($this->ct->LayoutVariables['captcha'] ?? null))
+        if ($checkCaptcha and ($this->ct->LayoutVariables['captcha'] ?? null))
             $attribute = ' disabled="disabled"';
 
         if ($optional_class != '')
@@ -856,9 +870,17 @@ class Twig_Html_Tags
         else
             $the_class = 'ctEditFormButton btn button-apply btn-success';
 
-        $onclick = 'setTask(event, "saveandcontinue","' . $this->ct->Env->encoded_current_url . '",true,"' . $formName . '");';
+        $the_class .= ' validate';
 
-        return '<input id="customtables_button_save" type="submit" class="' . $the_class . ' validate"' . $attribute . ' onClick=\'' . $onclick . '\' value="' . $title . '">';
+        $isModal = ($this->ct->Env->isModal ? 'true' : 'false');
+        $parentField = $this->ct->Env->jinput->getCmd('parentfield');
+
+        if ($parentField === null)
+            $onclick = 'setTask(event, "' . $task . '","' . $redirect . '",true,"' . $formName . '",' . $isModal . ',null);';
+        else
+            $onclick = 'setTask(event, "' . $task . '","' . $redirect . '",true,"' . $formName . '",' . $isModal . ',"' . $parentField . '");';
+
+        return '<input id="' . $buttonId . '" type="submit" class="' . $the_class . '"' . $attribute . ' onClick=\'' . $onclick . '\' value="' . $title . '">';
     }
 
     protected function renderSaveAndCloseButton($optional_class, $title, $redirectlink, $formName)
@@ -866,24 +888,7 @@ class Twig_Html_Tags
         if ($title == '')
             $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SAVEANDCLOSE');
 
-        if ($this->ct->Env->frmt == 'json')
-            return $title;
-
-        $attribute = 'onClick=\'';
-
-        $attribute .= 'setTask(event, "save","' . base64_encode($redirectlink) . '",true,"' . $formName . '");';
-
-        $attribute .= '\'';
-
-        if (($this->ct->LayoutVariables['captcha'] ?? null))
-            $attribute .= ' disabled="disabled"';
-
-        if ($optional_class != '')
-            $the_class = $optional_class;
-        else
-            $the_class = 'ctEditFormButton btn button-apply btn-success';
-
-        return '<input id="customtables_button_saveandclose" type="submit" ' . $attribute . ' class="' . $the_class . ' validate" value="' . $title . '" />';
+        return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandclose", base64_encode($redirectlink), true, "save");
     }
 
     protected function renderSaveAndPrintButton($optional_class, $title, $redirectlink, $formName)
@@ -891,22 +896,7 @@ class Twig_Html_Tags
         if ($title == '')
             $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_NEXT');
 
-        if ($this->ct->Env->frmt == 'json')
-            return $title;
-
-        $attribute = 'onClick=\'';
-        $attribute .= 'setTask(event, "saveandprint","' . base64_encode($redirectlink) . '",true,"' . $formName . '");';
-        $attribute .= '\'';
-
-        if (($this->ct->LayoutVariables['captcha'] ?? null))
-            $attribute = ' disabled="disabled"';
-
-        if ($optional_class != '')
-            $the_class = $optional_class;
-        else
-            $the_class = 'ctEditFormButton btn button-apply btn-success';
-
-        return '<input id="customtables_button_saveandprint" type="submit" ' . $attribute . ' class="' . $the_class . ' validate" value="' . $title . '" />';
+        return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandprint", base64_encode($redirectlink), true, "saveandprint");
     }
 
     protected function renderSaveAsCopyButton($optional_class, $title, $redirectlink, $formName)
@@ -914,21 +904,7 @@ class Twig_Html_Tags
         if ($title == '')
             $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SAVEASCOPYANDCLOSE');
 
-        if ($this->ct->Env->frmt == 'json')
-            return $title;
-
-        $attribute = '';//onClick="return checkRequiredFields();"';
-        if (($this->ct->LayoutVariables['captcha'] ?? null))
-            $attribute = ' disabled="disabled"';
-
-        if ($optional_class != '')
-            $the_class = $optional_class;//$the_class='ctEditFormButton '.$optional_class;
-        else
-            $the_class = 'ctEditFormButton btn button-apply btn-success';
-
-        $onclick = 'setTask(event, "saveascopy","' . base64_encode($redirectlink) . '",true,"' . $formName . '");';
-
-        return '<input id="customtables_button_saveandcopy" type="submit" class="' . $the_class . ' validate"' . $attribute . ' onClick=\'' . $onclick . '\' value="' . $title . '">';
+        return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandcopy", base64_encode($redirectlink), true, "saveascopy");
     }
 
     protected function renderCancelButton($optional_class, $title, $redirectlink, $formName)
@@ -939,16 +915,12 @@ class Twig_Html_Tags
         if ($title == '')
             $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_CANCEL');
 
-        if ($this->ct->Env->frmt == 'json')
-            return $title;
-
         if ($optional_class != '')
-            $cancel_class = $optional_class;//$cancel_class='ctEditFormButton '.$optional_class;
+            $cancel_class = $optional_class;
         else
             $cancel_class = 'ctEditFormButton btn button-cancel';
 
-        $onclick = 'setTask(event, "cancel","' . base64_encode($redirectlink) . '",true,"' . $formName . '");';
-        return '<input id="customtables_button_cancel" type="button" class="' . $cancel_class . '" value="' . $title . '" onClick=\'' . $onclick . '\'>';
+        return $this->renderButtonHTML($cancel_class, $title, $formName, "customtables_button_cancel", base64_encode($redirectlink), false, "cancel");
     }
 
     protected function renderDeleteButton($optional_class, $title, $redirectlink, $formName)
@@ -960,11 +932,11 @@ class Twig_Html_Tags
             return $title;
 
         if ($optional_class != '')
-            $class = $optional_class;//$class='ctEditFormButton '.$optional_class;
+            $class = $optional_class;
         else
             $class = 'ctEditFormButton btn button-cancel';
 
-        $result = '<input id="customtables_button_delete" type="button" class="' . $class . '" value="' . $title . '"
+        return '<input id="customtables_button_delete" type="button" class="' . $class . '" value="' . $title . '"
 				onClick=\'
                 if (confirm("' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_DO_U_WANT_TO_DELETE') . '"))
                 {
@@ -972,10 +944,7 @@ class Twig_Html_Tags
                     ' . ($redirectlink != '' ? 'this.form.returnto.value="' . base64_encode($redirectlink) . '";' : '') . '
                     this.form.submit();
                 }
-                \'>
-			';
-
-        return $result;
+                \'>' . PHP_EOL;
     }
 
     function tablehead()

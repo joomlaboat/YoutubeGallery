@@ -103,11 +103,8 @@ class Filtering
             return;
 
         $param = $this->sanitizeAndParseFilter($param, true);
-
         $wheres = [];
-
         $items = $this->ExplodeSmartParams($param);
-
         $logic_operator = '';
 
         foreach ($items as $item) {
@@ -233,7 +230,7 @@ class Filtering
         return $items;
     }
 
-    function processSingleFieldWhereSyntax($fieldrow, $comparison_operator, $fieldname, $value, $field_extra_param = '')
+    function processSingleFieldWhereSyntax(array $fieldrow, string $comparison_operator, string $fieldname, string $value, string $field_extra_param = ''): string
     {
         $c = '';
 
@@ -246,9 +243,9 @@ class Filtering
                 $vList = explode(',', $value);
                 $cArr = array();
                 foreach ($vList as $vL) {
-                    $cArr[] = 'id' . $comparison_operator . (int)$vL;
+                    $cArr[] = $this->ct->Table->realtablename . '.' . $this->ct->Table->realidfieldname . $comparison_operator . $this->ct->db->quote($vL);
 
-                    $this->PathValue[] = 'ID ' . $comparison_operator . ' ' . (int)$vL;
+                    $this->PathValue[] = 'ID ' . $comparison_operator . ' ' . $vL;
                 }
                 if (count($cArr) == 1)
                     $c = $cArr[0];
@@ -259,11 +256,13 @@ class Filtering
 
             case '_published':
 
-                if ($comparison_operator == '==')
-                    $comparison_operator = '=';
+                if ($this->ct->Table->published_field_found) {
+                    if ($comparison_operator == '==')
+                        $comparison_operator = '=';
 
-                $c = 'published' . $comparison_operator . (int)$value;
-                $this->PathValue[] = 'Published ' . $comparison_operator . ' ' . (int)$value;
+                    $c = $this->ct->Table->realtablename . '.published' . $comparison_operator . (int)$value;
+                    $this->PathValue[] = 'Published ' . $comparison_operator . ' ' . (int)$value;
+                }
 
                 break;
 
@@ -299,10 +298,10 @@ class Filtering
                 foreach ($vList as $vL) {
 
                     if ($vL == 'true' or $vL == '1') {
-                        $cArr[] = $fieldrow['realfieldname'] . '=1';
+                        $cArr[] = $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . '=1';
                         $this->PathValue[] = $fieldrow['fieldtitle' . $this->ct->Languages->Postfix];
                     } else {
-                        $cArr[] = $fieldrow['realfieldname'] . '=0';
+                        $cArr[] = $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . '=0';
 
                         $this->PathValue[] = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_NOT') . ' ' . $fieldrow['fieldtitle' . $this->ct->Languages->Postfix];
                     }
@@ -371,12 +370,12 @@ class Filtering
                             $v .= '.';
 
                         if ($comparison_operator == '=') {
-                            $cArr[] = 'instr(' . $fieldrow['realfieldname'] . ',' . $this->ct->db->quote($v) . ')';
+                            $cArr[] = 'instr(' . $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . ',' . $this->ct->db->quote($v) . ')';
 
                             $vTitle = Tree::getMultyValueTitles($v, $this->ct->Languages->Postfix, 1, ' - ');
                             $this->PathValue[] = $fieldrow['fieldtitle' . $this->ct->Languages->Postfix] . ': ' . implode(',', $vTitle);
                         } elseif ($comparison_operator == '!=') {
-                            $cArr[] = '!instr(' . $fieldrow['realfieldname'] . ',' . $this->ct->db->quote($v) . ')';
+                            $cArr[] = '!instr(' . $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . ',' . $this->ct->db->quote($v) . ')';
 
                             $vTitle = Tree::getMultyValueTitles($v, $this->ct->Languages->Postfix, 1, ' - ');
                             $this->PathValue[] = $fieldrow['fieldtitle' . $this->ct->Languages->Postfix] . ': ' . implode(',', $vTitle);
@@ -419,7 +418,6 @@ class Filtering
                     else
                         $esr_filter = '';
 
-
                     $filterTitle .= JHTML::_('ESRecordsView.render',
                         $vL,
                         $esr_table,
@@ -442,7 +440,6 @@ class Filtering
                             $opt_title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_UNKNOWN_OPERATION');
                     } elseif ($esr_selector == 'radio' or $esr_selector == 'single')
                         $opt_title = ':';
-
 
                     $valueNew = $this->getInt_vL($vL);
 
@@ -475,8 +472,8 @@ class Filtering
                 elseif (count($cArr) > 1)
                     $c = '(' . implode(' OR ', $cArr) . ')';
 
-
                 break;
+
             case 'sqljoin':
 
                 if ($comparison_operator == '==')
@@ -485,58 +482,59 @@ class Filtering
                 $vList = explode(',', $this->getString_vL($value));
                 $cArr = array();
 
-                foreach ($vList as $vL) {
+                // Filter Title
+                $typeParamsArray = explode(',', $fieldrow['typeparams']);
+                $filterTitle = '';
 
-                    // Filter Title
-                    $typeParamsArray = explode(',', $fieldrow['typeparams']);
-                    $filterTitle = '';
-                    if (count($typeParamsArray) < 1)
-                        $filterTitle .= 'table not specified';
+                if (count($typeParamsArray) < 2)
+                    $filterTitle = 'field or layout not specified';
 
-                    if (count($typeParamsArray) < 2)
-                        $filterTitle .= 'field or layout not specified';
+                if (count($typeParamsArray) < 1)
+                    $filterTitle = 'table not specified';
 
-                    $esr_table = $typeParamsArray[0];
-                    $esr_table_full = $this->ct->Table->realtablename;
-                    $esr_field = $typeParamsArray[1];
+                $esr_table = $typeParamsArray[0];
+                $esr_table_full = $this->ct->Table->realtablename;
+                $esr_field = $typeParamsArray[1];
+                $esr_filter = $typeParamsArray[2] ?? '';
 
-                    $esr_filter = $typeParamsArray[2] ?? '';
+                if (count($typeParamsArray) >= 2) {
+                    foreach ($vList as $vL) {
+                        $valueNew = $vL;
 
-                    $valueNew = $vL;
+                        $filterTitle .= JHTML::_('ESSQLJoinView.render',
+                            $vL,
+                            $esr_table,
+                            $esr_field,
+                            $esr_filter,
+                            $this->ct->Languages->Postfix);
 
-                    $filterTitle .= JHTML::_('ESSQLJoinView.render',
-                        $vL,
-                        $esr_table,
-                        $esr_field,
-                        $esr_filter,
-                        $this->ct->Languages->Postfix);
+                        if ($valueNew != '') {
+                            if ($comparison_operator == '!=') {
+                                $opt_title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_NOT');
 
-                    if ($valueNew != '') {
-                        if ($comparison_operator == '!=') {
-                            $opt_title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_NOT');
+                                $cArr[] = $esr_table_full . '.' . $fieldrow['realfieldname'] . '!=' . $this->ct->db->quote($valueNew);
+                                $this->PathValue[] = $fieldrow['fieldtitle' . $this->ct->Languages->Postfix]
+                                    . ' '
+                                    . $opt_title
+                                    . ' '
+                                    . $filterTitle;
+                            } elseif ($comparison_operator == '=') {
+                                $opt_title = ':';
 
-                            $cArr[] = $esr_table_full . '.' . $fieldrow['realfieldname'] . '!=' . $this->ct->db->quote($valueNew);
-                            $this->PathValue[] = $fieldrow['fieldtitle' . $this->ct->Languages->Postfix]
-                                . ' '
-                                . $opt_title
-                                . ' '
-                                . $filterTitle;
-                        } elseif ($comparison_operator == '=') {
-                            $opt_title = ':';
+                                $integerValueNew = $valueNew;
+                                if ($integerValueNew == 0 or $integerValueNew == -1) {
+                                    $cArr[] = '(' . $esr_table_full . '.' . $fieldrow['realfieldname'] . '=0 OR ' . $esr_table_full . '.' . $fieldrow['realfieldname'] . '="" OR '
+                                        . $esr_table_full . '.' . $fieldrow['realfieldname'] . ' IS NULL)';
+                                } else
+                                    $cArr[] = $esr_table_full . '.' . $fieldrow['realfieldname'] . '=' . $this->ct->db->quote($valueNew);
 
-                            $integerValueNew = $valueNew;
-                            if ($integerValueNew == 0 or $integerValueNew == -1) {
-                                $cArr[] = '(' . $esr_table_full . '.' . $fieldrow['realfieldname'] . '=0 OR ' . $esr_table_full . '.' . $fieldrow['realfieldname'] . '="" OR '
-                                    . $esr_table_full . '.' . $fieldrow['realfieldname'] . ' IS NULL)';
-                            } else
-                                $cArr[] = $esr_table_full . '.' . $fieldrow['realfieldname'] . '=' . $this->ct->db->quote($valueNew);
-
-                            $this->PathValue[] = $fieldrow['fieldtitle'
-                                . $this->ct->Languages->Postfix]
-                                . ''
-                                . $opt_title
-                                . ' '
-                                . $filterTitle;
+                                $this->PathValue[] = $fieldrow['fieldtitle'
+                                    . $this->ct->Languages->Postfix]
+                                    . ''
+                                    . $opt_title
+                                    . ' '
+                                    . $filterTitle;
+                            }
                         }
                     }
                 }
@@ -545,6 +543,29 @@ class Filtering
                     $c = $cArr[0];
                 elseif (count($cArr) > 1)
                     $c = '(' . implode(' OR ', $cArr) . ')';
+
+                break;
+
+            case 'virtual':
+                if ($comparison_operator == '==')
+                    $comparison_operator = '=';
+
+                $field = new Field($this->ct, $fieldrow);
+                $storage = $field->params[1] ?? null;
+
+                if ($storage == 'storedstring')
+                    $isNumber = false;
+                elseif ($storage == 'storedintegersigned' or $storage == 'storedintegerunsigned')
+                    $isNumber = true;
+                else {
+                    $this->PathValue[] = 'Virtual not stored fields cannot be used in filters';
+                    return '';
+                }
+
+                if ($isNumber)
+                    $c = $this->Search_Number($value, $fieldrow, $comparison_operator);
+                else
+                    $c = $this->Search_String($value, $fieldrow, $comparison_operator);
 
                 break;
         }
@@ -562,7 +583,7 @@ class Filtering
             foreach ($vList as $vL) {
                 if ($vL != '') {
                     $select1 = '(SELECT title FROM #__usergroups AS g WHERE g.id = m.group_id LIMIT 1)';
-                    $cArr[] = '(SELECT m.group_id FROM #__user_usergroup_map AS m WHERE user_id=' . $fieldrow['realfieldname'] . ' AND '
+                    $cArr[] = '(SELECT m.group_id FROM #__user_usergroup_map AS m WHERE user_id=' . $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . ' AND '
                         . $select1 . $comparison_operator . $this->ct->db->quote($v) . ')';
 
                     $filterTitle = JHTML::_('ESUserView.render', $vL);
@@ -573,9 +594,9 @@ class Filtering
             foreach ($vList as $vL) {
                 if ($vL != '') {
                     if ((int)$vL == 0 and $comparison_operator == '=')
-                        $cArr[] = '(' . $fieldrow['realfieldname'] . '=0 OR ' . $fieldrow['realfieldname'] . ' IS NULL)';
+                        $cArr[] = '(' . $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . '=0 OR ' . $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . ' IS NULL)';
                     else
-                        $cArr[] = $fieldrow['realfieldname'] . $comparison_operator . (int)$vL;
+                        $cArr[] = $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . $comparison_operator . (int)$vL;
 
                     $filterTitle = JHTML::_('ESUserView.render', $vL);
                     $this->PathValue[] = $fieldrow['fieldtitle' . $this->ct->Languages->Postfix] . ' ' . $comparison_operator . ' ' . $filterTitle;
@@ -616,7 +637,7 @@ class Filtering
         $cArr = array();
         foreach ($vList as $vL) {
             if ($vL != '') {
-                $cArr[] = $fieldrow['realfieldname'] . $comparison_operator . (int)$vL;
+                $cArr[] = $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . $comparison_operator . (int)$vL;
                 $filterTitle = JHTML::_('ESUserGroupView.render', $vL);
                 $this->PathValue[] = $fieldrow['fieldtitle' . $this->ct->Languages->Postfix] . ' ' . $comparison_operator . ' ' . $filterTitle;
             }
@@ -641,7 +662,7 @@ class Filtering
         $cArr = array();
         foreach ($vList as $vL) {
             if ($vL != '') {
-                $cArr[] = $fieldrow['realfieldname'] . $comparison_operator . (int)$vL;
+                $cArr[] = $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . $comparison_operator . (int)$vL;
 
                 $opt_title = ' ' . $comparison_operator;
                 if ($comparison_operator == '=')
@@ -738,9 +759,9 @@ class Filtering
                 foreach ($v_list as $vl) {
 
                     if ($this->ct->db->serverType == 'postgresql')
-                        $new_v_list[] = 'CAST ( ' . $this->ct->db->quoteName($realfieldname) . ' AS text ) LIKE ' . $this->ct->db->quote('%' . $vl . '%');
+                        $new_v_list[] = 'CAST ( ' . $this->ct->Table->realtablename . '.' . $realfieldname . ' AS text ) LIKE ' . $this->ct->db->quote('%' . $vl . '%');
                     else
-                        $new_v_list[] = $this->ct->db->quoteName($realfieldname) . ' LIKE ' . $this->ct->db->quote('%' . $vl . '%');
+                        $new_v_list[] = $this->ct->Table->realtablename . '.' . $realfieldname . ' LIKE ' . $this->ct->db->quote('%' . $vl . '%');
 
                     $PathValue[] = $vl;
                 }
@@ -765,11 +786,11 @@ class Filtering
                 $comparison_operator = '=';
 
             if ($v == '' and $comparison_operator == '=')
-                $where = '(' . $this->ct->db->quoteName($realfieldname) . ' IS NULL OR ' . $this->ct->db->quoteName($realfieldname) . '=' . $this->ct->db->quote('') . ')';
+                $where = '(' . $this->ct->Table->realtablename . '.' . $realfieldname . ' IS NULL OR ' . $this->ct->db->quoteName($realfieldname) . '=' . $this->ct->db->quote('') . ')';
             elseif ($v == '' and $comparison_operator == '!=')
-                $where = '(' . $this->ct->db->quoteName($realfieldname) . ' IS NOT NULL AND ' . $this->ct->db->quoteName($realfieldname) . '!=' . $this->ct->db->quote('') . ')';
+                $where = '(' . $this->ct->Table->realtablename . '.' . $realfieldname . ' IS NOT NULL AND ' . $this->ct->db->quoteName($realfieldname) . '!=' . $this->ct->db->quote('') . ')';
             else
-                $where = $this->ct->db->quoteName($realfieldname) . $comparison_operator . $this->ct->db->quote($v);
+                $where = $this->ct->Table->realtablename . '.' . $realfieldname . $comparison_operator . $this->ct->db->quote($v);
 
             $opt_title = ' ' . $comparison_operator;
             if ($comparison_operator == '=')
@@ -791,9 +812,9 @@ class Filtering
         $cArr = array();
         foreach ($vList as $vL) {
             if ($vL == "null" and $comparison_operator == '=')
-                $cArr[] = '(' . $fieldrow['realfieldname'] . '=' . $this->ct->db->quote('') . ' OR ' . $fieldrow['realfieldname'] . ' IS NULL)';
+                $cArr[] = '(' . $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . '=' . $this->ct->db->quote('') . ' OR ' . $fieldrow['realfieldname'] . ' IS NULL)';
             else
-                $cArr[] = $fieldrow['realfieldname'] . $comparison_operator . $this->ct->db->quote($vL);
+                $cArr[] = $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . $comparison_operator . $this->ct->db->quote($vL);
 
             $opt_title = ' ' . $comparison_operator;
             if ($comparison_operator == '=')
@@ -985,9 +1006,9 @@ class LinkJoinFilters
 
         foreach ($records as $row) {
             if ($row[$tableRow['realidfieldname']] == $filterValue or str_contains($filterValue, ',' . $row[$tableRow['realidfieldname']] . ','))
-                $result .= '<option value="' . $row[$tableRow['realidfieldname']] . '" selected>' . $row[$fieldrow->realfieldname] . '</option>';
+                $result .= '<option value="' . $row[$tableRow['realidfieldname']] . '" selected>' . htmlspecialchars($row[$fieldrow->realfieldname]) . '</option>';
             else
-                $result .= '<option value="' . $row[$tableRow['realidfieldname']] . '">' . $row[$fieldrow->realfieldname] . '</option>';
+                $result .= '<option value="' . $row[$tableRow['realidfieldname']] . '">' . htmlspecialchars($row[$fieldrow->realfieldname]) . '</option>';
         }
         $result .= '</select>
 ';

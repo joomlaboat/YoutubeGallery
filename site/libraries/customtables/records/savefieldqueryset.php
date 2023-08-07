@@ -53,7 +53,6 @@ class SaveFieldQuerySet
     function getSaveFieldSet($fieldRow)
     {
         $this->field = new Field($this->ct, $fieldRow, $this->row);
-
         $query = $this->getSaveFieldSetType();
 
         if ($this->field->defaultvalue != "" and (is_null($query) or is_null($this->row[$this->field->realfieldname])))
@@ -67,15 +66,23 @@ class SaveFieldQuerySet
         $listing_id = $this->row[$this->ct->Table->realidfieldname];
         switch ($this->field->type) {
             case 'records':
-                $value = $this->get_record_type_value();
+                $value = self::get_record_type_value($this->ct, $this->field);
+                if ($value === null) {
+                    $this->row[$this->field->realfieldname] = null;
+                    return null;
+                } elseif ($value === '') {
+                    $this->row[$this->field->realfieldname] = null;
+                    return $this->field->realfieldname . '=NULL';
+                }
                 $this->row[$this->field->realfieldname] = $value;
-                return ($value === null ? null : $this->field->realfieldname . '=' . $this->ct->db->Quote($value));
+                return $this->field->realfieldname . '=' . $this->ct->db->Quote($value);
 
             case 'sqljoin':
                 $value = $this->ct->Env->jinput->getString($this->field->comesfieldname);
-                $value = preg_replace("/[^A-Za-z\d\-]/", '', $value);
 
                 if (isset($value)) {
+                    $value = preg_replace("/[^A-Za-z\d\-]/", '', $value);
+
                     if (is_numeric($value)) {
                         if ($value == 0) {
                             $this->row[$this->field->realfieldname] = null;
@@ -92,7 +99,6 @@ class SaveFieldQuerySet
                         return $this->field->realfieldname . '=' . $this->ct->db->Quote($value);
                     }
                 }
-
                 break;
             case 'radio':
                 $value = $this->ct->Env->jinput->getCmd($this->field->comesfieldname);
@@ -107,7 +113,6 @@ class SaveFieldQuerySet
             case 'filelink':
             case 'googlemapcoordinates':
                 $value = $this->ct->Env->jinput->getString($this->field->comesfieldname);
-
                 if (isset($value)) {
                     $this->row[$this->field->realfieldname] = $value;
                     return $this->field->realfieldname . '=' . $this->ct->db->Quote($value);
@@ -115,9 +120,7 @@ class SaveFieldQuerySet
                 break;
 
             case 'color':
-
                 $value = $this->ct->Env->jinput->getString($this->field->comesfieldname);
-
                 if (isset($value)) {
                     if (str_contains($value, 'rgb')) {
                         $parts = str_replace('rgba(', '', $value);
@@ -581,37 +584,45 @@ class SaveFieldQuerySet
         return null;
     }
 
-    protected function get_record_type_value()
+    public static function get_record_type_value(CT $ct, Field $field): ?string
     {
-        if (count($this->field->params) > 2) {
-            $esr_selector = $this->field->params[2];
+        if (count($field->params) > 2) {
+            $esr_selector = $field->params[2];
             $selectorPair = explode(':', $esr_selector);
 
             switch ($selectorPair[0]) {
                 case 'single';
-
-                    $value = $this->ct->Env->jinput->getString($this->field->comesfieldname);
+                    $value = $ct->Env->jinput->getInt($field->comesfieldname);
 
                     if (isset($value))
-                        return (int)$value;
+                        return $value;
 
                     break;
 
                 case 'radio':
                 case 'checkbox':
-                case 'multi';
-                    $valuearray = $this->ct->Env->jinput->post->get($this->field->comesfieldname, null, 'array');
+                case 'multi':
 
-                    if (isset($valuearray))
-                        return $this->getCleanRecordValue($valuearray);
+                    //returns NULL if field parameter not found - nothing to save
+                    //returns empty array if nothing selected - save empty value
+                    $valueArray = $ct->Env->jinput->post->get($field->comesfieldname, null, 'array');
 
-                    break;
+                    if ($valueArray) {
+                        return self::getCleanRecordValue($valueArray);
+                    } else {
+                        $value_off = $ct->Env->jinput->post->getInt($field->comesfieldname . '_off');
+                        if ($value_off) {
+                            return '';
+                        } else {
+                            return null;
+                        }
+                    }
 
                 case 'multibox';
-                    $valuearray = $this->ct->Env->jinput->post->get($this->field->comesfieldname, null, 'array');
+                    $valueArray = $ct->Env->jinput->post->get($field->comesfieldname, null, 'array');
 
-                    if (isset($valuearray)) {
-                        return $this->getCleanRecordValue($valuearray);
+                    if (isset($valueArray)) {
+                        return self::getCleanRecordValue($valueArray);
                     }
                     break;
             }
@@ -619,7 +630,7 @@ class SaveFieldQuerySet
         return null;
     }
 
-    protected function getCleanRecordValue($array): string
+    protected static function getCleanRecordValue($array): string
     {
         $values = array();
         foreach ($array as $a) {
@@ -958,28 +969,34 @@ class SaveFieldQuerySet
             if ($twig->errorMessage !== null)
                 $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
 
-            $this->row[$this->field->realfieldname] = $value;
-            return $this->field->realfieldname . '=' . $this->ct->db->quote($value);
+            if ($value == '') {
+                $this->row[$this->field->realfieldname] = null;
+                return $this->field->realfieldname . '=NULL';
+            } else {
+                $this->row[$this->field->realfieldname] = $value;
+                return $this->field->realfieldname . '=' . $this->ct->db->quote($value);
+            }
+
         } elseif ($fieldRow['type'] == 'virtual') {
-            $paramsList = JoomlaBasicMisc::csv_explode(',', $fieldRow['typeparams'], '"', false);
-            $storage = $paramsList[1] ?? '';
+
+            $storage = $this->field->params[1] ?? '';
 
             if ($storage == "storedintegersigned" or $storage == "storedintegerunsigned" or $storage == "storedstring") {
 
                 try {
-
-                    $code = str_replace('****quote****', '"', $paramsList[0]);
+                    $code = str_replace('****quote****', '"', $this->field->params[0]);
                     $code = str_replace('****apos****', "'", $code);
-
                     $twig = new TwigProcessor($this->ct, $code, false, false, true);
                     $value = @$twig->process($this->row);
 
                     if ($twig->errorMessage !== null) {
+                        echo $twig->errorMessage;
                         $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
                         return null;
                     }
 
                 } catch (Exception $e) {
+                    echo $e->getMessage();
                     $this->ct->app->enqueueMessage($e->getMessage(), 'error');
                     return null;
                 }

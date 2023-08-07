@@ -46,46 +46,52 @@ class Field
 
     var ?string $layout; //output layout, used in Search Boxes
 
-    function __construct(CT &$ct, $fieldrow, $row = null, $parseParams = true)
+    function __construct(CT &$ct, array $fieldRow, $row = null, $parseParams = true)
     {
         $this->ct = &$ct;
-        $this->id = $fieldrow['id'];
-        $this->type = $fieldrow['type'];
-        $this->fieldrow = $fieldrow;
-        $this->layout = $fieldrow['layout'] ?? null; //rendering layout
 
-        if (!array_key_exists('fieldtitle' . $ct->Languages->Postfix, $fieldrow)) {
+        if (!array_key_exists('id', $fieldRow)) {
+            echo 'Field not found.';
+            return;
+        }
+
+        $this->id = $fieldRow['id'];
+        $this->type = $fieldRow['type'];
+        $this->fieldrow = $fieldRow;
+        $this->layout = $fieldRow['layout'] ?? null; //rendering layout
+
+        if (!array_key_exists('fieldtitle' . $ct->Languages->Postfix, $fieldRow)) {
             $this->title = 'fieldtitle' . $ct->Languages->Postfix . ' - not found';
         } else {
-            $vlu = $fieldrow['fieldtitle' . $ct->Languages->Postfix];
+            $vlu = $fieldRow['fieldtitle' . $ct->Languages->Postfix];
             if ($vlu == '')
-                $this->title = $fieldrow['fieldtitle'];
+                $this->title = $fieldRow['fieldtitle'];
             else
                 $this->title = $vlu;
         }
 
-        if (!array_key_exists('description' . $ct->Languages->Postfix, $fieldrow)) {
+        if (!array_key_exists('description' . $ct->Languages->Postfix, $fieldRow)) {
             $this->description = 'description' . $ct->Languages->Postfix . ' - not found';
         } else {
-            $vlu = $fieldrow['description' . $ct->Languages->Postfix];
+            $vlu = $fieldRow['description' . $ct->Languages->Postfix];
             if ($vlu == '')
-                $this->description = $fieldrow['description'];
+                $this->description = $fieldRow['description'];
             else
                 $this->description = $vlu;
         }
 
-        $this->fieldname = $fieldrow['fieldname'];
-        $this->realfieldname = $fieldrow['realfieldname'];
-        $this->isrequired = intval($fieldrow['isrequired']);
-        $this->defaultvalue = $fieldrow['defaultvalue'];
+        $this->fieldname = $fieldRow['fieldname'];
+        $this->realfieldname = $fieldRow['realfieldname'];
+        $this->isrequired = intval($fieldRow['isrequired']);
+        $this->defaultvalue = $fieldRow['defaultvalue'];
 
-        $this->valuerule = $fieldrow['valuerule'];
-        $this->valuerulecaption = $fieldrow['valuerulecaption'];
+        $this->valuerule = $fieldRow['valuerule'];
+        $this->valuerulecaption = $fieldRow['valuerulecaption'];
 
         $this->prefix = $this->ct->Env->field_input_prefix;
         $this->comesfieldname = $this->prefix . $this->fieldname;
 
-        $this->params = JoomlaBasicMisc::csv_explode(',', $fieldrow['typeparams'], '"', false);
+        $this->params = JoomlaBasicMisc::csv_explode(',', $fieldRow['typeparams'], '"', false);
 
         if ($parseParams and $this->type != 'virtual')
             $this->parseParams($row);
@@ -114,25 +120,6 @@ class Field
             }
         }
         $this->params = $new_params;
-    }
-
-    protected function checkIfAliasExists($exclude_id, $value, $realfieldname): bool
-    {
-        $query = 'SELECT count(' . $this->ct->Table->realidfieldname . ') AS c FROM ' . $this->ct->Table->realtablename . ' WHERE '
-            . $this->ct->Table->realidfieldname . '!=' . (int)$exclude_id . ' AND ' . $realfieldname . '=' . $this->ct->db->quote($value) . ' LIMIT 1';
-
-        $this->ct->db->setQuery($query);
-
-        $rows = $this->ct->db->loadObjectList();
-        if (count($rows) == 0)
-            return false;
-
-        $c = (int)$rows[0]->c;
-
-        if ($c > 0)
-            return true;
-
-        return false;
     }
 }
 
@@ -174,7 +161,7 @@ class Fields
     {
         $db = Factory::getDBO();
         $ImageFolder = JPATH_SITE . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'esimages';
-        $fieldrow = Fields::getFieldRow($fieldid);
+        $fieldrow = Fields::getFieldRow($fieldid, true);
 
         if (is_null($fieldrow))
             return false;
@@ -243,13 +230,13 @@ class Fields
         }
 
         //Delete field from the list
-        $query = 'DELETE FROM #__customtables_fields WHERE published=1 AND id=' . $fieldid;
+        $query = 'DELETE FROM #__customtables_fields WHERE id=' . $fieldid;
         $db->setQuery($query);
         $db->execute();
         return true;
     }
 
-    public static function getFieldRow($fieldid = 0)
+    public static function getFieldRow($fieldid = 0, $assocList = false)
     {
         $db = Factory::getDBO();
 
@@ -259,9 +246,13 @@ class Fields
         $query = 'SELECT ' . Fields::getFieldRowSelects() . ' FROM #__customtables_fields AS s WHERE id=' . $fieldid . ' LIMIT 1';//published=1 AND
 
         $db->setQuery($query);
-        $rows = $db->loadObjectList();
+        if ($assocList)
+            $rows = $db->loadAssocList();
+        else
+            $rows = $db->loadObjectList();
+
         if (count($rows) != 1)
-            return array();
+            return null;
 
         return $rows[0];
     }

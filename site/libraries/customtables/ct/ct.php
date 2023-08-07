@@ -15,6 +15,7 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
     die('Restricted access');
 }
 
+use CustomTablesImageMethods;
 use Joomla\CMS\Document\Document;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
@@ -23,6 +24,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Component\ComponentHelper;
 use CustomTablesKeywordSearch;
 use mysql_xdevapi\Exception;
+use CustomTables\CustomPHP\CleanExecute;
 
 class CT
 {
@@ -44,7 +46,7 @@ class CT
     var array $editFields;
     var array $LayoutVariables;
 
-    function __construct($menuParams = null, $blockExternalVars = true, $ModuleId = null)
+    function __construct($menuParams = null, $blockExternalVars = true, ?string $ModuleId = null)
     {
         $this->app = Factory::getApplication();
         $this->document = $this->app->getDocument();
@@ -96,7 +98,7 @@ class CT
         return false;
     }
 
-    function setParams($menuParams = null, $blockExternalVars = true, $ModuleId = null): void
+    function setParams($menuParams = null, $blockExternalVars = true, ?string $ModuleId = null): void
     {
         $this->Params->setParams($menuParams, $blockExternalVars, $ModuleId);
     }
@@ -375,11 +377,89 @@ class CT
         $this->document->addCustomTag('<link href="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/css/modal.css" type="text/css" rel="stylesheet" >');
         $this->document->addCustomTag('<link href="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/css/uploadfile.css" rel="stylesheet">');
 
+        $this->document->addCustomTag('<link href="' . URI::root(true) . '/media/system/css/fields/calendar.min.css" rel="stylesheet" />');
+        $this->document->addCustomTag('<script src="' . URI::root(true) . '/media/system/js/fields/calendar-locales/date/gregorian/date-helper.min.js" defer></script>');
+        $this->document->addCustomTag('<script src="' . URI::root(true) . '/media/system/js/fields/calendar.min.js" defer></script>');
+
         Text::script('COM_CUSTOMTABLES_JS_SELECT_RECORDS');
         Text::script('COM_CUSTOMTABLES_JS_SELECT_DO_U_WANT_TO_DELETE1');
         Text::script('COM_CUSTOMTABLES_JS_SELECT_DO_U_WANT_TO_DELETE');
         Text::script('COM_CUSTOMTABLES_JS_NOTHING_TO_SAVE');
         Text::script('COM_CUSTOMTABLES_JS_SESSION_EXPIRED');
         Text::script('COM_CUSTOMTABLES_SELECT');
+    }
+
+    public function deleteSingleRecord($listing_id): int
+    {
+        //delete images if exist
+        $imageMethods = new CustomTablesImageMethods;
+
+        $query = 'SELECT * FROM ' . $this->Table->realtablename . ' WHERE ' . $this->Table->realidfieldname . '=' . $this->db->quote($listing_id);
+
+        $this->db->setQuery($query);
+        $rows = $this->db->loadAssocList();
+
+        if (count($rows) == 0)
+            return -1;
+
+        $row = $rows[0];
+
+        foreach ($this->Table->fields as $fieldrow) {
+            $field = new Field($this, $fieldrow, $row);
+
+            if ($field->type == 'image') {
+                $ImageFolder_ = CustomTablesImageMethods::getImageFolder($field->params);
+
+                //delete single image
+                if ($row[$field->realfieldname] !== null) {
+                    $imageMethods->DeleteExistingSingleImage(
+                        $row[$field->realfieldname],
+                        $ImageFolder_,
+                        $field->params[0],
+                        $this->Table->realtablename,
+                        $field->realfieldname,
+                        $this->Table->realidfieldname
+                    );
+                }
+            } elseif ($field->type == 'imagegallery') {
+                $ImageFolder_ = CustomTablesImageMethods::getImageFolder($field->params);
+
+                //delete gallery images if exist
+                $galleryName = $field->fieldname;
+                $photoTableName = '#__customtables_gallery_' . $this->Table->tablename . '_' . $galleryName;
+
+                $query = 'SELECT photoid FROM ' . $photoTableName . ' WHERE listingid=' . $this->db->quote($listing_id);
+                $this->db->setQuery($query);
+
+                $photoRows = $this->db->loadObjectList();
+
+                $imageGalleryPrefix = 'g';
+
+                foreach ($photoRows as $photoRow) {
+                    $imageMethods->DeleteExistingGalleryImage(
+                        $ImageFolder_,
+                        $imageGalleryPrefix,
+                        $this->Table->tableid,
+                        $galleryName,
+                        $photoRow->photoid,
+                        $field->params[0],
+                        true
+                    );
+                }
+            }
+        }
+
+        $query = 'DELETE FROM ' . $this->Table->realtablename . ' WHERE ' . $this->Table->realidfieldname . '=' . $this->db->quote($listing_id);
+        $this->db->setQuery($query);
+        $this->db->execute();
+
+        $this->Table->saveLog($listing_id, 5);
+
+        $new_row = array();
+
+        if ($this->Env->advancedTagProcessor)
+            CleanExecute::executeCustomPHPfile($this->Table->tablerow['customphp'], $new_row, $row);
+
+        return 1;
     }
 }
