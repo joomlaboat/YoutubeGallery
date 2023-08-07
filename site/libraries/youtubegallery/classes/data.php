@@ -98,7 +98,6 @@ class YouTubeGalleryData
             }
         }
 
-        echo 'Request API server';
         //try
         //{
         $htmlCode = YouTubeGalleryData::queryTheAPIServer($theLink, '', $force);
@@ -295,6 +294,9 @@ class YouTubeGalleryData
             $results = $y->checkLink($theLink, $isNew, true, $videoListRow->id);
 
             if (count($results) == 1) {
+                if ($results[0]['es_title'] == '')
+                    return $listItem;
+
                 return $results[0];
             }
         } else {

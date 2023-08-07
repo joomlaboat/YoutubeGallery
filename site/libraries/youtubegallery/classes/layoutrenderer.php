@@ -349,9 +349,7 @@ class YoutubeGalleryLayoutRenderer
 
                 return '<div id="YoutubeGallerySecondaryContainer' . $videoList_row->id . '" style="' . $containerStyle . '"></div>';
 
-            case 'navigationbar': //Obselete
-                return YoutubeGalleryLayoutThumbnails::NavigationList($gallery_list, $videoList_row, $theme_row, $videoId, $custom_itemid);
-
+            case 'navigationbar': //Obsolete
             case 'thumbnails':
                 return YoutubeGalleryLayoutThumbnails::NavigationList($gallery_list, $videoList_row, $theme_row, $videoId, $custom_itemid);
 

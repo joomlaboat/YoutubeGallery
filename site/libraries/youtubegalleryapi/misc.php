@@ -226,7 +226,6 @@ class YouTubeGalleryAPIMisc
                         return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);//new
                     } else {
                         $isNew = 0;
-
                         if ((bool)$force_update) {
                             //not new
                             return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);
@@ -347,9 +346,7 @@ class YouTubeGalleryAPIMisc
     function update_cache_table($theLink, $active_key, $videolist_id = null, $youtube_data_api_key = '')
     {
         $videolist = YouTubeGalleryAPIData::formVideoList($theLink, $active_key, $youtube_data_api_key);
-
         $parent_id = null;
-
         $db = Factory::getDBO();
 
         for ($i = 0; $i < count($videolist); $i++) {
@@ -359,7 +356,6 @@ class YouTubeGalleryAPIMisc
                 $g['es_videolist'] = (int)$videolist_id;
 
             $fields = YouTubeGalleryAPIMisc::makeSetList($g, $parent_id);
-
             $record_id = $this->isVideo_record_exist($g['es_videosource'], $g['es_videoid'], $videolist_id);
 
             if ($record_id == 0) {

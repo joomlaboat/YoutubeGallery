@@ -145,8 +145,6 @@ class YouTubeGalleryAPIData
         } elseif ($vsn == 'youtubechannel') {
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtube.php');
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
-
-
             $channelid = YGAPI_VideoSource_YoutubePlaylist::extractYoutubeChannelID($theLink);
 
             if ($theLink == 'https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg') {

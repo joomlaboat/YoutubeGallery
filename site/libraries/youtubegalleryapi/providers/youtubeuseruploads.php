@@ -67,7 +67,6 @@ class YGAPI_VideoSource_YoutubeUserUploads
             return $videolist;
         }
 
-
         if ($userid == 'Whataboutit')
             $userid = 'wQnaBGUeq2qQHHD04dcfi4bSBwY';
 
