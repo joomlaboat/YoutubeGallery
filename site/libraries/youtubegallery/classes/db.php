@@ -434,12 +434,14 @@ class YouTubeGalleryDB
             }
         }
         //Delete All videos of this video list that has been deleted form the list and allowed for updates.
+        /*
         $query = 'DELETE FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$videolist_row->id;
         if (count($ListOfVideosNotToDelete) > 0)
             $query .= ' AND ' . implode(' AND ', $ListOfVideosNotToDelete);
 
         $db->setQuery($query);
         $db->execute();
+        */
     }
 
     public static function updateDBSingleItem($g, $videolist_id, &$parent_id): void
