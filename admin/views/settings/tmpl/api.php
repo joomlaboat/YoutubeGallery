@@ -22,7 +22,7 @@ try {
     $j = json_decode($htmlcode);
 
     if (!$j) {
-        if (strpos($key, '-development') !== false) {
+        if (str_contains($key, '-development')) {
             echo 'Server response: "' . $htmlcode . '"<br/>';
         }
         echo '<p style="color:red;">' . JText::_('COM_YOUTUBEGALLERY_SERVER_DOWN') . ' (' . $host . ').<br/>'

@@ -165,8 +165,8 @@ class YoutubeGalleryLayoutThumbnails
 
             $aLink = JRoute::_($aLink);
 
-            if (strpos($aLink, 'ygstart') === false and Factory::getApplication()->input->getInt('ygstart') != 0) {
-                if (strpos($aLink, '?') === false)
+            if (!str_contains($aLink, 'ygstart') and Factory::getApplication()->input->getInt('ygstart') != 0) {
+                if (!str_contains($aLink, '?'))
                     $aLink .= '?ygstart=' . Factory::getApplication()->input->getInt('ygstart');
                 else
                     $aLink .= '&ygstart=' . Factory::getApplication()->input->getInt('ygstart');
@@ -486,7 +486,7 @@ class YoutubeGalleryLayoutThumbnails
                 if ($options == '')
                     $vlu = $aLink;
                 elseif ($options == 'full') {
-                    if (strpos($aLink, 'http://') !== false or strpos($aLink, 'https://') !== false or strpos($aLink, 'javascript:') !== false)
+                    if (str_contains($aLink, 'http://') or str_contains($aLink, 'https://') or str_contains($aLink, 'javascript:'))
                         $vlu = Helper::curPageURL(false) . $aLink; //NEW
                 }
                 break;
@@ -576,9 +576,9 @@ class YoutubeGalleryLayoutThumbnails
                 break;
 
             case 'social':
-                if (strpos($aLink, 'javascript:') === false) {
+                if (!str_contains($aLink, 'javascript:')) {
                     $a = Helper::curPageURL(false);
-                    if (strpos($aLink, $a) === false)
+                    if (!str_contains($aLink, $a))
                         $l = '"' . $a . $aLink . '"';
                     else
                         $l = '"' . $aLink . '"';
@@ -633,7 +633,7 @@ class YoutubeGalleryLayoutThumbnails
         $thumbTitle = str_replace('"', '', $thumbTitle);
         $thumbTitle = str_replace('\'', '&rsquo;', $thumbTitle);
 
-        if (strpos($thumbTitle, '&amp;') === false)
+        if (!str_contains($thumbTitle, '&amp;'))
             $thumbTitle = str_replace('&', '&amp;', $thumbTitle);
 
         //image src
@@ -667,7 +667,7 @@ class YoutubeGalleryLayoutThumbnails
                 $imageLink = $imageLink_array[0];
             } else {
                 if (isset($listitem['es_customimageurl']) and $listitem['es_customimageurl'] != '') {
-                    if (!(strpos($listitem['es_customimageurl'], '#') === false)) {
+                    if (str_contains($listitem['es_customimageurl'], '#')) {
                         $index = (int)(str_replace('#', '', $listitem['es_customimageurl']));
                         if ($index < 0)
                             $index = 0;
@@ -702,7 +702,7 @@ class YoutubeGalleryLayoutThumbnails
                 $document = Factory::getDocument();
                 $curPageUrl = Helper::curPageURL();
 
-                $imageLink = (strpos($imageLink, 'http://') === false and strpos($imageLink, 'https://') === false ? $curPageUrl . '/' : '') . $imageLink;
+                $imageLink = (!str_contains($imageLink, 'http://') and !str_contains($imageLink, 'https://') ? $curPageUrl . '/' : '') . $imageLink;
 
                 $document->addCustomTag('<link rel="image_src" href="' . $imageLink . '" />'); //all thumbnails
             }

@@ -100,7 +100,7 @@ class YGAPI_VideoSource_YoutubePlaylist
     {
         //If its on JoomlaBoat.com - limit the number of videos to 100
         $limitNumberOfVideos = false;
-        if (strpos(JURI::root(false), 'joomlaboat.com'))
+        if (str_contains(JURI::root(false), 'joomlaboat.com'))
             $limitNumberOfVideos = true;
 
         $videolist = array();

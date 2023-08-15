@@ -37,12 +37,12 @@ class YoutubeGalleryLayoutRenderer
         if (!isset($videolist_row))
             return 'Video List not selected';
 
-        if (strpos($htmlresult, '[videoplayer') === false and $theme_row->es_rel == '') {
+        if (!str_contains($htmlresult, '[videoplayer') and $theme_row->es_rel == '') {
             //[videoplayer] tag
             $htmlresult = '[videoplayer]' . $htmlresult;// if [videoplayer] tag forgotten
         }
 
-        if (strpos($htmlresult, '[pagination') === false)
+        if (!str_contains($htmlresult, '[pagination'))
             $AllowPagination = false;
         else
             $AllowPagination = true;

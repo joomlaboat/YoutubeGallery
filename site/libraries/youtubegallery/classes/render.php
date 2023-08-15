@@ -57,7 +57,7 @@ class YouTubeGalleryRenderer
         $image_link = $VideoRow['es_imageurl'];
 
         if ($theme_row->es_prepareheadtags == 2 or $theme_row->es_prepareheadtags == 3) {
-            if ($image_link != '' and strpos($image_link, '#') === false) {
+            if ($image_link != '' and !str_contains($image_link, '#')) {
                 $curPageUrl = Helper::curPageURL();
 
                 $image_link_array = explode(',', $image_link);
@@ -66,7 +66,7 @@ class YouTubeGalleryRenderer
                 else
                     $imagelink = $image_link_array[0];
 
-                $imagelink = (strpos($imagelink, 'http://') === false and strpos($image_link, 'https://') === false ? $curPageUrl . '/' : '') . $imagelink;
+                $imagelink = (!str_contains($imagelink, 'http://') and !str_contains($image_link, 'https://') ? $curPageUrl . '/' : '') . $imagelink;
 
                 if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
                     $imagelink = str_replace('http://', 'https://', $imagelink);

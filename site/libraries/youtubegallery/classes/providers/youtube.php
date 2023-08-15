@@ -16,7 +16,7 @@ class VideoSource_YouTube
 {
     public static function extractYouTubeID($youtubeURL)
     {
-        if (!(strpos($youtubeURL, '://youtu.be') === false) or !(strpos($youtubeURL, '://www.youtu.be') === false)) {
+        if (str_contains($youtubeURL, '://youtu.be') or str_contains($youtubeURL, '://www.youtu.be')) {
             //youtu.be
             $list = explode('/', $youtubeURL);
             return $list[3] ?? '';

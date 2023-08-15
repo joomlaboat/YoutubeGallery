@@ -368,43 +368,45 @@ class YouTubeGalleryData
 
     public static function getVideoSourceName($link): string
     {
-        if (!(!str_contains($link, '://youtube.com')) or !(strpos($link, '://www.youtube.com') === false)) {
-            if (!(!str_contains($link, '/playlist')))
+        if (str_contains($link, '://youtube.com') or str_contains($link, '://www.youtube.com')) {
+            if (str_contains($link, 'youtube.com/@'))
+                return 'youtubehandle';
+            elseif (str_contains($link, '/playlist'))
                 return 'youtubeplaylist';
-            if (str_contains($link, '&list=PL')) {
+            elseif (str_contains($link, '&list=PL')) {
                 return 'youtubeplaylist';
                 //https://www.youtube.com/watch?v=cNw8A5pwbVI&list=PLMaV6BfupUm-xIMRGKfjj-fP0BLq7b6SJ
-            } elseif (!(!str_contains($link, '/favorites')))
+            } elseif (str_contains($link, '/favorites'))
                 return 'youtubeuserfavorites';
-            elseif (!(!str_contains($link, '/user')))
+            elseif (str_contains($link, '/user'))
                 return 'youtubeuseruploads';
-            elseif (!(!str_contains($link, '/results')))
+            elseif (str_contains($link, '/results'))
                 return 'youtubesearch';
-            elseif (!(!str_contains($link, 'youtube.com/show/')))
+            elseif (str_contains($link, 'youtube.com/show/'))
                 return 'youtubeshow';
-            elseif (!(!str_contains($link, 'youtube.com/channel/')))
+            elseif (str_contains($link, 'youtube.com/channel/'))
                 return 'youtubechannel';
             else
                 return 'youtube';
         }
 
-        if (!(!str_contains($link, '://youtu.be')) or !(strpos($link, '://www.youtu.be') === false))
+        if (str_contains($link, '://youtu.be') or str_contains($link, '://www.youtu.be'))
             return 'youtube';
 
-        if (!(!str_contains($link, 'youtubestandard:')))
+        if (str_contains($link, 'youtubestandard:'))
             return 'youtubestandard';
 
-        if (!(!str_contains($link, 'videolist:')))
+        if (!str_contains($link, 'videolist:'))
             return 'videolist';
 
 
-        if (!(!str_contains($link, '://vimeo.com/user')) or !(strpos($link, '://www.vimeo.com/user') === false))
+        if (str_contains($link, '://vimeo.com/user') or str_contains($link, '://www.vimeo.com/user'))
             return 'vimeouservideos';
-        elseif (!(!str_contains($link, '://vimeo.com/channels/')) or !(strpos($link, '://www.vimeo.com/channels/') === false))
+        elseif (str_contains($link, '://vimeo.com/channels/') or str_contains($link, '://www.vimeo.com/channels/'))
             return 'vimeochannel';
-        elseif (!(!str_contains($link, '://vimeo.com/album/')) or !(strpos($link, '://www.vimeo.com/album/') === false))
+        elseif (str_contains($link, '://vimeo.com/album/') or str_contains($link, '://www.vimeo.com/album/'))
             return 'vimeoalbum';
-        elseif (!(strpos($link, '://vimeo.com') === false) or !(strpos($link, '://www.vimeo.com') === false)) {
+        elseif (str_contains($link, '://vimeo.com') or str_contains($link, '://www.vimeo.com')) {
             preg_match('/http:\/\/vimeo.com\/(\d+)$/', $link, $matches);
             if (count($matches) != 0) {
                 //single video
@@ -421,45 +423,45 @@ class YouTubeGalleryData
             }
         }
 
-        if (!(!str_contains($link, '://own3d.tv/l/')) or !(strpos($link, '://www.own3d.tv/l/') === false))
+        if (str_contains($link, '://own3d.tv/l/') or str_contains($link, '://www.own3d.tv/l/'))
             return 'own3dtvlive';
 
-        if (!(!str_contains($link, '://own3d.tv/v/')) or !(strpos($link, '://www.own3d.tv/v/') === false))
+        if (str_contains($link, '://own3d.tv/v/') or str_contains($link, '://www.own3d.tv/v/'))
             return 'own3dtvvideo';
 
-        if (!(!str_contains($link, 'video.google.com')))
+        if (str_contains($link, 'video.google.com'))
             return 'google';
 
-        if (!(!str_contains($link, 'video.yahoo.com')))
+        if (str_contains($link, 'video.yahoo.com'))
             return 'yahoo';
 
-        if (!(!str_contains($link, '://break.com')) or !(strpos($link, '://www.break.com') === false))
+        if (str_contains($link, '://break.com') or str_contains($link, '://www.break.com'))
             return 'break';
 
-        if (!(!str_contains($link, '://collegehumor.com')) or !(strpos($link, '://www.collegehumor.com') === false))
+        if (str_contains($link, '://collegehumor.com') or str_contains($link, '://www.collegehumor.com'))
             return 'collegehumor';
 
         //https://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x7k9rx
-        if (!(!str_contains($link, '://dailymotion.com/playlist/')) or !(strpos($link, '://www.dailymotion.com/playlist/') === false))
+        if (str_contains($link, '://dailymotion.com/playlist/') or str_contains($link, '://www.dailymotion.com/playlist/'))
             return 'dailymotionplaylist';
 
-        if (!(!str_contains($link, '://dailymotion.com')) or !(strpos($link, '://www.dailymotion.com') === false))
+        if (str_contains($link, '://dailymotion.com') or str_contains($link, '://www.dailymotion.com') === false)
             return 'dailymotion';
 
-        if (!(!str_contains($link, '://present.me')) or !(strpos($link, '://www.present.me') === false))
+        if (str_contains($link, '://present.me') or str_contains($link, '://www.present.me') === false)
             return 'presentme';
 
-        if (!(!str_contains($link, '://tiktok.com/')) or !(strpos($link, '://www.tiktok.com/') === false))
+        if (str_contains($link, '://tiktok.com/') or str_contains($link, '://www.tiktok.com/') === false)
             return 'tiktok';
 
-        if (!(!str_contains($link, '://ustream.tv/recorded')) or !(strpos($link, '://www.ustream.tv/recorded') === false))
+        if (str_contains($link, '://ustream.tv/recorded') or str_contains($link, '://www.ustream.tv/recorded') === false)
             return 'ustream';
 
-        if (!(!str_contains($link, '://ustream.tv/channel')) or !(strpos($link, '://www.ustream.tv/channel') === false))
+        if (str_contains($link, '://ustream.tv/channel') or str_contains($link, '://www.ustream.tv/channel') === false)
             return 'ustreamlive';
 
         //http://api.soundcloud.com/tracks/49931.json  - accepts only resolved links
-        if (!(!str_contains($link, '://api.soundcloud.com/tracks/')))
+        if (str_contains($link, '://api.soundcloud.com/tracks/'))
             return 'soundcloud';
 
         return '';

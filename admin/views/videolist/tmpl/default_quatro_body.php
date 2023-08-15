@@ -32,7 +32,7 @@ if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
                     $index = 0;
                     if ($item->es_customimageurl != '') {
                         //this allows to select an image
-                        if (!(strpos($item->es_customimageurl, '#') === false)) {
+                        if (str_contains($item->es_customimageurl, '#')) {
                             $index = (int)(str_replace('#', '', $item->es_customimageurl));
                             if ($index < 0)
                                 $index = 0;
@@ -52,7 +52,7 @@ if (isset($_SERVER["HTTPS"]) and $_SERVER["HTTPS"] == "on")
                         $img = str_replace('http:', 'https:', $img);
 
                     //For local imeagse, return one folder back
-                    if (strpos($img, '://') === false and $img != '' and $img[0] != '/')
+                    if (!str_contains($img, '://') and $img != '' and $img[0] != '/')
                         $img = '../' . $img;
 
                     echo '<p style="text-align:center;"><div id="thumbnail' . $item->id . '"><a href="' . $img . '" target="_blank"><img src="' . $img . '" style="width:200px;" /></a></div></p>';

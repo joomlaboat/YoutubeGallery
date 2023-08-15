@@ -15,7 +15,7 @@ class YGAPI_VideoSource_DailyMotion
     public static function extractDailyMotionID($theLink)
     {
 
-        if (strpos($theLink, 'dailymotion.com/video/') === false) {
+        if (!str_contains($theLink, 'dailymotion.com/video/')) {
             //https://www.dailymotion.com/au/relevance/search/camp+fire+1/1#video=x16ckln
             $l = explode('#', $theLink);
 

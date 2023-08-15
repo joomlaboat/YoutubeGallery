@@ -262,7 +262,7 @@ class YGPagination extends JObject
 
         //check if the path already contains video alias
         //delete it if found.
-        if (!(strpos(JPATH_COMPONENT, '/com_youtubegallery') === false)) {
+        if (str_contains(JPATH_COMPONENT, '/com_youtubegallery')) {
             //youtube gallery component
             $s = explode('/', $URLPath);
             $sc = count($s);
@@ -405,7 +405,7 @@ class YGPagination extends JObject
     static protected function QuestionmarkOrAnd($URLPath)
     {
         if ($URLPath != '') {
-            if (strpos($URLPath, '?') === false)
+            if (!str_contains($URLPath, '?'))
                 return '?';
 
             $a = $URLPath[strlen($URLPath) - 1];

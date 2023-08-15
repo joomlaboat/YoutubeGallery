@@ -205,7 +205,7 @@ class YouTubeGalleryPlayers
                 $imageurl = $VideoRow['custom_imageurl'];
         }
 
-        if ($imageurl != '' and $theme_row->es_rel == '' and strpos($imageurl, '#') === false and strpos($imageurl, '_small') === false) {
+        if ($imageurl != '' and $theme_row->es_rel == '' and !str_contains($imageurl, '#') and !str_contains($imageurl, '_small')) {
             //Specific preview image for your YouTube video
             //The idea of Jarrett Gucci (Modified: play button added)
 

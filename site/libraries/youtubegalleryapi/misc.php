@@ -104,17 +104,6 @@ class YouTubeGalleryAPIMisc
         return false;
     }
 
-    public static function check_user_agent_for_ie()
-    {
-        $u = $_SERVER['HTTP_USER_AGENT'];
-        if (strpos($u, 'MSIE') !== FALSE)
-            return true;
-        elseif (strpos($u, 'Trident') !== FALSE)
-            return true;
-
-        return false;
-    }
-
     public static function html2txt($document)
     {
         $search = array('@<script[^>]*?>.*?</script>@si',  // Strip out javascript

@@ -55,7 +55,7 @@ function getESTables()
                 //	die;
             }
 
-        } elseif (strpos($tablename, '_customtables_') !== false) {
+        } elseif (str_contains($tablename, '_customtables_')) {
             updateFields($tablename);
         }
     }
@@ -281,19 +281,14 @@ function addCetegoriesTable()
     $db = JFactory::getDBO();
     $query = 'CREATE TABLE IF NOT EXISTS `#__customtables_categories` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
-	`asset_id` INT(10) unsigned NOT NULL DEFAULT 0 COMMENT "FK to the #__assets table.",
-	`categoryname` VARCHAR(255) NOT NULL DEFAULT "",
-	`params` text NULL,
 	`published` TINYINT(3) NOT NULL DEFAULT 1,
+	`categoryname` VARCHAR(255) NOT NULL DEFAULT "",
 	`created_by` INT(10) unsigned NOT NULL DEFAULT 0,
 	`modified_by` INT(10) unsigned NOT NULL DEFAULT 0,
 	`created` DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00",
 	`modified` DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00",
 	`checked_out` int(11) unsigned NOT NULL DEFAULT 0,
 	`checked_out_time` DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00",
-	`version` INT(10) unsigned NOT NULL DEFAULT 1,
-	`hits` INT(10) unsigned NOT NULL DEFAULT 0,
-	`ordering` INT(11) NOT NULL DEFAULT 0,
 	PRIMARY KEY  (`id`),
 	KEY `idx_checkout` (`checked_out`),
 	KEY `idx_createdby` (`created_by`),
@@ -312,8 +307,8 @@ function updateFields($new_tablename)
     $dbprefix = $conf->get('dbprefix');
 
     if ($new_tablename == $dbprefix . 'customtables_tables') {
-        Fields::AddMySQLFieldNotExist($new_tablename, 'asset_id', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'params', 'text NULL', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'asset_id', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'params', 'text NULL', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'published', 'TINYINT(3) NOT NULL DEFAULT 1', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'created_by', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'modified_by', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
@@ -321,14 +316,14 @@ function updateFields($new_tablename)
         Fields::AddMySQLFieldNotExist($new_tablename, 'modified', 'DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00"', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'checked_out', 'int(11) unsigned NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'checked_out_time', 'DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00"', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'version', 'INT(10) unsigned NOT NULL DEFAULT 1', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'hits', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'ordering', 'INT(11) NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'version', 'INT(10) unsigned NOT NULL DEFAULT 1', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'hits', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'ordering', 'INT(11) NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'tablecategory', 'INT(11) NOT NULL DEFAULT 0', '');
 
     } elseif ($new_tablename == $dbprefix . 'customtables_layouts') {
-        Fields::AddMySQLFieldNotExist($new_tablename, 'asset_id', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'params', 'text NULL', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'asset_id', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'params', 'text NULL', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'published', 'TINYINT(3) NOT NULL DEFAULT 1', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'created_by', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'modified_by', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
@@ -336,13 +331,13 @@ function updateFields($new_tablename)
         Fields::AddMySQLFieldNotExist($new_tablename, 'modified', 'DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00"', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'checked_out', 'int(11) unsigned NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'checked_out_time', 'DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00"', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'version', 'INT(10) unsigned NOT NULL DEFAULT 1', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'hits', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'ordering', 'INT(11) NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'version', 'INT(10) unsigned NOT NULL DEFAULT 1', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'hits', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'ordering', 'INT(11) NOT NULL DEFAULT 0', '');
 
     } elseif ($new_tablename == $dbprefix . 'customtables_fields') {
-        Fields::AddMySQLFieldNotExist($new_tablename, 'asset_id', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'params', 'text NULL', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'asset_id', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'params', 'text NULL', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'published', 'TINYINT(3) NOT NULL DEFAULT 1', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'created_by', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'modified_by', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
@@ -350,8 +345,8 @@ function updateFields($new_tablename)
         Fields::AddMySQLFieldNotExist($new_tablename, 'modified', 'DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00"', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'checked_out', 'int(11) unsigned NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'checked_out_time', 'DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00"', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'version', 'INT(10) unsigned NOT NULL DEFAULT 1', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'hits', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'version', 'INT(10) unsigned NOT NULL DEFAULT 1', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'hits', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'ordering', 'INT(11) NOT NULL DEFAULT 0', '');
 
         Fields::AddMySQLFieldNotExist($new_tablename, 'description', 'VARCHAR(1024) NOT NULL DEFAULT ""', '');
@@ -359,8 +354,8 @@ function updateFields($new_tablename)
         Fields::AddMySQLFieldNotExist($new_tablename, 'phponadd', 'text NULL', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'phponchange', 'text NULL', '');
     } elseif ($new_tablename == $dbprefix . 'customtables_categories') {
-        Fields::AddMySQLFieldNotExist($new_tablename, 'asset_id', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'params', 'text NULL', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'asset_id', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'params', 'text NULL', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'published', 'TINYINT(3) NOT NULL DEFAULT 1', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'created_by', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'modified_by', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
@@ -368,9 +363,9 @@ function updateFields($new_tablename)
         Fields::AddMySQLFieldNotExist($new_tablename, 'modified', 'DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00"', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'checked_out', 'int(11) unsigned NOT NULL DEFAULT 0', '');
         Fields::AddMySQLFieldNotExist($new_tablename, 'checked_out_time', 'DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00"', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'version', 'INT(10) unsigned NOT NULL DEFAULT 1', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'hits', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
-        Fields::AddMySQLFieldNotExist($new_tablename, 'ordering', 'INT(11) NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'version', 'INT(10) unsigned NOT NULL DEFAULT 1', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'hits', 'INT(10) unsigned NOT NULL DEFAULT 0', '');
+        //Fields::AddMySQLFieldNotExist($new_tablename, 'ordering', 'INT(11) NOT NULL DEFAULT 0', '');
     }
 
 }
@@ -391,11 +386,10 @@ function fixFields($tablename)
 
         foreach ($a as $b) {
 
-
-            if (strpos($fn, $b) !== false) {
+            if (str_contains($fn, $b)) {
                 //Do something
 
-                if ($b == '_1' and strpos($fn, '_10') === false) {
+                if ($b == '_1' and !str_contains($fn, '_10')) {
                     //rename
                     $newcolumnname = str_replace('_1', '', $field['Field']);
                     $query = 'ALTER TABLE `' . $tablename . '` CHANGE `' . $fn . '` `' . $newcolumnname . '` ' . $type . ' ' . ($null != 'NO' ? 'NULL' : '') . ';';

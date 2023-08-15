@@ -13,13 +13,13 @@ class YGAPI_VideoSource_YouTube
 {
     public static function extractYouTubeID($youtubeURL)
     {
-        if (!(strpos($youtubeURL, '/embed/') === false)) {
+        if (str_contains($youtubeURL, '/embed/')) {
             //Convert Embed links to Address bar version
             $youtubeURL = str_replace('www.youtube.com/embed/', 'youtu.be/', $youtubeURL);
             $youtubeURL = str_replace('youtube.com/embed/', 'youtu.be/', $youtubeURL);
         }
 
-        if (!(strpos($youtubeURL, '://youtu.be') === false) or !(strpos($youtubeURL, '://www.youtu.be') === false)) {
+        if (str_contains($youtubeURL, '://youtu.be') or str_contains($youtubeURL, '://www.youtu.be')) {
             //youtu.be
             $list = explode('/', $youtubeURL);
             if (isset($list[3]))
@@ -34,7 +34,6 @@ class YGAPI_VideoSource_YouTube
             else
                 return '';
         }
-
     }
 
     public static function copyVideoData($j, &$blankArray)
@@ -53,12 +52,9 @@ class YGAPI_VideoSource_YouTube
 
                     $blankArray['es_error'] = $e->message;
                     $blankArray['es_rawdata'] = null;//json_encode($j);
-
                     return false;
                 }
-
             }
-
             $items = $j->items;
 
             if (!is_array($items)) {
@@ -78,7 +74,6 @@ class YGAPI_VideoSource_YouTube
                 $blankArray['es_rawdata'] = null;//json_encode($j);
             }
 
-
         } catch (Exception $e) {
             $blankArray['es_status'] = -2;
             $blankArray['es_error'] = 'YoutubeGalleryAPI: Error catched.';
@@ -92,7 +87,6 @@ class YGAPI_VideoSource_YouTube
     {
         try {
             $snippet = $item->snippet;
-
             $videoid = '';
 
             if ($item->kind == 'youtube#video')

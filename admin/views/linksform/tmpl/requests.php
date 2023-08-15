@@ -32,7 +32,7 @@ switch ($task) {
 
         $html = Helper::getURLData($theUrl);
 
-        if (strpos($html, '{"') === false) {
+        if (!str_contains($html, '{"')) {
             echo 'please check this link: https://joomlaboat.com/youtube-gallery/f-a-q/why-i-see-allow-url-fopen-message?cbprofile=2';
             break;
         }
@@ -143,7 +143,7 @@ function getYoutubeSeasonsByShowID($showid, $max_results, $start_index)
     if ($a == '')
         return 'cannot load seasons page';
 
-    if (strpos($a, '<?xml version') === false)
+    if (!str_contains($a, '<?xml version'))
         return 'Cannot load data, no connection';
 
 
@@ -180,7 +180,7 @@ function getYoutubeShowsByUser($username, $max_results, $start_index)
     if ($a == '')
         return 'cannot load user shows page';
 
-    if (strpos($a, '<?xml version') === false)
+    if (!str_contains($a, '<?xml version'))
         return 'Cannot load data, no connection';
 
     $xml = simplexml_load_string($a);
@@ -206,7 +206,7 @@ function getYoutubeShowsByUser($username, $max_results, $start_index)
 
 function getYoutubeGalleryShowOwner($url)
 {
-    if (strpos($url, '://www.youtube.com/show/') === false)
+    if (!str_contains($url, '://www.youtube.com/show/'))
         return 'wrong link format';
 
     $a = Helper::getURLData($url);

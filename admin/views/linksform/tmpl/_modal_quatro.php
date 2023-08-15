@@ -28,7 +28,7 @@ $link = JRoute::_('index.php?option=com_youtubegallery');
 $simple_mode = $input->getCmd('tmpl') == 'component';
 
 if ($simple_mode)
-    $link .= (strpos($link, '?') === false ? '?' : '&') . 'tmpl=component&ygrefreshparent=1';//this is for modal form - edit article youtube gallery button
+    $link .= (!str_contains($link, '?') ? '?' : '&') . 'tmpl=component&ygrefreshparent=1';//this is for modal form - edit article youtube gallery button
 
 $id = (int)$input->getInt('id');
 $link .= '&id=' . $id;

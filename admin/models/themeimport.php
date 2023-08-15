@@ -209,7 +209,7 @@ class YoutubeGalleryModelThemeImport extends JModelList
 
             while (false !== ($file = readdir($handle))) {
 
-                if ($file != '.' and $file != '..' and $file != 'theme.txt' and $file != 'about.txt' and strpos($file, '.xml') === false and strpos($file, '.php') === false) {
+                if ($file != '.' and $file != '..' and $file != 'theme.txt' and $file != 'about.txt' and !str_contains($file, '.xml') and !str_contains($file, '.php')) {
                     if (!is_dir($sys_path . DIRECTORY_SEPARATOR . $file)) {
                         //$destination_file=JPATH_SITE.DIRECTORY_SEPARATOR.$dirpath_to.DIRECTORY_SEPARATOR.$file;
                         $destination_file = $dirpath_to . DIRECTORY_SEPARATOR . $file;

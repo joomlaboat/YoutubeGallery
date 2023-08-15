@@ -227,7 +227,7 @@ class YouTubeGalleryDB
                     //all videos
                     $listIDs = array();
                     break;
-                } elseif (!(strpos($v['es_videoid'], 'catid=') === false)) {
+                } elseif (str_contains($v['es_videoid'], 'catid=')) {
                     //Video Lists of selected category by id
 
                     $catid = intval(str_replace('catid=', '', $v['es_videoid']));
@@ -239,7 +239,7 @@ class YouTubeGalleryDB
 
                     foreach ($videos_lists_ as $vl)
                         $listIDs[] = $vl['id'];
-                } elseif (!(strpos($v['es_videoid'], 'category=') === false)) {
+                } elseif (str_contains($v['es_videoid'], 'category=')) {
                     //Video Lists of selected category by id
 
                     $categoryname = str_replace('category=', '', $v['es_videoid']);

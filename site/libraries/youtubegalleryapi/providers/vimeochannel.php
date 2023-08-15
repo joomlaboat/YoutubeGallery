@@ -100,7 +100,7 @@ class YGAPI_VideoSource_VimeoChannel
             foreach ($video_body['data'] as $video) {
                 $uri = $video['uri'];
 
-                if (strpos($uri, '/videos/') !== false and strpos($uri, '/channels/') === false) {
+                if (str_contains($uri, '/videos/') and !str_contains($uri, '/channels/')) {
                     $video_id = str_replace('/videos/', '', $uri);
                     $videolist[] = 'https://vimeo.com/' . $video_id;
                 }

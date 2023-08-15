@@ -114,21 +114,21 @@ class Filtering
             $multi_field_where = [];
 
             if ($logic_operator == 'or' or $logic_operator == 'and') {
-                if (!(!str_contains($comparison_operator_str, '<=')))
+                if (str_contains($comparison_operator_str, '<='))
                     $comparison_operator = '<=';
-                elseif (!(!str_contains($comparison_operator_str, '>=')))
+                elseif (str_contains($comparison_operator_str, '>='))
                     $comparison_operator = '>=';
                 elseif (str_contains($comparison_operator_str, '!=='))
                     $comparison_operator = '!==';
-                elseif (!(!str_contains($comparison_operator_str, '!=')))
+                elseif (str_contains($comparison_operator_str, '!='))
                     $comparison_operator = '!=';
                 elseif (str_contains($comparison_operator_str, '=='))
                     $comparison_operator = '==';
                 elseif (str_contains($comparison_operator_str, '='))
                     $comparison_operator = '=';
-                elseif (!(!str_contains($comparison_operator_str, '<')))
+                elseif (str_contains($comparison_operator_str, '<'))
                     $comparison_operator = '<';
-                elseif (!(!str_contains($comparison_operator_str, '>')))
+                elseif (str_contains($comparison_operator_str, '>'))
                     $comparison_operator = '>';
 
                 if ($comparison_operator != '') {

@@ -73,7 +73,7 @@ class Helper
         if ($add_REQUEST_URI) {
             //clean Facebook staff
             $uri = $_SERVER["REQUEST_URI"];
-            if (!(!str_contains($uri, 'fb_action_ids='))) {
+            if (str_contains($uri, 'fb_action_ids=')) {
                 $uri = Helper::deleteURLQueryOption($uri, 'fb_action_ids');
                 $uri = Helper::deleteURLQueryOption($uri, 'fb_action_types');
                 $uri = Helper::deleteURLQueryOption($uri, 'fb_source');
@@ -203,20 +203,6 @@ class Helper
             // these are the most common
             return true;
         }
-
-        return false;
-    }
-
-    /* USER-AGENTS ================================================== */
-    //http://stackoverflow.com/questions/6524301/detect-mobile-browser
-
-    public static function check_user_agent_for_ie()
-    {
-        $u = $_SERVER['HTTP_USER_AGENT'];
-        if (strpos($u, 'MSIE') !== FALSE)
-            return true;
-        elseif (strpos($u, 'Trident') !== FALSE)
-            return true;
 
         return false;
     }

@@ -102,7 +102,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
             $msg = JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_SAVED_SUCCESSFULLY');
 
             if ($input->getCmd('tmpl') == 'component') {
-                $link .= (strpos($link, '?') === false ? '?' : '&') . 'tmpl=component';
+                $link .= (!str_contains($link, '?') ? '?' : '&') . 'tmpl=component';
                 $link .= '&ygrefreshparent=' . ($input->getInt('ygrefreshparent') == 1 ? '1' : '0');
             }
 
@@ -111,7 +111,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
 
             $link = 'index.php?option=com_youtubegallery&view=linksform&layout=edit&id=' . $model->id;
             if ($input->getCmd('tmpl') == 'component') {
-                $link .= (strpos($link, '?') === false ? '?' : '&') . 'tmpl=component';
+                $link .= (!str_contains($link, '?') ? '?' : '&') . 'tmpl=component';
                 $link .= '&ygrefreshparent=' . ($input->getInt('ygrefreshparent') == 1 ? '1' : '0');
             }
 
