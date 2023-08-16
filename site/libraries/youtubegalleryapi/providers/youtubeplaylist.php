@@ -43,21 +43,19 @@ class YGAPI_VideoSource_YoutubePlaylist
         $keywords = str_replace('?', '', $p);
         $keywords = str_replace('%', '', $p);
         $keywords = str_replace('+', ' ', $keywords);
-        $keywords = str_replace(' ', ',', $keywords);
-
-        return $keywords;
+        return str_replace(' ', ',', $keywords);
     }
 
     public static function YoutubeLists($theLink, $vsn, $query, $listid, $active_key, $youtube_data_api_key = '')
     {
-        $videoitems = array();
+        $videoItems = array();
 
-        $videolistitem = YouTubeGalleryAPIMisc::getBlankArray();
-        $videolistitem['es_videosource'] = $vsn;
-        $videolistitem['es_link'] = $theLink;
-        $videolistitem['es_isvideo'] = 0;
-        $videolistitem['es_videoid'] = $listid;
-        $videolistitem['es_videoids'] = '-';
+        $videoListItem = YouTubeGalleryAPIMisc::getBlankArray();
+        $videoListItem['es_videosource'] = $vsn;
+        $videoListItem['es_link'] = $theLink;
+        $videoListItem['es_isvideo'] = 0;
+        $videoListItem['es_videoid'] = $listid;
+        $videoListItem['es_videoids'] = '-';
 
         require_once('youtube.php');
 
@@ -71,29 +69,26 @@ class YGAPI_VideoSource_YoutubePlaylist
 
         if ($key == '') {
             Factory::getApplication()->enqueueMessage('Youtube Data API key is required.', 'error');
-            return $videoitems;
+            return $videoItems;
         }
 
-        $datalink = $base_url . '/' . $query . '&part=' . $part . '&key=' . $key;
-        $videolistitem['es_datalink'] = $datalink;
-
-
+        $dataLink = $base_url . '/' . $query . '&part=' . $part . '&key=' . $key;
+        $videoListItem['es_datalink'] = $dataLink;
         $debug = false;
+
         if ($theLink == 'https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg') {
             $debug = true;
         }
 
-        $newlist = YGAPI_VideoSource_YoutubePlaylist::getPlaylistVideos($datalink, $videolistitem, $active_key, $debug, $youtube_data_api_key);//$theLink=='https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg');
+        $newList = YGAPI_VideoSource_YoutubePlaylist::getPlaylistVideos($dataLink, $videoListItem, $active_key, $debug, $youtube_data_api_key);//$theLink=='https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg');
 
         if ($theLink == 'https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg') {
-            print_r($newlist);
+            print_r($newList);
             die;
         }
 
-        $videoitems[] = $videolistitem;
-        $videoitems = array_merge($videoitems, $newlist);
-
-        return $videoitems;
+        $videoItems[] = $videoListItem;
+        return array_merge($videoItems, $newList);
     }
 
     public static function getPlaylistVideos($datalink, &$videolistitem, $active_key, $debug = false, $youtube_data_api_key = '')
@@ -103,7 +98,7 @@ class YGAPI_VideoSource_YoutubePlaylist
         if (str_contains(JURI::root(false), 'joomlaboat.com'))
             $limitNumberOfVideos = true;
 
-        $videolist = array();
+        $videoList = array();
         $url = $datalink;
 
         $videos_found = 0;
@@ -124,7 +119,7 @@ class YGAPI_VideoSource_YoutubePlaylist
                 $videolistitem['es_status'] = -1;
                 $videolistitem['es_error'] = 'Response is empty';
                 $videolistitem['es_rawdata'] = null;//$htmlcode;
-                return $videolist;
+                return $videoList;
             }
 
             $j = json_decode($htmlcode);
@@ -132,7 +127,7 @@ class YGAPI_VideoSource_YoutubePlaylist
                 $videolistitem['es_status'] = -1;
                 $videolistitem['es_error'] = 'Response is not JSON';
                 $videolistitem['es_rawdata'] = null;//$htmlcode;
-                return $videolist;
+                return $videoList;
             }
 
             if (isset($j->error)) {
@@ -141,7 +136,7 @@ class YGAPI_VideoSource_YoutubePlaylist
                     $videolistitem['es_status'] = -2;
                     $videolistitem['es_error'] = $e->message;
                     $videolistitem['es_rawdata'] = null;//$htmlcode;
-                    return $videolist;
+                    return $videoList;
                 }
             }
 
@@ -167,7 +162,7 @@ class YGAPI_VideoSource_YoutubePlaylist
                 YGAPI_VideoSource_YouTube::copyVideoDataItem($item, $videoitem, $debug);
 
                 if ($videoitem['es_videoid'] != '') {
-                    $videolist[] = $videoitem;
+                    $videoList[] = $videoitem;
                     $videos[] = $videoitem['es_videoid'];
 
                     //Update Channel title
@@ -186,7 +181,7 @@ class YGAPI_VideoSource_YoutubePlaylist
         }
 
         $videolistitem['es_videoids'] = ',' . implode(',', $videos) . ',';
-        return $videolist;
+        return $videoList;
     }
 
     public static function getVideoIDList($youtubeURL, &$playlistid, &$datalink)
@@ -197,14 +192,22 @@ class YGAPI_VideoSource_YoutubePlaylist
         return $videolist;
     }
 
-    public static function extractYouTubePlayListID($youtubeURL)
+    public static function extractYouTubePlayListID($youtubeURL): ?string
     {
-        $arr = JoomlaBasicMisc::parse_query($youtubeURL);
-        $p = $arr['list'];
+        if (str_contains($youtubeURL, 'youtube.com/@')) {
+            $parts = explode('youtube.com/@', $youtubeURL);
+            if (count($parts) < 2)
+                return null;
 
-        if (strlen($p) < 3)
-            return '';
+            return '@' . $parts[1];
+        } else {
+            $arr = JoomlaBasicMisc::parse_query($youtubeURL);
+            $p = $arr['list'];
 
-        return $p;
+            if (strlen($p) < 3)
+                return '';
+
+            return $p;
+        }
     }
 }

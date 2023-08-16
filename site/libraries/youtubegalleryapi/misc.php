@@ -187,14 +187,16 @@ class YouTubeGalleryAPIMisc
     {
         $active_key = true;
         $blankArray = array();
-
         $vsn = YouTubeGalleryAPIData::getVideoSourceName($theLink);//For link validation
 
         if ($vsn != '') {
-            $videoid = YouTubeGalleryAPIData::getVideoID($theLink, $vsn);//For link validation again
-            if ($videoid != '') {
+            $videoId = YouTubeGalleryAPIData::getVideoID($theLink, $vsn);//For link validation again
+
+            if ($videoId != '') {
                 if (YouTubeGalleryAPIData::isVideoList($vsn)) {
-                    $videos_rows = $this->getVideoRecords($vsn, $videoid, true);
+
+                    $videos_rows = $this->getVideoRecords($vsn, $videoId, true);
+
                     if (count($videos_rows) == 0) {
                         $isNew = 1;
                         return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);//new
@@ -207,7 +209,7 @@ class YouTubeGalleryAPIMisc
                             return $videos_rows;//not new
                     }
                 } else {
-                    $videos_rows = $this->getVideoRecords($vsn, $videoid, true);
+                    $videos_rows = $this->getVideoRecords($vsn, $videoId, true);
                     //Think about updating videos
                     if (count($videos_rows) == 0) {
                         //Video not found in database, try to grab it from the provider
@@ -334,12 +336,12 @@ class YouTubeGalleryAPIMisc
 
     function update_cache_table($theLink, $active_key, $videolist_id = null, $youtube_data_api_key = '')
     {
-        $videolist = YouTubeGalleryAPIData::formVideoList($theLink, $active_key, $youtube_data_api_key);
+        $videoList = YouTubeGalleryAPIData::formVideoList($theLink, $active_key, $youtube_data_api_key);
         $parent_id = null;
         $db = Factory::getDBO();
 
-        for ($i = 0; $i < count($videolist); $i++) {
-            $g = $videolist[$i];
+        for ($i = 0; $i < count($videoList); $i++) {
+            $g = $videoList[$i];
 
             if ($videolist_id != null)
                 $g['es_videolist'] = (int)$videolist_id;
@@ -373,10 +375,10 @@ class YouTubeGalleryAPIMisc
             //To return clean and secure record
             $g['es_datalink'] = '';
             $g['es_rawdata'] = null;
-            $videolist[$i] = $g;
+            $videoList[$i] = $g;
         }
 
-        return $videolist;
+        return $videoList;
     }
 
     protected static function makeSetList($g, &$parent_id)

@@ -108,9 +108,7 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
         }
 
         YouTubeGalleryDB::update_cache_table($linksform_row, false);
-
         $this->id = $linksform_row->id;
-
         return true;
     }
 
@@ -121,19 +119,12 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
     function store()
     {
-
-
         $linksform_row = $this->getTable('videolists');
-
         $jinput = Factory::getApplication()->input;
         $data = $jinput->get('jform', array(), 'ARRAY');
-
         $post = array();
-
         $listname = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['listname']));
-
         $data['jform']['listname'] = $listname;
-
 
         if (!$linksform_row->bind($data)) {
             echo 'Cannot bind.';
@@ -157,13 +148,8 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
         //require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
         require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'db.php');
-
-
         YouTubeGalleryDB::update_cache_table($linksform_row, false);
-
-
         $this->id = $linksform_row->id;
-
         return true;
     }
 

@@ -34,7 +34,6 @@ class YoutubeGalleryControllerVideoList extends JControllerAdmin
 
     }
 
-
     function cancel()
     {
         $this->setRedirect('index.php?option=com_youtubegallery');

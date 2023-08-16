@@ -412,13 +412,10 @@ class YouTubeGalleryDB
     public static function update_cache_table(&$videolist_row, $update_videolist = false): void
     {
         $videoListArray = JoomlaBasicMisc::csv_explode("\n", $videolist_row->es_videolist, '"', true);
-
         $firstVideo = '';
         $videoList = YouTubeGalleryData::formVideoList($videolist_row, $videoListArray, $firstVideo, '', $update_videolist);//$this->theme_row->thumbnailstyle);
-
         $db = Factory::getDBO();
         $parent_id = null;
-
         $ListOfVideosNotToDelete = array();
         $customOrdering = 1;
 
@@ -433,6 +430,7 @@ class YouTubeGalleryDB
                 YouTubeGalleryDB::updateDBSingleItem($g, (int)$videolist_row->id, $parent_id);
             }
         }
+
         //Delete All videos of this video list that has been deleted form the list and allowed for updates.
         /*
         $query = 'DELETE FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$videolist_row->id;

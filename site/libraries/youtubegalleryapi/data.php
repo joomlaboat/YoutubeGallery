@@ -35,12 +35,13 @@ class YouTubeGalleryAPIData
     public static function getVideoSourceName($link)
     {
         if (str_contains($link, '://youtube.com') or str_contains($link, '://www.youtube.com')) {
-            if (str_contains($link, '/playlist'))
+            if (str_contains($link, 'youtube.com/@'))
+                return 'youtubehandle';
+            elseif (str_contains($link, '/playlist'))
                 return 'youtubeplaylist';
-            if (str_contains($link, '&list=PL')) {
+            elseif (str_contains($link, '&list=PL'))
                 return 'youtubeplaylist';
-                //https://www.youtube.com/watch?v=cNw8A5pwbVI&list=PLMaV6BfupUm-xIMRGKfjj-fP0BLq7b6SJ
-            } elseif (str_contains($link, '/favorites'))
+            elseif (str_contains($link, '/favorites'))
                 return 'youtubeuserfavorites';
             elseif (str_contains($link, '/user'))
                 return 'youtubeuseruploads';
@@ -116,7 +117,7 @@ class YouTubeGalleryAPIData
 
     public static function isVideoList($vsn)
     {
-        $channels_youtube = array('youtubeuseruploads', 'youtubestandard', 'youtubeplaylist', 'youtubeshow', 'youtubeuserfavorites', 'youtubesearch', 'youtubechannel', 'youtubeuservideos',
+        $channels_youtube = array('youtubeuseruploads', 'youtubestandard', 'youtubehandle', 'youtubeplaylist', 'youtubeshow', 'youtubeuserfavorites', 'youtubesearch', 'youtubechannel', 'youtubeuservideos',
             'youtubeuserfeatured');
         $channels_other = array('vimeouservideos', 'vimeochannel', 'vimeoalbum', 'dailymotionplaylist');
         $channels_vimeo = array('vimeouservideos', 'vimeochannel', 'vimeoalbum');
@@ -131,20 +132,20 @@ class YouTubeGalleryAPIData
     {
         $videoItems = array();
 
-        if ($vsn == 'youtubeplaylist') {
+        if ($vsn == 'youtubehandle') {
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtube.php');
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
-
             $playlistId = YGAPI_VideoSource_YoutubePlaylist::extractYouTubePlayListID($theLink);
-            $videoItems = YGAPI_VideoSource_YoutubePlaylist::YoutubeLists($theLink, $vsn, 'playlistItems?playlistId=' . $playlistId, $playlistId, $active_key, $youtube_data_api_key);
+            $videoItems = YGAPI_VideoSource_YoutubePlaylist::YoutubeLists($theLink, $vsn, 'search?q=' . str_replace('@', '%40', $playlistId), $playlistId, $active_key, $youtube_data_api_key);
+        } elseif ($vsn == 'youtubeplaylist') {
+            require_once('providers' . DIRECTORY_SEPARATOR . 'youtube.php');
+            require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
+            $playlistId = YGAPI_VideoSource_YoutubePlaylist::extractYouTubePlayListID($theLink);
+            $videoItems = YGAPI_VideoSource_YoutubePlaylist::YoutubeLists($theLink, $vsn, $query, $playlistId, $active_key, $youtube_data_api_key);
         } elseif ($vsn == 'youtubechannel') {
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtube.php');
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
             $channelId = YGAPI_VideoSource_YoutubePlaylist::extractYoutubeChannelID($theLink);
-
-            if ($theLink == 'https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg')
-                echo $channelId . '<br/>' . PHP_EOL;
-
             $videoItems = YGAPI_VideoSource_YoutubePlaylist::YoutubeLists($theLink, $vsn, 'search?channelId=' . $channelId, $channelId, $active_key, $youtube_data_api_key);
 
         } elseif ($vsn == 'youtubeshow') {
@@ -177,7 +178,6 @@ class YouTubeGalleryAPIData
         } elseif ($vsn == 'youtubesearch') {
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtube.php');
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
-
             $keywords = YGAPI_VideoSource_YoutubePlaylist::extractYouTubeSearchKeywords($theLink);
             $videoItems = YGAPI_VideoSource_YoutubePlaylist::YoutubeLists($theLink, $vsn, 'search?q=' . urlencode($keywords), urlencode($keywords), $active_key, $youtube_data_api_key);
         } elseif ($vsn == 'vimeouservideos') {
@@ -196,7 +196,6 @@ class YouTubeGalleryAPIData
             require_once('providers' . DIRECTORY_SEPARATOR . 'dailymotionplaylist.php');
             $videoItems = YGAPI_VideoSource_DailymotionPlaylist::getVideoIDList($theLink, $playlistId, $datalink);
         }
-
         return $videoItems;
     }
 
@@ -396,52 +395,39 @@ class YouTubeGalleryAPIData
     public static function getVideoID($theLink, $vsn)
     {
         if (YouTubeGalleryAPIData::isVideoList($vsn)) {
+
             switch ($vsn) {
+                case 'youtubehandle':
+                    require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
+                    return YGAPI_VideoSource_YoutubePlaylist::extractYouTubePlayListID($theLink);
                 case 'youtubeplaylist':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
-
                     return YGAPI_VideoSource_YoutubePlaylist::extractYouTubePlayListID($theLink);
-                    break;
-
                 case 'youtubechannel':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
                     return YGAPI_VideoSource_YoutubePlaylist::extractYoutubeChannelID($theLink);
-                    break;
-
                 case 'youtubeshow':
                     //require_once('providers'.DIRECTORY_SEPARATOR.'youtubeshow.php');
                     //$newlist='';//YGAPI_VideoSource_YoutubeShow::getVideoIDList($theLink, $specialparams, $playlistid,$datalink);
                     return '';
-                    break;
-
                 case 'youtubeuserfavorites':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeuseruploads.php');
                     return YGAPI_VideoSource_YoutubeUserUploads::extractYouTubeUserID($theLink);
-                    break;
-
                 case 'youtubeuseruploads':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeuseruploads.php');
                     return YGAPI_VideoSource_YoutubeUserUploads::extractYouTubeUserID($theLink);
-                    break;
-
                 case 'youtubeuservideos':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeuseruploads.php');
                     return YGAPI_VideoSource_YoutubeUserUploads::extractYouTubeUserVideosID($theLink);
-                    break;
-
                 case 'youtubeuserfeatured':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeuseruploads.php');
                     return YGAPI_VideoSource_YoutubeUserUploads::extractYouTubeUserFeaturedID($theLink);
-                    break;
-
                 case 'youtubestandard':
                     $linkPair = explode(':', $theLink);
                     if (!isset($linkPair[1]))
                         return '';
 
                     return $linkPair[1];
-                    break;
-
                 case 'youtubesearch':
                     $arr = JoomlaBasicMisc::parse_query($theLink);
 
@@ -454,77 +440,48 @@ class YouTubeGalleryAPIData
                     $keywords = str_replace(' ', ',', $keywords);
 
                     return $keywords;
-                    break;
-
                 case 'vimeouservideos':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'vimeouservideos.php');
                     return YGAPI_VideoSource_VimeoUserVideos::extractVimeoUserID($theLink);
-                    break;
-
                 case 'vimeochannel':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'vimeochannel.php');
                     return YGAPI_VideoSource_VimeoChannel::extractVimeoUserID($theLink);
-                    break;
-
                 case 'vimeoalbum':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'vimeoalbum.php');
                     return YGAPI_VideoSource_VimeoAlbum::extractVimeoAlbumID($theLink);
-                    break;
-
                 case 'dailymotionplaylist':
                     require_once('providers' . DIRECTORY_SEPARATOR . 'dailymotionplaylist.php');
                     return YGAPI_VideoSource_DailymotionPlaylist::extractDailymotionPlayListID($theLink);
-                    break;
             }
         } else {
             switch ($vsn) {
                 case 'vimeo' :
                     require_once('providers' . DIRECTORY_SEPARATOR . 'vimeo.php');
                     return YGAPI_VideoSource_Vimeo::extractVimeoID($theLink);
-                    break;
-
                 case 'own3dtvlive' :
                     require_once('providers' . DIRECTORY_SEPARATOR . 'own3dtvlive.php');
                     return YGAPI_VideoSource_Own3DTvLive::extractOwn3DTvLiveID($theLink);
-                    break;
-
                 case 'own3dtvvideo' :
                     require_once('providers' . DIRECTORY_SEPARATOR . 'own3dtvvideo.php');
                     return YGAPI_VideoSource_Own3DTvVideo::extractOwn3DTvVideoID($theLink);
-                    break;
-
                 case 'youtube' :
                     require_once('providers' . DIRECTORY_SEPARATOR . 'youtube.php');
                     return YGAPI_VideoSource_Youtube::extractYouTubeID($theLink);
-                    break;
-
-                    break;
-
                 case 'dailymotion' :
                     require_once('providers' . DIRECTORY_SEPARATOR . 'dailymotion.php');
                     return YGAPI_VideoSource_DailyMotion::extractDailyMotionID($theLink);
-                    break;
-
                 case 'ustream' :
                     require_once('providers' . DIRECTORY_SEPARATOR . 'ustream.php');
                     return YGAPI_VideoSource_Ustream::extractUstreamID($theLink);
-                    break;
-
                 case 'ustreamlive' :
                     require_once('providers' . DIRECTORY_SEPARATOR . 'ustream.php');
                     return YGAPI_VideoSource_Ustream::extractUstreamID($theLink);
-                    break;
-
                 case 'tiktok' :
                     require_once('providers' . DIRECTORY_SEPARATOR . 'tiktok.php');
                     return YGAPI_VideoSource_TikTok::extractTikTokID($theLink);
-                    break;
-
                 case 'soundcloud' :
                     require_once('providers' . DIRECTORY_SEPARATOR . 'soundcloud.php');
                     return YGAPI_VideoSource_soundcloud::extractID($theLink);
-                    break;
-
             }//switch($vsn)
         }
         return '';

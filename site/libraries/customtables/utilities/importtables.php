@@ -32,6 +32,7 @@ class ImportTables
                 $msg = 'Uploaded file "' . $filename . '" is empty.';
                 return false;
             }
+            $ct->Env->folderToSaveLayouts = null;
 
             return ImportTables::processContent($ct, $data, $menutype, $msg, $category, $importfields, $importlayouts, $importmenu);
         } else {

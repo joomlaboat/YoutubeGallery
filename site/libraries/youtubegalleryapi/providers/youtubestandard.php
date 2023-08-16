@@ -144,10 +144,6 @@ class YGAPI_VideoSource_YoutubeStandard
             }
         }
         */
-
         return $videolist;
-
     }
-
-
 }

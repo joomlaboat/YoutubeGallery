@@ -373,10 +373,9 @@ class YouTubeGalleryData
                 return 'youtubehandle';
             elseif (str_contains($link, '/playlist'))
                 return 'youtubeplaylist';
-            elseif (str_contains($link, '&list=PL')) {
+            elseif (str_contains($link, '&list=PL'))
                 return 'youtubeplaylist';
-                //https://www.youtube.com/watch?v=cNw8A5pwbVI&list=PLMaV6BfupUm-xIMRGKfjj-fP0BLq7b6SJ
-            } elseif (str_contains($link, '/favorites'))
+            elseif (str_contains($link, '/favorites'))
                 return 'youtubeuserfavorites';
             elseif (str_contains($link, '/user'))
                 return 'youtubeuseruploads';
