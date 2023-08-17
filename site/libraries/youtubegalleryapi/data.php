@@ -14,7 +14,7 @@ defined('_JEXEC') or die('Restricted access');
 
 class YouTubeGalleryAPIData
 {
-    public static function formVideoList($theLink, $active_key, $youtube_data_api_key = '')
+    public static function formVideoList($theLink, bool $active_key, $youtube_data_api_key = '')
     {
         //return one or multiple video rows
         $gallery_list = array();
@@ -128,7 +128,7 @@ class YouTubeGalleryAPIData
             return false;
     }
 
-    public static function GrabVideoListData($theLink, $vsn, $active_key, $youtube_data_api_key = '')
+    public static function GrabVideoListData($theLink, $vsn, bool $active_key, $youtube_data_api_key = '')
     {
         $videoItems = array();
 
@@ -141,7 +141,7 @@ class YouTubeGalleryAPIData
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtube.php');
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
             $playlistId = YGAPI_VideoSource_YoutubePlaylist::extractYouTubePlayListID($theLink);
-            $videoItems = YGAPI_VideoSource_YoutubePlaylist::YoutubeLists($theLink, $vsn, $query, $playlistId, $active_key, $youtube_data_api_key);
+            $videoItems = YGAPI_VideoSource_YoutubePlaylist::YoutubeLists($theLink, $vsn, 'playlistItems?playlistId=' . $playlistId, $playlistId, $active_key, $youtube_data_api_key);
         } elseif ($vsn == 'youtubechannel') {
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtube.php');
             require_once('providers' . DIRECTORY_SEPARATOR . 'youtubeplaylist.php');
@@ -201,6 +201,12 @@ class YouTubeGalleryAPIData
 
     public static function GrabVideoData($theLink, $vsn, $active_key, $youtube_data_api_key = '')
     {
+        $file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR
+            . 'libraries' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'db.php';
+
+        if (file_exists($file))
+            require_once($file);
+
         $query_video_host = true;
         $videoitem = YouTubeGalleryAPIMisc::getBlankArray();
         $videoitem['es_videosource'] = $vsn;

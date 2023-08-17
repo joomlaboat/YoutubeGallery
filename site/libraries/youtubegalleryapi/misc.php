@@ -12,9 +12,39 @@ use Joomla\CMS\Factory;
 defined('_JEXEC') or die('Restricted access');
 
 require_once('data.php');
+require_once('components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR
+    . 'libraries' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'misc.php');
 
 class YouTubeGalleryAPIMisc
 {
+    static public function APIKey_Youtube()
+    {
+        $keys = YouTubeGalleryAPIMisc::APIKeys_Youtube();
+        if (count($keys) == 0)
+            return '';
+
+        $index = rand(0, count($keys) - 1);
+
+        return $keys[$index];
+    }
+
+    static public function APIKeys_Youtube()
+    {
+        //https://console.developers.google.com/apis/api/youtube/overview?project=ygforjoomla&folder=&organizationId=
+
+        $db = JFactory::getDBO();
+        $query = 'SELECT es_youtuvedataapikey FROM #__customtables_table_youtubegallerykeytypes'
+            . ' WHERE es_youtuvedataapikey IS NOT NULL AND es_youtuvedataapikey != "" GROUP BY es_youtuvedataapikey';
+        $db->setQuery($query);
+        $rows = $db->loadAssocList();
+
+        if (count($rows) == 0)
+            return [];
+        $column = $db->loadColumn(0);
+
+        return $column;
+    }
+
     static public function APIKey_Vimeo_Consumer_Key()
     {
         /*
@@ -42,97 +72,6 @@ class YouTubeGalleryAPIMisc
     {
         return '15b62a25f18d50104a0860bb62ed4b8f';
     }
-
-    static public function APIKey_SoundCloud_ClientSecret()
-    {
-        return '272360cb476e9761227cac686d30d41b';
-    }
-
-    static public function UpdatePeriod()
-    {
-        return 3600;
-    }
-
-    public static function CreateParamLine(&$settings)
-    {
-        $a = array();
-
-        foreach ($settings as $s) {
-            if (isset($s[1]))
-                $a[] = $s[0] . '=' . $s[1];
-        }
-
-        return implode('&amp;', $a);
-    }
-
-    public static function check_user_agent($type = NULL): bool
-    {
-        $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
-        if ($type == 'bot') {
-            // matches popular bots
-            if (preg_match("/googlebot|adsbot|yahooseeker|yahoobot|msnbot|watchmouse|pingdom\.com|feedfetcher-google/", $user_agent)) {
-                return true;
-                // watchmouse|pingdom\.com are "uptime services"
-            }
-        } else if ($type == 'browser') {
-            // matches core browser types
-            if (preg_match("/mozilla\/|opera\//", $user_agent)) {
-                return true;
-            }
-        } else if ($type == 'mobile') {
-            // matches popular mobile devices that have small screens and/or touch inputs
-            // mobile devices have regional trends; some of these will have varying popularity in Europe, Asia, and America
-            // detailed demographics are unknown, and South America, the Pacific Islands, and Africa trends might not be represented, here
-            if (preg_match("/phone|iphone|itouch|ipod|symbian|android|htc_|htc-|palmos|blackberry|opera mini|iemobile|windows ce|nokia|fennec|hiptop|kindle|mot |mot-|webos\/|samsung|sonyericsson|^sie-|nintendo/", $user_agent)) {
-                // these are the most common
-                return true;
-            } else if (preg_match("/mobile|pda;|avantgo|eudoraweb|minimo|netfront|brew|teleca|lg;|lge |wap;| wap /", $user_agent)) {
-                // these are less common, and might not be worth checking
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static function check_user_agent_for_apple()
-    {
-        $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
-        if (preg_match("/iphone|itouch|ipod|ipad/", $user_agent)) {
-            // these are the most common
-            return true;
-        }
-        return false;
-    }
-
-    public static function html2txt($document)
-    {
-        $search = array('@<script[^>]*?>.*?</script>@si',  // Strip out javascript
-            '@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
-            '@<style[^>]*?>.*?</style>@siU',    // Strip style tags properly
-            '@<![\s\S]*?--[ \t\n\r]*>@'         // Strip multi-line comments including CDATA
-        );
-        $text = preg_replace($search, '', $document);
-        return $text;
-    }
-
-    public static function full_url($s, $use_forwarded_host = false)
-    {
-        return YouTubeGalleryAPIMisc::url_origin($s, $use_forwarded_host) . $s['REQUEST_URI'];
-    }
-
-    protected static function url_origin($s, $use_forwarded_host = false)
-    {
-        $ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true : false;
-        $sp = strtolower($s['SERVER_PROTOCOL']);
-        $protocol = substr($sp, 0, strpos($sp, '/')) . (($ssl) ? 's' : '');
-        $port = $s['SERVER_PORT'];
-        $port = ((!$ssl && $port == '80') || ($ssl && $port == '443')) ? '' : ':' . $port;
-        $host = ($use_forwarded_host && isset($s['HTTP_X_FORWARDED_HOST'])) ? $s['HTTP_X_FORWARDED_HOST'] : (isset($s['HTTP_HOST']) ? $s['HTTP_HOST'] : $s['SERVER_NAME']);
-        return $protocol . '://' . $host . $port;
-    }
-
-    /* USER-AGENTS ================================================== */
-    //http://stackoverflow.com/questions/6524301/detect-mobile-browser
 
     public static function getMaxResults($spq, &$option)
     {
@@ -334,7 +273,7 @@ class YouTubeGalleryAPIMisc
         return $blankArray;
     }
 
-    function update_cache_table($theLink, $active_key, $videolist_id = null, $youtube_data_api_key = '')
+    function update_cache_table($theLink, bool $active_key, $videolist_id = null, $youtube_data_api_key = '')
     {
         $videoList = YouTubeGalleryAPIData::formVideoList($theLink, $active_key, $youtube_data_api_key);
         $parent_id = null;
@@ -530,14 +469,5 @@ class YouTubeGalleryAPIMisc
         $videos_row = $videos_rows[0];
 
         return $videos_row['id'];
-    }
-
-    function _is_curl_installed()
-    {
-        if (in_array('curl', get_loaded_extensions())) {
-            return true;
-        } else {
-            return false;
-        }
     }
 }

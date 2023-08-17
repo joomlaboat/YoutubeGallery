@@ -46,7 +46,7 @@ class YGAPI_VideoSource_YoutubePlaylist
         return str_replace(' ', ',', $keywords);
     }
 
-    public static function YoutubeLists($theLink, $vsn, $query, $listid, $active_key, $youtube_data_api_key = '')
+    public static function YoutubeLists($theLink, $vsn, $query, $listid, bool $active_key, $youtube_data_api_key = '')
     {
         $videoItems = array();
 
@@ -113,7 +113,6 @@ class YGAPI_VideoSource_YoutubePlaylist
             $htmlcode = Helper::getURLData($url);
             if ($debug)
                 print_r($htmlcode);
-
 
             if ($htmlcode == '') {
                 $videolistitem['es_status'] = -1;

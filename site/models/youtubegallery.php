@@ -9,6 +9,7 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use CustomTables\Environment;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\CMS\Version;
@@ -39,7 +40,7 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
                 //Get Theme
                 $m_themeid = (int)$jinput->getInt('mobilethemeid');
                 if ($m_themeid != 0) {
-                    if (Helper::check_user_agent('mobile'))
+                    if (Environment::check_user_agent('mobile'))
                         $themeid = $m_themeid;
                     else
                         $themeid = (int)$jinput->getInt('themeid');
@@ -50,7 +51,7 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
                 //Get Theme
                 $m_themeid = (int)$this->params->get('mobilethemeid');
                 if ($m_themeid != 0) {
-                    if (Helper::check_user_agent('mobile'))
+                    if (Environment::check_user_agent('mobile'))
                         $themeid = $m_themeid;
                     else
                         $themeid = (int)$this->params->get('themeid');

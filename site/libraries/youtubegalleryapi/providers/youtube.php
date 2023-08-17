@@ -13,6 +13,12 @@ class YGAPI_VideoSource_YouTube
 {
     public static function extractYouTubeID($youtubeURL)
     {
+        $file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR
+            . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'misc.php';
+
+        if (file_exists($file))
+            require_once($file);
+
         if (str_contains($youtubeURL, '/embed/')) {
             //Convert Embed links to Address bar version
             $youtubeURL = str_replace('www.youtube.com/embed/', 'youtu.be/', $youtubeURL);
