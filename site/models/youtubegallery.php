@@ -89,8 +89,7 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
             }
 
 
-            $videoid = $jinput->getCmd('videoid');
-
+            $videoId = $jinput->getCmd('videoid');
             $ygDB = new YouTubeGalleryDB;
 
             if (!$ygDB->getVideoListTableRow($listid))
@@ -100,7 +99,7 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
             if (!$ygDB->getThemeTableRow($themeid))
                 return '<p>No theme found</p>';
 
-            if ($ygDB->theme_row->es_playvideo == 1 and $videoid != '')
+            if ($ygDB->theme_row->es_playvideo == 1 and $videoId != '')
                 $ygDB->theme_row->es_autoplay = 1;
 
 
@@ -110,9 +109,9 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
 
             $ygDB->update_playlist();
 
-            $videoid_new = $videoid;
+            $videoIdNew = $videoId;
             if ($jinput->getInt('yg_api') == 1) {
-                $videolist = $ygDB->getVideoList_FromCache_From_Table($videoid_new, $total_number_of_rows, false);
+                $videolist = $ygDB->getVideoList_FromCache_From_Table($videoIdNew, $total_number_of_rows, false);
                 $videolist = Helper::prepareDescriptions($videolist);
 
                 if (ob_get_contents())
@@ -128,25 +127,22 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
 
                 return '';
             } else {
-                $videolist = $ygDB->getVideoList_FromCache_From_Table($videoid_new, $total_number_of_rows, false);
+                $videolist = $ygDB->getVideoList_FromCache_From_Table($videoIdNew, $total_number_of_rows, false);
             }
 
-            if ($videoid == '') {
-                //if($videoid_new!='')
-
-
-                if ($ygDB->theme_row->es_playvideo == 1 and $videoid_new != '') {
-                    Factory::getApplication()->input->set('videoid', $videoid_new);
-                    $videoid = $videoid_new;
+            if ($videoId == '') {
+                if ($ygDB->theme_row->es_playvideo == 1 and $videoIdNew != '') {
+                    Factory::getApplication()->input->set('videoid', $videoIdNew);
+                    $videoId = $videoIdNew;
                 }
             }
 
             $gallerymodule = $renderer->render(
                 $videolist,
-                $ygDB->videolist_row,
+                $ygDB->videoListRow,
                 $ygDB->theme_row,
                 $total_number_of_rows,
-                $videoid
+                $videoId
             );
 
 

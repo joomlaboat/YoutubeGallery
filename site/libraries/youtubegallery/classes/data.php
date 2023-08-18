@@ -9,11 +9,12 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
 use YouTubeGallery\Helper;
 
 class YouTubeGalleryData
 {
-    public static function formVideoList(&$videolist_row, $rawList, &$firstvideo, $thumbnailstyle, $force = false): array
+    public static function formVideoList(object $videoListRow, array $rawList, bool $force = false): array
     {
         $gallery_list = array();
         $ordering = 0;
@@ -47,20 +48,21 @@ class YouTubeGalleryData
                 if (isset($listItem[7]))
                     $item['es_watchgroup'] = $listItem[7];
 
-                YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink, $gallery_list, $item, $ordering, $videolist_row, $force);
+                YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink, $gallery_list, $videoListRow, $force);
             }
         }
         return $gallery_list;
     }
 
-    public static function queryJoomlaBoatYoutubeGalleryAPI($theLink, &$gallery_list, &$original_item, &$ordering, $videoListRow, $force = false): bool
+    public static function queryJoomlaBoatYoutubeGalleryAPI(string $theLink, array &$gallery_list, object $videoListRow, bool $force = false): bool
     {
+        $active_key = true;
+
         $updatePeriod = 60 * 24 * ($videoListRow->es_updateperiod) * 60;
         $PlaylistLastUpdate = YouTubeGalleryDB::Playlist_LastUpdate($theLink);
         $diff = strtotime(date('Y-m-d H:i:s')) - strtotime($PlaylistLastUpdate);
 
         $force = ($diff > $updatePeriod or $force);
-
         $youtubeDataAPIKey = YouTubeGalleryDB::getSettingValue('youtubedataapi_key');
 
         //Check if YouTubeGallery API installed
@@ -72,7 +74,7 @@ class YouTubeGalleryData
 
             $y = new YouTubeGalleryAPIMisc;
             $isNew = 0;
-            $results = $y->checkLink($theLink, $isNew, $force, $videoListRow->id, $youtubeDataAPIKey);
+            $results = $y->checkLink($active_key, $theLink, $isNew, $force, $videoListRow->id, $youtubeDataAPIKey);
 
             foreach ($results as $result)
                 $gallery_list[] = $result;
@@ -80,53 +82,62 @@ class YouTubeGalleryData
             return true;
         }
 
-        $item = array();
-        if (!function_exists('curl_init') and !function_exists('file_get_contents')) {
-            $item['es_error'] = 'Enable php functions: curl_init or file_get_contents.';
-            $item['es_status'] = -1;
+        $msg = JText::_('COM_YOUTUBEGALLERY_YOUTUBE_API_REGISTER_PROJECT')
+            . ' <a href="https://console.developers.google.com/" target="_blank">link</a> '
+            . JText::_('COM_YOUTUBEGALLERY_YOUTUBE_API_GET_THE_KEY');
 
-            $gallery_list[] = YouTubeGalleryData::parse_SingleVideo($item);
-            return false;
-        }
+        Factory::getApplication()->enqueueMessage($msg, 'error');
+        return false;
 
-        if (function_exists('phpversion')) {
-            if (phpversion() < 5) {
-                $item['es_error'] = 'Update to PHP 5+';
-                $item['es_status'] = -1;
-                $gallery_list[] = YouTubeGalleryData::parse_SingleVideo($item);
-                return false;
-            }
-        }
+        /*
+                $item = array();
+                if (!function_exists('curl_init') and !function_exists('file_get_contents')) {
+                    $item['es_error'] = 'Enable php functions: curl_init or file_get_contents.';
+                    $item['es_status'] = -1;
 
-        //try
-        //{
-        $htmlCode = YouTubeGalleryData::queryTheAPIServer($theLink, '', $force);
+                    $gallery_list[] = YouTubeGalleryData::parse_SingleVideo($item);
+                    return false;
+                }
 
-        $j_ = json_decode($htmlCode);
+                if (function_exists('phpversion')) {
+                    if (phpversion() < 5) {
+                        $item['es_error'] = 'Update to PHP 5+';
+                        $item['es_status'] = -1;
+                        $gallery_list[] = YouTubeGalleryData::parse_SingleVideo($item);
+                        return false;
+                    }
+                }
 
-        if (!$j_) {
-            $item['es_error'] = 'Connection Error';
-            $item['es_status'] = -1;
+                //try
+                //{
+                $htmlCode = YouTubeGalleryData::queryTheAPIServer($theLink, '', $force);
 
-            $gallery_list[] = YouTubeGalleryData::parse_SingleVideo($item);
-            return false;
-        }
+                $j_ = json_decode($htmlCode);
 
-        $j = (array)$j_;
+                if (!$j_) {
+                    $item['es_error'] = 'Connection Error';
+                    $item['es_status'] = -1;
 
-        if (isset($j['es_error'])) {
-            $item['es_error'] = $j['es_error'];
-            $item['es_status'] = -1;
+                    $gallery_list[] = YouTubeGalleryData::parse_SingleVideo($item);
+                    return false;
+                }
 
-            $gallery_list[] = YouTubeGalleryData::parse_SingleVideo($item);
-            return false;
-        }
+                $j = (array)$j_;
 
-        foreach ($j as $item) {
-            $original_item['es_ordering'] = $ordering;
-            $gallery_list[] = YouTubeGalleryData::parse_SingleVideo((array)$item, $original_item);
-            $ordering++;
-        }
+                if (isset($j['es_error'])) {
+                    $item['es_error'] = $j['es_error'];
+                    $item['es_status'] = -1;
+
+                    $gallery_list[] = YouTubeGalleryData::parse_SingleVideo($item);
+                    return false;
+                }
+
+                foreach ($j as $item) {
+                    $original_item['es_ordering'] = $ordering;
+                    $gallery_list[] = YouTubeGalleryData::parse_SingleVideo((array)$item, $original_item);
+                    $ordering++;
+                }
+                */
         /*
         }
         catch(Exception $e)
@@ -138,6 +149,102 @@ class YouTubeGalleryData
             return false;
         }
         */
+        return true;
+    }
+
+    public static function updateSingleVideo(array $listItem, &$videoListRow)
+    {
+        $active_key = true;
+        $videoListId = $videoListRow->id;
+
+        if ($listItem['es_lastupdate'] != '' and $listItem['es_lastupdate'] != '0000-00-00 00:00:00' and ($listItem['es_isvideo'] == 1 and $listItem['es_duration'] != 0))
+            return $listItem; //no need to update. But this should count the update period. In future version
+
+        $theLink = trim($listItem['es_link']);
+        if ($theLink == '')
+            return $listItem;
+
+        $item = array();//where to save
+
+        //Check if YouTubeGallery API installed
+        $file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'youtubegalleryapi' . DIRECTORY_SEPARATOR . 'misc.php';
+        if (file_exists($file)) {
+            require_once($file);
+
+            $y = new YouTubeGalleryAPIMisc;
+            $isNew = 0;
+            $results = $y->checkLink($active_key, $theLink, $isNew, true, $videoListRow->id);
+
+            if (count($results) == 1) {
+                if ($results[0]['es_title'] == '')
+                    return $listItem;
+
+                return $results[0];
+            }
+        } else {
+            YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, $item, $listItem, true);//force the update
+        }
+
+        if (!isset($item['status']) or (int)$item['status'] == 0) {
+            $parent_id = null;
+
+            YouTubeGalleryDB::updateDBSingleItem($item, $videoListId, $parent_id);
+
+            if ($listItem['es_customtitle'])
+                $item['es_title'] = $listItem['es_customtitle'];
+
+            if ($listItem['es_customdescription'])
+                $item['es_description'] = $listItem['es_customdescription'];
+        }
+        return $listItem;
+    }
+
+    protected static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, &$item, &$original_item, $force = false): bool
+    {
+        if (!function_exists('curl_init') and !function_exists('file_get_contents')) {
+            $es_item = array('es_error' => 'Enable php functions: curl_init or file_get_contents.', 'es_status' => -1);
+            $item = YouTubeGalleryData::parse_SingleVideo($es_item);
+            return false;
+        }
+
+        if (function_exists('phpversion')) {
+            if (phpversion() < 5) {
+                $es_item = array('es_error' => 'Update to PHP 5+', 'es_status' => -1);
+                $item = YouTubeGalleryData::parse_SingleVideo($es_item);
+                return false;
+            }
+        }
+
+        try {
+            $htmlCode = YouTubeGalleryData::queryTheAPIServer($theLink, '', $force);
+
+            $j = json_decode($htmlCode);
+
+            if (!$j) {
+                $es_item = array('es_error' => 'Connection Error', 'es_status' => -1);
+                $item = YouTubeGalleryData::parse_SingleVideo($es_item);
+                return false;
+            }
+
+            if (isset($j['es_error'])) {
+                $es_item = array('es_error' => $j['es_error'], 'es_status' => -1);
+                $item = YouTubeGalleryData::parse_SingleVideo($es_item);
+                return false;
+            }
+
+            if (count($j) == 0) {
+                $es_item = array('es_error' => 'Cannot get youtube video data. Video not found.', 'es_status' => -1);
+                $item = YouTubeGalleryData::parse_SingleVideo($es_item);
+                return false;
+            }
+
+            $new_es_item = $j[0];
+            $item = YouTubeGalleryData::parse_SingleVideo((array)$new_es_item, $original_item);
+        } catch (Exception $e) {
+            $es_item = array('es_error' => 'Cannot get youtube video data.', 'es_status' => -1);
+            $item = YouTubeGalleryData::parse_SingleVideo($es_item);
+            return false;
+        }
         return true;
     }
 
@@ -250,14 +357,14 @@ class YouTubeGalleryData
         return $blankArray;
     }
 
-    public static function queryTheAPIServer($theLink, $host = '', $force = false)
+    public static function queryTheAPIServer($theLink, $host = '', $force = false): ?string
     {
         if ($host == '')
             $host = YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
 
         $key = YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 
-        //It's very important to encode the youtube link.
+        //It's very important to encode the YouTube link.
         if (!str_contains($host, '?'))
             $url = $host . '?';
         else
@@ -269,101 +376,6 @@ class YouTubeGalleryData
             $url .= '&force=1';//to force the update
 
         return Helper::getURLData($url);
-    }
-
-    public static function updateSingleVideo(array $listItem, &$videoListRow)
-    {
-        $videoListId = $videoListRow->id;
-
-        if ($listItem['es_lastupdate'] != '' and $listItem['es_lastupdate'] != '0000-00-00 00:00:00' and ($listItem['es_isvideo'] == 1 and $listItem['es_duration'] != 0))
-            return $listItem; //no need to update. But this should count the update period. In future version
-
-        $theLink = trim($listItem['es_link']);
-        if ($theLink == '')
-            return $listItem;
-
-        $item = array();//where to save
-
-        //Check if YouTubeGallery API installed
-        $file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'youtubegalleryapi' . DIRECTORY_SEPARATOR . 'misc.php';
-        if (file_exists($file)) {
-            require_once($file);
-
-            $y = new YouTubeGalleryAPIMisc;
-            $isNew = 0;
-            $results = $y->checkLink($theLink, $isNew, true, $videoListRow->id);
-
-            if (count($results) == 1) {
-                if ($results[0]['es_title'] == '')
-                    return $listItem;
-
-                return $results[0];
-            }
-        } else {
-            YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, $item, $listItem, true);//force the update
-        }
-
-        if (!isset($item['status']) or (int)$item['status'] == 0) {
-            $parent_id = null;
-
-            YouTubeGalleryDB::updateDBSingleItem($item, $videoListId, $parent_id);
-
-            if ($listItem['es_customtitle'])
-                $item['es_title'] = $listItem['es_customtitle'];
-
-            if ($listItem['es_customdescription'])
-                $item['es_description'] = $listItem['es_customdescription'];
-        }
-        return $listItem;
-    }
-
-    protected static function queryJoomlaBoatYoutubeGalleryAPI_SingleVideo($theLink, &$item, &$original_item, $force = false): bool
-    {
-        if (!function_exists('curl_init') and !function_exists('file_get_contents')) {
-            $es_item = array('es_error' => 'Enable php functions: curl_init or file_get_contents.', 'es_status' => -1);
-            $item = YouTubeGalleryData::parse_SingleVideo($es_item);
-            return false;
-        }
-
-        if (function_exists('phpversion')) {
-            if (phpversion() < 5) {
-                $es_item = array('es_error' => 'Update to PHP 5+', 'es_status' => -1);
-                $item = YouTubeGalleryData::parse_SingleVideo($es_item);
-                return false;
-            }
-        }
-
-        try {
-            $htmlCode = YouTubeGalleryData::queryTheAPIServer($theLink, '', $force);
-
-            $j = json_decode($htmlCode);
-
-            if (!$j) {
-                $es_item = array('es_error' => 'Connection Error', 'es_status' => -1);
-                $item = YouTubeGalleryData::parse_SingleVideo($es_item);
-                return false;
-            }
-
-            if (isset($j['es_error'])) {
-                $es_item = array('es_error' => $j['es_error'], 'es_status' => -1);
-                $item = YouTubeGalleryData::parse_SingleVideo($es_item);
-                return false;
-            }
-
-            if (count($j) == 0) {
-                $es_item = array('es_error' => 'Cannot get youtube video data. Video not found.', 'es_status' => -1);
-                $item = YouTubeGalleryData::parse_SingleVideo($es_item);
-                return false;
-            }
-
-            $new_es_item = $j[0];
-            $item = YouTubeGalleryData::parse_SingleVideo((array)$new_es_item, $original_item);
-        } catch (Exception $e) {
-            $es_item = array('es_error' => 'Cannot get youtube video data.', 'es_status' => -1);
-            $item = YouTubeGalleryData::parse_SingleVideo($es_item);
-            return false;
-        }
-        return true;
     }
 
     public static function getVideoSourceName($link): string

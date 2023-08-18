@@ -12,8 +12,6 @@ use Joomla\CMS\Factory;
 defined('_JEXEC') or die('Restricted access');
 
 require_once('data.php');
-require_once('components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR
-    . 'libraries' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'misc.php');
 
 class YouTubeGalleryAPIMisc
 {
@@ -28,24 +26,7 @@ class YouTubeGalleryAPIMisc
         return $keys[$index];
     }
 
-    static public function APIKeys_Youtube()
-    {
-        //https://console.developers.google.com/apis/api/youtube/overview?project=ygforjoomla&folder=&organizationId=
-
-        $db = JFactory::getDBO();
-        $query = 'SELECT es_youtuvedataapikey FROM #__customtables_table_youtubegallerykeytypes'
-            . ' WHERE es_youtuvedataapikey IS NOT NULL AND es_youtuvedataapikey != "" GROUP BY es_youtuvedataapikey';
-        $db->setQuery($query);
-        $rows = $db->loadAssocList();
-
-        if (count($rows) == 0)
-            return [];
-        $column = $db->loadColumn(0);
-
-        return $column;
-    }
-
-    static public function APIKey_Vimeo_Consumer_Key()
+    static public function APIKey_Vimeo_Consumer_Key(): string
     {
         /*
         Vimeo API
@@ -58,22 +39,23 @@ class YouTubeGalleryAPIMisc
         return '30ee2d9b75c95e4d1457402a8ef6be9f5bea209e';//Client ID (Also known as Consumer Key or API Key)
     }
 
-    static public function APIKey_Vimeo_Consumer_Secret()
+    static public function APIKey_Vimeo_Consumer_Secret(): string
     {
         return '7d028cf274f1e0f644267bcae524be455bce4556';
     }
 
-    static public function APIKey_Vimeo_Oauth_Access_Token()
+    static public function APIKey_Vimeo_Oauth_Access_Token(): string
     {
         return '';
     }
 
-    static public function APIKey_SoundCloud_ClientID()
+    static public function APIKey_SoundCloud_ClientID(): string
     {
         return '15b62a25f18d50104a0860bb62ed4b8f';
     }
 
-    public static function getMaxResults($spq, &$option)
+    /*
+    public static function getMaxResults($spq, &$option): int
     {
         $count = 0;
         $pair = explode('&', $spq);
@@ -90,8 +72,8 @@ class YouTubeGalleryAPIMisc
 
         return $count;
     }
-
-    public static function getValueByAlmostTag($HTML_SOURCE, $AlmostTagStart, $AlmostTagEnd = '"')
+*/
+    public static function getValueByAlmostTag($HTML_SOURCE, $AlmostTagStart, $AlmostTagEnd = '"'): string
     {
         $vlu = '';
 
@@ -104,27 +86,28 @@ class YouTubeGalleryAPIMisc
         return $vlu;
     }
 
-    public static function getNumberOfPayments()
-    {
-        $db = Factory::getDBO();
-        $query = 'SELECT COUNT(id) AS c FROM #__customtables_table_payments';
+    /*
+        public static function getNumberOfPayments()
+        {
+            $db = Factory::getDBO();
+            $query = 'SELECT COUNT(id) AS c FROM #__customtables_table_payments';
 
-        try {
-            $db->setQuery($query);
-            $recs = $db->loadAssocList();
-        } catch (RuntimeException $e) {
-            return 0;
+            try {
+                $db->setQuery($query);
+                $recs = $db->loadAssocList();
+            } catch (RuntimeException $e) {
+                return 0;
+            }
+
+            if (count($recs) == 0)
+                return 0;
+
+            return (int)$recs[0]['c'];
         }
+    */
 
-        if (count($recs) == 0)
-            return 0;
-
-        return (int)$recs[0]['c'];
-    }
-
-    function checkLink($theLink, &$isNew, $force_update = false, $videoListId = null, $youtube_data_api_key = '')
+    function checkLink(bool $active_key, $theLink, &$isNew, $force_update = false, $videoListId = null, $youtube_data_api_key = '')
     {
-        $active_key = true;
         $blankArray = array();
         $vsn = YouTubeGalleryAPIData::getVideoSourceName($theLink);//For link validation
 
@@ -156,10 +139,9 @@ class YouTubeGalleryAPIMisc
                         return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);//new
                     } else {
                         $isNew = 0;
-                        if ((bool)$force_update) {
-                            //not new
-                            return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);
-                        } else
+                        if ($force_update)
+                            return $this->update_cache_table($theLink, $active_key, $videoListId, $youtube_data_api_key);//not new
+                        else
                             return $videos_rows;//not new
                     }
                 }
@@ -215,7 +197,7 @@ class YouTubeGalleryAPIMisc
         return $recs;
     }
 
-    static public function getBlankArray($isPublic = false)
+    static public function getBlankArray($isPublic = false): array
     {
         $blankArray = array(
             'id' => 0,
@@ -273,7 +255,7 @@ class YouTubeGalleryAPIMisc
         return $blankArray;
     }
 
-    function update_cache_table($theLink, bool $active_key, $videolist_id = null, $youtube_data_api_key = '')
+    function update_cache_table($theLink, bool $active_key, $videoListId = null, $youtube_data_api_key = '')
     {
         $videoList = YouTubeGalleryAPIData::formVideoList($theLink, $active_key, $youtube_data_api_key);
         $parent_id = null;
@@ -282,17 +264,17 @@ class YouTubeGalleryAPIMisc
         for ($i = 0; $i < count($videoList); $i++) {
             $g = $videoList[$i];
 
-            if ($videolist_id != null)
-                $g['es_videolist'] = (int)$videolist_id;
+            if ($videoListId != null)
+                $g['es_videolist'] = (int)$videoListId;
 
             $fields = YouTubeGalleryAPIMisc::makeSetList($g, $parent_id);
-            $record_id = $this->isVideo_record_exist($g['es_videosource'], $g['es_videoid'], $videolist_id);
+            $record_id = $this->isVideo_record_exist($g['es_videosource'], $g['es_videoid'], $videoListId);
 
             if ($record_id == 0) {
                 $fields[] = $db->quoteName('es_allowupdates') . '=1';
 
-                if ($videolist_id != null)
-                    $fields[] = $db->quoteName('es_videolist') . '=' . (int)$videolist_id;
+                if ($videoListId != null)
+                    $fields[] = $db->quoteName('es_videolist') . '=' . (int)$videoListId;
 
                 $query = 'INSERT #__customtables_table_youtubegalleryvideos SET ' . implode(', ', $fields);
 
@@ -316,11 +298,10 @@ class YouTubeGalleryAPIMisc
             $g['es_rawdata'] = null;
             $videoList[$i] = $g;
         }
-
         return $videoList;
     }
 
-    protected static function makeSetList($g, &$parent_id)
+    protected static function makeSetList($g, &$parent_id): array
     {
         $db = Factory::getDBO();
 

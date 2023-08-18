@@ -106,7 +106,6 @@ class YoutubeGalleryViewThemeForm extends JViewLegacy
         @header("Content-Transfer-Encoding: binary");
 
         echo $content;
-
         die;
     }
 

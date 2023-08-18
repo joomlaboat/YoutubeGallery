@@ -115,7 +115,7 @@ class Helper
         return $URLString;
     }
 
-    public static function getURLData($url, $format = 'json')
+    public static function getURLData(string $url): string
     {
         if (function_exists('curl_init')) {
             $ch = curl_init();

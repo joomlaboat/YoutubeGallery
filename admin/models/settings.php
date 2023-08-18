@@ -51,7 +51,6 @@ class YoutubeGalleryModelSettings extends JModelAdmin
 
         $joomlaboat_api_host = trim(Factory::getApplication()->input->getVar('joomlaboat_api_host'));
         $joomlaboat_api_key = trim(preg_replace("/[^a-zA-Z0-9~_-]/", "", Factory::getApplication()->input->getVar('joomlaboat_api_key')));
-
         $youtubedataapi_key = trim(preg_replace("/[^a-zA-Z0-9~_-]/", "", Factory::getApplication()->input->getVar('youtubedataapi_key')));
 
         $db = Factory::getDBO();
@@ -59,15 +58,12 @@ class YoutubeGalleryModelSettings extends JModelAdmin
         $query[] = YoutubeGalleryModelSettings::makeQueryLine('allowsef', $allowsef);
         $query[] = YoutubeGalleryModelSettings::makeQueryLine('joomlaboat_api_host', $joomlaboat_api_host);
         $query[] = YoutubeGalleryModelSettings::makeQueryLine('joomlaboat_api_key', $joomlaboat_api_key);
-
         $query[] = YoutubeGalleryModelSettings::makeQueryLine('youtubedataapi_key', $youtubedataapi_key);
-
 
         foreach ($query as $q) {
             $db->setQuery($q);
             $db->execute();
         }
-
         return true;
     }
 

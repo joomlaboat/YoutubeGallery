@@ -77,38 +77,33 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
     public function save($data)
     {
-        $linksform_row = $this->getTable('videolists');
-
+        $linksFormRow = $this->getTable('videolists');
         $jinput = Factory::getApplication()->input;
         $data = $jinput->get('jform', array(), 'ARRAY');
+        $listName = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['es_listname']));
+        $data['jform']['es_listname'] = $listName;
 
-        $post = array();
-
-        $listname = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['es_listname']));
-
-        $data['jform']['es_listname'] = $listname;
-
-        if (!$linksform_row->bind($data)) {
+        if (!$linksFormRow->bind($data)) {
             echo 'Cannot bind.';
             return false;
         }
 
         // Make sure the  record is valid
-        if (!$linksform_row->check()) {
+        if (!$linksFormRow->check()) {
             echo 'Cannot check.';
             return false;
         }
 
         // Store
-        if (!$linksform_row->store()) {
+        if (!$linksFormRow->store()) {
             echo '<p>Cannot store.</p>
 			<p>There is some fields missing.</p>
 ';
             return false;
         }
 
-        YouTubeGalleryDB::update_cache_table($linksform_row, false);
-        $this->id = $linksform_row->id;
+        YouTubeGalleryDB::update_cache_table($linksFormRow, false);
+        $this->id = $linksFormRow->id;
         return true;
     }
 
@@ -119,26 +114,25 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
     function store()
     {
-        $linksform_row = $this->getTable('videolists');
+        $linksFormRow = $this->getTable('videolists');
         $jinput = Factory::getApplication()->input;
         $data = $jinput->get('jform', array(), 'ARRAY');
-        $post = array();
         $listname = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['listname']));
         $data['jform']['listname'] = $listname;
 
-        if (!$linksform_row->bind($data)) {
+        if (!$linksFormRow->bind($data)) {
             echo 'Cannot bind.';
             return false;
         }
 
         // Make sure the  record is valid
-        if (!$linksform_row->check()) {
+        if (!$linksFormRow->check()) {
             echo 'Cannot check.';
             return false;
         }
 
         // Store
-        if (!$linksform_row->store()) {
+        if (!$linksFormRow->store()) {
 
             echo '<p>Cannot store.</p>
 				<p>There is some fields missing.</p>
@@ -146,10 +140,8 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
             return false;
         }
 
-        //require_once(JPATH_SITE.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_youtubegallery'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'misc.php');
-        require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'db.php');
-        YouTubeGalleryDB::update_cache_table($linksform_row, false);
-        $this->id = $linksform_row->id;
+        YouTubeGalleryDB::update_cache_table($linksFormRow, false);
+        $this->id = $linksFormRow->id;
         return true;
     }
 
@@ -174,21 +166,20 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
         $db->setQuery($query);
 
-        $linksform_rows = $db->loadObjectList();
-        if (count($linksform_rows) < 1)
+        $linksFormRows = $db->loadObjectList();
+        if (count($linksFormRows) < 1)
             return false;
 
-        foreach ($linksform_rows as $linksform_row) {
+        foreach ($linksFormRows as $linksFormRow) {
 
-            $videolist_row = $linksform_row;
-            YouTubeGalleryDB::update_cache_table($linksform_row, $update_videolist); //false - refresh
+            YouTubeGalleryDB::update_cache_table($linksFormRow, $update_videolist); //false - refresh
 
             if (!$update_videolist) {
-                $query = 'UPDATE #__customtables_table_youtubegalleryvideolists SET es_lastplaylistupdate="' . date('Y-m-d H:i:s') . '" WHERE id=' . (int)$linksform_row->id;
+                $query = 'UPDATE #__customtables_table_youtubegalleryvideolists SET es_lastplaylistupdate="' . date('Y-m-d H:i:s') . '" WHERE id=' . (int)$linksFormRow->id;
                 $db->setQuery($query);
                 $db->execute();
 
-                $query = 'UPDATE #__customtables_table_youtubegalleryvideos SET es_lastupdate=NULL WHERE es_isvideo AND es_videolist=' . (int)$linksform_row->id;//to force the update
+                $query = 'UPDATE #__customtables_table_youtubegalleryvideos SET es_lastupdate=NULL WHERE es_isvideo AND es_videolist=' . (int)$linksFormRow->id;//to force the update
 
                 $db->setQuery($query);
                 $db->execute();
@@ -226,7 +217,7 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
                 return false;
             }
         }
-        // In the absense of better information, revert to the component permissions.
+        // In the absence of better information, revert to the component permissions.
         return parent::canEditState($record);
     }
 

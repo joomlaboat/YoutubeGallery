@@ -13,7 +13,7 @@ defined('_JEXEC') or die('Restricted access');
 
 class YGAPI_VideoSource_YoutubeUserUploads
 {
-    public static function extractYouTubeUserVideosID($youtubeURL)
+    public static function extractYouTubeUserVideosID($youtubeURL): string
     {
         //https://www.youtube.com/c/albasiranet/featured
         //return '/c/albasiranet/videos';
@@ -22,17 +22,15 @@ class YGAPI_VideoSource_YoutubeUserUploads
         ////link example: https://www.youtube.com/user/acharnesnews/favorites
         $matches = explode('/', $youtubeURL);
 
-
         if (count($matches) > 5) {
             $userid = $matches[4];
             $pair = explode('?', $userid);
             return $pair[0];
         }
-
         return '';
     }
 
-    public static function extractYouTubeUserFeaturedID($youtubeURL)
+    public static function extractYouTubeUserFeaturedID($youtubeURL): string
     {
         //link example: https://www.youtube.com/user/ivankomlev
         ////link example: https://www.youtube.com/user/acharnesnews/favorites
@@ -47,116 +45,106 @@ class YGAPI_VideoSource_YoutubeUserUploads
         return '';
     }
 
-    public static function getVideoIDList($youtubeURL, $vsn, $show_what, $active_key, $youtube_data_api_key = '')
+    public static function getVideoIDList($youtubeURL, $vsn, $show_what, bool $active_key, $youtube_data_api_key = ''): array
     {
-        $videolist = array();
+        $videoList = array();
 
         $base_url = 'https://www.googleapis.com/youtube/v3';
         $userid = YGAPI_VideoSource_YoutubeUserUploads::extractYouTubeUserID($youtubeURL);
 
-        $videolistitem = YouTubeGalleryAPIMisc::getBlankArray();
-        $videolistitem['es_videosource'] = $vsn;
-        $videolistitem['es_link'] = $youtubeURL;
-        $videolistitem['es_isvideo'] = 0;
-        $videolistitem['es_videoid'] = $userid;
+        $videoListItem = YouTubeGalleryAPIMisc::getBlankArray();
+        $videoListItem['es_videosource'] = $vsn;
+        $videoListItem['es_link'] = $youtubeURL;
+        $videoListItem['es_isvideo'] = 0;
+        $videoListItem['es_videoid'] = $userid;
 
         if ($userid == '') {
-            $videolistitem['es_status'] = -1;
-            $videolistitem['es_error'] = 'User ID not set.';
-            $videolist[] = $videolistitem;
-            return $videolist;
+            $videoListItem['es_status'] = -1;
+            $videoListItem['es_error'] = 'User ID not set.';
+            $videoList[] = $videoListItem;
+            return $videoList;
         }
 
-        if ($userid == 'Whataboutit')
-            $userid = 'wQnaBGUeq2qQHHD04dcfi4bSBwY';
+        //if ($userid == 'Whataboutit')
+        //$userid = 'wQnaBGUeq2qQHHD04dcfi4bSBwY';
 
         $part = 'contentDetails';
 
         if ($youtube_data_api_key == '')
-            $key = YouTubeGalleryAPIMisc::APIKey_Youtube($active_key);
-        else
-            $key = $youtube_data_api_key;
+            return [];
+
+        $key = $youtube_data_api_key;
 
         $url = $base_url . '/channels?forUsername=' . $userid . '&key=' . $key . '&part=' . $part;
-        $htmlcode = Helper::getURLData($url);
+        $HTMLCode = Helper::getURLData($url);
 
-
-        if ($htmlcode == '') {
-            $videolistitem['es_status'] = -1;
-            $videolistitem['es_error'] = $url . 'Server response is empty.';
-            $videolist[] = $videolistitem;
-            echo 'a';
-            die;
-            return $videolist;
+        if ($HTMLCode == '') {
+            $videoListItem['es_status'] = -1;
+            $videoListItem['es_error'] = $url . 'Server response is empty.';
+            $videoList[] = $videoListItem;
+            return $videoList;
         }
 
-        $j = json_decode($htmlcode);
+        $j = json_decode($HTMLCode);
         if (!$j) {
-            $videolistitem['es_status'] = -1;
-            $videolistitem['es_error'] = 'Server response is not JSON.';
-            $videolistitem['es_rawdata'] = null;//$htmlcode;
-            $videolist[] = $videolistitem;
-            return $videolist;
+            $videoListItem['es_status'] = -1;
+            $videoListItem['es_error'] = 'Server response is not JSON.';
+            $videoListItem['es_rawdata'] = null;//$HTMLCode;
+            $videoList[] = $videoListItem;
+            return $videoList;
         }
 
         if (isset($j->error)) {
-            $videolistitem['es_status'] = -1;
-            $videolistitem['es_error'] = $j->error->message;
-            $videolistitem['es_rawdata'] = null;//$htmlcode;
-            $videolist[] = $videolistitem;
-            return $videolist;
+            $videoListItem['es_status'] = -1;
+            $videoListItem['es_error'] = $j->error->message;
+            $videoListItem['es_rawdata'] = null;//$HTMLCode;
+            $videoList[] = $videoListItem;
+            return $videoList;
         }
 
         if (!isset($j->items)) {
-            $videolistitem['es_status'] = -1;
-            $videolistitem['es_error'] = 'Items object not found.';
-            $videolistitem['es_rawdata'] = null;//$htmlcode;
-            $videolist[] = $videolistitem;
-            return $videolist;
+            $videoListItem['es_status'] = -1;
+            $videoListItem['es_error'] = 'Items object not found.';
+            $videoListItem['es_rawdata'] = null;//$HTMLCode;
+            $videoList[] = $videoListItem;
+            return $videoList;
         }
 
         $items = $j->items;
 
-        $playlistid = '';
+        $playListId = '';
         if (isset($items[0]) and isset($items[0]->contentDetails) and isset($items[0]->contentDetails->relatedPlaylists)) {
             if ($show_what == 'uploads' and isset($items[0]->contentDetails->relatedPlaylists->uploads)) {
-                $playlistid = $items[0]->contentDetails->relatedPlaylists->uploads;
+                $playListId = $items[0]->contentDetails->relatedPlaylists->uploads;
             } elseif ($show_what == 'favorites' and isset($items[0]->contentDetails->relatedPlaylists->favorites))
-                $playlistid = $items[0]->contentDetails->relatedPlaylists->favorites;
+                $playListId = $items[0]->contentDetails->relatedPlaylists->favorites;
             else {
-                $videolistitem['es_status'] = -1;
-                $videolistitem['es_error'] = 'Show what not set.';
-                $videolistitem['es_rawdata'] = null;//$htmlcode;
-                $videolist[] = $videolistitem;
-                return $videolist;
+                $videoListItem['es_status'] = -1;
+                $videoListItem['es_error'] = 'Show what not set.';
+                $videoListItem['es_rawdata'] = null;//$HTMLCode;
+                $videoList[] = $videoListItem;
+                return $videoList;
             }
 
-            if ($playlistid == '') {
-                $videolistitem['es_status'] = -1;
-                $videolistitem['es_error'] = 'User not found or no files uploaded';
-                $videolistitem['es_rawdata'] = null;//$htmlcode;
-                $videolist[] = $videolistitem;
-                return $videolist;
+            if ($playListId == '') {
+                $videoListItem['es_status'] = -1;
+                $videoListItem['es_error'] = 'User not found or no files uploaded';
+                $videoListItem['es_rawdata'] = null;//$HTMLCode;
+                $videoList[] = $videoListItem;
+                return $videoList;
             }
         }
 
         $part = 'id,snippet';
-        $datalink = $base_url . '/playlistItems?playlistId=' . $playlistid . '&part=' . $part . '&key=' . $key;
-        $videolistitem['es_datalink'] = $datalink;
+        $dataLink = $base_url . '/playlistItems?playlistId=' . $playListId . '&part=' . $part . '&key=' . $key;
+        $videoListItem['es_datalink'] = $dataLink;
 
-        $newlist = YGAPI_VideoSource_YoutubePlaylist::getPlaylistVideos($datalink, $videolistitem, $active_key, false, $youtube_data_api_key);
-        $videolist[] = $videolistitem;
-        $videolist = array_merge($videolist, $newlist);
-
-        if ($youtubeURL == 'https://www.youtube.com/channel/UCLJN3NrnEb-PediSaOku9mg') {
-            echo 'check why: id : ' . $userid;
-            die;
-        }
-
-        return $videolist;
+        $newList = YGAPI_VideoSource_YoutubePlaylist::getPlaylistVideos($dataLink, $videoListItem, $active_key);
+        $videoList[] = $videoListItem;
+        return array_merge($videoList, $newList);
     }
 
-    public static function extractYouTubeUserID($youtubeURL)
+    public static function extractYouTubeUserID($youtubeURL): string
     {
         //link example: https://www.youtube.com/user/ivankomlev
         //or
@@ -170,7 +158,6 @@ class YGAPI_VideoSource_YoutubeUserUploads
             $pair = explode('?', $userid);
             return $pair[0];
         }
-
         return '';
     }
 }

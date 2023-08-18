@@ -57,10 +57,7 @@ switch ($task) {
         }
 
         echo json_encode(array('id' => $track, 'kind' => 'track'));
-        //die;
-
         break;
-
 
     case 'getyoutubeshowowner' :
         $link = $jinput->getCmd('link', '');
@@ -204,7 +201,7 @@ function getYoutubeShowsByUser($username, $max_results, $start_index)
 
 }
 
-function getYoutubeGalleryShowOwner($url)
+function getYoutubeGalleryShowOwner(string $url): string
 {
     if (!str_contains($url, '://www.youtube.com/show/'))
         return 'wrong link format';
@@ -224,10 +221,7 @@ function getYoutubeGalleryShowOwner($url)
         return 'cannot find username';
 
     $arr = array('username' => $username);
-
     return json_encode($arr);
-
-
 }
 
 //---------------- useful functions

@@ -13,7 +13,6 @@ $key = YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
 $host = YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
 
 $youtubedataapi_key = YouTubeGalleryDB::getSettingValue('youtubedataapi_key');
-
 $activated = false;
 
 try {
@@ -64,9 +63,6 @@ try {
             echo '<p style="color:red;">' . JText::_('COM_YOUTUBEGALLERY_WRONG_KEY') . '</p>';
         elseif ((int)$j['keytype'] == 4)
             echo '<p style="color:red;">' . JText::_('COM_YOUTUBEGALLERY_KEY_EXPIRED') . '</p>';
-
-    } else {
-
     }
 } catch (Exception $e) {
     echo '<p style="color:red;">' . JText::_('COM_YOUTUBEGALLERY_NO_CONNECTION') . '</p>';

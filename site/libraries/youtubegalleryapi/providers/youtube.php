@@ -13,12 +13,6 @@ class YGAPI_VideoSource_YouTube
 {
     public static function extractYouTubeID($youtubeURL)
     {
-        $file = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR
-            . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'misc.php';
-
-        if (file_exists($file))
-            require_once($file);
-
         if (str_contains($youtubeURL, '/embed/')) {
             //Convert Embed links to Address bar version
             $youtubeURL = str_replace('www.youtube.com/embed/', 'youtu.be/', $youtubeURL);
@@ -28,17 +22,11 @@ class YGAPI_VideoSource_YouTube
         if (str_contains($youtubeURL, '://youtu.be') or str_contains($youtubeURL, '://www.youtu.be')) {
             //youtu.be
             $list = explode('/', $youtubeURL);
-            if (isset($list[3]))
-                return $list[3];
-            else
-                return '';
+            return $list[3] ?? '';
         } else {
             //youtube.com
             $arr = JoomlaBasicMisc::parse_query($youtubeURL);
-            if (isset($arr['v']))
-                return $arr['v'];
-            else
-                return '';
+            return $arr['v'] ?? '';
         }
     }
 

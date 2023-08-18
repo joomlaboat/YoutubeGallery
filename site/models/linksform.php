@@ -58,9 +58,6 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
         foreach ($cids as $cid)
             $where[] = 'id=' . $cid;
 
-
-        require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'db.php');
-
         // Create a new query object.
 
         $db = Factory::getDBO();
@@ -75,23 +72,23 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
         $db->setQuery($query);
 
-        $linksform_rows = $db->loadObjectList();
-        if (count($linksform_rows) < 1)
+        $linksFormRows = $db->loadObjectList();
+        if (count($linksFormRows) < 1)
             return false;
 
         $ygDB = new YouTubeGalleryDB;
 
-        foreach ($linksform_rows as $linksform_row) {
+        foreach ($linksFormRows as $linksFormRow) {
 
-            $ygDB->videolist_row = $linksform_row;
-            YouTubeGalleryDB::update_cache_table($linksform_row, $update_videolist); //false - refresh
+            $ygDB->videoListRow = $linksFormRow;
+            YouTubeGalleryDB::update_cache_table($linksFormRow, $update_videolist); //false - refresh
 
             if (!$update_videolist) {
-                $query = 'UPDATE #__youtubegallery_videolists SET lastplaylistupdate="' . date('Y-m-d H:i:s') . '" WHERE id=' . (int)$linksform_row->id;
+                $query = 'UPDATE #__youtubegallery_videolists SET lastplaylistupdate="' . date('Y-m-d H:i:s') . '" WHERE id=' . (int)$linksFormRow->id;
                 $db->setQuery($query);
                 $db->execute();
 
-                $query = 'UPDATE #__youtubegallery_videos SET lastupdate=NULL WHERE isvideo AND listid=' . (int)$linksform_row->id;//to force the update
+                $query = 'UPDATE #__youtubegallery_videos SET lastupdate=NULL WHERE isvideo AND listid=' . (int)$linksFormRow->id;//to force the update
 
                 $db->setQuery($query);
                 $db->execute();
@@ -109,19 +106,11 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
     function store()
     {
-
-
         $linksform_row = $this->getTable('videolists');
-
         $jinput = Factory::getApplication()->input;
         $data = $jinput->get('jform', array(), 'ARRAY');
-
-        $post = array();
-
         $listname = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['listname']));
-
         $data['jform']['listname'] = $listname;
-
 
         if (!$linksform_row->bind($data)) {
             echo 'Cannot bind.';
@@ -143,12 +132,10 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
             return false;
         }
 
-        require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'db.php');
         $ygDB = new YouTubeGalleryDB;
-        $ygDB->videolist_row = $linksform_row;
+        $ygDB->videoListRow = $linksform_row;
         YouTubeGalleryDB::update_cache_table($linksform_row, false);
         $linksform_row->lastplaylistupdate = date('Y-m-d H:i:s');
-
         $this->id = $linksform_row->id;
 
         return true;
