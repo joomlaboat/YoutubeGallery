@@ -21,13 +21,13 @@ class VideoSource_TikTok
 
     }
 
-    public static function renderPlayer($options, $width, $height, &$videolist_row, &$theme_row)
+    public static function renderPlayer($options, $width, $height, &$videoListRow, &$theme_row)
     {
 
         $data = '<blockquote class="tiktok-embed" cite="****youtubegallery-video-link****" data-video-id="****youtubegallery-video-id****" style="max-width: ' . $width . 'px;min-width: ' . $height . 'px;" ></blockquote>';
         $data .= '****scriptbegin**** async src="https://www.tiktok.com/embed.js">****scriptend****';
 
-        $playerid = 'youtubegalleryplayerid_' . $videolist_row->id;
+        $playerid = 'youtubegalleryplayerid_' . $videoListRow->id;
 
         $result = '<div>
 		<iframe id="' . $playerid . '" frameborder="0" width="' . $width . '" height="' . $height . '" srcdoc=\'' . $data . '\' scrolling="no" style="border: 0px none transparent;"></iframe>';

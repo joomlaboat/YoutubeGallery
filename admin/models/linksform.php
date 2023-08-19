@@ -77,6 +77,11 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
     public function save($data)
     {
+        return $this->saveVideoList();
+    }
+
+    function saveVideoList()
+    {
         $linksFormRow = $this->getTable('videolists');
         $jinput = Factory::getApplication()->input;
         $data = $jinput->get('jform', array(), 'ARRAY');
@@ -96,13 +101,12 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
         // Store
         if (!$linksFormRow->store()) {
-            echo '<p>Cannot store.</p>
-			<p>There is some fields missing.</p>
-';
+            echo '<p>Cannot store.</p><p>There is some fields missing.</p>';
             return false;
         }
 
-        YouTubeGalleryDB::update_cache_table($linksFormRow, false);
+        $active_key = YouTubeGalleryData::isActivated();
+        YouTubeGalleryDB::update_cache_table($active_key, $linksFormRow, false);
         $this->id = $linksFormRow->id;
         return true;
     }
@@ -114,35 +118,7 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
     function store()
     {
-        $linksFormRow = $this->getTable('videolists');
-        $jinput = Factory::getApplication()->input;
-        $data = $jinput->get('jform', array(), 'ARRAY');
-        $listname = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['listname']));
-        $data['jform']['listname'] = $listname;
-
-        if (!$linksFormRow->bind($data)) {
-            echo 'Cannot bind.';
-            return false;
-        }
-
-        // Make sure the  record is valid
-        if (!$linksFormRow->check()) {
-            echo 'Cannot check.';
-            return false;
-        }
-
-        // Store
-        if (!$linksFormRow->store()) {
-
-            echo '<p>Cannot store.</p>
-				<p>There is some fields missing.</p>
-				';
-            return false;
-        }
-
-        YouTubeGalleryDB::update_cache_table($linksFormRow, false);
-        $this->id = $linksFormRow->id;
-        return true;
+        return $this->saveVideoList();
     }
 
     function RefreshPlayist($cids, $update_videolist = true)
@@ -170,9 +146,11 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
         if (count($linksFormRows) < 1)
             return false;
 
+        $active_key = YouTubeGalleryData::isActivated();
+
         foreach ($linksFormRows as $linksFormRow) {
 
-            YouTubeGalleryDB::update_cache_table($linksFormRow, $update_videolist); //false - refresh
+            YouTubeGalleryDB::update_cache_table($active_key, $linksFormRow, $update_videolist); //false - refresh
 
             if (!$update_videolist) {
                 $query = 'UPDATE #__customtables_table_youtubegalleryvideolists SET es_lastplaylistupdate="' . date('Y-m-d H:i:s') . '" WHERE id=' . (int)$linksFormRow->id;

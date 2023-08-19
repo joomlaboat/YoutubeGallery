@@ -14,7 +14,7 @@ use YouTubeGallery\Helper;
 
 class YoutubeGallerySocialButtons
 {
-    public static function SocialButtons($link, $prefix, $params, $videolist_row_id, $videoid)
+    public static function SocialButtons($link, $prefix, $params, $videoListRow_id, $videoid)
     {
         $pair = explode(',', $params);
 
@@ -71,7 +71,7 @@ document.write(\'<div id="fb-root"></div>\');
                     $bName = $pair[1];
 
 
-                $dName = $prefix . 'fbshare_' . $videolist_row_id . 'x' . $videoid;
+                $dName = $prefix . 'fbshare_' . $videoListRow_id . 'x' . $videoid;
                 $tStyle = 'width:' . $w . 'px;height:20px;border: 1px #29447e solid;background-color:#5972a7;color:white;font-size:12px;font-weight:bold;text-align:center;position:relative;';
                 $tStyle2 = 'border-top:#8a9cc2 1px solid;width:' . ($w - 2) . 'px;height:18px;padding:0px;font-decoration:none;';
                 $result = '
@@ -95,7 +95,7 @@ document.write(\'<div id="fb-root"></div>\');
                 if (isset($pair[1]))
                     $FBLanguage = $pair[1];
 
-                $dName = $prefix . 'fblike_' . $videolist_row_id . 'x' . $videoid;
+                $dName = $prefix . 'fblike_' . $videoListRow_id . 'x' . $videoid;
                 $result = '
 	<div id="' . $dName . '" style="width:' . $w . 'px;"></div>
 	<script>
@@ -118,7 +118,7 @@ document.write(\'<div id="fb-root"></div>\');
                 else
                     return '<p style="color:white;background-color:red;">Set Twitter Account.<br/>Example: [social:twitter,JoomlaBoat]</p>';
 
-                $dName = $prefix . 'witter_' . $videolist_row_id . 'x' . $videoid;
+                $dName = $prefix . 'witter_' . $videoListRow_id . 'x' . $videoid;
                 $result = '
 	<div id="' . $dName . '" style="width:' . $w . 'px;"></div>
 	<script>

@@ -90,7 +90,7 @@ class YouTubeGalleryDB
         return $vlu;
     }
 
-    public static function getVideoIDbyAlias($alias): string
+    public static function getVideoIDbyAlias(string $alias): string
     {
         $db = Factory::getDBO();
 
@@ -129,7 +129,7 @@ class YouTubeGalleryDB
         return $values[0];
     }
 
-    function getVideoListTableRow($listid): bool
+    function getVideoListTableRow(int $listId): bool
     {
         $db = Factory::getDBO();
 
@@ -143,36 +143,27 @@ class YouTubeGalleryDB
         $query .= 'l.es_updateperiod AS es_updateperiod, ';
         $query .= 'l.es_lastplaylistupdate AS es_lastplaylistupdate, ';
         $query .= 'l.es_description AS es_description, ';
-        //$query .= '#__youtubegallery_videolists.author AS author, ';
         $query .= 'l.es_authorurl AS es_authorurl, ';
         $query .= 'l.es_image AS es_image, ';
         $query .= 'l.es_note AS es_note, ';
         $query .= 'l.es_watchusergroup AS es_watchusergroup, ';
-
         $query .= '(SELECT COUNT(v.id) FROM #__customtables_table_youtubegalleryvideos AS v WHERE v.es_videolist=l.id AND v.es_isvideo LIMIT 1) AS TotalVideos ';
-
         $query .= 'FROM #__customtables_table_youtubegalleryvideolists AS l';
-        //$query .= 'COUNT(v.es_videolist) AS TotalVideos FROM #__customtables_table_youtubegalleryvideolists AS l';
-
-
-        //$query .= ' LEFT JOIN #__customtables_table_youtubegalleryvideos AS v ON v.es_videolist=l.id AND v.es_isvideo';
-        $query .= ' WHERE l.id=' . (int)$listid . ' ';
+        $query .= ' WHERE l.id=' . (int)$listId . ' ';
         $query .= ' GROUP BY l.id';
         $query .= ' LIMIT 1';
 
         $db->setQuery($query);
+        $videoListRows = $db->loadObjectList();
 
-        $videolist_rows = $db->loadObjectList();
-
-
-        if (count($videolist_rows) == 0)
+        if (count($videoListRows) == 0)
             return false;//'<p>No video list found</p>';
 
-        $this->videoListRow = $videolist_rows[0];
+        $this->videoListRow = $videoListRows[0];
         return true;
     }
 
-    function getThemeTableRow($themeid): bool
+    function getThemeTableRow($themeId): bool
     {
         $db = Factory::getDBO();
 
@@ -183,7 +174,7 @@ class YouTubeGalleryDB
 		es_descrstyle, es_colorone, es_colortwo, es_border, es_openinnewwindow, es_rel, es_hrefaddon, es_customlimit,
 		es_controls, es_youtubeparams, es_useglass, es_logocover, es_customlayout,  es_prepareheadtags, es_muteonplay,
 		es_volume, es_orderby, es_customnavlayout, es_responsive, es_mediafolder, es_headscript, es_themedescription, es_nocookie, es_changepagetitle
-		FROM #__customtables_table_youtubegallerythemes WHERE id=' . (int)$themeid . ' LIMIT 1';
+		FROM #__customtables_table_youtubegallerythemes WHERE id=' . (int)$themeId . ' LIMIT 1';
         //es_playertype,
 
         $db->setQuery($query);
@@ -197,25 +188,18 @@ class YouTubeGalleryDB
         return true;
     }
 
-    function getVideoList_FromCache_From_Table(&$videoid, &$total_number_of_rows, $get_the_first_one = false)
+    function getVideoList_FromCache_From_Table(string &$videoId, int &$total_number_of_rows, bool $get_the_first_one = false): array
     {
         $listIDs = array();
         $listIDs[] = $this->videoListRow->id;
-
         $db = Factory::getDBO();
-
         $where = array();
-
         $where[] = '!INSTR(es_title,"***Video not found***")';
         $where[] = $db->quoteName('es_videolist') . '=' . $db->quote($this->videoListRow->id);
         $where[] = 'es_isvideo=0';
         $where[] = 'es_videosource="videolist"';
-
-
         $query = 'SELECT es_videoid FROM #__customtables_table_youtubegalleryvideos WHERE ' . implode(' AND ', $where);
-
         $db->setQuery($query);
-
         $videos_lists = $db->loadAssocList();
 
         if (count($videos_lists) > 0) {
@@ -227,11 +211,9 @@ class YouTubeGalleryDB
                 } elseif (str_contains($v['es_videoid'], 'catid=')) {
                     //Video Lists of selected category by id
 
-                    $catid = intval(str_replace('catid=', '', $v['es_videoid']));
-
-                    $query = 'SELECT id FROM #__customtables_table_youtubegalleryvideolists WHERE es_catid=' . $catid;
+                    $catId = intval(str_replace('catid=', '', $v['es_videoid']));
+                    $query = 'SELECT id FROM #__customtables_table_youtubegalleryvideolists WHERE es_catid=' . $catId;
                     $db->setQuery($query);
-
                     $videos_lists_ = $db->loadAssocList();
 
                     foreach ($videos_lists_ as $vl)
@@ -239,11 +221,11 @@ class YouTubeGalleryDB
                 } elseif (str_contains($v['es_videoid'], 'category=')) {
                     //Video Lists of selected category by id
 
-                    $categoryname = str_replace('category=', '', $v['es_videoid']);
+                    $categoryName = str_replace('category=', '', $v['es_videoid']);
 
                     $query = 'SELECT l.id AS computedcatid FROM #__customtables_table_youtubegalleryvideolists AS l
 					INNER JOIN #__customtables_table_youtubegallerycategories AS c ON c.id=l.es_catid
-					WHERE c.es_categoryname=' . $db->quote($categoryname);
+					WHERE c.es_categoryname=' . $db->quote($categoryName);
 
                     $db->setQuery($query);
                     $videos_lists_ = $db->loadAssocList();
@@ -254,10 +236,11 @@ class YouTubeGalleryDB
                     $listIDs[] = $v['es_videoid'];
             }
         }
-        return $this->getVideoList_FromCacheFromTable($videoid, $total_number_of_rows, $listIDs, $get_the_first_one);
+
+        return $this->getVideoList_FromCacheFromTable($videoId, $total_number_of_rows, $listIDs, $get_the_first_one);
     }
 
-    function getVideoList_FromCacheFromTable(&$videoId, &$total_number_of_rows, $listIDs, $get_the_first_one = false)
+    function getVideoList_FromCacheFromTable(string &$videoId, int &$total_number_of_rows, array $listIDs, bool $get_the_first_one = false): array
     {
         $jinput = Factory::getApplication()->input;
 
@@ -326,24 +309,23 @@ class YouTubeGalleryDB
             $db->setQuery($query, $limitStart, $limit);
 
         $videos_rows = $db->loadAssocList();
-
-        $firstvideo = '';
+        $firstVideo = '';
 
         if (count($videos_rows) > 0)//$firstvideo=='' and
         {
             $videos_row = $videos_rows[0];
-            $firstvideo = $videos_row['es_videoid'];
+            $firstVideo = $videos_row['es_videoid'];
         }
 
         if ($videoId == '') {
-            if ($firstvideo != '')
-                $videoId = $firstvideo;
+            if ($firstVideo != '')
+                $videoId = $firstVideo;
         }
 
         return $videos_rows;
     }
 
-    function addSearchQuery()
+    function addSearchQuery(): string
     {
         //Input value sanitized below
         $search_fields = Factory::getApplication()->input->getVar('ygsearchfields');
@@ -390,8 +372,10 @@ class YouTubeGalleryDB
         if ($updatePeriod == 0)
             $updatePeriod = 1;
 
+        $active_key = YouTubeGalleryData::isActivated();
+
         if ($days_diff > abs($updatePeriod) or $force_update) {
-            YouTubeGalleryDB::update_cache_table($this->videoListRow, true);
+            YouTubeGalleryDB::update_cache_table($active_key, $this->videoListRow, true);
             $this->videoListRow->es_lastplaylistupdate = date('Y-m-d H:i:s');
 
             $db = Factory::getDBO();
@@ -403,11 +387,11 @@ class YouTubeGalleryDB
         }
     }
 
-    public static function update_cache_table(object $videoListRow, bool $updateVideoList = false): void
+    public static function update_cache_table(bool $active_key, object $videoListRow, bool $updateVideoList = false): void
     {
         $videoListArray = JoomlaBasicMisc::csv_explode("\n", $videoListRow->es_videolist, '"', true);
 
-        $videoList = YouTubeGalleryData::formVideoList($videoListRow, $videoListArray, $updateVideoList);
+        $videoList = YouTubeGalleryData::formVideoList($active_key, $videoListRow, $videoListArray, $updateVideoList);
         $db = Factory::getDBO();
         $parent_id = null;
         $ListOfVideosNotToDelete = array();
@@ -426,14 +410,12 @@ class YouTubeGalleryDB
         }
 
         //Delete All videos of this video list that has been deleted form the list and allowed for updates.
-        /*
-        $query = 'DELETE FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$videolist_row->id;
+        $query = 'DELETE FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$videoListRow->id;
         if (count($ListOfVideosNotToDelete) > 0)
             $query .= ' AND ' . implode(' AND ', $ListOfVideosNotToDelete);
 
         $db->setQuery($query);
         $db->execute();
-        */
     }
 
     public static function updateDBSingleItem(array $g, string $videoListId, &$parent_id): void

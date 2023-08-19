@@ -27,14 +27,14 @@ class VideoSource_YouTube
         }
     }
 
-    public static function renderYouTubePlayer($options, $width, $height, &$videolist_row, &$theme_row)//,$startsecond,$endsecond)
+    public static function renderYouTubePlayer($options, $width, $height, &$videoListRow, &$theme_row)//,$startsecond,$endsecond)
     {
         $videoidkeyword = '****youtubegallery-video-id****';
 
         //VideoSource_YouTube::ygPlayerTypeController($options, $theme_row);
 
-        $playerapiid = 'ygplayerapiid_' . $videolist_row->id;
-        $playerid = 'youtubegalleryplayerid_' . $videolist_row->id;
+        $playerapiid = 'ygplayerapiid_' . $videoListRow->id;
+        $playerid = 'youtubegalleryplayerid_' . $videoListRow->id;
 
         $settings = VideoSource_YouTube::ygPlayerPrepareSettings($options, $theme_row, $playerapiid);//,$startsecond,$endsecond);
 
@@ -81,7 +81,7 @@ class VideoSource_YouTube
             $youtubeserver = $http . 'www.youtube.com/';
 
         $return = VideoSource_YouTube::ygHTML5PlayerAPI($width, $height, $youtubeserver, $videoidkeyword, $settingline,
-            $options, $videolist_row->id, $playerid, $theme_row,
+            $options, $videoListRow->id, $playerid, $theme_row,
             $full_playlist, $initial_volume, $playerapiid, false);
         return $return;
     }

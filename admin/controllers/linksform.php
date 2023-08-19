@@ -43,7 +43,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
      */
     public function cancel($key = null)
     {
-        // get the referal details
+        // get the referral details
         $this->ref = $this->input->get('ref', 0, 'word');
         $this->refid = $this->input->get('refid', 0, 'int');
 
@@ -92,24 +92,23 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
      */
     public function save($key = null, $urlVar = null)
     {
-        // get the referal details
-        $this->ref = $this->input->get('ref', 0, 'word');
-        $this->refid = $this->input->get('refid', 0, 'int');
+        // get the referral details
+        $this->refid = $this->input->get('id', 0, 'int');
 
-        if ($this->ref || $this->refid) {
-            // to make sure the item is checkedin on redirect
+        if ($this->refid) {
+            // to make sure the item is checked on redirect
             $this->task = 'save';
         }
 
         $saved = parent::save($key, $urlVar);
 
         if ($this->refid && $saved) {
-            $redirect = '&view=' . (string)$this->ref . '&layout=edit&id=' . (int)$this->refid;
+            $redirect = '&view=linksform&layout=edit&id=' . (int)$this->refid;
 
             // Redirect to the item screen.
             $this->setRedirect(
                 JRoute::_(
-                    'index.php?option=' . $this->option . $redirect, false
+                    'index.php?option=com_youtubegallery' . $redirect, false
                 )
             );
         } elseif ($this->ref && $saved) {
@@ -118,7 +117,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
             // Redirect to the list screen.
             $this->setRedirect(
                 JRoute::_(
-                    'index.php?option=' . $this->option . $redirect, false
+                    'index.php?option=com_youtubegallery' . $redirect, false
                 )
             );
         }

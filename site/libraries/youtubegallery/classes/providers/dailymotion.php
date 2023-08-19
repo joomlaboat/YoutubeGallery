@@ -40,7 +40,7 @@ class VideoSource_DailyMotion
 
     }
 
-    public static function renderDailyMotionPlayer($options, $width, $height, &$videolist_row, &$theme_row)
+    public static function renderDailyMotionPlayer($options, $width, $height, &$videoListRow, &$theme_row)
     {
         $videoidkeyword = '****youtubegallery-video-id****';
 
@@ -48,7 +48,7 @@ class VideoSource_DailyMotion
         if (isset($options['es_title']))
             $title = $options['es_title'];
 
-        $playerid = 'youtubegalleryplayerid_' . $videolist_row->id;
+        $playerid = 'youtubegalleryplayerid_' . $videoListRow->id;
 
         $settings = array();
         $settings[] = array('autoplay', (int)$options['es_autoplay']);
@@ -76,7 +76,7 @@ class VideoSource_DailyMotion
             . ' id="' . $playerid . '"'
             . ' alt="' . $title . '"'
             . ' frameborder="0" width="' . $width . '" height="' . $height . '" src="https://www.dailymotion.com/embed/video/' . $videoidkeyword . '?' . $settingline . '"'
-            . ($theme_row->es_responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videolist_row->id . '();"' : '')
+            . ($theme_row->es_responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videoListRow->id . '();"' : '')
             . '></iframe>';
 
         return $result;

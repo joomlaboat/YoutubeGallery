@@ -11,7 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 
 class YouTubeGalleryPlayers
 {
-    public static function ShowActiveVideo(&$gallery_list, $width, $height, $videoid, &$videolist_row, &$theme_row, $videosource = '')
+    public static function ShowActiveVideo(&$gallery_list, $width, $height, $videoid, &$videoListRow, &$theme_row, $videosource = '')
     {
         $VideoRow = YouTubeGalleryGalleryList::getVideoRowByID($videoid, $gallery_list);
 
@@ -84,23 +84,23 @@ class YouTubeGalleryPlayers
                 $height = (int)$vpoptions['es_height'];
 
             if ($includeallplayers or $vs == 'break') {
-                $result .= '<div id="yg_player_break_id-' . $videolist_row->id . '" ' . $divstyle . '>' . VideoSource_Break::renderBreakPlayer($vpoptions, $width, $height, $videolist_row, $theme_row) . '</div>';
+                $result .= '<div id="yg_player_break_id-' . $videoListRow->id . '" ' . $divstyle . '>' . VideoSource_Break::renderBreakPlayer($vpoptions, $width, $height, $videoListRow, $theme_row) . '</div>';
             }
 
             if ($includeallplayers or $vs == 'vimeo') {
-                $result .= '<div id="yg_player_vimeo_id-' . $videolist_row->id . '" ' . $divstyle . '>' . VideoSource_Vimeo::renderVimeoPlayer($vpoptions, $width, $height, $videolist_row, $theme_row) . '</div>';
+                $result .= '<div id="yg_player_vimeo_id-' . $videoListRow->id . '" ' . $divstyle . '>' . VideoSource_Vimeo::renderVimeoPlayer($vpoptions, $width, $height, $videoListRow, $theme_row) . '</div>';
             }
 
             if ($includeallplayers or $vs == 'own3dtvlive') {
-                $result .= '<div id="yg_player_own3dtvlive_id-' . $videolist_row->id . '" ' . $divstyle . '>' . VideoSource_Own3DTvLive::renderOwn3DTvLivePlayer($vpoptions, $width, $height, $videolist_row, $theme_row) . '</div>';
+                $result .= '<div id="yg_player_own3dtvlive_id-' . $videoListRow->id . '" ' . $divstyle . '>' . VideoSource_Own3DTvLive::renderOwn3DTvLivePlayer($vpoptions, $width, $height, $videoListRow, $theme_row) . '</div>';
             }
 
             if ($includeallplayers or $vs == 'own3dtvvideo') {
-                $result .= '<div id="yg_player_own3dtvvideo_id-' . $videolist_row->id . '" ' . $divstyle . '>' . VideoSource_Own3DTvVideo::renderOwn3DTvVideoPlayer($vpoptions, $width, $height, $videolist_row, $theme_row) . '</div>';
+                $result .= '<div id="yg_player_own3dtvvideo_id-' . $videoListRow->id . '" ' . $divstyle . '>' . VideoSource_Own3DTvVideo::renderOwn3DTvVideoPlayer($vpoptions, $width, $height, $videoListRow, $theme_row) . '</div>';
             }
 
             if ($includeallplayers or $vs == 'youtube') {
-                $result = '<div id="yg_player_youtube_id-' . $videolist_row->id . '" ' . $divstyle . '>';
+                $result = '<div id="yg_player_youtube_id-' . $videoListRow->id . '" ' . $divstyle . '>';
 
                 $pl = YouTubeGalleryGalleryList::getPlaylistIdsOnly($gallery_list, $videoid, 'youtube');
                 $shorten_pl = array();
@@ -129,11 +129,11 @@ class YouTubeGalleryPlayers
                 else
                     $vpoptions['es_youtubeparams'] .= ';playlist=' . $YoutubeVideoList;
 
-                $temp = VideoSource_Youtube::renderYouTubePlayer($vpoptions, $width, $height, $videolist_row, $theme_row);//,$startsecond,$endsecond);
+                $temp = VideoSource_Youtube::renderYouTubePlayer($vpoptions, $width, $height, $videoListRow, $theme_row);//,$startsecond,$endsecond);
 
                 if ($temp != '') {
                     if ($theme_row->es_useglass or $theme_row->es_logocover)
-                        $result .= '<div class="YoutubeGalleryLogoCover' . $videolist_row->id . '" style="position: relative;width:100%;height:100%;padding:0;border:none;">';
+                        $result .= '<div class="YoutubeGalleryLogoCover' . $videoListRow->id . '" style="position: relative;width:100%;height:100%;padding:0;border:none;">';
 
                     $result .= $temp;
 
@@ -160,27 +160,27 @@ class YouTubeGalleryPlayers
 
             if ($includeallplayers or $vs == 'dailymotion') {
                 $vpoptions['es_thumbnail'] = YouTubeGalleryGalleryList::getThumbnailByID($videoid, $gallery_list);
-                $result .= '<div id="yg_player_dailymotion_id-' . $videolist_row->id . '" ' . $divstyle . '>' . VideoSource_DailyMotion::renderDailyMotionPlayer($vpoptions, $width, $height, $videolist_row, $theme_row) . '</div>';
+                $result .= '<div id="yg_player_dailymotion_id-' . $videoListRow->id . '" ' . $divstyle . '>' . VideoSource_DailyMotion::renderDailyMotionPlayer($vpoptions, $width, $height, $videoListRow, $theme_row) . '</div>';
             }
 
             if ($includeallplayers or $vs == 'ustream') {
                 $vpoptions['es_thumbnail'] = YouTubeGalleryGalleryList::getThumbnailByID($videoid, $gallery_list);
-                $result .= '<div id="yg_player_ustream_id-' . $videolist_row->id . '" ' . $divstyle . '>' . VideoSource_Ustream::renderUstreamPlayer($vpoptions, $width, $height, $videolist_row, $theme_row) . '</div>';
+                $result .= '<div id="yg_player_ustream_id-' . $videoListRow->id . '" ' . $divstyle . '>' . VideoSource_Ustream::renderUstreamPlayer($vpoptions, $width, $height, $videoListRow, $theme_row) . '</div>';
             }
 
             if ($includeallplayers or $vs == 'ustreamlive') {
                 $vpoptions['es_thumbnail'] = YouTubeGalleryGalleryList::getThumbnailByID($videoid, $gallery_list);
-                $result .= '<div id="yg_player_ustreamlive_id-' . $videolist_row->id . '" ' . $divstyle . '>' . VideoSource_UstreamLive::renderUstreamLivePlayer($vpoptions, $width, $height, $videolist_row, $theme_row) . '</div>';
+                $result .= '<div id="yg_player_ustreamlive_id-' . $videoListRow->id . '" ' . $divstyle . '>' . VideoSource_UstreamLive::renderUstreamLivePlayer($vpoptions, $width, $height, $videoListRow, $theme_row) . '</div>';
             }
 
             if ($includeallplayers or $vs == 'soundcloud') {
                 $vpoptions['thumbnail'] = YouTubeGalleryGalleryList::getThumbnailByID($videoid, $gallery_list);
-                $result .= '<div id="yg_player_soundcloud_id-' . $videolist_row->id . '" ' . $divstyle . '>' . VideoSource_SoundCloud::renderPlayer($vpoptions, $width, $height, $videolist_row, $theme_row) . '</div>';
+                $result .= '<div id="yg_player_soundcloud_id-' . $videoListRow->id . '" ' . $divstyle . '>' . VideoSource_SoundCloud::renderPlayer($vpoptions, $width, $height, $videoListRow, $theme_row) . '</div>';
             }
 
             if ($includeallplayers or $vs == 'tiktok') {
                 $vpoptions['es_thumbnail'] = YouTubeGalleryGalleryList::getThumbnailByID($videoid, $gallery_list);
-                $result .= '<div id="yg_player_tiktok_id-' . $videolist_row->id . '" ' . $divstyle . '>' . VideoSource_TikTok::renderPlayer($vpoptions, $width, $height, $videolist_row, $theme_row) . '</div>';
+                $result .= '<div id="yg_player_tiktok_id-' . $videoListRow->id . '" ' . $divstyle . '>' . VideoSource_TikTok::renderPlayer($vpoptions, $width, $height, $videoListRow, $theme_row) . '</div>';
             }
 
             if ($includeallplayers) {
@@ -197,7 +197,7 @@ class YouTubeGalleryPlayers
         $isHot = false;
         if ($videoid == '****youtubegallery-video-id****') {
             $isHot = true;
-            $videoid_d = 'hot' . $videolist_row->id;
+            $videoid_d = 'hot' . $videoListRow->id;
             $imageurl = '****youtubegallery-video-customimage****';
         } else {
             $videoid_d = $videoid;

@@ -14,7 +14,7 @@ use YouTubeGallery\Helper;
 
 class YoutubeGalleryLayoutThumbnails
 {
-    public static function NavigationList($the_gallery_list, &$videoList_row, &$theme_row, $videoId, $custom_itemid = 0): string
+    public static function NavigationList($the_gallery_list, &$videoListRow, &$theme_row, $videoId, $custom_itemid = 0): string
     {
         $catalogResult = '';
         $gallery_list = $the_gallery_list;
@@ -34,10 +34,10 @@ class YoutubeGalleryLayoutThumbnails
             if ($listItem['es_title'] !== null and !str_contains($listItem['es_title'], '***Video not found***')) {
 
                 if (!$isForShadowBox and ($theme_row->es_openinnewwindow == 4 or $theme_row->es_openinnewwindow == 5)) {
-                    $aLink = 'javascript:youtubeplayer' . $videoList_row->id . '.HotVideoSwitch(\'' . $videoList_row->id . '\',\'' . $listItem['es_videoid']
+                    $aLink = 'javascript:youtubeplayer' . $videoListRow->id . '.HotVideoSwitch(\'' . $videoListRow->id . '\',\'' . $listItem['es_videoid']
                         . '\',\'' . $listItem['es_videosource'] . '\',' . $listItem['id'] . ')';
                 } else
-                    $aLink = YoutubeGalleryLayoutThumbnails::makeLink($listItem, $theme_row->es_rel, $videoList_row->id, $theme_row->id, $custom_itemid);
+                    $aLink = YoutubeGalleryLayoutThumbnails::makeLink($listItem, $theme_row->es_rel, $videoListRow->id, $theme_row->id, $custom_itemid);
 
                 if ($isForShadowBox and $theme_row->es_rel != '')
                     $aLink .= '&tmpl=component';
@@ -76,12 +76,12 @@ class YoutubeGalleryLayoutThumbnails
                         $aHrefLink = '<a href="' . $aLink . '" rel="' . $theme_row->es_rel . '">';
                 }
 
-                $thumbnail_item = YoutubeGalleryLayoutThumbnails::renderThumbnailForNavBar($aHrefLink, $aLink, $videoList_row, $theme_row, $listItem, $videoId, $item_index, $gallery_list);
+                $thumbnail_item = YoutubeGalleryLayoutThumbnails::renderThumbnailForNavBar($aHrefLink, $aLink, $videoListRow, $theme_row, $listItem, $videoId, $item_index, $gallery_list);
 
                 if ($thumbnail_item != '') {
 
-                    $catalogResult .= '<div id="youtubegallery_thumbnail_' . $videoList_row->id . '_' . $count . '" style="display:contents;">'
-                        . '<div id="youtubegallery_thumbnail_box_' . $videoList_row->id . '_' . $listItem['id'] . '" class="ygThumb-inactive" style="display:contents;">'
+                    $catalogResult .= '<div id="youtubegallery_thumbnail_' . $videoListRow->id . '_' . $count . '" style="display:contents;">'
+                        . '<div id="youtubegallery_thumbnail_box_' . $videoListRow->id . '_' . $listItem['id'] . '" class="ygThumb-inactive" style="display:contents;">'
                         . $thumbnail_item . '</div></div>';
                     $count++;
                 }
@@ -92,11 +92,11 @@ class YoutubeGalleryLayoutThumbnails
 
         if ($count < abs($theme_row->es_customlimit)) {
             for ($i = $count + 1; $i <= $theme_row->es_customlimit; $i++) {//'.$thumbnail_item.'
-                $catalogResult .= '<div id="youtubegallery_thumbnail_' . $videoList_row->id . '_' . $i . '" style="display:none;">' . $thumbnail_item . '</div>'; //placeholder for thumbnail
+                $catalogResult .= '<div id="youtubegallery_thumbnail_' . $videoListRow->id . '_' . $i . '" style="display:none;">' . $thumbnail_item . '</div>'; //placeholder for thumbnail
             }
         }
 
-        return '<div id="youtubegallery_thumbnails_' . $videoList_row->id . '">' . $catalogResult . '</div>';
+        return '<div id="youtubegallery_thumbnails_' . $videoListRow->id . '">' . $catalogResult . '</div>';
     }
 
     public static function makeLink(array &$listItem, $rel, $videoListRowId, $theme_row_id, $custom_itemid = 0)
@@ -242,10 +242,10 @@ class YoutubeGalleryLayoutThumbnails
         return $result;
     }
 
-    public static function renderThumbnailLayout($thumbnail_layout, array $listItem, $aHrefLink, $aLink, $videoId, &$theme_row, $item_index, &$gallery_list, &$videolist_row)
+    public static function renderThumbnailLayout($thumbnail_layout, array $listItem, $aHrefLink, $aLink, $videoId, &$theme_row, $item_index, &$gallery_list, &$videoListRow)
     {
         //TODO: Check the record update
-        $listItem = YouTubeGalleryData::updateSingleVideo($listItem, $videolist_row);
+        $listItem = YouTubeGalleryData::updateSingleVideo($listItem, $videoListRow);
 
         $fields = array('width', 'height', 'imageurl', 'image', 'link', 'a', '/a', 'link', 'title', 'description',
             'videoid', 'videosource', 'publisheddate', 'duration',
@@ -266,7 +266,7 @@ class YoutubeGalleryLayoutThumbnails
             else
                 $imageFound = false;
 
-            $isEmpty = YoutubeGalleryLayoutThumbnails::isThumbnailDataEmpty($fld, $listItem, $tableFields, $imageFound, $videoId, $item_index, $videolist_row);
+            $isEmpty = YoutubeGalleryLayoutThumbnails::isThumbnailDataEmpty($fld, $listItem, $tableFields, $imageFound, $videoId, $item_index, $videoListRow);
 
             $ValueOptions = array();
             $ValueList = JoomlaBasicMisc::getListToReplace($fld, $ValueOptions, $thumbnail_layout, '[]');
@@ -299,7 +299,7 @@ class YoutubeGalleryLayoutThumbnails
                 $i = 0;
                 foreach ($ValueOptions as $ValueOption) {
                     $options = $ValueOptions[$i];
-                    $vlu = YoutubeGalleryLayoutThumbnails::getThumbnailData($fld, $aHrefLink, $aLink, $listItem, $tableFields, $options, $theme_row, $gallery_list, $videolist_row); //NEW
+                    $vlu = YoutubeGalleryLayoutThumbnails::getThumbnailData($fld, $aHrefLink, $aLink, $listItem, $tableFields, $options, $theme_row, $gallery_list, $videoListRow); //NEW
                     $thumbnail_layout = str_replace($ValueList[$i], $vlu, $thumbnail_layout);
                     $i++;
                 }
@@ -339,7 +339,7 @@ class YoutubeGalleryLayoutThumbnails
         return $thumbnail_layout;
     }
 
-    public static function isThumbnailDataEmpty($fld, array $listItem, &$tableFields, $ImageFound, $videoId, $item_index, &$videoList_row)
+    public static function isThumbnailDataEmpty($fld, array $listItem, &$tableFields, $ImageFound, $videoId, $item_index, &$videoListRow)
     {
         foreach ($tableFields as $tf) {
             if ($fld == $tf) {
@@ -371,16 +371,16 @@ class YoutubeGalleryLayoutThumbnails
                 return false;
 
             case 'inwatchgroup':
-                $u = (int)$videoList_row->es_watchusergroup;
+                $u = (int)$videoListRow->es_watchusergroup;
 
-                if ($videoList_row->es_watchusergroup == 0 or $videoList_row->es_watchusergroup == 1)
+                if ($videoListRow->es_watchusergroup == 0 or $videoListRow->es_watchusergroup == 1)
                     return false; //public videos
 
                 //check is authorized or not
                 $user = Factory::getUser();
                 $usergroups = $user->get('groups');
 
-                if (in_array($videoList_row->es_watchusergroup, $usergroups)) {
+                if (in_array($videoListRow->es_watchusergroup, $usergroups)) {
                     //The user group has access
                     return false;
                 }
@@ -426,7 +426,7 @@ class YoutubeGalleryLayoutThumbnails
         return false;
     }
 
-    public static function getThumbnailData($fld, $aHrefLink, $aLink, array $listItem, &$tableFields, $options, &$theme_row, &$gallery_list, &$videolist_row) //NEW
+    public static function getThumbnailData($fld, $aHrefLink, $aLink, array $listItem, &$tableFields, $options, &$theme_row, &$gallery_list, &$videoListRow) //NEW
     {
         $vlu = '';
 
@@ -595,21 +595,21 @@ class YoutubeGalleryLayoutThumbnails
                     $pair = explode(',', $options);
                     switch ($pair[0]) {
                         case 'title':
-                            return $videolist_row->es_listname;
+                            return $videoListRow->es_listname;
                         case 'description':
-                            return $videolist_row->es_description;
+                            return $videoListRow->es_description;
                         case 'playlist':
                             $pl = YoutubeGalleryLayoutRenderer::getPlaylistIdsOnly($gallery_list);
                             $vlu = implode(',', $pl);
                             break;
                         case 'watchgroup':
-                            return $videolist_row->es_watchusergroup;
+                            return $videoListRow->es_watchusergroup;
                         case 'authorurl':
-                            return $videolist_row->es_authorurl;
+                            return $videoListRow->es_authorurl;
                         case 'image':
-                            return $videolist_row->es_image;
+                            return $videoListRow->es_image;
                         case 'note':
-                            return $videolist_row->es_note;
+                            return $videoListRow->es_note;
                     }
                 }
 

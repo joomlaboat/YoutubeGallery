@@ -25,13 +25,13 @@ class VideoSource_Ustream
 
     }
 
-    public static function renderUstreamPlayer($options, $width, $height, &$videolist_row, &$theme_row)
+    public static function renderUstreamPlayer($options, $width, $height, &$videoListRow, &$theme_row)
     {
         //https://www.dailymotion.com/doc/api/player.html
 
         $videoidkeyword = '****youtubegallery-video-id****';
 
-        $playerid = 'youtubegalleryplayerid_' . $videolist_row->id;
+        $playerid = 'youtubegalleryplayerid_' . $videoListRow->id;
 
         $settings = array();
 
@@ -61,7 +61,7 @@ class VideoSource_Ustream
             $result .= ' alt="' . $options['es_title'] . '"';
 
         $result .= ' frameborder="0" width="' . $width . '" height="' . $height . '" src="https://www.ustream.tv/embed/recorded/' . $videoidkeyword . '?' . $settingline . '"'
-            . ($theme_row->es_responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videolist_row->id . '();"' : '')
+            . ($theme_row->es_responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videoListRow->id . '();"' : '')
             . ' scrolling="no" style="border: 0px none transparent;"></iframe>';
 
         return $result;

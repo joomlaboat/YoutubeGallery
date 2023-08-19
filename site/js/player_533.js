@@ -209,7 +209,6 @@ const YoutubeGalleryPlayerObject = class {
 
     loadVideoRecords(ygstart) {
         const xmlHttp = new XMLHttpRequest();
-
         let url = this.WebsiteRoot + '/index.php?option=com_youtubegallery&view=youtubegallery&yg_api=1&listid=' + this.videolistid + '&themeid=' + this.themeid + '&ygstart=' + ygstart;
 
         xmlHttp.open("GET", url, false);

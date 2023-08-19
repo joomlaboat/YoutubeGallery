@@ -15,7 +15,7 @@ use YouTubeGallery\Helper;
 
 class YoutubeGalleryHotPlayer
 {
-    public static function addHotReloadScript(&$gallery_list, $width, $height, &$videolist_row, &$theme_row): void
+    public static function addHotReloadScript(&$gallery_list, $width, $height, &$videoListRow, &$theme_row): void
     {
         $jinput = Factory::getApplication()->input;
         $ygstart = $jinput->getInt('ygstart', 0);
@@ -37,13 +37,13 @@ class YoutubeGalleryHotPlayer
 
         $autoplay = ((int)$theme_row->es_autoplay == 1 ? 'true' : 'false');
         $allowplaylist = ((int)$theme_row->es_allowplaylist == 1 or $theme_row->es_repeat == 1 ? 'true' : 'false'); //to loop video or to play the next one
-        $playerapiid = 'ygplayerapiid_' . $videolist_row->id;
+        $playerapiid = 'ygplayerapiid_' . $videoListRow->id;
         $initial_volume = (int)$theme_row->es_volume;
 
         $pl = YouTubeGalleryGalleryList::getPlaylistIdsOnly($gallery_list, '', '', true, true);//(bool)$theme_row->allowplaylist
 
         $hotRefreshScript = '
-	var youtubeplayer' . $videolist_row->id . ' = new YoutubeGalleryPlayerObject('
+	var youtubeplayer' . $videoListRow->id . ' = new YoutubeGalleryPlayerObject('
             . $width . ','
             . $height . ','
             . '"' . $playerapiid . '",'
@@ -52,18 +52,18 @@ class YoutubeGalleryHotPlayer
             . $autoplay . ','
             . $allowplaylist . ');
 			
-	youtubeplayer' . $videolist_row->id . '.WebsiteRoot="' . JURI::root(true) . '";
+	youtubeplayer' . $videoListRow->id . '.WebsiteRoot="' . JURI::root(true) . '";
 
 	function onYouTubeIframeAPIReady () {
 		
-		youtubeplayer' . $videolist_row->id . '.iframeAPIloaded=true;
+		youtubeplayer' . $videoListRow->id . '.iframeAPIloaded=true;
 	}
 
-	youtubeplayer' . $videolist_row->id . '.videolistid="' . $videolist_row->id . '";
-	youtubeplayer' . $videolist_row->id . '.themeid="' . $theme_row->id . '";
-	youtubeplayer' . $videolist_row->id . '.VideoSources=["' . implode('", "', $vs) . '"];
-	youtubeplayer' . $videolist_row->id . '.openinnewwindow="' . $theme_row->es_openinnewwindow . '";
-	youtubeplayer' . $videolist_row->id . '.PlayList="' . implode(',', $pl) . '".split(",");
+	youtubeplayer' . $videoListRow->id . '.videolistid="' . $videoListRow->id . '";
+	youtubeplayer' . $videoListRow->id . '.themeid="' . $theme_row->id . '";
+	youtubeplayer' . $videoListRow->id . '.VideoSources=["' . implode('", "', $vs) . '"];
+	youtubeplayer' . $videoListRow->id . '.openinnewwindow="' . $theme_row->es_openinnewwindow . '";
+	youtubeplayer' . $videoListRow->id . '.PlayList="' . implode(',', $pl) . '".split(",");
 ';
 
         YouTubeGalleryRenderer::SetHeaderTags($theme_row, $pl);
@@ -74,43 +74,43 @@ class YoutubeGalleryHotPlayer
 
         foreach ($vs as $v) {
             $player_code = '<!-- ' . $v . ' player -->' . YouTubeGalleryPlayers::ShowActiveVideo($gallery_list, $width, $height, '****youtubegallery-video-id****',
-                    $videolist_row, $theme_row, $v);
+                    $videoListRow, $theme_row, $v);
 
             $hotRefreshScript .= '
-	youtubeplayer' . $videolist_row->id . '.Player[' . $i . ']=\'' . $player_code . '\';';
+	youtubeplayer' . $videoListRow->id . '.Player[' . $i . ']=\'' . $player_code . '\';';
 
             $i++;
         }
         $hotRefreshScript .= '
 
-	for (var i=0;i<youtubeplayer' . $videolist_row->id . '.Player.length;i++)
+	for (var i=0;i<youtubeplayer' . $videoListRow->id . '.Player.length;i++)
 	{
-		var player_code=youtubeplayer' . $videolist_row->id . '.Player[i];
+		var player_code=youtubeplayer' . $videoListRow->id . '.Player[i];
 		';
 
         $hotRefreshScript .= '
 		player_code=player_code.replace(\'_quote_\',\'\\\'\');
-		youtubeplayer' . $videolist_row->id . '.Player[i]=player_code;
+		youtubeplayer' . $videoListRow->id . '.Player[i]=player_code;
 	}
 		
 	window.addEventListener( "load", function( event ) {
-		youtubeplayer' . $videolist_row->id . '.loadVideoRecords(' . $ygstart . ');
+		youtubeplayer' . $videoListRow->id . '.loadVideoRecords(' . $ygstart . ');
 	});
 ';
         $videoId = Factory::getApplication()->input->getCmd('videoid');
         if ((int)$theme_row->es_playvideo == 1 or $videoId != '') {
             $hotRefreshScript .= '
 			//Show first video
-			youtubeplayer' . $videolist_row->id . '.CurrentVideoID="' . $videoId . '";
+			youtubeplayer' . $videoListRow->id . '.CurrentVideoID="' . $videoId . '";
 			window.addEventListener( "load", function( event ) {
 ';
             if ($videoId == '') {
                 $hotRefreshScript .= '
-			setTimeout(youtubeplayer' . $videolist_row->id . '.FindNextVideo(), 500);
+			setTimeout(youtubeplayer' . $videoListRow->id . '.FindNextVideo(), 500);
 ';
             } else {
                 $hotRefreshScript .= '
-			setTimeout(youtubeplayer' . $videolist_row->id . '.FindCurrentVideo(), 500);
+			setTimeout(youtubeplayer' . $videoListRow->id . '.FindCurrentVideo(), 500);
 ';
             }
 

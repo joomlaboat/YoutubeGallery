@@ -71,7 +71,7 @@ try {
 <div class="control-group">
     <div class="control-label"><?php echo JText::_('COM_YOUTUBEGALLERY_SERVER_ADDRESS'); ?></div>
     <div class="controls"><input type="text" readonly style="min-width:370px;width:100%;"
-                                 value="<?php echo $_SERVER['SERVER_ADDR']; ?>"/></div>
+                                 value="<?php echo $_SERVER['SERVER_ADDR'] ?? ''; ?>"/></div>
 </div>
 
 <div class="control-group">

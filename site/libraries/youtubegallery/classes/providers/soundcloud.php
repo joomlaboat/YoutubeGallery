@@ -29,11 +29,11 @@ class VideoSource_SoundCloud
 
     }
 
-    public static function renderPlayer($options, $width, $height, &$videolist_row, &$theme_row)
+    public static function renderPlayer($options, $width, $height, &$videoListRow, &$theme_row)
     {
         $videoidkeyword = '****youtubegallery-video-id****';
 
-        $playerid = 'youtubegalleryplayerid_' . $videolist_row->id;
+        $playerid = 'youtubegalleryplayerid_' . $videoListRow->id;
 
         $settings = array();
 
@@ -82,7 +82,7 @@ class VideoSource_SoundCloud
             . ' height="' . $height . '"'
             . ' alt="' . $title . '"'
             . ' frameborder="' . ((int)$options['es_border'] == 1 ? 'yes' : 'no') . '"'
-            . ($theme_row->es_responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videolist_row->id . '();"' : '')
+            . ($theme_row->es_responsive == 1 ? ' onLoad="YoutubeGalleryAutoResizePlayer' . $videoListRow->id . '();"' : '')
             . '>'
             . '</iframe>';
 

@@ -27,39 +27,37 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
     {
         $jinput = Factory::getApplication()->input;
         $result = '';
-
         $app = Factory::getApplication();
         $this->params = $app->getParams();
 
         if (!isset($this->youtubegallerycode)) {
             if ($jinput->getInt('listid')) {
                 //Shadow Box
-                $listid = (int)$jinput->getInt('listid');
-
+                $listId = $jinput->getInt('listid');
 
                 //Get Theme
-                $m_themeid = (int)$jinput->getInt('mobilethemeid');
-                if ($m_themeid != 0) {
+                $mobileThemeId = $jinput->getInt('mobilethemeid');
+                if ($mobileThemeId != 0) {
                     if (Environment::check_user_agent('mobile'))
-                        $themeid = $m_themeid;
+                        $themeId = $mobileThemeId;
                     else
-                        $themeid = (int)$jinput->getInt('themeid');
+                        $themeId = $jinput->getInt('themeid');
                 } else
-                    $themeid = (int)$jinput->getInt('themeid');
+                    $themeId = $jinput->getInt('themeid');
             } else {
-                $listid = (int)$this->params->get('listid');
+                $listId = (int)$this->params->get('listid');
                 //Get Theme
-                $m_themeid = (int)$this->params->get('mobilethemeid');
-                if ($m_themeid != 0) {
+                $mobileThemeId = (int)$this->params->get('mobilethemeid');
+                if ($mobileThemeId != 0) {
                     if (Environment::check_user_agent('mobile'))
-                        $themeid = $m_themeid;
+                        $themeId = $mobileThemeId;
                     else
-                        $themeid = (int)$this->params->get('themeid');
+                        $themeId = (int)$this->params->get('themeid');
                 } else
-                    $themeid = (int)$this->params->get('themeid');
+                    $themeId = (int)$this->params->get('themeid');
             }
 
-            if ($listid == 0 and $themeid != 0) {
+            if ($listId == 0 and $themeId != 0) {
                 if ($jinput->getInt('yg_api') == 1) {
                     $response = array('error' => JText::_('COM_YOUTUBEGALLERY_ERROR_VIDEOLIST_NOT_SET'));
                     echo json_encode($response);
@@ -68,7 +66,7 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
                     Factory::getApplication()->enqueueMessage(JText::_('COM_YOUTUBEGALLERY_ERROR_VIDEOLIST_NOT_SET'), 'error');
                     return '';
                 }
-            } elseif ($themeid == 0 and $listid != 0) {
+            } elseif ($themeId == 0 and $listId != 0) {
                 if ($jinput->getInt('yg_api') == 1) {
                     $response = array('error' => JText::_('COM_YOUTUBEGALLERY_ERROR_THEME_NOT_SET'));
                     echo json_encode($response);
@@ -77,7 +75,7 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
                     Factory::getApplication()->enqueueMessage(JText::_('COM_YOUTUBEGALLERY_ERROR_THEME_NOT_SET'), 'error');
                     return '';
                 }
-            } elseif ($themeid == 0 and $listid == 0) {
+            } elseif ($themeId == 0 and $listId == 0) {
                 if ($jinput->getInt('yg_api') == 1) {
                     $response = array('error' => JText::_('COM_YOUTUBEGALLERY_ERROR_VIDEOLIST_AND_THEME_NOT_SET'));
                     echo json_encode($response);
@@ -88,31 +86,26 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
                 }
             }
 
-
-            $videoId = $jinput->getCmd('videoid');
+            $videoId = $jinput->getCmd('videoid', '');
             $ygDB = new YouTubeGalleryDB;
 
-            if (!$ygDB->getVideoListTableRow($listid))
+            if (!$ygDB->getVideoListTableRow($listId))
                 return '<p>No video found</p>';
 
-
-            if (!$ygDB->getThemeTableRow($themeid))
+            if (!$ygDB->getThemeTableRow($themeId))
                 return '<p>No theme found</p>';
 
             if ($ygDB->theme_row->es_playvideo == 1 and $videoId != '')
                 $ygDB->theme_row->es_autoplay = 1;
 
-
             $renderer = new YouTubeGalleryRenderer;
-
             $total_number_of_rows = 0;
-
             $ygDB->update_playlist();
-
             $videoIdNew = $videoId;
+            $videoList = $ygDB->getVideoList_FromCache_From_Table($videoIdNew, $total_number_of_rows);
+
             if ($jinput->getInt('yg_api') == 1) {
-                $videolist = $ygDB->getVideoList_FromCache_From_Table($videoIdNew, $total_number_of_rows, false);
-                $videolist = Helper::prepareDescriptions($videolist);
+                $videoList = Helper::prepareDescriptions($videoList);
 
                 if (ob_get_contents())
                     ob_end_clean();
@@ -122,12 +115,10 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
                 //header("Pragma: no-cache");
                 //header("Expires: 0");
 
-                echo json_encode($videolist);
+                echo json_encode($videoList);
                 die;
 
                 return '';
-            } else {
-                $videolist = $ygDB->getVideoList_FromCache_From_Table($videoIdNew, $total_number_of_rows, false);
             }
 
             if ($videoId == '') {
@@ -137,39 +128,35 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
                 }
             }
 
-            $gallerymodule = $renderer->render(
-                $videolist,
+            $galleryModule = $renderer->render(
+                $videoList,
                 $ygDB->videoListRow,
                 $ygDB->theme_row,
                 $total_number_of_rows,
                 $videoId
             );
 
-
             $align = $this->params->get('align');
-
 
             switch ($align) {
                 case 'left' :
-                    $this->youtubegallerycode = '<div style="float:left;">' . $gallerymodule . '</div>';
+                    $this->youtubegallerycode = '<div style="float:left;">' . $galleryModule . '</div>';
                     break;
 
                 case 'center' :
                     if (((int)$ygDB->theme_row->es_width) > 0)
-                        $this->youtubegallerycode = '<div style="width:' . $ygDB->theme_row->es_width . 'px;margin: 0 auto;">' . $gallerymodule . '</div>';
+                        $this->youtubegallerycode = '<div style="width:' . $ygDB->theme_row->es_width . 'px;margin: 0 auto;">' . $galleryModule . '</div>';
                     else
-                        $this->youtubegallerycode = $gallerymodule;
-
+                        $this->youtubegallerycode = $galleryModule;
                     break;
 
                 case 'right' :
-                    $this->youtubegallerycode = '<div style="float:right;">' . $gallerymodule . '</div>';
+                    $this->youtubegallerycode = '<div style="float:right;">' . $galleryModule . '</div>';
                     break;
 
                 default :
-                    $this->youtubegallerycode = $gallerymodule;
+                    $this->youtubegallerycode = $galleryModule;
                     break;
-
             }
         }
 
@@ -184,16 +171,14 @@ class YoutubeGalleryModelYoutubeGallery extends ListModel//JModelItem
             if ($this->version < 4) {
                 $dispatcher = JDispatcher::getInstance();
                 JPluginHelper::importPlugin('content');
-                $results = $dispatcher->trigger('onContentPrepare', array('com_content.article', &$o, &$this->params_, 0));
+                $dispatcher->trigger('onContentPrepare', array('com_content.article', &$o, &$this->params_, 0));
             } else {
-                $results = Factory::getApplication()->triggerEvent('onContentPrepare', array('com_content.article', &$o, &$this->params_, 0));
+                Factory::getApplication()->triggerEvent('onContentPrepare', array('com_content.article', &$o, &$this->params_, 0));
             }
             $this->youtubegallerycode = $o->text;
         }
 
         $result .= $this->youtubegallerycode;
-
-
         return $result;
     }
 }

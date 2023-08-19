@@ -14,7 +14,46 @@ use YouTubeGallery\Helper;
 
 class YouTubeGalleryData
 {
-    public static function formVideoList(object $videoListRow, array $rawList, bool $force = false): array
+    public static function isActivated(): bool
+    {
+        try {
+            $response = YouTubeGalleryData::queryTheAPIServer('connection-test');
+            $j = json_decode($response);
+            if (!$j) return false;
+
+            $j = (array)$j;
+            if (isset($j['connection'])) {
+                if ((int)$j['keytype'] == 2)
+                    return true;
+            }
+        } catch (Exception $e) {
+            return false;
+        }
+        return false;
+    }
+
+    public static function queryTheAPIServer($theLink, $host = '', $force = false): ?string
+    {
+        if ($host == '')
+            $host = YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
+
+        $key = YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
+
+        //It's very important to encode the YouTube link.
+        if (!str_contains($host, '?'))
+            $url = $host . '?';
+        else
+            $url = $host . '&';
+
+        $url .= 'key=' . $key . '&v=5.3.3&query=' . base64_encode($theLink);
+
+        if ($force)
+            $url .= '&force=1';//to force the update
+
+        return Helper::getURLData($url);
+    }
+
+    public static function formVideoList(bool $active_key, object $videoListRow, array $rawList, bool $force = false): array
     {
         $gallery_list = array();
         $ordering = 0;
@@ -48,16 +87,14 @@ class YouTubeGalleryData
                 if (isset($listItem[7]))
                     $item['es_watchgroup'] = $listItem[7];
 
-                YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($theLink, $gallery_list, $videoListRow, $force);
+                YouTubeGalleryData::queryJoomlaBoatYoutubeGalleryAPI($active_key, $theLink, $gallery_list, $videoListRow, $force);
             }
         }
         return $gallery_list;
     }
 
-    public static function queryJoomlaBoatYoutubeGalleryAPI(string $theLink, array &$gallery_list, object $videoListRow, bool $force = false): bool
+    public static function queryJoomlaBoatYoutubeGalleryAPI(bool $active_key, string $theLink, array &$gallery_list, object $videoListRow, bool $force = false): bool
     {
-        $active_key = true;
-
         $updatePeriod = 60 * 24 * ($videoListRow->es_updateperiod) * 60;
         $PlaylistLastUpdate = YouTubeGalleryDB::Playlist_LastUpdate($theLink);
         $diff = strtotime(date('Y-m-d H:i:s')) - strtotime($PlaylistLastUpdate);
@@ -355,27 +392,6 @@ class YouTubeGalleryData
         $blankArray['es_altitude'] = $item['es_altitude'];
 
         return $blankArray;
-    }
-
-    public static function queryTheAPIServer($theLink, $host = '', $force = false): ?string
-    {
-        if ($host == '')
-            $host = YouTubeGalleryDB::getSettingValue('joomlaboat_api_host');
-
-        $key = YouTubeGalleryDB::getSettingValue('joomlaboat_api_key');
-
-        //It's very important to encode the YouTube link.
-        if (!str_contains($host, '?'))
-            $url = $host . '?';
-        else
-            $url = $host . '&';
-
-        $url .= 'key=' . $key . '&v=5.3.3&query=' . base64_encode($theLink);
-
-        if ($force)
-            $url .= '&force=1';//to force the update
-
-        return Helper::getURLData($url);
     }
 
     public static function getVideoSourceName($link): string

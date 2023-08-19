@@ -76,7 +76,7 @@ class YouTubeGalleryRenderer
         }
     }
 
-    function render(&$gallery_list, &$videolist_row, &$theme_row, $total_number_of_rows, $videoid, $custom_itemid = 0): string
+    function render(array &$gallery_list, object &$videoListRow, &$theme_row, $total_number_of_rows, $videoid, $custom_itemid = 0): string
     {
         $width = $theme_row->es_width;
         if ($width == 0)
@@ -87,12 +87,12 @@ class YouTubeGalleryRenderer
             $height = 300;
 
         //Head Script
-        YouTubeGalleryRenderer::setHeadScript($theme_row, $videolist_row->id, $width, $height);
-        YoutubeGalleryHotPlayer::addHotReloadScript($gallery_list, $width, $height, $videolist_row, $theme_row);
+        YouTubeGalleryRenderer::setHeadScript($theme_row, $videoListRow->id, $width, $height);
+        YoutubeGalleryHotPlayer::addHotReloadScript($gallery_list, $width, $height, $videoListRow, $theme_row);
 
         $result = '
 <a name="youtubegallery"></a>
-<div id="YoutubeGalleryMainContainer' . $videolist_row->id . '" style="position: relative;display:block;'
+<div id="YoutubeGalleryMainContainer' . $videoListRow->id . '" style="position: relative;display:block;'
             . ((int)$theme_row->es_width != 0 ? 'width:' . $width . 'px;' : '') . ($theme_row->es_cssstyle != '' ? $theme_row->es_cssstyle . ';' : '') . '">
 ';
         $LayoutRenderer = new YoutubeGalleryLayoutRenderer;
@@ -103,7 +103,7 @@ class YouTubeGalleryRenderer
         else
             $layoutcode = $theme_row->es_customlayout;
 
-        $result .= $LayoutRenderer->render($layoutcode, $videolist_row, $theme_row, $gallery_list, $width, $height, $videoid, $total_number_of_rows, $custom_itemid);
+        $result .= $LayoutRenderer->render($layoutcode, $videoListRow, $theme_row, $gallery_list, $width, $height, $videoid, $total_number_of_rows, $custom_itemid);
 
         $result .= '
 </div>
@@ -111,7 +111,7 @@ class YouTubeGalleryRenderer
         return $result;
     }
 
-    protected static function setHeadScript(&$theme_row, $instance_id, $width, $height)
+    protected static function setHeadScript(object &$theme_row, string $instance_id, string $width, string $height): void
     {
         if ($theme_row->es_headscript === null)
             return;

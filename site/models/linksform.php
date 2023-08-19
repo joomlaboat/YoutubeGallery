@@ -77,11 +77,12 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
             return false;
 
         $ygDB = new YouTubeGalleryDB;
+        $active_key = YouTubeGalleryData::isActivated();
 
         foreach ($linksFormRows as $linksFormRow) {
 
             $ygDB->videoListRow = $linksFormRow;
-            YouTubeGalleryDB::update_cache_table($linksFormRow, $update_videolist); //false - refresh
+            YouTubeGalleryDB::update_cache_table($active_key, $linksFormRow, $update_videolist); //false - refresh
 
             if (!$update_videolist) {
                 $query = 'UPDATE #__youtubegallery_videolists SET lastplaylistupdate="' . date('Y-m-d H:i:s') . '" WHERE id=' . (int)$linksFormRow->id;
@@ -127,17 +128,17 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
         if (!$linksform_row->store()) {
 
             echo '<p>Cannot store.</p>
-				<p>There is some fields missing.</p>
+				<p>There are some fields missing.</p>
 				';
             return false;
         }
 
         $ygDB = new YouTubeGalleryDB;
         $ygDB->videoListRow = $linksform_row;
-        YouTubeGalleryDB::update_cache_table($linksform_row, false);
+        $active_key = YouTubeGalleryData::isActivated();
+        YouTubeGalleryDB::update_cache_table($active_key, $linksform_row, false);
         $linksform_row->lastplaylistupdate = date('Y-m-d H:i:s');
         $this->id = $linksform_row->id;
-
         return true;
     }
 
@@ -146,17 +147,15 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
         return JTable::getInstance($type, $prefix, $config);
     }
 
-    function deleteVideoList($cids)
+    function deleteVideoList($cids): bool
     {
-
         $linksform_row = $this->getTable('videolists');
 
         $db = Factory::getDBO();
 
         if (count($cids)) {
             foreach ($cids as $cid) {
-                $query = 'DELETE FROM #__youtubegallery_videos WHERE listid=' . (int)$cid;
-
+                $query = 'DELETE FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$cid;
                 $db->setQuery($query);
                 $db->execute();
 
@@ -164,8 +163,6 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
                     return false;
             }
         }
-
-
         return true;
     }
 

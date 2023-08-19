@@ -32,10 +32,10 @@ class VideoSource_Vimeo
         return '';
     }
 
-    public static function renderVimeoPlayer($options, $width, $height, &$videolist_row, &$theme_row)
+    public static function renderVimeoPlayer($options, $width, $height, &$videoListRow, &$theme_row)
     {
         $videoidkeyword = '****youtubegallery-video-id****';
-        $playerid = 'youtubegalleryplayerid_' . $videolist_row->id;
+        $playerid = 'youtubegalleryplayerid_' . $videoListRow->id;
 
         $settings = array();
 
@@ -88,8 +88,8 @@ class VideoSource_Vimeo
 
         $vimeoserver = $http . 'vimeo.com/';
 
-        $playerapiid = 'ygplayerapiid_' . $videolist_row->id;
-        $result = VideoSource_Vimeo::ygHTML5VimeoPlayerAPI($settingline, $videolist_row->id, $playerapiid);
+        $playerapiid = 'ygplayerapiid_' . $videoListRow->id;
+        $result = VideoSource_Vimeo::ygHTML5VimeoPlayerAPI($settingline, $videoListRow->id, $playerapiid);
 
 
         return $result;
