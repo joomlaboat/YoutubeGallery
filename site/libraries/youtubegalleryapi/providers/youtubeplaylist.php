@@ -154,6 +154,9 @@ class YGAPI_VideoSource_YoutubePlaylist
                         $videoListItem['es_title'] = $videoItem['es_channeltitle'];
 
                     $videos_found++;
+
+                    if (!$active_key and $videos_found >= 5) //break if not paid
+                        break;
                 }
             }
 

@@ -9,7 +9,6 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
-// import Joomla controllerform library
 jimport('joomla.application.component.controllerform');
 
 /**
@@ -94,33 +93,19 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
     {
         // get the referral details
         $this->refid = $this->input->get('id', 0, 'int');
-
-        if ($this->refid) {
-            // to make sure the item is checked on redirect
-            $this->task = 'save';
-        }
-
         $saved = parent::save($key, $urlVar);
 
-        if ($this->refid && $saved) {
+        if ($this->task == 'apply')
             $redirect = '&view=linksform&layout=edit&id=' . (int)$this->refid;
+        else
+            $redirect = '&view=linkslist';
 
-            // Redirect to the item screen.
-            $this->setRedirect(
-                JRoute::_(
-                    'index.php?option=com_youtubegallery' . $redirect, false
-                )
-            );
-        } elseif ($this->ref && $saved) {
-            $redirect = '&view=' . (string)$this->ref;
-
-            // Redirect to the list screen.
-            $this->setRedirect(
-                JRoute::_(
-                    'index.php?option=com_youtubegallery' . $redirect, false
-                )
-            );
-        }
+        // Redirect to the item screen.
+        $this->setRedirect(
+            JRoute::_(
+                'index.php?option=com_youtubegallery' . $redirect, false
+            )
+        );
         return $saved;
     }
 

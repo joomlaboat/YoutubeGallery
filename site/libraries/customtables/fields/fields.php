@@ -732,6 +732,7 @@ class Fields
     }
 
     //MySQL only
+
     public static function deleteTableLessFields(): void
     {
         $db = Factory::getDBO();

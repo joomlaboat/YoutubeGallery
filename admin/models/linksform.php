@@ -106,7 +106,8 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
         }
 
         $active_key = YouTubeGalleryData::isActivated();
-        YouTubeGalleryDB::update_cache_table($active_key, $linksFormRow, false);
+
+        YouTubeGalleryDB::update_cache_table($active_key, $linksFormRow, true);
         $this->id = $linksFormRow->id;
         return true;
     }

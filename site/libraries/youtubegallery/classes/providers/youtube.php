@@ -159,15 +159,15 @@ class VideoSource_YouTube
 
         $autoplay = ((int)$options['es_autoplay'] == 1 ? 'true' : 'false');
         $result_head = '
-			var tag = document.createElement("script");
-			tag.src = "https://www.youtube.com/iframe_api";
-			var firstScriptTag = document.getElementsByTagName("script")[0];
-			firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+			var tag' . $vlid . ' = document.createElement("script");
+			tag' . $vlid . '.src = "https://www.youtube.com/iframe_api";
+			let firstScriptTag' . $vlid . ' = document.getElementsByTagName("script")[0];
+			firstScriptTag' . $vlid . '.parentNode.insertBefore(tag' . $vlid . ', firstScriptTag' . $vlid . ');
 			youtubeplayer' . $vlid . '.youtubeplayer_options={' . $AdoptedPlayerVars . '};
 			//window.YTConfig = {  host: "https://www.youtube.com"}
 		';
 
         $document = Factory::getDocument();
-        $document->addScriptDeclaration($result_head);
+        $document->addCustomTag('<script>' . $result_head . '</script>');
     }
 }

@@ -4,6 +4,14 @@ String.prototype.replaceAll = function (find, replace) {
     return str.replace(new RegExp(find.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), replace);
 };
 
+let YoutubeGalleryPlayerObjects = [];
+
+function YoutubeGalleryPlayersSetAPILoaded() {
+    for (let i = 0; i < YoutubeGalleryPlayerObjects.length; i++) {
+        YoutubeGalleryPlayerObjects[i].iframeAPIloaded = true;
+    }
+}
+
 const YoutubeGalleryPlayerObject = class {
     constructor(width_, height_, playerapiid_, initial_volume_, mute_on_play_, auto_play_, allowplaylist_) {
         this.WebsiteRoot = "";
@@ -141,15 +149,16 @@ const YoutubeGalleryPlayerObject = class {
 
         if (!this.iframeAPIloaded) {
             //iframe API not loaded
-            if (this.iframeAPIloadedCheckCount < 5)
-                setTimeout(this.FindNextVideo(), 500);
-
             this.iframeAPIloadedCheckCount++;
+
+            if (this.iframeAPIloadedCheckCount < 5) {
+                setTimeout(this.FindNextVideo(), 500);
+            }
             return false;
         }
 
         if (this.PlayList.length === 0) {
-            //alert("FindNextVideo:Video records not loaded yet");
+            alert("FindNextVideo:Video records not loaded yet");
             setTimeout(this.FindNextVideo(), 500);
             return false;
         }

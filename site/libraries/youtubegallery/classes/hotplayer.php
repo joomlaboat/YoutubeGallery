@@ -53,12 +53,12 @@ class YoutubeGalleryHotPlayer
             . $allowplaylist . ');
 			
 	youtubeplayer' . $videoListRow->id . '.WebsiteRoot="' . JURI::root(true) . '";
-
-	function onYouTubeIframeAPIReady () {
-		
-		youtubeplayer' . $videoListRow->id . '.iframeAPIloaded=true;
+    YoutubeGalleryPlayerObjects.push(youtubeplayer' . $videoListRow->id . ');
+    
+	function onYouTubeIframeAPIReady() {
+		YoutubeGalleryPlayersSetAPILoaded();
 	}
-
+	
 	youtubeplayer' . $videoListRow->id . '.videolistid="' . $videoListRow->id . '";
 	youtubeplayer' . $videoListRow->id . '.themeid="' . $theme_row->id . '";
 	youtubeplayer' . $videoListRow->id . '.VideoSources=["' . implode('", "', $vs) . '"];
@@ -67,8 +67,7 @@ class YoutubeGalleryHotPlayer
 ';
 
         YouTubeGalleryRenderer::SetHeaderTags($theme_row, $pl);
-
-        $document->addScriptDeclaration($hotRefreshScript);
+        $document->addCustomTag('<script>' . $hotRefreshScript . '</script>');
         $hotRefreshScript = '';
         $i = 0;
 
@@ -118,6 +117,6 @@ class YoutubeGalleryHotPlayer
 		});
 ';
         }
-        $document->addScriptDeclaration($hotRefreshScript);
+        $document->addCustomTag('<script>' . $hotRefreshScript . '</script>');
     }
 }

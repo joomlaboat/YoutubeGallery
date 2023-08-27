@@ -113,10 +113,7 @@ class VideoSource_Vimeo
 ';
 
         $document = Factory::getDocument();
-        $document->addScriptDeclaration($result_head);
-
+        $document->addCustomTag('<script>' . $result_head . '</script>');
         return $result;
     }
-
-
 }
