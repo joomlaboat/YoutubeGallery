@@ -41,7 +41,7 @@ class CT
     var int $LimitStart;
     var bool $isEditForm;
     var $app;
-    var Document $document;
+    var ?Document $document;
     var $db;
     var array $editFields;
     var array $LayoutVariables;
@@ -496,8 +496,24 @@ class CT
             return -1;
 
         $row = $rows[0];
-
         $saveField = new SaveFieldQuerySet($this, $row, false);
+
+        //Apply default values
+        foreach ($this->Table->fields as $fieldRow) {
+
+            if (!$saveField->checkIfFieldAlreadyInTheList($fieldRow['fieldname'])) {
+                $saveFieldSet = $saveField->applyDefaults($fieldRow);
+                if ($saveFieldSet !== null) {
+                    $saveField->saveQuery[] = $saveFieldSet;
+                }
+            }
+        }
+
+        if (count($saveField->saveQuery) > 0) {
+            $saveField->runUpdateQuery($saveField->saveQuery, $listing_id);
+        }
+        //End of Apply default values
+
         $this->Env->jinput->set("listing_id", $listing_id);
 
         if ($this->Env->advancedTagProcessor)

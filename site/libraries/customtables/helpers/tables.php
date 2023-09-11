@@ -255,7 +255,6 @@ class ESTables
             $query = 'INSERT INTO ' . $realtablename . ' (' . implode(',', $set_fieldNames) . ') VALUES (' . implode(',', $set_values) . ')';
         } else {
             $query = 'INSERT ' . $realtablename . ' SET ' . implode(', ', $sets);
-
         }
 
         try {
@@ -265,7 +264,6 @@ class ESTables
             Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
             return false;
         }
-
         return $db->insertid();
     }
 

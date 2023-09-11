@@ -219,7 +219,6 @@ const YoutubeGalleryPlayerObject = class {
     loadVideoRecords(ygstart) {
         const xmlHttp = new XMLHttpRequest();
         let url = this.WebsiteRoot + '/index.php?option=com_youtubegallery&view=youtubegallery&yg_api=1&listid=' + this.videolistid + '&themeid=' + this.themeid + '&ygstart=' + ygstart;
-
         xmlHttp.open("GET", url, false);
         xmlHttp.send(null);
         const r = xmlHttp.responseText;
@@ -353,7 +352,10 @@ const YoutubeGalleryPlayerObject = class {
             this.element_removeClass(title_obj_name, "ygTitle-visible");
             this.element_addClass(title_obj_name, "ygTitle-hidden");
 
-            const title = rec.es_title;
+            let title = rec.es_title;
+            if (title === null)
+                title = "";
+            
             tObj.innerHTML = title.replaceAll('_quote_', '&quot;');
 
             setTimeout(function () {

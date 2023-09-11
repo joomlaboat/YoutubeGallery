@@ -11,6 +11,7 @@
 namespace CustomTables;
 
 // no direct access
+use Exception;
 use Joomla\CMS\Helper\ModuleHelper;
 use Joomla\CMS\Factory;
 use JoomlaBasicMisc;
@@ -108,7 +109,14 @@ class Params
                 $blockExternalVars = false;
                 //Do not block external var parameters because this is the edit form or a task
             } elseif (method_exists($this->app, 'getParams')) {
-                $menu_params = $this->app->getParams();
+                try {
+                    if ($this->app->getLanguage() !== null)
+                        $menu_params = @$this->app->getParams();
+                    else
+                        $menu_params = new JRegistry;
+                } catch (Exception $e) {
+                    $menu_params = new JRegistry;
+                }
             }
         }
         $this->setParams($menu_params, $blockExternalVars, $ModuleId);
@@ -122,7 +130,12 @@ class Params
         if (is_null($menu_params)) {
             if (method_exists($this->app, 'getParams')) {
 
-                $menu_params = $this->app->getParams();
+                try {
+                    $menu_params = $this->app->getParams();
+                } catch (Exception $e) {
+                    $menu_params = new JRegistry;
+                }
+
             } else {
                 $this->pageTitle = null;
                 $this->showPageHeading = null;

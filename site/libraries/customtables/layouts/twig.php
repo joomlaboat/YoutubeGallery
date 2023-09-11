@@ -48,9 +48,12 @@ class TwigProcessor
     var ?string $pageLayoutLink;
     var string $itemLayoutName;
     var string $itemLayoutLineStart;
+    var bool $parseParams;
 
     public function __construct(CT $ct, $layoutContent, $getEditFieldNamesOnly = false, $DoHTMLSpecialChars = false, $parseParams = true, ?string $layoutName = null, ?string $pageLayoutLink = null)
     {
+        $this->parseParams = $parseParams;
+        $this->errorMessage = null;
         $this->DoHTMLSpecialChars = $DoHTMLSpecialChars;
         $this->ct = $ct;
         $this->getEditFieldNamesOnly = $getEditFieldNamesOnly;
@@ -66,7 +69,8 @@ class TwigProcessor
         $pos1 = strpos($layoutContent, $tag1);
 
         if (!class_exists('Twig\Loader\ArrayLoader')) {
-            Factory::getApplication()->enqueueMessage('Twig not loaded. Go to Global Configuration/ Custom Tables Configuration to enable it.', 'error');
+            $this->errorMessage = 'Twig not loaded. Go to Global Configuration/ Custom Tables Configuration to enable it.';
+            Factory::getApplication()->enqueueMessage($this->errorMessage, 'error');
             return;
         }
 
@@ -104,9 +108,8 @@ class TwigProcessor
         }
         $this->twig = new \Twig\Environment($loader);
         $this->addGlobals();
-        $this->addFieldValueMethods($parseParams);
+        $this->addFieldValueMethods();
         $this->addTwigFilters();
-        $this->errorMessage = null;
     }
 
     protected function addGlobals(): void
@@ -210,7 +213,7 @@ class TwigProcessor
         $this->twig->addGlobal('tables', new Twig_Tables_Tags($this->ct));
     }
 
-    protected function addFieldValueMethods($parseParams = true): void
+    protected function addFieldValueMethods(): void
     {
         if (isset($this->ct->Table->fields)) {
             $index = 0;
@@ -218,20 +221,35 @@ class TwigProcessor
                 if ($fieldRow === null or count($fieldRow) == 0) {
                     $this->errorMessage = 'addFieldValueMethods: Field row is empty.';
                 } else {
-                    $function = new TwigFunction($fieldRow['fieldname'], function () use (&$ct, $index) {
-                        //This function will process record values with field typeparams and with optional arguments
-                        //Example:
-                        //{{ price }}  - will return 35896.14 if field type parameter is 2,20 (2 decimals)
-                        //{{ price(3,",") }}  - will return 35,896.140 if field type parameter is 2,20 (2 decimals) but extra 0 added
+                    if ($this->parseParams) {
+                        $function = new TwigFunction($fieldRow['fieldname'], function () use (&$ct, $index) {
+                            //This function will process record values with field typeparams and with optional arguments
+                            //Example:
+                            //{{ price }}  - will return 35896.14 if field type parameter is 2,20 (2 decimals)
+                            //{{ price(3,",") }}  - will return 35,896.140 if field type parameter is 2,20 (2 decimals) but extra 0 added
 
-                        $args = func_get_args();
+                            $args = func_get_args();
 
-                        $valueProcessor = new Value($this->ct);
-                        return strval($valueProcessor->renderValue($this->ct->Table->fields[$index], $this->ct->Table->record, $args));
-                    });
+                            $valueProcessor = new Value($this->ct);
+                            return strval($valueProcessor->renderValue($this->ct->Table->fields[$index], $this->ct->Table->record, $args, true));
+                        });
+                    } else {
+                        $function = new TwigFunction($fieldRow['fieldname'], function () use (&$ct, $index) {
+                            //This function will process record values with field typeparams and with optional arguments
+                            //Example:
+                            //{{ price }}  - will return 35896.14 if field type parameter is 2,20 (2 decimals)
+                            //{{ price(3,",") }}  - will return 35,896.140 if field type parameter is 2,20 (2 decimals) but extra 0 added
+
+                            $args = func_get_args();
+
+                            $valueProcessor = new Value($this->ct);
+                            return strval($valueProcessor->renderValue($this->ct->Table->fields[$index], $this->ct->Table->record, $args, false));
+                        });
+                    }
 
                     $this->twig->addFunction($function);
-                    $this->variables[$fieldRow['fieldname']] = new fieldObject($this->ct, $fieldRow, $this->DoHTMLSpecialChars, $this->getEditFieldNamesOnly, $parseParams);
+                    $this->variables[$fieldRow['fieldname']] = new fieldObject($this->ct, $fieldRow, $this->DoHTMLSpecialChars,
+                        $this->getEditFieldNamesOnly, $this->parseParams);
                     $index++;
                 }
             }
@@ -386,14 +404,16 @@ class fieldObject
     var Field $field;
     var bool $DoHTMLSpecialChars;
     var bool $getEditFieldNamesOnly;
+    var bool $parseParams;
 
     function __construct(CT &$ct, $fieldRow, $DoHTMLSpecialChars = false, $getEditFieldNamesOnly = false, $parseParams = true)
     {
+        $this->parseParams = $parseParams;
         $this->DoHTMLSpecialChars = $DoHTMLSpecialChars;
         $this->ct = $ct;
 
         try {
-            $this->field = new Field($ct, $fieldRow, $this->ct->Table->record, $parseParams);
+            $this->field = new Field($ct, $fieldRow, $this->ct->Table->record, $this->parseParams);
         } catch (Exception $e) {
             echo $e->getMessage();
         }
@@ -406,7 +426,7 @@ class fieldObject
             return 'Field not initialized.';
 
         $valueProcessor = new Value($this->ct);
-        $vlu = $valueProcessor->renderValue($this->field->fieldrow, $this->ct->Table->record, []);
+        $vlu = $valueProcessor->renderValue($this->field->fieldrow, $this->ct->Table->record, [], $this->parseParams);
 
         if ($this->DoHTMLSpecialChars) {
             $vlu = htmlentities($vlu, ENT_QUOTES + ENT_IGNORE + ENT_DISALLOWED + ENT_HTML5, "UTF-8");
@@ -562,7 +582,11 @@ class fieldObject
 
         } else {
             $postfix = '';
-            $ajax_prefix = 'com_' . $this->ct->Table->record[$this->ct->Table->realidfieldname] . '_';//example: com_153_es_fieldname or com_153_ct_fieldname
+
+            if ($this->ct->Table->record === null)
+                $ajax_prefix = 'com__';//example: com_153_es_fieldname or com_153_ct_fieldname
+            else
+                $ajax_prefix = 'com_' . $this->ct->Table->record[$this->ct->Table->realidfieldname] . '_';//example: com_153_es_fieldname or com_153_ct_fieldname
 
             if ($this->field->type == 'multilangstring') {
                 if (isset($args[4])) {
@@ -590,9 +614,20 @@ class fieldObject
             // Default attribute - action to save the value
             $args[0] = 'border:none !important;width:auto;box-shadow:none;';
 
-            $onchange = 'ct_UpdateSingleValue(\'' . $this->ct->Env->WebsiteRoot . '\',' . $this->ct->Params->ItemId . ',\''
-                . $this->field->fieldname . '\',' . $this->ct->Table->record[$this->ct->Table->realidfieldname] . ',\''
-                . $postfix . '\',' . $this->ct->Params->ModuleId . ');';
+            if ($this->ct->Table->record === null) {
+
+                if ($this->ct->Table->recordlist === null)
+                    $this->ct->getRecordList();
+
+                $listOfRecords = implode(',', $this->ct->Table->recordlist);
+                $onchange = 'ct_UpdateAllRecordsValues(\'' . $this->ct->Env->WebsiteRoot . '\',' . $this->ct->Params->ItemId . ',\''
+                    . $this->field->fieldname . '\',\'' . $listOfRecords . '\',\''
+                    . $postfix . '\',' . ($this->ct->Params->ModuleId ?? 0) . ');';
+            } else {
+                $onchange = 'ct_UpdateSingleValue(\'' . $this->ct->Env->WebsiteRoot . '\',' . $this->ct->Params->ItemId . ',\''
+                    . $this->field->fieldname . '\',\'' . $this->ct->Table->record[$this->ct->Table->realidfieldname] . '\',\''
+                    . $postfix . '\',' . ($this->ct->Params->ModuleId ?? 0) . ');';
+            }
 
             if (isset($value_option_list[1]))
                 $args[1] .= $value_option_list[1];
@@ -601,9 +636,15 @@ class fieldObject
 
             $value = $Inputbox->getDefaultValueIfNeeded($this->ct->Table->record);
 
-            return '<div' . $div_arg . ' id="' . $ajax_prefix . $this->field->fieldname . $postfix . '_div">'
-                . $Inputbox->render($value, $this->ct->Table->record)
-                . '</div>';
+            if ($this->ct->Table->record === null) {
+                return '<div' . $div_arg . ' id="' . $ajax_prefix . $this->field->fieldname . $postfix . '_div">'
+                    . $Inputbox->render($value, null)
+                    . '</div>';
+            } else {
+                return '<div' . $div_arg . ' id="' . $ajax_prefix . $this->field->fieldname . $postfix . '_div">'
+                    . $Inputbox->render($value, $this->ct->Table->record)
+                    . '</div>';
+            }
         }
     }
 
@@ -717,7 +758,7 @@ class fieldObject
     {
         if ($showPublishedString === null)
             $showPublishedString = '';
-                
+
         if ($this->field->type != 'sqljoin' and $this->field->type != 'records') {
             $this->ct->app->enqueueMessage('{{ ' . $this->field->fieldname . '.get }}. Wrong field type "' . $this->field->type . '". ".get" method is only available for Table Join and Records filed types.', 'error');
             return '';

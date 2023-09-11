@@ -750,12 +750,9 @@ function YGBuildListVideoDialog(link, link_type, editIndex) {
             var Values = new Array('', 'true');
             var Titles = new Array('No', 'Yes');
             FormContent += '<tr><td>More details</td><td>:</td><td>' + YGBuildSelectBox('moredetails', Values, Titles, YGGetValue(sp, 'moredetails')) + '</td></tr>';
-
         }
 
         FormContent += '<tr><td colspan="3"><hr style="border:1px grey dotted;" /></td></tr>';
-
-
         FormContent += '<tr><td>Start Second</td><td>:</td><td><input type="text" id="startsecond" class="inputbox" style="width:100%;" value="' + item[5] + '" /></td></tr>';
 
         if (!simple_mode) FormContent += '<tr><td>End Second</td><td>:</td><td><input type="text" id="endsecond" class="inputbox" style="width:100%;" value="' + item[6] + '" /></td></tr>';
