@@ -110,7 +110,7 @@ class Field
                     $new_params[] = $type_param;
                 else {
 
-                    if ($type == 'user' and ($index == 1 or $index = 2)) {
+                    if ($type == 'user' and ($index == 1 or $index == 2)) {
                         //Do not parse
                         $new_params[] = $type_param;
                     } else {
@@ -659,7 +659,7 @@ class Fields
         return $rows[0];
     }
 
-    public static function getFieldAssocByName($fieldname, $tableid): ?array
+    public static function getFieldAssocByName(string $fieldname, int $tableid): ?array
     {
         $db = Factory::getDBO();
 
@@ -669,7 +669,7 @@ class Fields
         if ($fieldname == '')
             return null;
 
-        $query = 'SELECT ' . Fields::getFieldRowSelects() . ' FROM #__customtables_fields AS s WHERE s.published=1 AND tableid=' . (int)$tableid . ' AND fieldname="' . trim($fieldname) . '" LIMIT 1';
+        $query = 'SELECT ' . Fields::getFieldRowSelects() . ' FROM #__customtables_fields AS s WHERE s.published=1 AND tableid=' . $tableid . ' AND fieldname="' . trim($fieldname) . '" LIMIT 1';
         $db->setQuery($query);
 
         $rows = $db->loadAssocList();

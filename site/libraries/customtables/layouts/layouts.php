@@ -235,7 +235,7 @@ class Layouts
 
     protected function addCSSandJSIfNeeded(array $layoutRow, bool $checkLayoutFile = true): void
     {
-        $layoutContent = trim($layoutRow['layoutcss']);
+        $layoutContent = trim($layoutRow['layoutcss'] ?? '');
 
         if ($checkLayoutFile and $this->ct->Env->folderToSaveLayouts !== null) {
             $content = $this->getLayoutFileContent($layoutRow['id'], $layoutRow['layoutname'], $layoutContent, $layoutRow['ts'], $layoutRow['layoutname'] . '.css', 'layoutcss');
@@ -253,7 +253,7 @@ class Layouts
             $this->ct->document->addCustomTag($layoutContent);
         }
 
-        $layoutContent = trim($layoutRow['layoutjs']);
+        $layoutContent = trim($layoutRow['layoutjs'] ?? '');
         if ($checkLayoutFile and $this->ct->Env->folderToSaveLayouts !== null) {
             $content = $this->getLayoutFileContent($layoutRow['id'], $layoutRow['layoutname'], $layoutContent, $layoutRow['ts'], $layoutRow['layoutname'] . '.js', 'layoutjs');
             if ($content != null)
@@ -338,8 +338,15 @@ class Layouts
 
         foreach ($fields as $field) {
 
-            if ($field['type'] != 'ordering' && !in_array($field['type'], $fieldtypes_to_skip))
-                $result .= '<td>{{ ' . $field['fieldname'] . ' }}</td>' . PHP_EOL;
+            if ($field['type'] != 'ordering' && !in_array($field['type'], $fieldtypes_to_skip)) {
+
+                if ($field['type'] == 'url')
+                    $fieldValue = '<a href="{{ ' . $field['fieldname'] . ' }}" target="_blank">{{ ' . $field['fieldname'] . ' }}</a>';
+                else
+                    $fieldValue = '{{ ' . $field['fieldname'] . ' }}';
+
+                $result .= '<td>' . $fieldValue . '</td>' . PHP_EOL;
+            }
         }
 
         if ($addToolbar)

@@ -60,7 +60,7 @@ class Ordering
 
             $params_str = [];
             foreach ($params as $key => $value)
-                $params_str[] = $key . '="' . htmlspecialchars($value) . '"';
+                $params_str[] = $key . '="' . htmlspecialchars($value ?? '') . '"';
 
             $val = '<' . $tag . ' ' . implode(' ', $params_str) . '>';
             $result = str_replace($fItem, $val, $result);
@@ -107,7 +107,7 @@ class Ordering
         if ($fieldName == '_id')
             return $Table->realidfieldname;
         elseif ($fieldName == '_published' and $Table->published_field_found)
-            return 'published';
+            return 'listing_published';
 
         $fieldRow = Fields::FieldRowByName($fieldName, $Table->fields);
         if ($fieldRow === null)

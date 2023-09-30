@@ -239,6 +239,9 @@ class SaveFieldQuerySet
                     $value = $this->ct->Env->jinput->getInt($this->field->comesfieldname);
                     $this->row[$this->field->realfieldname] = $value;
 
+                    if ($value == 0)
+                        $value = null;
+
                     if ($value === null)
                         return $this->field->realfieldname . '=null';
                     else
@@ -254,6 +257,9 @@ class SaveFieldQuerySet
 
                     if ((!isset($value) or $value == 0)) {
 
+                        if ($value == 0)
+                            $value = null;
+
                         if (!$this->ct->isRecordNull($this->row)) {
                             if ($this->row[$this->field->realfieldname] == null or $this->row[$this->field->realfieldname] == "")
                                 $value = ($this->ct->Env->userid != 0 ? $this->ct->Env->userid : 0);
@@ -266,6 +272,8 @@ class SaveFieldQuerySet
                 }
 
                 $value = $this->ct->Env->jinput->getInt($this->field->comesfieldname);
+                if ($value == 0)
+                    $value = null;
 
                 if (isset($value) and $value != 0) {
                     $this->row[$this->field->realfieldname] = $value;
@@ -435,7 +443,7 @@ class SaveFieldQuerySet
             case 'email':
                 $value = $this->ct->Env->jinput->getString($this->field->comesfieldname);
                 if (isset($value)) {
-                    $value = trim($value);
+                    $value = trim($value ?? '');
                     if (Email::checkEmail($value)) {
                         $this->row[$this->field->realfieldname] = $value;
                         return $this->field->realfieldname . '=' . $this->ct->db->Quote($value);
@@ -449,7 +457,7 @@ class SaveFieldQuerySet
             case 'url':
                 $value = $this->ct->Env->jinput->getString($this->field->comesfieldname);
                 if (isset($value)) {
-                    $value = trim($value);
+                    $value = trim($value ?? '');
 
                     if (filter_var($value, FILTER_VALIDATE_URL)) {
                         $this->row[$this->field->realfieldname] = $value;
@@ -942,7 +950,11 @@ class SaveFieldQuerySet
     {
         if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             if (strpos($_SERVER['HTTP_X_FORWARDED_FOR'], ',') > 0) {
+                if ($_SERVER['HTTP_X_FORWARDED_FOR'] == '')
+                    return '';
+
                 $address = explode(",", $_SERVER['HTTP_X_FORWARDED_FOR']);
+
                 return trim($address[0]);
             } else {
                 return $_SERVER['HTTP_X_FORWARDED_FOR'];

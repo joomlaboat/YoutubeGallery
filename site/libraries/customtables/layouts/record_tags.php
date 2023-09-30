@@ -252,7 +252,7 @@ class Twig_Record_Tags
             return [$tableRow['realidfieldname'], '_id'];
         } elseif ($fieldName == '_published') {
             if ($tableRow['published_field_found'])
-                return ['published', '_published'];
+                return ['listing_published', '_published'];
             else
                 $this->ct->app->enqueueMessage('{{ record.join... }} - Table does not have "published" field.', 'error');
         } else {
@@ -487,7 +487,7 @@ class Twig_Record_Tags
         if ($fieldName == '_id') {
             $fieldRealFieldName = $tableRow['realidfieldname'];
         } elseif ($fieldName == '_published') {
-            $fieldRealFieldName = $tableRow['published'];
+            $fieldRealFieldName = 'listing_published';//$tableRow['published'];
         } else {
             $tableFields = Fields::getFields($tableName);
 
@@ -587,7 +587,7 @@ class Twig_Record_Tags
 
         $fieldTitles = [];
         foreach ($this->ct->Table->fields as $field) {
-            if ($field['published'] == 1 and $field['isrequired'] == 1 and !Fields::isVirtualField($field)) {
+            if ($field['listing_published'] == 1 and $field['isrequired'] == 1 and !Fields::isVirtualField($field)) {
                 $value = $this->ct->Table->record[$field['realfieldname']];
                 if ($value === null or $value == '') {
                     if (!array_key_exists('fieldtitle' . $this->ct->Languages->Postfix, $field)) {
@@ -759,7 +759,7 @@ class Twig_Tables_Tags
                 $value_realfieldname = $join_ct->Table->realidfieldname;
             elseif ($fieldname == '_published')
                 if ($join_ct->Table->published_field_found) {
-                    $value_realfieldname = 'published';
+                    $value_realfieldname = 'listing_published';
                 } else {
                     $this->ct->app->enqueueMessage('{{ ' . $tag . '("' . $table . '","published") }} - "published" does not exist in the table.', 'error');
                     return '';
@@ -773,11 +773,10 @@ class Twig_Tables_Tags
                 }
             }
 
-            if (!$value_realfieldname) {
+            if ($value_realfieldname == '') {
                 $this->ct->app->enqueueMessage('{{ ' . $tag . '("' . $table . '","' . $fieldname . '") }} - Value field "' . $fieldname . '" not found.', 'error');
                 return '';
             }
-
             return $row[$value_realfieldname];
         }
     }
@@ -785,12 +784,12 @@ class Twig_Tables_Tags
     function getrecord($layoutname = '', $record_id_or_filter = '', $orderby = ''): string
     {
         if ($layoutname == '') {
-            $this->ct->app->enqueueMessage('{{ html.records("' . $layoutname . '","' . $record_id_or_filter . '","' . $orderby . '") }} - Layout name not specified.', 'error');
+            $this->ct->app->enqueueMessage('{{ tables.getrecord("' . $layoutname . '","' . $record_id_or_filter . '","' . $orderby . '") }} - Layout name not specified.', 'error');
             return '';
         }
 
         if ($record_id_or_filter == '') {
-            $this->ct->app->enqueueMessage('{{ html.records("' . $layoutname . '","' . $record_id_or_filter . '","' . $orderby . '") }} - Record id or filter not set.', 'error');
+            $this->ct->app->enqueueMessage('{{ tables.getrecord("' . $layoutname . '","' . $record_id_or_filter . '","' . $orderby . '") }} - Record id or filter not set.', 'error');
             return '';
         }
 
@@ -801,7 +800,7 @@ class Twig_Tables_Tags
         $pageLayout = $layouts->getLayout($layoutname, false);//It is safer to process layout after rendering the table
 
         if ($layouts->tableId === null) {
-            $this->ct->app->enqueueMessage('{{ html.records("' . $layoutname . '","' . $record_id_or_filter . '","' . $orderby . '") }} - Layout "' . $layoutname . ' not found.', 'error');
+            $this->ct->app->enqueueMessage('{{ tables.getrecord("' . $layoutname . '","' . $record_id_or_filter . '","' . $orderby . '") }} - Layout "' . $layoutname . ' not found.', 'error');
             return '';
         }
 
