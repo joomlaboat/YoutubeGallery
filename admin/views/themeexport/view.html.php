@@ -103,7 +103,6 @@ class ygExportTheme
             $filesArray[] = array('name' => ygExportTheme::getFileNameOnly($file), 'data' => $data);
         }
 
-
         $zip = new Zip();
         $zip->create($archiveName, $filesArray);
 
@@ -177,10 +176,7 @@ class ygExportTheme
                         }
                     }
                 }
-
-
             }
-
         }
     }
 
@@ -245,7 +241,6 @@ More Themes</a></div>
     {
         $jinput = Factory::getApplication()->input;
         $jinput->get->set('hidemainmenu', true);
-
 
         JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_THEME_EXPORT'));
         JToolBarHelper::cancel('themeexport.cancel', 'JTOOLBAR_CLOSE');

@@ -73,14 +73,15 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
             throw new Exception(implode("\n", $errors), 500);
         }
 
+        // Set the document
+        $this->document = Factory::getDocument();
+        $this->setDocument($this->document);
+
         // Display the template
         if ($this->version < 4)
             parent::display($tpl);
         else
             parent::display('quatro');
-
-        // Set the document
-        $this->setDocument();
     }
 
     protected function addToolBar_3()
@@ -101,11 +102,8 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
         ToolbarHelper::title(Text::_('COM_YOUTUBEGALLERY_VIDEO_LIST'), 'joomla');
     }
 
-    protected function setDocument()
+    public function setDocument(Joomla\CMS\Document\Document $document): void
     {
-        if (!isset($this->document)) {
-            $this->document = Factory::getDocument();
-        }
-        $this->document->setTitle(JText::_('COM_YOUTUBEGALLERY_VIDEO_LIST'));
+        $document->setTitle(JText::_('COM_YOUTUBEGALLERY_VIDEO_LIST'));
     }
 }

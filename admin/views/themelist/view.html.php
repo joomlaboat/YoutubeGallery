@@ -44,12 +44,10 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
             YoutubeGalleryHelper::addSubmenu('themelist');
         }
 
-
         $this->items = $this->get('Items');
         $this->pagination = $this->get('Pagination');
         $this->state = $this->get('State');
         $this->user = Factory::getUser();
-
 
         if ($this->version >= 4) {
             //This must be after getting Items
@@ -92,14 +90,15 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
             throw new Exception(implode("\n", $errors), 500);
         }
 
+        // Set the document
+        $this->document = Factory::getDocument();
+        $this->setDocument($this->document);
+
         // Display the template
         if ($this->version < 4)
             parent::display($tpl);
         else
             parent::display('quatro');
-
-        // Set the document
-        $this->setDocument();
     }
 
     protected function addToolBar_3()
@@ -163,11 +162,8 @@ class YoutubeGalleryViewThemeList extends JViewLegacy
         }
     }
 
-    protected function setDocument()
+    public function setDocument(Joomla\CMS\Document\Document $document): void
     {
-        if (!isset($this->document)) {
-            $this->document = Factory::getDocument();
-        }
-        $this->document->setTitle(JText::_('COM_YOUTUBEGALLERY_THEMELIST'));
+        $document->setTitle(JText::_('COM_YOUTUBEGALLERY_THEMELIST'));
     }
 }

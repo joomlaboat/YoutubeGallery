@@ -23,6 +23,7 @@ class YoutubeGalleryViewThemeForm extends JViewLegacy
      * display method of Youtube Gallery view
      * @return void
      */
+    var $item;
 
     public function display($tpl = null)
     {
@@ -69,14 +70,15 @@ class YoutubeGalleryViewThemeForm extends JViewLegacy
             throw new Exception(implode("\n", $errors), 500);
         }
 
+        // Set the document
+        $this->document = Factory::getDocument();
+        $this->setDocument($this->document);
+
         // Display the template
         if ($this->version < 4)
             parent::display($tpl);
         else
             parent::display('quatro');
-
-        // Set the document
-        $this->setDocument();
     }
 
     function getTags()
@@ -127,12 +129,14 @@ class YoutubeGalleryViewThemeForm extends JViewLegacy
      *
      * @return void
      */
-    protected function setDocument()
+    public function setDocument(Joomla\CMS\Document\Document $document): void
     {
-        $isNew = ($this->item->id < 1);
-        $document = Factory::getDocument();
-        $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_THEME_NEW') : JText::_('COM_YOUTUBEGALLERY_THEME_EDIT'));
-        $document->addScript(JURI::root() . "components/com_youtubegallery/js/submitbutton.js");
-        JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
+        if (isset($this->item) and $this->item !== null) {
+            $isNew = ($this->item->id < 1);
+            $document = Factory::getDocument();
+            $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_THEME_NEW') : JText::_('COM_YOUTUBEGALLERY_THEME_EDIT'));
+            $document->addScript(JURI::root() . "components/com_youtubegallery/js/submitbutton.js");
+            JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
+        }
     }
 }
