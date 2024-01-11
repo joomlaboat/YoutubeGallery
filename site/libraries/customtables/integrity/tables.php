@@ -1,155 +1,162 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x Native Component
+ * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @subpackage integrity/tables.php
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2023. Ivan Komlev
+ * @copyright (C) 2018-2024. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
 namespace CustomTables\Integrity;
 
 if (!defined('_JEXEC') and !defined('WPINC')) {
-    die('Restricted access');
+	die('Restricted access');
 }
 
-use \Joomla\CMS\Factory;
-use \Joomla\CMS\Uri\Uri;
+use CustomTables\database;
+use CustomTables\IntegrityChecks;
+use CustomTables\MySQLWhereClause;
+use Exception;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Uri\Uri;
 
-use \ESTables;
+use ESTables;
 
-class IntegrityTables extends \CustomTables\IntegrityChecks
+class IntegrityTables extends IntegrityChecks
 {
-    public static function checkTables(&$ct)
-    {
-        $db = Factory::getDBO();
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function checkTables(&$ct)
+	{
+		$tables = IntegrityTables::getTables();
+		IntegrityTables::checkIfTablesExists($tables);
+		$result = [];
 
-        $tables = IntegrityTables::getTables();
+		foreach ($tables as $table) {
 
-        IntegrityTables::checkIfTablesExists($tables);
+			//Check if table exists
+			$rows = database::getTableStatus(database::getDataBaseName(), database::realTableName($table['tablename']), false);
+			//$query_check_table = 'SHOW TABLES LIKE ' . database::quote();
 
-        $result = [];
+			$tableExists = !(count($rows) == 0);
 
-        foreach ($tables as $table) {
+			if ($tableExists) {
 
-            $table['tablename'];
-            //Check if table exists
-            $query_check_table = 'SHOW TABLES LIKE ' . $db->quote(str_replace('#__', $db->getPrefix(), $table['tablename']));
-            $db->setQuery($query_check_table);
-            $rows = $db->loadObjectList();
+				$ct->setTable($table, null, false);
+				$link = Uri::root() . 'administrator/index.php?option=com_customtables&view=databasecheck&tableid=' . $table['id'];
+				$content = IntegrityFields::checkFields($ct, $link);
 
-            $tableExists = !(count($rows) == 0);
+				$zeroId = IntegrityTables::getZeroRecordID($table['realtablename'], $table['realidfieldname']);
 
-            if ($tableExists) {
+				if ($content != '' or $zeroId > 0) {
+					if (!str_contains($link, '?'))
+						$link .= '?';
+					else
+						$link .= '&';
 
-                $ct->setTable($table, null, false);
+					$result[] = '<p><span style="font-size:1.3em;">' . $table['tabletitle'] . '</span><br/><span style="color:gray;">' . $table['realtablename'] . '</span>'
+						. ' <a href="' . $link . 'task=fixfieldtype&fieldname=all_fields">Fix all fields</a>'
+						. '</p>'
+						. $content
+						. ($zeroId > 0 ? '<p style="font-size:1.3em;color:red;">Records with ID = 0 found. Please fix it manually.</p>' : '');
+				}
+			}
+		}
 
-                //$link=JURI::root().'administrator/index.php?option=com_customtables&view=databasecheck&tableid='.$table['id'];
-                $link = Uri::root() . 'administrator/index.php?option=com_customtables&view=databasecheck&tableid=' . $table['id'];
+		return $result;
+	}
 
-                $content = IntegrityFields::checkFields($ct, $link);
+	protected static function getTables(): ?array
+	{
+		// Create a new query object.
+		try {
+			return self::getTablesQuery();
+		} catch (Exception $e) {
+			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+		}
 
-                if ($ct->Env->advancedTagProcessor)
-                    IntegrityOptions::checkOptions($ct);
+		try {
+			self::getTablesQuery(true);
+		} catch (Exception $e) {
+			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+		}
+		return null;
+	}
 
-                $zeroId = IntegrityTables::getZeroRecordID($table['realtablename'], $table['realidfieldname']);
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	protected static function getTablesQuery(bool $simple = false): array
+	{
+		$whereClause = new MySQLWhereClause();
 
-                if ($content != '' or $zeroId > 0) {
-                    if (!str_contains($link, '?'))
-                        $link .= '?';
-                    else
-                        $link .= '&';
+		if ($simple) {
+			$selects = [];
+			$selects[] = 'id';
+			$selects[] = 'tablename';
+		} else {
+			$categoryName = '(SELECT categoryname FROM #__customtables_categories AS categories WHERE categories.id=a.tablecategory LIMIT 1)';
+			$fieldCount = '(SELECT COUNT(fields.id) FROM #__customtables_fields AS fields WHERE fields.tableid=a.id AND fields.published=1 LIMIT 1)';
 
-                    $result[] = '<p><span style="font-size:1.3em;">' . $table['tabletitle'] . '</span><br/><span style="color:gray;">' . $table['realtablename'] . '</span>'
-                        . ' <a href="' . $link . 'task=fixfieldtype&fieldname=all_fields">Fix all fields</a>'
-                        . '</p>'
-                        . $content
-                        . ($zeroId > 0 ? '<p style="font-size:1.3em;color:red;">Records with ID = 0 found. Please fix it manually.</p>' : '');
-                }
-            }
-        }
+			$selects = ESTables::getTableRowSelectArray();
 
-        return $result;
-    }
+			$selects[] = $categoryName . ' AS categoryname';
+			$selects[] = $fieldCount . ' AS fieldcount';
+		}
 
-    protected static function getTables()
-    {
-        // Create a new query object.
-        $db = Factory::getDBO();
-        $query = IntegrityTables::getTablesQuery();
+		// Add the list ordering clause.
+		$orderCol = 'tablename';
+		$orderDirection = 'asc';
 
-        $db->setQuery($query);
-        $rows = $db->loadAssocList();
+		$whereClause->addCondition('a.published', 1);
 
-        return $rows;
-    }
+		//return 'SELECT ' . implode(',', $selects) . ' FROM ' . database::quoteName('#__customtables_tables') . ' AS a WHERE a.published = 1 ORDER BY '
+		//. database::quoteName($orderCol) . ' ' . $orderDirection;
 
-    protected static function getTablesQuery()
-    {
-        // Create a new query object.
-        $db = Factory::getDBO();
-        $query = $db->getQuery(true);
+		return database::loadAssocList('#__customtables_tables AS a', $selects, $whereClause, $orderCol, $orderDirection);
+	}
 
-        // Select some fields
-        $categoryname = '(SELECT categoryname FROM #__customtables_categories AS categories WHERE categories.id=a.tablecategory LIMIT 1)';
-        $fieldcount = '(SELECT COUNT(fields.id) FROM #__customtables_fields AS fields WHERE fields.tableid=a.id AND fields.published=1 LIMIT 1)';
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	protected static function checkIfTablesExists($tables_rows)
+	{
+		$dbPrefix = database::getDBPrefix();
 
-        $selects = array();
-        $selects[] = ESTables::getTableRowSelects();
-        $selects[] = $categoryname . ' AS categoryname';
-        $selects[] = $fieldcount . ' AS fieldcount';
+		foreach ($tables_rows as $row) {
+			if (!ESTables::checkIfTableExists($dbPrefix . 'customtables_table_' . $row['tablename'])) {
+				$database = database::getDataBaseName();
 
-        $query->select(implode(',', $selects));
+				if ($row['customtablename'] === null or $row['customtablename'] == '') {
+					if (ESTables::createTableIfNotExists($database, $dbPrefix, $row['tablename'], $row['tabletitle'], $row['customtablename'])) {
+						Factory::getApplication()->enqueueMessage('Table "' . $row['tabletitle'] . '" created.', 'notice');
+					}
+				}
+			}
+		}
+	}
 
-        // From the customtables_item table
-        $query->from($db->quoteName('#__customtables_tables', 'a'));
-        $query->where('a.published = 1');
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	protected static function getZeroRecordID($realtablename, $realidfieldname)
+	{
+		//$query = 'SELECT COUNT(' . $realidfieldname . ') AS cd_zeroIdRecords FROM ' . database::quoteName($realtablename) . ' AS a'
+		//. ' WHERE ' . $realidfieldname . '=0 LIMIT 1';
 
-        // Add the list ordering clause.
-        $orderCol = 'tablename';
-        $orderDirn = 'asc';
-        $query->order($db->escape($orderCol . ' ' . $orderDirn));
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition($realidfieldname, 0);
 
-        return $query;
-    }
+		$rows = database::loadAssocList($realtablename . ' AS a', ['COUNT(' . $realidfieldname . ') AS cd_zeroIdRecords'], $whereClause, null, null, 1);
+		$row = $rows[0];
 
-    protected static function checkIfTablesExists($tables_rows)
-    {
-        $conf = Factory::getConfig();
-        $dbPrefix = $conf->get('dbprefix');
-
-        foreach ($tables_rows as $row) {
-            if (!ESTables::checkIfTableExists($dbPrefix . 'customtables_table_' . $row['tablename'])) {
-                $conf = Factory::getConfig();
-                $database = $conf->get('db');
-                $dbPrefix = $conf->get('dbprefix');
-
-                if ($row['customtablename'] === null or $row['customtablename'] == '') {
-                    if (ESTables::createTableIfNotExists($database, $dbPrefix, $row['tablename'], $row['tabletitle'], $row['customtablename'])) {
-                        Factory::getApplication()->enqueueMessage('Table "' . $row['tabletitle'] . '" created.', 'notice');
-                    }
-                }
-            }
-        }
-    }
-
-    protected static function getZeroRecordID($realtablename, $realidfieldname)
-    {
-        // Create a new query object.
-        $db = Factory::getDBO();
-        $query = $db->getQuery(true);
-
-        $query->select('COUNT(' . $realidfieldname . ') AS cd_zeroIdRecords');
-        $query->from($db->quoteName($realtablename, 'a'));
-        $query->where($realidfieldname . ' = 0');
-        $query->setLimit(1);
-
-        $db->setQuery($query);
-        $rows = $db->loadAssocList();
-        $row = $rows[0];
-
-        return $row['cd_zeroIdRecords'];
-    }
+		return $row['cd_zeroIdRecords'];
+	}
 }

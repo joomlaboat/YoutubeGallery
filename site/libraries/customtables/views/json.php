@@ -1,92 +1,58 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x Native Component
+ * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2023 Ivan Komlev
+ * @copyright (C) 2018-2024. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
 namespace CustomTables;
 
-// no direct access
 use JoomlaBasicMisc;
-use LayoutProcessor;
-use tagProcessor_Catalog;
-use tagProcessor_CatalogTableView;
 
 if (!defined('_JEXEC') and !defined('WPINC')) {
-    die('Restricted access');
+	die('Restricted access');
 }
 
 class ViewJSON
 {
-    var CT $ct;
+	var CT $ct;
 
-    function __construct(CT &$ct)
-    {
-        $this->ct = &$ct;
-    }
+	function __construct(CT &$ct)
+	{
+		$this->ct = &$ct;
+	}
 
-    function render($pageLayoutContent, $itemLayoutContent, $layoutType, $obEndClean = true): ?string
-    {
-        $catalogTableCode = JoomlaBasicMisc::generateRandomString();//this is temporary replace placeholder. to not parse content result again
+	function render(string $pageLayoutContent, bool $obEndClean = true): ?string
+	{
+		$twig = new TwigProcessor($this->ct, $pageLayoutContent, false, true);
+		$pageLayoutContent = $twig->process();
 
-        if ($this->ct->Env->legacySupport) {
+		if ($twig->errorMessage !== null)
+			return (object)array('msg' => $twig->errorMessage, 'status' => 'error');
 
-            $itemLayout = str_replace("\n", '', $itemLayoutContent);
-            $itemLayout = str_replace("\r", '', $itemLayout);
-            $itemLayout = str_replace("\t", '', $itemLayout);
+		if ($this->ct->Params->allowContentPlugins)
+			JoomlaBasicMisc::applyContentPlugins($pageLayoutContent);
 
-            $path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR;
-            require_once($path . 'layout.php');
-            require_once($path . 'tagprocessor' . DIRECTORY_SEPARATOR . 'catalogtag.php');
-            require_once($path . 'tagprocessor' . DIRECTORY_SEPARATOR . 'catalogtableviewtag.php');
-            $catalogTableContent = tagProcessor_CatalogTableView::process($this->ct, $layoutType, $pageLayoutContent, $catalogTableCode);
+		if ($obEndClean) {
 
-            if ($catalogTableContent == '') {
-                $catalogTableContent = tagProcessor_Catalog::process($this->ct, $layoutType, $pageLayoutContent, $itemLayout, $catalogTableCode);
+			if (ob_get_contents()) ob_end_clean();
 
-                $catalogTableContent = str_replace("\n", '', $catalogTableContent);
-                $catalogTableContent = str_replace("\r", '', $catalogTableContent);
-                $catalogTableContent = str_replace("\t", '', $catalogTableContent);
-            }
+			$filename = $this->ct->Params->pageTitle;
+			if (is_null($filename))
+				$filename = 'ct';
 
-            $LayoutProc = new LayoutProcessor($this->ct);
-            $LayoutProc->layout = $pageLayoutContent;
-            $pageLayoutContent = $LayoutProc->fillLayout();
+			$filename = JoomlaBasicMisc::makeNewFileName($filename, 'json');
 
-            $pageLayoutContent = str_replace('&&&&quote&&&&', '"', $pageLayoutContent); // search boxes may return HTML elements that contain placeholders with quotes like this: &&&&quote&&&&
-            $pageLayoutContent = str_replace($catalogTableCode, $catalogTableContent, $pageLayoutContent);
-        }
+			header('Content-Disposition: attachment; filename="' . $filename . '"');
+			header('Content-Type: application/json; charset=utf-8');
+			header("Pragma: no-cache");
+			header("Expires: 0");
 
-        $twig = new TwigProcessor($this->ct, $pageLayoutContent, false, true);
-        $pageLayoutContent = $twig->process();
-
-        if ($twig->errorMessage !== null)
-            $this->ct->app->enqueueMessage($twig->errorMessage, 'error');
-
-        if ($this->ct->Params->allowContentPlugins)
-            JoomlaBasicMisc::applyContentPlugins($pageLayoutContent);
-
-        if ($obEndClean) {
-
-            if (ob_get_contents()) ob_end_clean();
-
-            $filename = $this->ct->Params->pageTitle;
-            if (is_null($filename))
-                $filename = 'ct';
-
-            $filename = JoomlaBasicMisc::makeNewFileName($filename, 'json');
-
-            header('Content-Disposition: attachment; filename="' . $filename . '"');
-            header('Content-Type: application/json; charset=utf-8');
-            header("Pragma: no-cache");
-            header("Expires: 0");
-
-            die($pageLayoutContent);
-        }
-        return $pageLayoutContent;
-    }
+			die($pageLayoutContent);
+		}
+		return $pageLayoutContent;
+	}
 }

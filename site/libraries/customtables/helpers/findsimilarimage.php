@@ -1,52 +1,55 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x Native Component
+ * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2023. Ivan Komlev
+ * @copyright (C) 2018-2024. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
-// no direct access
-use Joomla\CMS\Factory;
+use CustomTables\database;
+use CustomTables\MySQLWhereClause;
 
 if (!defined('_JEXEC') and !defined('WPINC')) {
-    die('Restricted access');
+	die('Restricted access');
 }
 
 class FindSimilarImage
 {
-    static public function find($uploadedfile, $level_identity, $realtablename, $realfieldname, $ImageFolder, $additional_filter = '')
-    {
-        if ($level_identity < 0)
-            $level_identity = 0;
+	static public function find($uploadedFile, $level_identity, $realtablename, $realfieldname, $ImageFolder, MySQLWhereClause $whereClauseAdditional)
+	{
+		if ($level_identity < 0)
+			$level_identity = 0;
 
-        $ci = new compareImages;
+		$ci = new compareImages;
 
-        $db = Factory::getDBO();
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition($realfieldname, 0, '>');
 
-        $query = 'SELECT ' . $realfieldname . ' AS photoid FROM ' . $realtablename . ' WHERE ' . $realfieldname . '>0' . ($additional_filter != '' ? ' AND ' . $additional_filter : '');
+		if ($whereClauseAdditional->hasConditions())
+			$whereClause->addNestedCondition($whereClauseAdditional);
 
-        $db->setQuery($query);
-        $photorows = $db->loadObjectList();
+		$photoRows = database::loadObjectList($realtablename, [$realfieldname . ' AS photoid'], $whereClause, '', null);
 
-        foreach ($photorows as $photorow) {
-            $photoid = $photorow->photoid;
+		//$photorows = database::loadObjectList('SELECT ' . $realfieldname . ' AS photoid FROM ' . $realtablename . ' WHERE ' . $realfieldname . '>0'
+		//. ($additional_filter != '' ? ' AND ' . $additional_filter : ''));
 
-            if ($photoid != 0) {
-                //foreach($ext_list as $ext)
-                //{
-                $image_file = $ImageFolder . DIRECTORY_SEPARATOR . '_esthumb_' . $photoid . '.jpg';///.$ext;
-                if ($image_file != $uploadedfile) {
-                    if (file_exists($image_file)) {
-                        $index = $ci->compare($uploadedfile, $image_file);
-                        if ($index <= $level_identity)
-                            return $photoid;
-                    }
-                }
-                //}//for each
-            }//if
-        }//foreach($photorows as $photorow)
-    }//function
-}//class
+		foreach ($photoRows as $photoRow) {
+			$photoId = $photoRow->photoid;
+
+			if ($photoId != 0) {
+
+				$image_file = $ImageFolder . DIRECTORY_SEPARATOR . '_esthumb_' . $photoId . '.jpg';///.$ext;
+				if ($image_file != $uploadedFile) {
+					if (file_exists($image_file)) {
+						$index = $ci->compare($uploadedFile, $image_file);
+						if ($index <= $level_identity)
+							return $photoId;
+					}
+				}
+			}
+		}
+		return null;
+	}
+}

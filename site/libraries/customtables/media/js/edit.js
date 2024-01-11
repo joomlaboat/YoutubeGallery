@@ -19,12 +19,8 @@ function setTask(event, task, returnLink, submitForm, formName, isModal, modalFo
     if (submitForm) {
         let objForm = document.getElementById(formName);
         if (objForm) {
-
-            ctInputbox_signature_apply();
             const tasks_with_validation = ['saveandcontinue', 'save', 'saveandprint', 'saveascopy'];
-
             if (isModal && task !== 'saveascopy') {
-
                 let hideModelOnSave = true;
                 if (task === 'saveandcontinue')
                     hideModelOnSave = false;
@@ -40,8 +36,9 @@ function setTask(event, task, returnLink, submitForm, formName, isModal, modalFo
                 if (tasks_with_validation.includes(task)) {
                     if (checkRequiredFields(objForm))
                         objForm.submit();
-                } else
+                } else {
                     objForm.submit();
+                }
             }
         } else
             alert("Form not found.");
@@ -113,7 +110,7 @@ function submitModalForm(url, elements, tableid, recordId, hideModelOnSave, moda
                     if (http.response.indexOf('<div class="alert-message">Nothing to save</div>') !== -1)
                         alert('Nothing to save. Check Edit From layout.');
                     else if (http.response.indexOf('view-login') !== -1)
-                        alert('Session expired. Please login again.');
+                        alert(TranslateText('COM_CUSTOMTABLES_JS_SESSION_EXPIRED'));
                     else
                         alert(http.response);
                 }
@@ -253,17 +250,17 @@ function doFilters(obj, label, filters_string) {
             let lastDotPos = value.lastIndexOf('.');
             let isEmailValid = (lastAtPos < lastDotPos && lastAtPos > 0 && value.indexOf('@@') === -1 && lastDotPos > 2 && (value.length - lastDotPos) > 2);
             if (!isEmailValid) {
-                alert('The ' + label + ' "' + value + '" is not a valid Email.');
+                alert(TranslateText('COM_CUSTOMTABLES_JS_EMAIL_INVALID', label, value));
                 return false;
             }
         } else if (filter === 'url') {
             if (!isValidURL(value)) {
-                alert('The ' + label + ' "' + value + '" is not a valid URL.');
+                alert(TranslateText('COM_CUSTOMTABLES_JS_URL_INVALID', label, value));
                 return false;
             }
         } else if (filter === 'https') {
             if (value.indexOf("https") !== 0) {
-                alert('The ' + label + ' "' + value + '" must be secure - must start with "https://".');
+                alert(TranslateText('COM_CUSTOMTABLES_JS_SECURE_URL_INVALID', label, value));
                 return false;
             }
         } else if (filter === 'domain' && filter_parts.length > 1) {
@@ -273,7 +270,7 @@ function doFilters(obj, label, filters_string) {
             try {
                 hostname = (new URL(value)).hostname;
             } catch (err) {
-                alert('The ' + label + ' "' + value + '" is not a valid URL link.');
+                alert(TranslateText('COM_CUSTOMTABLES_JS_URL_INVALID', label, value));
                 return false;
             }
 
@@ -287,7 +284,8 @@ function doFilters(obj, label, filters_string) {
             }
 
             if (!found) {
-                alert('The ' + label + ' domain "' + hostname + '" must match to "' + filter_parts[1] + '".');
+
+                alert(TranslateText('COM_CUSTOMTABLES_JS_HOSTNAME_INVALID', value, label, filter_parts[1]));
                 return false;
             }
         }
@@ -310,6 +308,13 @@ function doSanitanization(obj, sanitizers_string) {
 function checkRequiredFields(formObject) {
     if (!checkFilters())
         return false;
+
+    if (ct_signaturePad_fields.length > 0) {
+        if (!ctInputbox_signature_apply()) {
+            event.preventDefault();
+            return false;
+        }
+    }
 
     let requiredFields = formObject.getElementsByClassName("required");
     let label = "One field";
@@ -334,7 +339,7 @@ function checkRequiredFields(formObject) {
                     if (imageObject)
                         return true;
 
-                    alert(label + " required.");
+                    alert(TranslateText('COM_CUSTOMTABLES_REQUIRED', label));
                     return false;
                 }
             }
@@ -356,30 +361,57 @@ function checkRequiredFields(formObject) {
                 if (requiredFields[i].type === "text") {
                     let obj = document.getElementById(objName);
                     if (obj.value === '') {
-                        alert(label + " required.");
+                        alert(TranslateText('COM_CUSTOMTABLES_REQUIRED', label));
                         return false;
                     }
                 } else if (requiredFields[i].type === "select-one") {
                     let obj = document.getElementById(objName);
-                    //let v = obj.value;
 
                     if (obj.value === null || obj.value === '') {
-                        alert(label + " not selected.");
+                        alert(TranslateText('COM_CUSTOMTABLES_NOT_SELECTED', label));
                         return false;
                     }
                 } else if (requiredFields[i].type === "select-multiple") {
                     let count_multiple_obj = document.getElementById(lbln);
-
                     let options = count_multiple_obj.options;
-
                     let count_multiple = 0;
+
                     for (let i2 = 0; i2 < options.length; i2++) {
                         if (options[i2].selected)
                             count_multiple++;
                     }
 
                     if (count_multiple === 0) {
-                        alert(label + " not selected.");
+                        alert(TranslateText('COM_CUSTOMTABLES_NOT_SELECTED', label));
+                        return false;
+                    }
+                } else if (d.selector == 'switcher') {
+                    //Checkbox element with Yes/No visual effect
+                    if (d.label)
+                        label = d.label;
+                    else
+                        label = "Unlabeled field";
+
+                    if (requiredFields[i].value === "1") {
+
+                        if (d.valuerulecaption && d.valuerulecaption !== "")
+                            alert(d.valuerulecaption);
+                        else
+                            alert(TranslateText('COM_CUSTOMTABLES_REQUIRED', label));
+                        return false;
+                    }
+                } else if (d.type == 'checkbox') {
+                    //Simple HTML Checkbox element
+                    if (d.label)
+                        label = d.label;
+                    else
+                        label = "Unlabeled field";
+
+                    if (!requiredFields[i].checked) {
+                        if (d.valuerulecaption && d.valuerulecaption !== "")
+                            alert(d.valuerulecaption);
+                        else
+                            alert(TranslateText('COM_CUSTOMTABLES_REQUIRED', label));
                         return false;
                     }
                 }
@@ -387,6 +419,21 @@ function checkRequiredFields(formObject) {
         }
     }
     return true;
+}
+
+function TranslateText() {
+    if (arguments.length == 0)
+        return 'Nothing to translate';
+
+    let str = Joomla.JText._(arguments[0]);
+
+    if (arguments.length == 1)
+        return str;
+
+    for (let i = 1; i < arguments.length; i++)
+        str = str.replace('%s', arguments[i]);
+
+    return str;
 }
 
 function SetUnsetInvalidClass(id, isValid) {
@@ -425,7 +472,7 @@ function CheckSQLJoinRadioSelections(id) {
     if (!selected) {
         let labelObject = document.getElementById(obj_name + "-lbl");
         let label = labelObject.innerHTML;
-        alert(label + " not selected.");
+        alert(Joomla.JText._('COM_CUSTOMTABLES_NOT_SELECTED', label));
         return false;
     }
 
@@ -519,10 +566,10 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
 
             if (typeof wrapper.dataset.addrecordmenualias !== 'undefined' && wrapper.dataset.addrecordmenualias !== '') {
                 let js = 'ctTableJoinAddRecordModalForm(\'' + control_name + '\',' + sub_index + ');';
-                let addText = Joomla.JText._('COM_CUSTOMTABLES_ADD');
+                let addText = TranslateText('COM_CUSTOMTABLES_ADD');
                 NoItemsText = addText + '<a href="javascript:' + js + '" className="toolbarIcons"><img src="/components/com_customtables/libraries/customtables/media/images/icons/new.png" alt="' + addText + '" title="' + addText + '"></a>';
             } else
-                NoItemsText = Joomla.JText._('COM_CUSTOMTABLES_SELECT_NOTHING')
+                NoItemsText = TranslateText('COM_CUSTOMTABLES_SELECT_NOTHING')
 
             document.getElementById(control_name + "Selector" + index + '_' + sub_index).innerHTML = NoItemsText;
             return false;
@@ -545,14 +592,14 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
         let onChangeAttribute = ' onChange="' + onChangeFunction + onchange + '"';
         //[' + index + ',' + filters.length + ']
         result += '<select id="' + current_object_id + '"' + onChangeAttribute + ' class="' + cssClass + '">';
-        result += '<option value="">- ' + Joomla.JText._('COM_CUSTOMTABLES_SELECT') + '</option>';
+        result += '<option value="">- ' + TranslateText('COM_CUSTOMTABLES_SELECT') + '</option>';
 
         if (typeof wrapper.dataset.addrecordmenualias !== 'undefined' && wrapper.dataset.addrecordmenualias !== '')
-            result += '<option value="%addRecord%">- ' + Joomla.JText._('COM_CUSTOMTABLES_ADD') + '</option>';
+            result += '<option value="%addRecord%">- ' + TranslateText('COM_CUSTOMTABLES_ADD') + '</option>';
 
         for (let i = 0; i < r.length; i++) {
             let optionLabel = decodeHtml(r[i].label);
-            result += '<option value="' + r[i].id + '">' + optionLabel + '</option>';
+            result += '<option value="' + r[i].value + '">' + optionLabel + '</option>';
         }
 
         result += '</select>';
@@ -918,6 +965,15 @@ let gmapdata = [];
 let gmapmarker = [];
 
 function ctInputbox_googlemapcoordinates(inputbox_id) {
+
+    let map_obj = document.getElementById(inputbox_id + "_map");
+
+    if (typeof google === 'undefined') {
+        map_obj.innerHTML = 'Custom Tables Configuration: Google Map API Key not provided.';
+        map_obj.style.display = "block";
+        return false;
+    }
+
     let val = document.getElementById(inputbox_id).value;
     let val_list = val.split(",");
 
@@ -930,7 +986,6 @@ function ctInputbox_googlemapcoordinates(inputbox_id) {
 
     let curpoint = new google.maps.LatLng(def_latval, def_longval);
 
-    let map_obj = document.getElementById(inputbox_id + "_map");
 
     if (map_obj.style.display === "block") {
         map_obj.style.display = "none";
@@ -987,18 +1042,6 @@ function ctInputbox_signature(inputbox_id, width, height, format) {
     document.getElementById(inputbox_id + '_clear').addEventListener('click', function () {
         ct_signaturePad[inputbox_id].clear();
     });
-
-    /*
-    document.getElementById(inputbox_id + '_save').addEventListener("click", function (event) {
-        if (ct_signaturePad[inputbox_id].isEmpty()) {
-            "Please provide a signature first.";
-        } else {
-            //let dataURL = ct_signaturePad[inputbox_id].toDataURL('image/'+format+'+xml');
-            let dataURL = ct_signaturePad[inputbox_id].toDataURL('image/'+format);
-            document.getElementById(inputbox_id).setAttribute("value", dataURL);
-        }
-    });
-    */
 }
 
 function ctInputbox_signature_apply() {
@@ -1007,7 +1050,8 @@ function ctInputbox_signature_apply() {
         let inputbox_id = ct_signaturePad_fields[i];
 
         if (ct_signaturePad[inputbox_id].isEmpty()) {
-            alert("Please provide a signature first.");
+            alert(TranslateText('COM_CUSTOMTABLES_JS_SIGNATURE_REQUIRED'));
+            return false;
         } else {
 
             let format = ct_signaturePad_formats[inputbox_id];
@@ -1015,8 +1059,10 @@ function ctInputbox_signature_apply() {
             //let dataURL = ct_signaturePad[inputbox_id].toDataURL('image/'+format+'+xml');
             let dataURL = ct_signaturePad[inputbox_id].toDataURL('image/' + format);
             document.getElementById(inputbox_id).setAttribute("value", dataURL);
+            return true;
         }
     }
+    return true;
 }
 
 /*
@@ -1198,12 +1244,11 @@ function setUpdateChildTableJoinField(childFieldName, parentFieldName, childFilt
 
 function updateChildTableJoinField(childFieldName, parentFieldName, childFilterFieldName) {
     //This function updates the list of items in Table Join field based on its parent value;
-
     let parentValue = document.getElementById('comes_' + parentFieldName).value;
     let wrapper = document.getElementById('comes_' + childFieldName + 'Wrapper');
     let key = wrapper.dataset.key;
     let where = childFilterFieldName + '=' + parentValue;
-    let url = 'index.php?option=com_customtables&view=catalog&tmpl=component&from=json&key=' + key + '&index=0&where=' + Base64.encode(where);
+    let url = 'index.php?option=com_customtables&view=catalog&tmpl=component&from=json&key=' + key + '&index=0&where=' + encodeURIComponent(where);//Base64.encode
 
     fetch(url)
 
@@ -1218,9 +1263,15 @@ function refreshTableJoinField(fieldName, response) {
 
     let valueObject = document.getElementById('comes_' + fieldName);
     valueObject.value = response['id'];
+    if (valueObject.onchange) {
+        valueObject.dispatchEvent(new Event('change'));
+    }
 
     let wrapper = document.getElementById('comes_' + fieldName + 'Wrapper');
-    let valueFiltersStr = Base64.decode(wrapper.dataset.valuefilters).replace(/[^\x00-\x7F]/g, "");
+    if (wrapper === null)
+        return;
+
+    //let valueFiltersStr = Base64.decode(wrapper.dataset.valuefilters).replace(/[^\x00-\x7F]/g, "");
     let valueFiltersNamesStr = Base64.decode(wrapper.dataset.valuefiltersnames).replace(/[^\x00-\x7F]/g, "");
     let valueFiltersNames = JSON.parse(valueFiltersNamesStr);
     let NewValueFilters = [];
@@ -1243,4 +1294,40 @@ function refreshTableJoinField(fieldName, response) {
 
     let index = NewValueFilters.length - 1;
     ctUpdateTableJoinLink('comes_' + fieldName, index, true, 0, 'comes_' + fieldName + '0', wrapper.dataset.formname, true, response.id);
+}
+
+//Virtual Select
+async function onCTVirtualSelectServerSearch(searchValue, virtualSelect) {
+
+    let selectorElement = document.getElementById(virtualSelect.dropboxWrapper);
+    //let fieldnameObject = document.getElementById(selectorElement.dataset.fieldname);
+
+    let wrapper = document.getElementById(selectorElement.dataset.wrapper);
+    let key = wrapper.dataset.key;
+    let url = 'index.php?option=com_customtables&view=catalog&tmpl=component&from=json&key=' + key + '&index=0&limit=20&';
+    if (searchValue != "")
+        url += "&search=" + searchValue;
+
+    let newList = [];
+
+    try {
+        const response = await fetch(url);
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new TypeError("Oops, we haven't got JSON!");
+        }
+        const jsonData = await response.json();
+
+        for (let i = 0; i < jsonData.length; i++) {
+
+            let doc = new DOMParser().parseFromString(jsonData[i].label, 'text/html');
+            let label = doc.documentElement.textContent;
+
+            newList.push({value: jsonData[i].value, label: decodeURI(label)});
+        }
+        virtualSelect.setServerOptions(newList);
+    } catch (error) {
+        alert(error);
+        console.error("Error:", error);
+    }
 }

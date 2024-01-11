@@ -15,7 +15,7 @@ function YGLoadClasses(): void
     }
 
     require_once($loader_file);
-    CTLoader(true, false, null, $component_name);
+    CustomTablesLoader(true, false, null, $component_name);
 
     $path = 'classes' . DIRECTORY_SEPARATOR;
 

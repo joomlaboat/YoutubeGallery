@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x Native Component
+ * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2023 Ivan Komlev
+ * @copyright (C) 2018-2024. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -12,239 +12,281 @@ namespace CustomTables;
 
 // no direct access
 if (!defined('_JEXEC') and !defined('WPINC')) {
-    die('Restricted access');
+	die('Restricted access');
 }
 
-use CustomtablesHelper;
-use JFilterInput;
-use JHtml;
+use Exception;
 use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\Factory;
-
-use CustomTables\Fields;
+use JoomlaBasicMisc;
 
 class ListOfFields
 {
-    var CT $ct;
-    var array $items;
-    var string $editLink;
+	var CT $ct;
+	var ?array $items;
+	var ?string $editLink;
 
-    var bool $canState;
-    var bool $canDelete;
-    var bool $canEdit;
-    var bool $saveOrder;
+	var ?bool $canState;
+	var ?bool $canDelete;
+	var ?bool $canEdit;
+	var ?bool $saveOrder;
+	var string $dbPrefix;
+	var int $tableid;
 
-    function __construct(CT $ct, array $items, bool $canState, bool $canDelete, bool $canEdit, bool $saveOrder)
-    {
-        $this->ct = $ct;
-        $this->items = $items;
-        $this->editLink = "index.php?option=com_customtables&view=listoffields&task=fields.edit&tableid=" . $this->ct->Table->tableid;
-        $this->canState = $canState;
-        $this->canDelete = $canDelete;
-        $this->canEdit = $canEdit;
-        $this->saveOrder = $saveOrder;
-    }
+	function __construct(CT $ct, ?array $items = null, ?bool $canState = null, ?bool $canDelete = null, ?bool $canEdit = null, ?bool $saveOrder = null)
+	{
+		$this->ct = $ct;
+		$this->items = $items;
+		if (isset($this->ct->Table))
+			$this->editLink = "index.php?option=com_customtables&view=listoffields&task=fields.edit&tableid=" . $this->ct->Table->tableid;
+		else
+			$this->editLink = null;
 
-    public function renderBody(): string
-    {
-        $result = '';
+		$this->canState = $canState ?? false;
+		$this->canDelete = $canDelete ?? false;
+		$this->canEdit = $canEdit ?? false;
+		$this->saveOrder = $saveOrder ?? false;
+		$this->dbPrefix = database::getDBPrefix();
+	}
 
-        foreach ($this->items as $i => $item) {
-            $canCheckin = $this->ct->Env->user->authorise('core.manage', 'com_checkin') || $item->checked_out == $this->ct->Env->user->id || $item->checked_out == 0;
-            $userChkOut = Factory::getUser($item->checked_out);
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	function getListQuery(int $tableId, $published = null, $search = null, $type = null, $orderCol = null, $orderDirection = null, $limit = 0, $start = 0, bool $returnQueryString = false)
+	{
+		$this->tableid = common::inputGetInt('tableid', 0);
+		$serverType = database::getServerType();
 
-            $result .= $this->renderBodyLine($item, $i, $canCheckin, $userChkOut);
-        }
-        return $result;
-    }
+		$selects = [
+			'a.*',
+			'(SELECT tabletitle FROM #__customtables_tables AS tables WHERE tables.id=a.tableid) AS tabletitle'
+		];
 
-    protected function renderBodyLine(object $item, int $i, $canCheckin, $userChkOut): string
-    {
-        $conf = Factory::getConfig();
-        $dbPrefix = $conf->get('dbprefix');
-        $hashRealTableName = str_replace($dbPrefix, '#__', $this->ct->Table->realtablename);
+		if ($serverType == 'postgresql')
+			$selects[] = 'CASE WHEN customfieldname!=\'\' THEN customfieldname ELSE CONCAT(\'es_\',fieldname) END AS realfieldname';
+		else
+			$selects[] = 'IF(customfieldname!=\'\', customfieldname, CONCAT(\'es_\',fieldname)) AS realfieldname';
 
-        $result = '<tr class="row' . ($i % 2) . '" data-draggable-group="' . $this->ct->Table->tableid . '">';
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('tableid', $tableId);
 
-        if ($this->canState or $this->canDelete) {
-            $result .= '<td class="text-center">';
+		$whereClausePublished = new MySQLWhereClause();
+		// Filter by published state
+		if (is_numeric($published))
+			$whereClausePublished->addCondition('a.published', (int)$published);
+		elseif ($published === null or $published === '') {
+			$whereClausePublished->addOrCondition('a.published', 0);
+			$whereClausePublished->addOrCondition('a.published', 1);
+		}
 
-            if ($item->checked_out) {
-                if ($canCheckin)
-                    $result .= HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->fieldname);
-                else
-                    $result .= '&#9633;';
-            } else
-                $result .= HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->fieldname);
+		if ($whereClausePublished->hasConditions())
+			$whereClause->addNestedCondition($whereClausePublished);
 
-            $result .= '</td>';
-        }
+		// Filter by search.
+		if (!empty($search)) {
+			$whereClauseSearch = new MySQLWhereClause();
+			if (stripos($search, 'id:') === 0) {
+				$whereClauseSearch->addCondition('a.id', (int)substr($search, 3));
+			} else {
+				$whereClauseSearch->addOrCondition('a.fieldname', '%' . $search . '%', 'LIKE');
+				$whereClauseSearch->addOrCondition('a.fieldtitle', '%' . $search . '%', 'LIKE');
+			}
+			if ($whereClauseSearch->hasConditions())
+				$whereClause->addNestedCondition($whereClauseSearch);
+		}
 
-        if ($this->canEdit) {
-            $result .= '<td class="text-center d-none d-md-table-cell">';
+		// Filter by Type
+		if ($type !== null)
+			$whereClause->addCondition('a.type', (int)$type);
 
-            $iconClass = '';
-            if (!$this->saveOrder)
-                $iconClass = ' inactive" title="' . Text::_('JORDERINGDISABLED');
+		// Filter by Type
+		if ($this->tableid != 0)
+			$whereClause->addCondition('a.tableid', (int)$this->tableid);
 
-            $result .= '<span class="sortable-handler' . $iconClass . '"><span class="icon-ellipsis-v" aria-hidden="true"></span></span>';
+		return database::loadAssocList('#__customtables_fields AS a', $selects, $whereClause, $orderCol, $orderDirection, $limit, $start, null, $returnQueryString);
+	}
 
-            if ($this->saveOrder)
-                $result .= '<input type="text" name="order[]" size="5" value="' . $item->ordering . '" class="width-20 text-area-order hidden">';
+	public function renderBody(): string
+	{
+		$result = '';
 
-            $result .= '</td>';
-        }
+		foreach ($this->items as $i => $item) {
 
-        $result .= '<td><div class="name">';
+			$canCheckin = $this->ct->Env->user->authorise('core.manage', 'com_checkin') || $item->checked_out == $this->ct->Env->user->id || $item->checked_out == 0;
+			$userChkOut = new CTUser($item->checked_out);
+			$result .= $this->renderBodyLine($item, $i, $canCheckin, $userChkOut);
+		}
+		return $result;
+	}
 
-        if ($this->canEdit) {
-            $result .= '<a href="' . $this->editLink . '&id=' . $item->id . '">' . $this->escape($item->fieldname) . '</a>';
-            if ($item->checked_out)
-                $result .= JHtml::_('jgrid.checkedout', $i, $userChkOut->name, $item->checked_out_time, 'listoffields.', $canCheckin);
-        } else
-            $result .= $this->escape($item->fieldname);
+	protected function renderBodyLine(object $item, int $i, $canCheckin, $userChkOut): string
+	{
+		$hashRealTableName = database::realTableName($this->ct->Table->realtablename);
+		$hashRealTableName = str_replace($this->dbPrefix, '#__', $hashRealTableName);
 
-        if ($this->ct->Env->advancedTagProcessor and $this->ct->Table->realtablename != '')
-            $result .= '<br/><span style="color:grey;">' . $hashRealTableName . '.' . $item->realfieldname . '</span>';
+		$result = '<tr class="row' . ($i % 2) . '" data-draggable-group="' . $this->ct->Table->tableid . '">';
 
-        $result .= '</div></td>';
+		if ($this->canState or $this->canDelete) {
+			$result .= '<td class="text-center">';
 
-        $result .= '<td><div class="name"><ul style="list-style: none !important;margin-left:0;padding-left:0;">';
+			if ($item->checked_out) {
+				if ($canCheckin)
+					$result .= HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->fieldname);
+				else
+					$result .= '&#9633;';
+			} else
+				$result .= HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->fieldname);
 
-        $item_array = (array)$item;
-        $moreThanOneLang = false;
+			$result .= '</td>';
+		}
 
-        foreach ($this->ct->Languages->LanguageList as $lang) {
-            $fieldTitle = 'fieldtitle';
-            $fieldDescription = 'description';
-            if ($moreThanOneLang) {
-                $fieldTitle .= '_' . $lang->sef;
-                $fieldDescription .= '_' . $lang->sef;
+		if ($this->canEdit) {
+			$result .= '<td class="text-center d-none d-md-table-cell">';
 
-                if (!array_key_exists($fieldTitle, $item_array)) {
-                    Fields::addLanguageField('#__customtables_fields', 'fieldtitle', $fieldTitle);
-                    $item_array[$fieldTitle] = '';
-                }
+			$iconClass = '';
+			if (!$this->saveOrder)
+				$iconClass = ' inactive" title="' . common::translate('JORDERINGDISABLED');
 
-                if (!array_key_exists($fieldTitle, $item_array)) {
-                    Fields::addLanguageField('#__customtables_fields', 'description', $fieldDescription);
-                    $item_array[$fieldDescription] = '';
-                }
-            }
+			$result .= '<span class="sortable-handler' . $iconClass . '"><span class="icon-ellipsis-v" aria-hidden="true"></span></span>';
 
-            $result .= '<li>' . (count($this->ct->Languages->LanguageList) > 1 ? $lang->title . ': ' : '') . '<b>' . $this->escape($item_array[$fieldTitle]) . '</b></li>';
-            $moreThanOneLang = true; //More than one language installed
-        }
+			if ($this->saveOrder)
+				$result .= '<input type="text" name="order[]" size="5" value="' . $item->ordering . '" class="width-20 text-area-order hidden">';
 
-        $result .= '
+			$result .= '</td>';
+		}
+
+		$result .= '<td><div class="name">';
+
+		if ($this->canEdit) {
+			$result .= '<a href="' . $this->editLink . '&id=' . $item->id . '">' . common::escape($item->fieldname) . '</a>';
+			if ($item->checked_out)
+				$result .= HtmlHelper::_('jgrid.checkedout', $i, $userChkOut->name, $item->checked_out_time, 'listoffields.', $canCheckin);
+		} else
+			$result .= common::escape($item->fieldname);
+
+		if ($this->ct->Env->advancedTagProcessor and $this->ct->Table->realtablename != '')
+			$result .= '<br/><span style="color:grey;">' . $hashRealTableName . '.' . $item->realfieldname . '</span>';
+
+		$result .= '</div></td>';
+
+		$result .= '<td><div class="name"><ul style="list-style: none !important;margin-left:0;padding-left:0;">';
+
+		$item_array = (array)$item;
+		$moreThanOneLang = false;
+
+		foreach ($this->ct->Languages->LanguageList as $lang) {
+			$fieldTitle = 'fieldtitle';
+			$fieldDescription = 'description';
+			if ($moreThanOneLang) {
+				$fieldTitle .= '_' . $lang->sef;
+				$fieldDescription .= '_' . $lang->sef;
+
+				if (!array_key_exists($fieldTitle, $item_array)) {
+					Fields::addLanguageField('#__customtables_fields', 'fieldtitle', $fieldTitle);
+					$item_array[$fieldTitle] = '';
+				}
+
+				if (!array_key_exists($fieldTitle, $item_array)) {
+					Fields::addLanguageField('#__customtables_fields', 'description', $fieldDescription);
+					$item_array[$fieldDescription] = '';
+				}
+			}
+
+			$result .= '<li>' . (count($this->ct->Languages->LanguageList) > 1 ? $lang->title . ': ' : '') . '<b>' . common::escape($item_array[$fieldTitle]) . '</b></li>';
+			$moreThanOneLang = true; //More than one language installed
+		}
+
+		$result .= '
                         </ul>
                     </div>
                 </td>';
 
-        $result .= '<td>' . Text::_($item->typeLabel) . '</td>';
-        $result .= '<td>' . $this->escape($item->typeparams) . $this->checkTypeParams($item->type, $item->typeparams) . '</td>';
-        $result .= '<td>' . Text::_($item->isrequired) . '</td>';
-        $result .= '<td>' . $this->escape($this->ct->Table->tabletitle) . '</td>';
-        $result .= '<td class="text-center btns d-none d-md-table-cell">';
-        if ($this->canState) {
-            if ($item->checked_out) {
-                if ($canCheckin)
-                    $result .= JHtml::_('jgrid.published', $item->published, $i, 'listoffields.', true, 'cb');
-                else
-                    $result .= JHtml::_('jgrid.published', $item->published, $i, 'listoffields.', false, 'cb');
+		$result .= '<td>' . common::translate($item->typeLabel) . '</td>';
+		$result .= '<td>' . common::escape($item->typeparams) . $this->checkTypeParams($item->type, $item->typeparams) . '</td>';
+		$result .= '<td>' . common::translate($item->isrequired) . '</td>';
+		$result .= '<td>' . common::escape($this->ct->Table->tabletitle) . '</td>';
+		$result .= '<td class="text-center btns d-none d-md-table-cell">';
+		if ($this->canState) {
+			if ($item->checked_out) {
+				if ($canCheckin)
+					$result .= HtmlHelper::_('jgrid.published', $item->published, $i, 'listoffields.', true, 'cb');
+				else
+					$result .= HtmlHelper::_('jgrid.published', $item->published, $i, 'listoffields.', false, 'cb');
 
-            } else {
+			} else {
 
-                $result .= JHtml::_('jgrid.published', $item->published, $i, 'listoffields.', true, 'cb');
-            }
-        } else {
-            $result .= JHtml::_('jgrid.published', $item->published, $i, 'listoffields.', false, 'cb');
-        }
-        $result .= '</td>';
+				$result .= HtmlHelper::_('jgrid.published', $item->published, $i, 'listoffields.', true, 'cb');
+			}
+		} else {
+			$result .= HtmlHelper::_('jgrid.published', $item->published, $i, 'listoffields.', false, 'cb');
+		}
+		$result .= '</td>';
 
-        $result .= '<td class="d-none d-md-table-cell">' . $item->id . '</td>';
-        $result .= '</tr>';
+		$result .= '<td class="d-none d-md-table-cell">' . $item->id . '</td>';
+		$result .= '</tr>';
 
-        return $result;
-    }
-
-    public function escape($var)
-    {
-        if (strlen($var) > 50) {
-            // use the helper htmlEscape method instead and shorten the string
-            return self::htmlEscape($var, 'UTF-8', true);
-        }
-        // use the helper htmlEscape method instead.
-        return self::htmlEscape($var);
-    }
-
-    public static function htmlEscape($var, $charset = 'UTF-8', $shorten = false, $length = 40)
-    {
-        if (self::checkString($var)) {
-            $filter = new JFilterInput();
-            $string = $filter->clean(html_entity_decode(htmlentities($var, ENT_COMPAT, $charset)), 'HTML');
-            if ($shorten) {
-                return self::shorten($string, $length);
-            }
-            return $string;
-        } else {
-            return '';
-        }
-    }
-
-    public static function checkString($string)
-    {
-        if (isset($string) && is_string($string) && strlen($string) > 0) {
-            return true;
-        }
-        return false;
-    }
-
-    public static function shorten($string, $length = 40, $addTip = true)
-    {
-        if (self::checkString($string)) {
-            $initial = strlen($string);
-            $words = preg_split('/([\s\n\r]+)/', $string, -1, PREG_SPLIT_DELIM_CAPTURE);
-            $words_count = count((array)$words);
-
-            $word_length = 0;
-            $last_word = 0;
-            for (; $last_word < $words_count; ++$last_word) {
-                $word_length += strlen($words[$last_word]);
-                if ($word_length > $length) {
-                    break;
-                }
-            }
-
-            $newString = implode(array_slice($words, 0, $last_word));
-            $final = strlen($newString);
-            if ($initial != $final && $addTip) {
-                $title = self::shorten($string, 400, false);
-                return '<span class="hasTip" title="' . $title . '" style="cursor:help">' . trim($newString) . '...</span>';
-            } elseif ($initial != $final && !$addTip) {
-                return trim($newString) . '...';
-            }
-        }
-        return $string;
-    }
+		return $result;
+	}
 
 
-    protected function checkTypeParams(string $type, string $typeParams): string
-    {
-        if ($type == 'sqljoin' or $type == 'records') {
-            $params = \JoomlaBasicMisc::csv_explode(',', $typeParams, '"', false);
+	protected function checkTypeParams(string $type, string $typeParams): string
+	{
+		if ($type == 'sqljoin' or $type == 'records') {
+			$params = JoomlaBasicMisc::csv_explode(',', $typeParams, '"', false);
 
-            $error = [];
+			$error = [];
 
-            if ($params[0] == '')
-                $error[] = 'Join Table not selected';
+			if ($params[0] == '')
+				$error[] = 'Join Table not selected';
 
-            if (!isset($params[1]) or $params[1] == '')
-                $error[] = 'Join Field not selected';
+			if (!isset($params[1]) or $params[1] == '')
+				$error[] = 'Join Field not selected';
 
-            return '<br/><p class="alert-error">' . implode(', ', $error) . '</p>';
-        }
-        return '';
-    }
+			return '<br/><p class="alert-error">' . implode(', ', $error) . '</p>';
+		}
+		return '';
+	}
+
+	function save(?int $tableId, ?int $fieldId): bool
+	{
+		$fieldId = Fields::saveField($tableId, $fieldId);
+
+		if ($fieldId == null)
+			return false;
+
+		return true;
+	}
+
+	function getFieldTypesFromXML(bool $onlyWordpress = false): ?array
+	{
+		$xml = JoomlaBasicMisc::getXMLData('fieldtypes.xml');
+		if (count($xml) == 0 or !isset($xml->type))
+			return null;
+
+		$options = [];
+
+		foreach ($xml->type as $type) {
+			$type_att = $type->attributes();
+			$is4Pro = (bool)(int)$type_att->proversion;
+			$isDeprecated = (bool)(int)$type_att->deprecated;
+
+			$active = true;
+
+			if ($onlyWordpress) {
+				if (!((string)$type_att->wordpress == 'true'))
+					$active = false;
+			}
+
+			if ($active and !$isDeprecated) {
+				$option = [];
+
+				$option['name'] = (string)$type_att->ct_name;
+				$option['label'] = (string)$type_att->label;
+				$option['description'] = (string)$type_att->description;
+				$option['proversion'] = $is4Pro;
+				$options[] = $option;
+			}
+		}
+		return $options;
+	}
 }

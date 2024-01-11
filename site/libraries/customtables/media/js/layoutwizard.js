@@ -1,10 +1,10 @@
 /**
- * CustomTables Joomla! 3.x/4.x Native Component
+ * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @subpackage administrator/components/com_customtables/js/layoutwizard.js
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link http://www.joomlaboat.com
- * @copyright Copyright (C) 2018-2023. All Rights Reserved
+ * @copyright Copyright (C) 2018-2024. All Rights Reserved
  * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -21,6 +21,7 @@ let languages = [];
 function loadLayout(version) {
     joomlaVersion = version;
     let obj = document.getElementById("allLayoutRaw");
+
     if (obj)
         wizardLayouts = JSON.parse(obj.innerHTML);
 }
@@ -30,42 +31,55 @@ function openLayoutWizard() {
 }
 
 //Used in layouteditor.php
-function loadFields(tableselector_id_, field_box_id_) {
+function loadFields(tableselector_id_, field_box_id_, CMSType) {
     tableselector_id = tableselector_id_;
     field_box_id = field_box_id_;
     tableselector_obj = document.getElementById(tableselector_id);
-    loadFieldsUpdate();
+    loadFieldsUpdate(CMSType);
 }
 
-function loadFieldsUpdate() {
+function loadFieldsUpdate(CMSType) {
     let tableid = tableselector_obj.value;
     if (tableid !== current_table_id)
-        loadFieldsData(tableid);
+        loadFieldsData(tableid, CMSType);
 }
 
-function loadFieldsData(tableid) {
+function loadFieldsData(tableid, CMSType) {
     current_table_id = 0;
     tableid = parseInt(tableid);
     if (isNaN(tableid) || tableid === 0)
         return;//table not selected
 
-    const parts = location.href.split("/administrator/");
-    const websiteroot = parts[0] + "/administrator/";
-    const url = websiteroot + "index.php?option=com_customtables&view=api&frmt=json&task=getfields&tableid=" + tableid;
+    let url = '';
+    if (CMSType === 'Joomla') {
+        const parts = location.href.split("/administrator/");
+        const websiteRoot = parts[0] + "/administrator/";
+        url = websiteRoot + "index.php?option=com_customtables&view=api&frmt=json&task=getfields&tableid=" + tableid;
+    } else if (CMSType === 'WordPress') {
+        let parts = location.href.split("wp-admin/admin.php?");
+        url = parts[0] + 'wp-admin/admin.php?page=customtables-api-fields&table=' + tableid;
+    } else {
+        alert('loadTags: CMS Not Supported.');
+        return;
+    }
 
     if (typeof fetch === "function") {
+
         fetch(url, {method: 'GET', mode: 'no-cors', credentials: 'same-origin'}).then(function (response) {
+
             if (response.ok) {
                 response.json().then(function (json) {
+
                     wizardFields = Array.from(json);
                     current_table_id = tableid;
                     updateFieldsBox();
                 });
-            } else
+            } else {
                 console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
+            }
 
         }).catch(function (err) {
-            console.log('Fetch Error :-S', err);
+            console.log('Fetch Error :', err);
         });
     } else {
         //for IE
@@ -96,6 +110,61 @@ function updateFieldsBox() {
 }
 
 function renderTabs(tabSetId, tabs) {
+
+    if (typeof wp !== 'undefined') {
+        return renderTabsWordPress(tabSetId, tabs);
+    } else if (typeof Joomla !== 'undefined') {
+        return renderTabsJoomla(tabSetId, tabs);
+    } else {
+        console.log('CMS not supported.');
+        return 'CMS not supported.';
+    }
+}
+
+function activateTabsWordPress(tabClassName) {
+
+    const tabs = document.querySelectorAll('[data-tabs=".gtabs.' + tabClassName + '"]');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            // Activate the clicked tab and deactivate others
+            tabs.forEach(t => t.classList.remove('nav-tab-active'));
+            this.classList.add('nav-tab-active');
+
+            const tabsContentContainer = document.querySelectorAll('.' + tabClassName);
+            if (tabsContentContainer.length > 0) {
+                const tabsContentDivs = tabsContentContainer[0].querySelectorAll('.gtab');
+
+                tabsContentDivs.forEach(t => t.classList.remove('active'));
+                //this.classList.add('active');
+
+                let tabId = this.dataset.tab;
+                let tabDiv = document.querySelectorAll(tabId);
+                tabDiv.forEach(t => t.classList.add('active'));
+            }
+        });
+    });
+}
+
+function renderTabsWordPress(tabSetId, tabs) {
+
+    let buttons = '';
+    let divs = '';
+    for (let i = 0; i < tabs.length; i++) {
+        let tab = tabs[i];
+
+        let cssclass_buttons = "";
+        let cssclass_divs = "";
+        if (i === 0) {
+            cssclass_buttons = ' nav-tab-active';
+            cssclass_divs = ' active';
+        }
+        buttons += '<button data-toggle="tab" data-tabs=".gtabs.' + tabSetId + '" data-tab=".' + tab.id + '-tab' + (i + 1) + '" class="nav-tab' + cssclass_buttons + '" >' + tab.title + '</button>';
+        divs += '<div class="gtab' + cssclass_divs + ' ' + tab.id + '-tab' + (i + 1) + '" style="margin-left:-20px;">' + tab.content + '</div>';
+    }
+    return '<h2 class="nav-tab-wrapper wp-clearfix">' + buttons + '</h2><div class="gtabs ' + tabSetId + '">' + divs + '</div>';
+}
+
+function renderTabsJoomla(tabSetId, tabs) {
     // Tabs is the array of tab elements [{"title":"Tab Title","id":"Tab Name","content":"Tab Content"}...]
 
     if (joomlaVersion < 4) {
@@ -134,7 +203,8 @@ function renderTabs(tabSetId, tabs) {
 }
 
 function replaceOldFieldTitleTagsWithTwigStyle() {
-    let editor = codemirror_editors[codemirror_active_index];
+
+    let editor = getActiveEditor();
     let documentText = editor.getValue();
     let count = 0;
     let changesMade = false;
@@ -440,7 +510,7 @@ function showModalFieldTagForm(tagStartChar, postfix, tagEndChar, tag, top, left
 
         let result = '{{ ' + tag + postfix + ' }}';
 
-        let editor = codemirror_editors[codemirror_active_index];
+        let editor = getActiveEditor();//codemirror_editors[codemirror_active_index];
         let doc = editor.getDoc();
         doc.replaceRange(result, cursor_from, cursor_to, "");
         return;
@@ -480,8 +550,8 @@ function showModalFieldTagForm(tagStartChar, postfix, tagEndChar, tag, top, left
 
 //Used in generated html link
 function addFieldTag(tagStartChar, postfix, tagEndChar, tag, param_count) {
-    const index = 0;
-    const cm = codemirror_editors[index];
+
+    let cm = getActiveEditor();
 
     if (param_count > 0) {
         const cr = cm.getCursor();
@@ -501,7 +571,7 @@ function addFieldTag(tagStartChar, postfix, tagEndChar, tag, param_count) {
 }
 
 function FillLayout() {
-    let editor = codemirror_editors[codemirror_active_index];
+    let editor = getActiveEditor();//codemirror_editors[codemirror_active_index];
     let t = parseInt(document.getElementById("jform_layouttype").value);
     if (isNaN(t) || t === 0) {
         alert("Type not selected.");
@@ -979,4 +1049,14 @@ function getLayout_Record() {
         }
     }
     return result;
+}
+
+function getActiveEditor() {
+    let cm;
+    if (typeof wp !== 'undefined')
+        cm = codemirror_editors[codemirror_active_index].codemirror;
+    else if (typeof Joomla !== 'undefined')
+        cm = codemirror_editors[codemirror_active_index];
+
+    return cm;
 }

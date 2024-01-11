@@ -1,120 +1,151 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x Native Component
+ * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2023. Ivan Komlev
+ * @copyright (C) 2018-2024. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
 namespace CustomTables;
 
-// no direct access
 if (!defined('_JEXEC') and !defined('WPINC')) {
-    die('Restricted access');
+	die('Restricted access');
 }
 
-use \Joomla\CMS\Factory;
-use \Joomla\CMS\Uri\Uri;
+use Exception;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Uri\Uri;
 
 class ExportTables
 {
-    //this function creates json(.txt) file that will include instruction to create selected tables and depended on menu items and layouts.
-    //Records can be exported too, if it set in table parameters
-    //file is created in /tmp folder or as set in $path parameter
+	//this function creates json(.txt) file that will include instruction to create selected tables and depended on menu items and layouts.
+	//Records can be exported too, if it set in table parameters
+	//file is created in /tmp folder or as set in $path parameter
 
-    public static function export(&$table_ids, $path = 'tmp'): string
-    {
-        $db = Factory::getDBO();
-        $link = '';
-        $tables = array();
-        $output = array();
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function export($table_ids, $path = 'tmp'): ?string
+	{
+		$link = '';
+		$tables = array();
+		$output = array();
 
-        foreach ($table_ids as $table_id) {
-            //get table
-            $s1 = '(SELECT categoryname FROM #__customtables_categories WHERE #__customtables_categories.id=#__customtables_tables.tablecategory) AS categoryname';
-            $query = 'SELECT *,' . $s1 . ' FROM #__customtables_tables WHERE published=1 AND id=' . (int)$table_id . ' LIMIT 1';
+		foreach ($table_ids as $table_id) {
+			//get table
+			$s1 = '(SELECT categoryname FROM #__customtables_categories WHERE #__customtables_categories.id=#__customtables_tables.tablecategory) AS categoryname';
+			//$query = 'SELECT *,' . $s1 . ' FROM #__customtables_tables WHERE published=1 AND id=' . (int)$table_id . ' LIMIT 1';
 
-            $db->setQuery($query);
-            $table_rows = $db->loadAssocList();
+			$whereClause = new MySQLWhereClause();
+			$whereClause->addCondition('published', 1);
+			$whereClause->addCondition('id', (int)$table_id);
 
-            //Add the table with dependencies to export array
-            if (count($table_rows) == 1) {
-                $tables[] = $table_rows[0]['tablename'];
-                $output[] = ExportTables::processTable($table_rows[0]);
-            }
-        }
+			$table_rows = database::loadAssocList('#__customtables_tables', ['*', $s1], $whereClause, null, null, 1);
 
-        //Save the array to file
-        if (count($output) > 0) {
-            //Prepare output string with data
-            $output_str = '<customtablestableexport>' . json_encode($output);
+			//Add the table with dependencies to export array
+			if (count($table_rows) == 1) {
+				$tables[] = $table_rows[0]['tablename'];
+				$output[] = ExportTables::processTable($table_rows[0]);
+			}
+		}
 
-            $tmp_path = JPATH_SITE . DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR;
-            $filename = substr(implode('_', $tables), 0, 128);
+		//Save the array to file
+		if (count($output) > 0) {
+			//Prepare output string with data
+			$output_str = '<customtablestableexport>' . common::ctJsonEncode($output);
 
-            $a = '';
-            $i = 0;
-            while (1) {
-                if (!file_exists($tmp_path . $filename . $a . '.txt')) {
-                    $filename_available = $filename . $a . '.txt';
-                    break;
-                }
-                $i++;
-                $a = $i . '';
-            }
+			$tmp_path = JPATH_SITE . DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR;
+			$filename = substr(implode('_', $tables), 0, 128);
 
-            //Save file
-            $link = str_replace(DIRECTORY_SEPARATOR, '/', Uri::root(false));
+			$a = '';
+			$i = 0;
+			while (1) {
+				if (!file_exists($tmp_path . $filename . $a . '.txt')) {
+					$filename_available = $filename . $a . '.txt';
+					break;
+				}
+				$i++;
+				$a = $i . '';
+			}
 
-            if ($link[strlen($link) - 1] != '/' and $path[0] != '/')
-                $link .= '/';
+			//Save file
+			$link = str_replace(DIRECTORY_SEPARATOR, '/', Uri::root());
 
-            $link .= $path . '/' . $filename_available;
-            file_put_contents($tmp_path . $filename_available, $output_str);
-        }
-        return $link;
-    }
+			if ($link[strlen($link) - 1] != '/' and $path[0] != '/')
+				$link .= '/';
 
-    protected static function processTable($table): array
-    {
-        $db = Factory::getDBO();
+			$link .= $path . '/' . $filename_available;
 
-        //get fields
-        $query = 'SELECT * FROM #__customtables_fields WHERE published=1 AND tableid=' . (int)$table['id'] . '';
-        $db->setQuery($query);
-        $fields = $db->loadAssocList();
+			$msg = common::saveString2File($tmp_path . $filename_available, $output_str);
+			if ($msg !== null) {
+				Factory::getApplication()->enqueueMessage($tmp_path . $filename_available . '<br/>' . $msg, 'error');
+				return null;
+			}
+		}
+		return $link;
+	}
 
-        //get layouts
-        $query = 'SELECT * FROM #__customtables_layouts WHERE published=1 AND tableid=' . (int)$table['id'] . '';
-        $db->setQuery($query);
-        $layouts = $db->loadAssocList();
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	protected static function processTable($table): array
+	{
+		//get fields
+		//$query = 'SELECT * FROM #__customtables_fields WHERE published=1 AND tableid=' . (int)$table['id'];
 
-        //Get depended menu items
-        $wheres = array();
-        $wheres[] = 'published=1';
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('published', 1);
+		$whereClause->addCondition('tableid', (int)$table['id']);
 
-        if ($db->serverType == 'postgresql') {
-            $wheres[] = 'POSITION(' . $db->quote("index.php?option=com_customtables&view=") . ' IN link)>0';
-            $wheres[] = 'POSITION(' . $db->quote('"establename":"' . $table['tablename'] . '"') . ' IN params)>0';
-        } else {
-            $wheres[] = 'INSTR(link,' . $db->quote("index.php?option=com_customtables&view=") . ')';
-            $wheres[] = 'INSTR(params,' . $db->quote('"establename":"' . $table['tablename'] . '"') . ')';
-        }
+		$fields = database::loadAssocList('#__customtables_fields', ['*'], $whereClause, null, null);
 
-        $query = 'SELECT * FROM #__menu WHERE ' . implode(' AND ', $wheres);
-        $db->setQuery($query);
-        $menu = $db->loadAssocList();
+		//get layouts
+		//$query = 'SELECT * FROM #__customtables_layouts WHERE published=1 AND tableid=' . (int)$table['id'];
 
-        //Get depended records
-        if (intval($table['allowimportcontent']) == 1) {
-            $query = 'SELECT * FROM #__customtables_table_' . $table['tablename'] . ' WHERE published=1';
-            $db->setQuery($query);
-            $records = $db->loadAssocList();
-        } else
-            $records = null;
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('published', 1);
+		$whereClause->addCondition('tableid', (int)$table['id']);
 
-        return ['table' => $table, 'fields' => $fields, 'layouts' => $layouts, 'records' => $records, 'menu' => $menu];
-    }
+		$layouts = database::loadAssocList('#__customtables_layouts', ['*'], $whereClause, null, null);
+
+		//Get depended menu items
+		//$wheres = array();
+		//$wheres[] = 'published=1';
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('published', 1);
+
+		$serverType = database::getServerType();
+		if ($serverType == 'postgresql') {
+			$whereClause->addCondition('POSITION("index.php?option=com_customtables&view=" IN link)', 0, '>');
+			$whereClause->addCondition('POSITION("establename":"' . $table['tablename'] . '" IN params)', 0, '>');
+			//$wheres[] = 'POSITION(' . database::quote("index.php?option=com_customtables&view=") . ' IN link)>0';
+			//$wheres[] = 'POSITION(' . database::quote('"establename":"' . $table['tablename'] . '"') . ' IN params)>0';
+		} else {
+			$whereClause->addCondition('link', 'index.php?option=com_customtables&view=', 'INSTR');
+			$whereClause->addCondition('params', '"establename":"' . $table['tablename'] . '"', 'INSTR');
+			//$wheres[] = 'INSTR(link,' . database::quote("index.php?option=com_customtables&view=") . ')';
+			//$wheres[] = 'INSTR(params,' . database::quote('"establename":"' . $table['tablename'] . '"') . ')';
+		}
+
+		//$query = 'SELECT * FROM #__menu WHERE ' . implode(' AND ', $wheres);
+
+		$menu = database::loadAssocList('#__menu', ['*'], $whereClause, null, null);
+
+		//Get depended records
+		if (intval($table['allowimportcontent']) == 1) {
+			//$query = 'SELECT * FROM #__customtables_table_' . $table['tablename'] . ' WHERE published=1';
+
+			$whereClause = new MySQLWhereClause();
+			$whereClause->addCondition('published', 1);
+
+			$records = database::loadAssocList('#__customtables_table_' . $table['tablename'], ['*'], $whereClause, null, null);
+		} else
+			$records = null;
+
+		return ['table' => $table, 'fields' => $fields, 'layouts' => $layouts, 'records' => $records, 'menu' => $menu];
+	}
 }

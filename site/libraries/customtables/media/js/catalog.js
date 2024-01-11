@@ -240,7 +240,7 @@ function ctSearchBoxDo() {
     }
 
     let link = ctWebsiteRoot + 'index.php?option=com_customtables&view=catalog&Itemid=' + ctItemId;
-    link = esPrepareLink(['where', 'task', "listing_id", 'returnto'], ["where=" + Base64.encode(w.join(" and "))], link);
+    link = esPrepareLink(['where', 'task', "listing_id", 'returnto'], ["where=" + encodeURIComponent(w.join(" and "))], link);//Base64.encode
     window.location.href = link;
 }
 
@@ -296,7 +296,7 @@ function ctToolBarDO(task, tableid) {
     const elements = getListOfSelectedRecords(tableid);
 
     if (elements.length === 0) {
-        alert(Joomla.JText._('COM_CUSTOMTABLES_JS_SELECT_RECORDS'));
+        alert(TranslateText('COM_CUSTOMTABLES_JS_SELECT_RECORDS'));
         es_LinkLoading = false;
         return;
     }
@@ -304,7 +304,7 @@ function ctToolBarDO(task, tableid) {
     if (task === 'delete') {
 
         let msg;
-        if (elements.length === 1) msg = Joomla.JText._('COM_CUSTOMTABLES_JS_SELECT_DO_U_WANT_TO_DELETE1l'); else msg = Joomla.JText._('COM_CUSTOMTABLES_JS_SELECT_DO_U_WANT_TO_DELETE').replace('%s', elements.length);
+        if (elements.length === 1) msg = TranslateText('COM_CUSTOMTABLES_JS_SELECT_DO_U_WANT_TO_DELETE1l'); else msg = TranslateText('COM_CUSTOMTABLES_JS_SELECT_DO_U_WANT_TO_DELETE').replace('%s', elements.length);
 
         if (!confirm(msg)) {
             es_LinkLoading = false;
@@ -464,7 +464,11 @@ function ct_UpdateSingleValueSet(WebsiteRoot, Itemid, fieldname_, record_id, pos
                 } else {
                     obj.className = "ct_checkmark_err ";
 
-                    if (http.response.indexOf('<div class="alert-message">Nothing to save</div>') !== -1) alert(Joomla.JText._('COM_CUSTOMTABLES_JS_NOTHING_TO_SAVE')); else if (http.response.indexOf('view-login') !== -1) alert(Joomla.JText._('COM_CUSTOMTABLES_JS_SESSION_EXPIRED')); else alert(http.response);
+                    if (http.response.indexOf('<div class="alert-message">Nothing to save</div>') !== -1)
+                        alert(TranslateText('COM_CUSTOMTABLES_JS_NOTHING_TO_SAVE'));
+                    else if (http.response.indexOf('view-login') !== -1)
+                        alert(TranslateText('COM_CUSTOMTABLES_JS_SESSION_EXPIRED'));
+                    else alert(http.response);
                 }
             }
         };
@@ -568,7 +572,7 @@ function ctCatalogOnDragOver(event) {
 
 function ctEditModal(url, parentFieldToUpdate = null) {
 
-    let new_url = url + '&modal=1&time=' + Date.now();
+    let new_url = url + (url.indexOf('?') === -1 ? '?' : '&') + 'modal=1&time=' + Date.now();
     let params = "";
 
     if (parentFieldToUpdate !== null) new_url += '&parentfield=' + parentFieldToUpdate
@@ -582,9 +586,7 @@ function ctEditModal(url, parentFieldToUpdate = null) {
             if (http.readyState === 4) {
                 let res = http.response;
 
-                //let content_html = '<div style="overflow-y: scroll;overflow-x: hidden;height: 100%;width:100%;">' + res + '</div>';
                 ctShowPopUp(res, true);
-
 
                 //Activate Calendars if found
                 let elements = document.querySelectorAll(".field-calendar");
@@ -592,7 +594,6 @@ function ctEditModal(url, parentFieldToUpdate = null) {
                 for (let i = 0, l = elements.length; i < l; i++) {
                     JoomlaCalendar.init(elements[i]);
                 }
-
             }
         }
         http.send(params);
@@ -630,4 +631,13 @@ function ctValue_googlemapcoordinates(boxId, lat, long, zoom) {
 
     let infoWindow = new google.maps.InfoWindow;
     return false;
+}
+
+function ctSearchBarDateRangeUpdate(fieldName) {
+    setTimeout(function () {
+        let obj = document.getElementById("es_search_box_" + fieldName);
+        let date_start = document.getElementById("es_search_box_" + fieldName + "_start").value
+        let date_end = document.getElementById("es_search_box_" + fieldName + "_end").value;
+        obj.value = date_start + "-to-" + date_end;
+    }, 300)
 }

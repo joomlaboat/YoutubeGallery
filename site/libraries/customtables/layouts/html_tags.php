@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x Native Component
+ * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2023 Ivan Komlev
+ * @copyright (C) 2018-2024. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -12,741 +12,738 @@ namespace CustomTables;
 
 // no direct access
 if (!defined('_JEXEC') and !defined('WPINC')) {
-    die('Restricted access');
+	die('Restricted access');
 }
 
-use JEventDispatcher;
+use Joomla\CMS\HTML\HTMLHelper;
 use JoomlaBasicMisc;
 use JESPagination;
-use Joomla\CMS\Factory;
-use Joomla\CMS\Uri\Uri;
-use JHTML;
 use JPluginHelper;
 
 class Twig_Html_Tags
 {
-    var CT $ct;
-    var bool $isTwig;
-    var array $button_objects = []; //Not clear where and how this variable used.
+	var CT $ct;
+	var bool $isTwig;
+	var array $button_objects = []; //Not clear where and how this variable used.
 
-    function __construct(CT &$ct, $isTwig = true)
-    {
-        $this->ct = &$ct;
-        $this->isTwig = $isTwig;
+	function __construct(CT &$ct, $isTwig = true)
+	{
+		$this->ct = &$ct;
+		$this->isTwig = $isTwig;
 
-        $this->ct->LayoutVariables['captcha'] = null;
-        $this->button_objects = [];//Not clear where and how this variable used.
-    }
+		$this->ct->LayoutVariables['captcha'] = null;
+		$this->button_objects = [];//Not clear where and how this variable used.
+	}
 
-    function recordcount()
-    {
-        if ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != '')
-            return '';
+	function recordcount(): string
+	{
+		if ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != '')
+			return '';
 
-        if (!isset($this->ct->Table)) {
-            $this->ct->app->enqueueMessage('{{ html.recordcount }} - Table not loaded.', 'error');
-            return '';
-        }
+		if (!isset($this->ct->Table)) {
+			$this->ct->errors[] = '{{ html.recordcount }} - Table not loaded.';
+			return '';
+		}
 
-        if (!isset($this->ct->Records)) {
-            $this->ct->app->enqueueMessage('{{ html.recordcount }} - Records not loaded.', 'error');
-            return '';
-        }
+		if (!isset($this->ct->Records)) {
+			$this->ct->errors[] = '{{ html.recordcount }} - Records not loaded.';
+			return '';
+		}
 
-        $vlu = '<span class="ctCatalogRecordCount">' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_FOUND') . ': ' . $this->ct->Table->recordcount
-            . ' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_RESULT_S') . '</span>';
+		return '<span class="ctCatalogRecordCount">' . common::translate('COM_CUSTOMTABLES_FOUND') . ': ' . $this->ct->Table->recordcount
+			. ' ' . common::translate('COM_CUSTOMTABLES_RESULT_S') . '</span>';
+	}
 
-        return $vlu;
-    }
+	function add($Alias_or_ItemId = ''): string
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
 
-    function add($Alias_or_ItemId = '')
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
+		if ($this->ct->Env->isPlugin)
+			return '';
 
-        if ($this->ct->Env->isPlugin)
-            return '';
+		$usergroups = $this->ct->Env->user->groups;
 
-        $usergroups = $this->ct->Env->user->get('groups');
+		$add_userGroup = (int)$this->ct->Params->addUserGroups;
 
-        $add_userGroup = (int)$this->ct->Params->addUserGroups;
+		if (!$this->ct->Env->isUserAdministrator and !in_array($add_userGroup, $usergroups))
+			return ''; //Not permitted
 
-        if (!$this->ct->Env->isUserAdministrator and !in_array($add_userGroup, $usergroups))
-            return ''; //Not permitted
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return ''; //Not permitted
 
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return ''; //Not permitted
+		if ($Alias_or_ItemId != '' and is_numeric($Alias_or_ItemId) and (int)$Alias_or_ItemId > 0)
+			$link = '/index.php?option=com_customtables&amp;view=edititem&amp;returnto=' . $this->ct->Env->encoded_current_url . '&amp;Itemid=' . $Alias_or_ItemId;
+		elseif ($Alias_or_ItemId != '')
+			$link = '/index.php/' . $Alias_or_ItemId . '?returnto=' . $this->ct->Env->encoded_current_url;
+		else
+			$link = '/index.php?option=com_customtables&amp;view=edititem&amp;returnto=' . $this->ct->Env->encoded_current_url
+				. '&amp;Itemid=' . $this->ct->Params->ItemId;
 
-        if (is_numeric($Alias_or_ItemId) and $Alias_or_ItemId > 0)
-            $link = '/index.php?option=com_customtables&amp;view=edititem&amp;returnto=' . $this->ct->Env->encoded_current_url . '&amp;Itemid=' . $Alias_or_ItemId;
-        elseif ($Alias_or_ItemId != '')
-            $link = '/index.php/' . $Alias_or_ItemId . '?returnto=' . $this->ct->Env->encoded_current_url;
-        else
-            $link = '/index.php?option=com_customtables&amp;view=edititem&amp;returnto=' . $this->ct->Env->encoded_current_url
-                . '&amp;Itemid=' . $this->ct->Params->ItemId;
+		if (!is_null($this->ct->Params->ModuleId))
+			$link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
 
-        if (!is_null($this->ct->Params->ModuleId))
-            $link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
+		if (common::inputGetCmd('tmpl', '') != '')
+			$link .= '&amp;tmpl=' . common::inputGetCmd('tmpl', '');
 
-        if ($this->ct->Env->jinput->getCmd('tmpl', '') != '')
-            $link .= '&amp;tmpl=' . $this->ct->Env->jinput->get('tmpl', '', 'CMD');
+		if (!is_null($this->ct->Params->ModuleId))
+			$link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
 
-        if (!is_null($this->ct->Params->ModuleId))
-            $link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
+		$alt = common::translate('COM_CUSTOMTABLES_ADD');
 
-        $alt = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ADD');
+		if ($this->ct->Env->toolbarIcons != '')
+			$img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' fa-plus-circle" data-icon="' . $this->ct->Env->toolbarIcons . ' fa-plus-circle" title="' . $alt . '"></i>';
+		else {
+			$img = '<img src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/icons/new.png" alt="' . $alt . '" title="' . $alt . '" />';
+		}
 
-        if ($this->ct->Env->toolbarIcons != '')
-            $img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' fa-plus-circle" data-icon="' . $this->ct->Env->toolbarIcons . ' fa-plus-circle" title="' . $alt . '"></i>';
-        else
-            $img = '<img src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/images/icons/new.png" alt="' . $alt . '" title="' . $alt . '" />';
+		return '<a href="' . CUSTOMTABLES_MEDIA_HOME_URL . $link . '" id="ctToolBarAddNew' . $this->ct->Table->tableid . '" class="toolbarIcons">' . $img . '</a>';
+	}
 
-        return '<a href="' . URI::root(true) . $link . '" id="ctToolBarAddNew' . $this->ct->Table->tableid . '" class="toolbarIcons">' . $img . '</a>';
-    }
+	function importcsv(): string
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
 
-    function importcsv()
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
 
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
 
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
+		$usergroups = $this->ct->Env->user->groups;
+		if (!$this->ct->Env->isUserAdministrator and !in_array($this->ct->Params->addUserGroups, $usergroups))
+			return ''; //Not permitted
 
-        $usergroups = $this->ct->Env->user->get('groups');
-        if (!$this->ct->Env->isUserAdministrator and !in_array($this->ct->Params->addUserGroups, $usergroups))
-            return ''; //Not permitted
+		$max_file_size = JoomlaBasicMisc::file_upload_max_size();
 
-        $max_file_size = JoomlaBasicMisc::file_upload_max_size();
+		$fileid = common::generateRandomString();
+		$fieldid = '9999999';//some unique number. TODO
+		$objectname = 'importcsv';
 
-        $fileid = JoomlaBasicMisc::generateRandomString();
-        $fieldid = '9999999';//some unique number. TODO
-        $objectname = 'importcsv';
+		HTMLHelper::_('behavior.formvalidator');
 
-        JHtml::_('behavior.formvalidator');
+		$urlstr = '/index.php?option=com_customtables&amp;view=fileuploader&amp;tmpl=component&'
+			. 'tableid=' . $this->ct->Table->tableid . '&'
+			. 'task=importcsv&'
+			. $objectname . '_fileid=' . $fileid
+			. '&Itemid=' . $this->ct->Params->ItemId
+			. (is_null($this->ct->Params->ModuleId) ? '' : '&ModuleId=' . $this->ct->Params->ModuleId)
+			. '&fieldname=' . $objectname;
 
-        $urlstr = '/index.php?option=com_customtables&amp;view=fileuploader&amp;tmpl=component&'
-            . 'tableid=' . $this->ct->Table->tableid . '&'
-            . 'task=importcsv&'
-            . $objectname . '_fileid=' . $fileid
-            . '&Itemid=' . $this->ct->Params->ItemId
-            . (is_null($this->ct->Params->ModuleId) ? '' : '&ModuleId=' . $this->ct->Params->ModuleId)
-            . '&fieldname=' . $objectname;
-
-        return '<div>
+		return '<div>
                     <div id="ct_fileuploader_' . $objectname . '"></div>
                     <div id="ct_eventsmessage_' . $objectname . '"></div>
                     <form action="" name="ctUploadCSVForm" id="ctUploadCSVForm">
                 	<script>
                         //UploadFileCount=1;
                     	ct_getUploader(' . $fieldid . ',"' . $urlstr . '",' . $max_file_size . ',"csv","ctUploadCSVForm",true,"ct_fileuploader_' . $objectname . '","ct_eventsmessage_' . $objectname . '","' . $fileid . '","'
-            . $this->ct->Env->field_input_prefix . $objectname . '","ct_uploadedfile_box_' . $objectname . '")
+			. $this->ct->Env->field_input_prefix . $objectname . '","ct_uploadedfile_box_' . $objectname . '")
                     </script>
                     <input type="hidden" name="' . $this->ct->Env->field_input_prefix . $objectname . '" id="' . $this->ct->Env->field_input_prefix . $objectname . '" value="" />
                     <input type="hidden" name="' . $this->ct->Env->field_input_prefix . $objectname . '_filename" id="' . $this->ct->Env->field_input_prefix . $objectname . '_filename" value="" />
-			' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_PERMITTED_MAX_FILE_SIZE') . ': ' . JoomlaBasicMisc::formatSizeUnits($max_file_size) . '
+			' . common::translate('COM_CUSTOMTABLES_PERMITTED_MAX_FILE_SIZE') . ': ' . JoomlaBasicMisc::formatSizeUnits($max_file_size) . '
                     </form>
                 </div>
 ';
-    }
+	}
 
-    function pagination($show_arrow_icons = false)
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
+	function pagination($show_arrow_icons = false): string
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
 
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
 
-        if ($this->ct->Table->recordcount <= $this->ct->Limit)
-            return '';
+		if ($this->ct->Table->recordcount <= $this->ct->Limit)
+			return '';
 
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
 
-        $pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit, '', $this->ct->Env->version, $show_arrow_icons);
+		$pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit, '', $this->ct->Env->version, $show_arrow_icons);
 
-        if ($this->ct->Env->version < 4)
-            return '<div class="pagination">' . $pagination->getPagesLinks() . '</div>';
-        else
-            return '<div style="display:inline-block">' . $pagination->getPagesLinks() . '</div>';
-    }
+		if ($this->ct->Env->version < 4)
+			return '<div class="pagination">' . $pagination->getPagesLinks() . '</div>';
+		else
+			return '<div style="display:inline-block">' . $pagination->getPagesLinks() . '</div>';
+	}
 
-    function limit($the_step = 5)
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
+	function limit($the_step = 5)
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
 
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
 
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
 
-        $pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit, '', $this->ct->Env->version);
-        return JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SHOW') . ': ' . $pagination->getLimitBox($the_step);
-    }
-
-    function orderby()
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
-
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
-
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
-
-        if ($this->ct->Params->forceSortBy !== null and $this->ct->Params->forceSortBy != '')
-            $this->ct->app->enqueueMessage(JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ERROR_SORT_BY_FIELD_LOCKED'), 'error');
-
-        return JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ORDER_BY') . ': ' . OrderingHTML::getOrderBox($this->ct->Ordering);
-    }
-
-    function goback($defaultLabel = 'COM_CUSTOMTABLES_GO_BACK', $image_icon = '', $attribute = '', $returnto = '')
-    {
-        if ($defaultLabel === null)
-            $defaultLabel = 'COM_CUSTOMTABLES_GO_BACK';
-
-        $label = JoomlaBasicMisc::JTextExtended($defaultLabel);
-
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
-
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
-
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
-
-        if ($returnto == '')
-            $returnto = base64_decode($this->ct->Env->jinput->get('returnto', '', 'BASE64'));
-
-        if ($returnto == '')
-            return '';
-
-        if ($attribute == '' and $image_icon == '') {
-            if ($this->ct->Env->toolbarIcons != '')
-                $vlu = '<a href="' . $returnto . '"><i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons
-                    . ' fa-angle-left" data-icon="' . $this->ct->Env->toolbarIcons . ' fa-angle-left" title="'
-                    . $label . '" style="margin-right:10px;"></i>' . $label . '</a>';
-            else
-                $vlu = '<a href="' . $returnto . '" class="ct_goback"><div>' . $label . '</div></a>';
-        } else {
-
-            $img = '';
-            if (($this->ct->Env->toolbarIcons != '' or $image_icon == '') and $attribute == '')
-                $img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' fa-angle-left" data-icon="'
-                    . $this->ct->Env->toolbarIcons . ' fa-angle-left" title="' . $label . '" style="margin-right:10px;"></i>';
-            elseif ($this->ct->Env->toolbarIcons == '')
-                $img = '<img src="' . $image_icon . '" alt="' . $label . '" />';
-
-            $vlu = '<a href="' . $returnto . '" ' . $attribute . '><div>' . $img . $label . '</div></a>';
-        }
-
-        if ($this->isTwig)
-            return $vlu;
-        else
-            return $vlu;
-    }
-
-    function batch()
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
-
-        if ($this->ct->Env->isPlugin)
-            return '';
-
-        $buttons = func_get_args();
-        if (count($buttons) == 1) {
-            if (is_array($buttons[0]))
-                $buttons = $buttons[0];
-        }
-
-        $available_modes = $this->getAvailableModes();
-        if (count($available_modes) == 0)
-            return '';
-
-        if (is_array($buttons))
-            $buttons_array = $buttons;
-        else
-            $buttons_array = explode(',', $buttons);
-
-        if (count($buttons_array) == 0)
-            $buttons_array = $available_modes;
-
-        $html_buttons = [];
-
-        foreach ($buttons_array as $mode) {
-            if ($mode == 'checkbox') {
-                $html_buttons[] = '<input type="checkbox" id="esCheckboxAll' . $this->ct->Table->tableid . '" onChange="esCheckboxAllClicked(' . $this->ct->Table->tableid . ')" />';
-            } else {
-                if (in_array($mode, $available_modes)) {
-                    $rid = 'esToolBar_' . $mode . '_box_' . $this->ct->Table->tableid;
-                    $alt = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_' . strtoupper($mode) . '_SELECTED');
-
-                    if ($this->ct->Env->toolbarIcons != '') {
-                        $icons = ['publish' => 'fa-check-circle', 'unpublish' => 'fa-ban', 'refresh' => 'fa-sync', 'delete' => 'fa-trash'];
-                        $img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' ' . $icons[$mode] . '" data-icon="' . $this->ct->Env->toolbarIcons . ' ' . $icons[$mode] . '" title="' . $alt . '"></i>';
-                    } else
-                        $img = '<img src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/images/icons/' . $mode . '.png" border="0" alt="' . $alt . '" title="' . $alt . '" />';
-
-                    $link = 'javascript:ctToolBarDO("' . $mode . '", ' . $this->ct->Table->tableid . ')';
-                    $html_buttons[] = '<div id="' . $rid . '" class="toolbarIcons"><a href=\'' . $link . '\'>' . $img . '</a></div>';
-                }
-            }
-        }
-
-        if (count($html_buttons) == 0)
-            return '';
-
-        $vlu = implode('', $html_buttons);
-
-        if ($this->isTwig)
-            return $vlu;
-        else
-            return $vlu;
-    }
-
-    protected function getAvailableModes()
-    {
-        $available_modes = array();
-
-        $user = Factory::getUser();
-        if ($user->id != 0) {
-            $publish_userGroup = (int)$this->ct->Params->publishUserGroups;
-
-            if (JoomlaBasicMisc::checkUserGroupAccess($publish_userGroup)) {
-                $available_modes[] = 'publish';
-                $available_modes[] = 'unpublish';
-            }
-
-            $edit_userGroup = (int)$this->ct->Params->editUserGroups;
-            if (JoomlaBasicMisc::checkUserGroupAccess($edit_userGroup))
-                $available_modes[] = 'refresh';
-
-            $delete_userGroup = (int)$this->ct->Params->deleteUserGroups;
-            if (JoomlaBasicMisc::checkUserGroupAccess($delete_userGroup))
-                $available_modes[] = 'delete';
-        }
-        return $available_modes;
-    }
-
-    function print($linktype = '', $label = '', $class = 'ctEditFormButton btn button')
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
-
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
-
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
-
-        $link = $this->ct->Env->current_url . (!str_contains($this->ct->Env->current_url, '?') ? '?' : '&') . 'tmpl=component&amp;print=1';
-
-        if ($this->ct->Env->jinput->getInt('moduleid', 0) != 0) {
-            //search module
-
-            $moduleid = $this->ct->Env->jinput->getInt('moduleid', 0);
-            $link .= '&amp;moduleid=' . $moduleid;
-
-            //keyword search
-            $inputbox_name = 'eskeysearch_' . $moduleid;
-            $link .= '&amp;' . $inputbox_name . '=' . $this->ct->Env->jinput->getString($inputbox_name, '');
-        }
-
-        $onClick = 'window.open("' . $link . '","win2","status=no,toolbar=no,scrollbars=yes,titlebar=no,menubar=no,resizable=yes,width=640,height=480,directories=no,location=no");return false;';
-        if ($this->ct->Env->print == 1) {
-            $vlu = '<p><a href="#" onclick="window.print();return false;"><img src="' . URI::root(true) . '/components/com_customtables/libraries/customtables/media/images/icons/print.png" alt="' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_PRINT') . '"  /></a></p>';
-        } else {
-            if ($label == '')
-                $label = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_PRINT');
-
-            if ($linktype != '')
-                $vlu = '<a href="#" onclick=\'' . $onClick . '\'><i class="ba-btn-transition fas fa-print" data-icon="fas fa-print" title="' . $label . '"></i></a>';
-            else
-                $vlu = '<input type="button" class="' . $class . '" value="' . $label . '" onClick=\'' . $onClick . '\' />';
-        }
-
-        if ($this->isTwig)
-            return $vlu;
-        else
-            return $vlu;
-    }
-
-    function search($list_of_fields_string_or_array = null, $class = '', $reload = false, $improved = false): string
-    {
-        if ($list_of_fields_string_or_array === null)
-            return '{{ html.search() }} tag requires at least one field name.';
-
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
-
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
-
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
-
-        if (is_array($list_of_fields_string_or_array))
-            $list_of_fields_string_array = $list_of_fields_string_or_array;
-        else
-            $list_of_fields_string_array = explode(',', $list_of_fields_string_or_array);
-
-        if (count($list_of_fields_string_array) == 0) {
-            $this->ct->app->enqueueMessage('Search box: Please specify a field name.', 'error');
-            return '';
-        }
-
-        $first_fld_layout = null;
-
-        //Clean list of fields
-        $list_of_fields = [];
-
-        $wrong_list_of_fields = [];
-        foreach ($list_of_fields_string_array as $field_name_string_pair) {
-
-            $field_name_pair = explode(':', $field_name_string_pair);
-            $field_name_string = $field_name_pair[0];
-            if ($first_fld_layout === null and isset($field_name_pair[1]))
-                $first_fld_layout = $field_name_pair[1];
-
-            if ($field_name_string == '_id') {
-                $list_of_fields[] = '_id';
-            } elseif ($field_name_string == '_published') {
-                $list_of_fields[] = '_published';
-            } else {
-                //Check if field name is exist in selected table
-                $fld = Fields::FieldRowByName($field_name_string, $this->ct->Table->fields);
-
-                if (!is_array($fld)) {
-                    $this->ct->app->enqueueMessage('Search box: Field name "' . $field_name_string . '" not found.', 'error');
-                    return '';
-                }
-
-                if (count($fld) > 0)
-                    $list_of_fields[] = $field_name_pair[0];
-                else
-                    $wrong_list_of_fields[] = $field_name_string_pair;
-            }
-        }
-
-        if (count($list_of_fields) == 0) {
-            $this->ct->app->enqueueMessage('Search box: Field' . (count($wrong_list_of_fields) > 0 ? 's' : '') . ' "' . implode(',', $wrong_list_of_fields) . '" not found.', 'error');
-            return '';
-        }
-
-        $vlu = 'Search field name is wrong';
-
-        require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_customtables' . DIRECTORY_SEPARATOR . 'libraries'
-            . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . 'searchinputbox.php');
-
-        $SearchBox = new SearchInputBox($this->ct, 'esSearchBox');
-        $first_fld = [];
-        $first_field_type = '';
-
-        foreach ($list_of_fields as $field_name_string) {
-            if ($field_name_string == '_id') {
-                $fld = array(
-                    'id' => 0,
-                    'fieldname' => '_id',
-                    'type' => '_id',
-                    'typeparams' => '',
-                    'fieldtitle' . $this->ct->Languages->Postfix => JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ID'),
-                    'realfieldname' => $this->ct->Table->realtablename,
-                    'isrequired' => false,
-                    'defaultvalue' => null,
-                    'valuerule' => null,
-                    'valuerulecaption' => null
-                );
-            } elseif ($field_name_string == '_published') {
-                $fld = array(
-                    'id' => 0,
-                    'fieldname' => '_published',
-                    'type' => '_published',
-                    'typeparams' => '',
-                    'fieldtitle' . $this->ct->Languages->Postfix => JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_PUBLISHED'),
-                    'realfieldname' => 'listing_published',
-                    'isrequired' => false,
-                    'defaultvalue' => null,
-                    'valuerule' => null,
-                    'valuerulecaption' => null
-                );
-            } else {
-                //Date search no implemented yet. It will be range search
-                $fld = Fields::FieldRowByName($field_name_string, $this->ct->Table->fields);
-                if ($fld['type'] == 'date') {
-                    $fld['typeparams'] = 'date';
-                    $fld['type'] = 'range';
-                }
-            }
-
-            if ($first_field_type == '') {
-                $first_field_type = $fld['type'];
-                $first_fld = $fld;
-            } else {
-                // If field types are mixed then use string search
-                if ($first_field_type != $fld['type'])
-                    $first_field_type = 'string';
-            }
-        }
-        $first_fld['type'] = $first_field_type;
-
-        if (count($list_of_fields) > 1) {
-            $first_fld['fields'] = $list_of_fields;
-            $first_fld['typeparams'] = '';
-        }
-
-        $first_fld['layout'] = $first_fld_layout;
-
-        //Add control elements
-        $fieldTitles = $this->getFieldTitles($list_of_fields);
-        $field_title = implode(' ' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_OR') . ' ', $fieldTitles);
-        $cssClass = 'ctSearchBox';
-
-        if ($class != '')
-            $cssClass .= ' ' . $class;
-
-        if ($improved)
-            $cssClass .= ' ct_improved_selectbox';
-
-        $default_Action = $reload ? ' onChange="ctSearchBoxDo();"' : ' ';//action should be a space not empty or this.value=this.value
-        $objectName = $first_fld['fieldname'];
-
-        if (count($first_fld) == 0)
-            return 'Unsupported field type or field not found.';
-
-        $vlu = $SearchBox->renderFieldBox('es_search_box_', $objectName, $first_fld,
-            $cssClass, '0',
-            '', false, '', $default_Action, $field_title);//action should be a space not empty or
-        //0 because it's not an edit box, and we pass onChange value even " " is the value;
-
-        $field2search = $this->prepareSearchElement($first_fld);
-        $vlu .= '<input type=\'hidden\' ctSearchBoxField=\'' . $field2search . '\' />';
-
-        return $vlu;
-    }
-
-    protected function getFieldTitles($list_of_fields): array
-    {
-        $field_titles = [];
-        foreach ($list_of_fields as $fieldname_string) {
-
-            $fieldname_pair = explode(':', $fieldname_string);
-            $fieldname = $fieldname_pair[0];
-
-            if ($fieldname == '_id')
-                $field_titles[] = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_ID');
-            elseif ($fieldname == '_published')
-                $field_titles[] = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_PUBLISHED');
-            else {
-                foreach ($this->ct->Table->fields as $fld) {
-                    if ($fld['fieldname'] == $fieldname) {
-                        $field_titles[] = $fld['fieldtitle' . $this->ct->Languages->Postfix];
-                        break;
-                    }
-                }
-            }
-        }
-        return $field_titles;
-    }
-
-    protected function prepareSearchElement($fld): string
-    {
-        if (isset($fld['fields']) and count($fld['fields']) > 0) {
-            return 'es_search_box_' . $fld['fieldname'] . ':' . implode(';', $fld['fields']) . ':';
-        } else {
-            if ($fld['type'] == 'customtables') {
-                $paramsList = explode(',', $fld['typeparams']);
-                if (count($paramsList) > 1) {
-                    $root = $paramsList[0];
-                    return 'es_search_box_combotree_' . $this->ct->Table->tablename . '_' . $fld['fieldname'] . '_1:' . $fld['fieldname'] . ':' . $root;
-                }
-            } else
-                return 'es_search_box_' . $fld['fieldname'] . ':' . $fld['fieldname'] . ':';
-        }
-
-        return '';
-    }
-
-    function searchbutton($label = '', $class_ = ''): string
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
-
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
-
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
-
-        $class = 'ctSearchBox';
-
-        if (isset($class_) and $class_ != '')
-            $class .= ' ' . $class_;
-        else
-            $class .= ' btn button-apply btn-primary';
-
-        $default_Label = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SEARCH');
-
-        if ($label == strip_tags($label)) {
-            if ($this->ct->Env->toolbarIcons != '') {
-                $img = '<i class=\'' . $this->ct->Env->toolbarIcons . ' fa-search\' data-icon=\'' . $this->ct->Env->toolbarIcons . ' fa-search\' title=\'' . $label . '\'></i>';
-                $labelHtml = ($label !== '' ? '<span style=\'margin-left:10px;\'>' . $label . '</span>' : '');
-            } else {
-                $img = '';
-
-                if ($label == '')
-                    $label = $default_Label;
-
-                $labelHtml = ($label !== '' ? '<span>' . $label . '</span>' : '');
-            }
-            return '<button class=\'' . $class . '\' onClick=\'ctSearchBoxDo()\' title=\'' . $default_Label . '\'>' . $img . $labelHtml . '</button>';
-        } else {
-            return '<button class=\'' . $class . '\' onClick=\'ctSearchBoxDo()\' title=\'' . $default_Label . '\'>' . $label . '</button>';
-        }
-    }
-
-    function searchreset($label = '', $class_ = '')
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
-
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
-
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
-
-        $class = 'ctSearchBox';
-
-        if (isset($class_) and $class_ != '')
-            $class .= ' ' . $class_;
-        else
-            $class .= ' btn button-apply btn-primary';
-
-        $default_Label = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SEARCHRESET');
-        if ($label == strip_tags($label)) {
-            if ($this->ct->Env->toolbarIcons != '') {
-                $img = '<i class=\'' . $this->ct->Env->toolbarIcons . ' fa-times\' data-icon=\'' . $this->ct->Env->toolbarIcons . ' fa-times\' title=\'' . $label . '\'></i>';
-                $labelHtml = ($label !== '' ? '<span style=\'margin-left:10px;\'>' . $label . '</span>' : '');
-            } else {
-                $img = '';
-
-                if ($label == '')
-                    $label = $default_Label;
-
-                $labelHtml = ($label !== '' ? '<span>' . $label . '</span>' : '');
-            }
-            return '<button class=\'' . $class . '\' onClick=\'ctSearchReset()\' title=\'' . $default_Label . '\'>' . $img . $labelHtml . '</button>';
-        } else {
-            return '<button class=\'' . $class . '\' onClick=\'ctSearchReset()\' title=\'' . $default_Label . '\'>' . $label . '</button>';
-        }
-    }
-
-    function message($text, $type = 'Message')
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
-
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
-
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
-
-        $this->ct->app->enqueueMessage($text, $type);
-
-        return null;
-    }
-
-    function navigation($list_type = 'list', $ul_css_class = '')
-    {
-        if ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != '')
-            return '';
-
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
-
-        $PathValue = $this->CleanNavigationPath($this->ct->Filter->PathValue);
-        if (count($PathValue) == 0)
-            return '';
-        elseif ($list_type == '' or $list_type == 'list') {
-            $vlu = '<ul' . ($ul_css_class != '' ? ' class="' . $ul_css_class . '"' : '') . '><li>' . implode('</li><li>', $PathValue) . '</li></ul>';
-            return $vlu;
-        } elseif ($list_type == 'comma')
-            return implode(',', $PathValue);
-        else
-            return 'navigation: Unknown list type';
-    }
-
-    protected function CleanNavigationPath($thePath)
-    {
-        //Returns a list of unique search path criteria - eleminates duplicates
-        $newPath = array();
-        if (count($thePath) == 0)
-            return $newPath;
-
-        for ($i = count($thePath) - 1; $i >= 0; $i--) {
-            $item = $thePath[$i];
-            if (count($newPath) == 0)
-                $newPath[] = $item;
-            else {
-                $found = false;
-                foreach ($newPath as $newitem) {
-                    if (str_contains($newitem, $item)) {
-                        $found = true;
-                        break;
-                    }
-                }
-                if (!$found)
-                    $newPath[] = $item;
-            }
-        }
-        return array_reverse($newPath);
-    }
-
-    function captcha()
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
-
-        if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
-            return '';
-
-        if (!is_null($this->ct->Params->ModuleId))
-            return '';
-
-        JHtml::_('behavior.keepalive');
-
-        $p = $this->getReCaptchaParams();
-        if ($p === null) {
-            $this->ct->app->enqueueMessage('{{ html.captcha }} - Captcha plugin not enabled.', 'error');
-            return '';
-        }
-
-        $reCaptchaParams = json_decode($p->params);
-
-        if ($reCaptchaParams === null or $reCaptchaParams->public_key == "" or !isset($reCaptchaParams->size)) {
-            $this->ct->app->enqueueMessage('{{ html.captcha }} - Captcha Public Key or size not set.', 'error');
-            return '';
-        }
-
-        JPluginHelper::importPlugin('captcha');
-
-        if ($this->ct->Env->version < 4) {
-            $dispatcher = JEventDispatcher::getInstance();
-            $dispatcher->trigger('onInit', 'my_captcha_div');
-        } else {
-            $this->ct->app->triggerEvent('onInit', array(null, 'my_captcha_div', 'class=""'));
-        }
-
-        $vlu = '
+		$pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit, '', $this->ct->Env->version);
+		return common::translate('COM_CUSTOMTABLES_SHOW') . ': ' . $pagination->getLimitBox($the_step);
+	}
+
+	function orderby()
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
+
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
+
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
+
+		if ($this->ct->Params->forceSortBy !== null and $this->ct->Params->forceSortBy != '')
+			$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_ERROR_SORT_BY_FIELD_LOCKED');
+
+		return common::translate('COM_CUSTOMTABLES_ORDER_BY') . ': ' . OrderingHTML::getOrderBox($this->ct->Ordering);
+	}
+
+	//$returnto must be provided already decoded
+	function goback($defaultLabel = 'COM_CUSTOMTABLES_GO_BACK', $image_icon = '', $attribute = '', string $returnto = ''): string
+	{
+		if ($defaultLabel === null)
+			$defaultLabel = 'COM_CUSTOMTABLES_GO_BACK';
+
+		$label = common::translate($defaultLabel);
+
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
+
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
+
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
+
+		if ($returnto == '')
+			$returnto = common::getReturnToURL() ?? '';
+
+		if ($returnto == '')
+			return '';
+
+		if ($attribute == '' and $image_icon == '') {
+			if ($this->ct->Env->toolbarIcons != '')
+				$vlu = '<a href="' . $returnto . '"><i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons
+					. ' fa-angle-left" data-icon="' . $this->ct->Env->toolbarIcons . ' fa-angle-left" title="'
+					. $label . '" style="margin-right:10px;"></i>' . $label . '</a>';
+			else
+				$vlu = '<a href="' . $returnto . '" class="ct_goback"><div>' . $label . '</div></a>';
+		} else {
+
+			$img = '';
+			if (($this->ct->Env->toolbarIcons != '' or $image_icon == '') and $attribute == '')
+				$img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' fa-angle-left" data-icon="'
+					. $this->ct->Env->toolbarIcons . ' fa-angle-left" title="' . $label . '" style="margin-right:10px;"></i>';
+			elseif ($this->ct->Env->toolbarIcons == '')
+				$img = '<img src="' . $image_icon . '" alt="' . $label . '" />';
+
+			$vlu = '<a href="' . $returnto . '" ' . $attribute . '><div>' . $img . $label . '</div></a>';
+		}
+
+		return $vlu;
+	}
+
+	function batch()
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
+
+		if ($this->ct->Env->isPlugin)
+			return '';
+
+		$buttons = func_get_args();
+		if (count($buttons) == 1) {
+			if (is_array($buttons[0]))
+				$buttons = $buttons[0];
+		}
+
+		$available_modes = $this->getAvailableModes();
+		if (count($available_modes) == 0)
+			return '';
+
+		if (is_array($buttons))
+			$buttons_array = $buttons;
+		else
+			$buttons_array = explode(',', $buttons);
+
+		if (count($buttons_array) == 0)
+			$buttons_array = $available_modes;
+
+		$html_buttons = [];
+
+		foreach ($buttons_array as $mode) {
+			if ($mode == 'checkbox') {
+				$html_buttons[] = '<input type="checkbox" id="esCheckboxAll' . $this->ct->Table->tableid . '" onChange="esCheckboxAllClicked(' . $this->ct->Table->tableid . ')" />';
+			} else {
+				if (in_array($mode, $available_modes)) {
+					$rid = 'esToolBar_' . $mode . '_box_' . $this->ct->Table->tableid;
+					$alt = common::translate('COM_CUSTOMTABLES_' . strtoupper($mode) . '_SELECTED');
+
+					if ($this->ct->Env->toolbarIcons != '') {
+						$icons = ['publish' => 'fa-check-circle', 'unpublish' => 'fa-ban', 'refresh' => 'fa-sync', 'delete' => 'fa-trash'];
+						$img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' ' . $icons[$mode] . '" data-icon="' . $this->ct->Env->toolbarIcons . ' ' . $icons[$mode] . '" title="' . $alt . '"></i>';
+					} else
+						$img = '<img src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/icons/' . $mode . '.png" border="0" alt="' . $alt . '" title="' . $alt . '" />';
+
+					$link = 'javascript:ctToolBarDO("' . $mode . '", ' . $this->ct->Table->tableid . ')';
+					$html_buttons[] = '<div id="' . $rid . '" class="toolbarIcons"><a href=\'' . $link . '\'>' . $img . '</a></div>';
+				}
+			}
+		}
+
+		if (count($html_buttons) == 0)
+			return '';
+
+		$vlu = implode('', $html_buttons);
+
+		if ($this->isTwig)
+			return $vlu;
+		else
+			return $vlu;
+	}
+
+	protected function getAvailableModes()
+	{
+		$available_modes = array();
+		if ($this->ct->Env->user->id != 0) {
+			$publish_userGroup = (int)$this->ct->Params->publishUserGroups;
+
+			if ($this->ct->Env->user->checkUserGroupAccess($publish_userGroup)) {
+				$available_modes[] = 'publish';
+				$available_modes[] = 'unpublish';
+			}
+
+			$edit_userGroup = (int)$this->ct->Params->editUserGroups;
+			if ($this->ct->Env->user->checkUserGroupAccess($edit_userGroup))
+				$available_modes[] = 'refresh';
+
+			$delete_userGroup = (int)$this->ct->Params->deleteUserGroups;
+			if ($this->ct->Env->user->checkUserGroupAccess($delete_userGroup))
+				$available_modes[] = 'delete';
+		}
+		return $available_modes;
+	}
+
+	function print($linktype = '', $label = '', $class = 'ctEditFormButton btn button')
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
+
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
+
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
+
+		$link = $this->ct->Env->current_url . (!str_contains($this->ct->Env->current_url, '?') ? '?' : '&') . 'tmpl=component&amp;print=1';
+
+		if (common::inputGetInt('moduleid', 0) != 0) {
+			//search module
+
+			$moduleid = common::inputGetInt('moduleid', 0);
+			$link .= '&amp;moduleid=' . $moduleid;
+
+			//keyword search
+			$inputbox_name = 'eskeysearch_' . $moduleid;
+			$link .= '&amp;' . $inputbox_name . '=' . common::inputGetString($inputbox_name, '');
+		}
+
+		$onClick = 'window.open("' . $link . '","win2","status=no,toolbar=no,scrollbars=yes,titlebar=no,menubar=no,resizable=yes,width=640,height=480,directories=no,location=no");return false;';
+		if ($this->ct->Env->print == 1) {
+			$vlu = '<p><a href="#" onclick="window.print();return false;"><img src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/icons/print.png" alt="' . common::translate('COM_CUSTOMTABLES_PRINT') . '"  /></a></p>';
+		} else {
+			if ($label == '')
+				$label = common::translate('COM_CUSTOMTABLES_PRINT');
+
+			if ($linktype != '')
+				$vlu = '<a href="#" onclick=\'' . $onClick . '\'><i class="ba-btn-transition fas fa-print" data-icon="fas fa-print" title="' . $label . '"></i></a>';
+			else
+				$vlu = '<input type="button" class="' . $class . '" value="' . $label . '" onClick=\'' . $onClick . '\' />';
+		}
+
+		if ($this->isTwig)
+			return $vlu;
+		else
+			return $vlu;
+	}
+
+	function search($list_of_fields_string_or_array = null, $class = '', $reload = false, $improved = ''): string
+	{
+		if (is_string($reload))
+			$reload = $reload == 'reload';
+
+		if ($list_of_fields_string_or_array === null)
+			return '{{ html.search() }} tag requires at least one field name.';
+
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
+
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
+
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
+
+		if (is_array($list_of_fields_string_or_array))
+			$list_of_fields_string_array = $list_of_fields_string_or_array;
+		else
+			$list_of_fields_string_array = explode(',', $list_of_fields_string_or_array);
+
+		if (count($list_of_fields_string_array) == 0) {
+			$this->ct->errors[] = 'Search box: Please specify a field name.';
+			return '';
+		}
+
+		$first_fld_layout = null;
+
+		//Clean list of fields
+		$list_of_fields = [];
+
+		$wrong_list_of_fields = [];
+		foreach ($list_of_fields_string_array as $field_name_string_pair) {
+
+			$field_name_pair = explode(':', $field_name_string_pair);
+			$field_name_string = $field_name_pair[0];
+			if ($first_fld_layout === null and isset($field_name_pair[1]))
+				$first_fld_layout = $field_name_pair[1];
+
+			if ($field_name_string == '_id') {
+				$list_of_fields[] = '_id';
+			} elseif ($field_name_string == '_published') {
+				$list_of_fields[] = '_published';
+			} else {
+				//Check if field name is exist in selected table
+				$fld = Fields::FieldRowByName($field_name_string, $this->ct->Table->fields);
+
+				if (!is_array($fld)) {
+					$this->ct->errors[] = 'Search box: Field name "' . $field_name_string . '" not found.';
+					return '';
+				}
+
+				if (count($fld) > 0)
+					$list_of_fields[] = $field_name_pair[0];
+				else
+					$wrong_list_of_fields[] = $field_name_string_pair;
+			}
+		}
+
+		if (count($list_of_fields) == 0) {
+			$this->ct->errors[] = 'Search box: Field' . (count($wrong_list_of_fields) > 0 ? 's' : '') . ' "' . implode(',', $wrong_list_of_fields) . '" not found.';
+			return '';
+		}
+
+		$vlu = 'Search field name is wrong';
+
+		require_once(CUSTOMTABLES_LIBRARIES_PATH
+			. DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . 'searchinputbox.php');
+
+		$SearchBox = new SearchInputBox($this->ct, 'esSearchBox');
+		$first_fld = [];
+		$first_field_type = '';
+
+		foreach ($list_of_fields as $field_name_string) {
+			if ($field_name_string == '_id') {
+				$fld = array(
+					'id' => 0,
+					'fieldname' => '_id',
+					'type' => '_id',
+					'typeparams' => '',
+					'fieldtitle' . $this->ct->Languages->Postfix => common::translate('COM_CUSTOMTABLES_ID'),
+					'realfieldname' => $this->ct->Table->realtablename,
+					'isrequired' => false,
+					'defaultvalue' => null,
+					'valuerule' => null,
+					'valuerulecaption' => null
+				);
+			} elseif ($field_name_string == '_published') {
+				$fld = array(
+					'id' => 0,
+					'fieldname' => '_published',
+					'type' => '_published',
+					'typeparams' => '',
+					'fieldtitle' . $this->ct->Languages->Postfix => common::translate('COM_CUSTOMTABLES_PUBLISHED'),
+					'realfieldname' => 'listing_published',
+					'isrequired' => false,
+					'defaultvalue' => null,
+					'valuerule' => null,
+					'valuerulecaption' => null
+				);
+			}
+
+			if ($first_field_type == '') {
+				$first_field_type = $fld['type'];
+				$first_fld = $fld;
+			} else {
+				// If field types are mixed then use string search
+				if ($first_field_type != $fld['type'])
+					$first_field_type = 'string';
+			}
+		}
+		$first_fld['type'] = $first_field_type;
+
+		if (count($list_of_fields) > 1) {
+			$first_fld['fields'] = $list_of_fields;
+			$first_fld['typeparams'] = '';
+		}
+
+		$first_fld['layout'] = $first_fld_layout;
+
+		//Add control elements
+		$fieldTitles = $this->getFieldTitles($list_of_fields);
+		$field_title = implode(' ' . common::translate('COM_CUSTOMTABLES_OR') . ' ', $fieldTitles);
+		$cssClass = 'ctSearchBox';
+
+		if ($class != '')
+			$cssClass .= ' ' . $class;
+
+		if ($improved == 'improved')
+			$cssClass .= ' ct_improved_selectbox';
+		elseif ($improved == 'virtualselect')
+			$cssClass .= ($cssClass == '' ? '' : ' ') . ' ct_virtualselect_selectbox';
+
+		$onchange = $reload ? 'ctSearchBoxDo();' : null;//action should be a space not empty or this.value=this.value
+
+		$objectName = $first_fld['fieldname'];
+
+		if (count($first_fld) == 0)
+			return 'Unsupported field type or field not found.';
+
+		$vlu = $SearchBox->renderFieldBox('es_search_box_', $objectName, $first_fld,
+			$cssClass, '0',
+			'', '', $onchange, $field_title);//action should be a space not empty or
+		//0 because it's not an edit box, and we pass onChange value even " " is the value;
+
+		$field2search = $this->prepareSearchElement($first_fld);
+		$vlu .= '<input type=\'hidden\' ctSearchBoxField=\'' . $field2search . '\' />';
+
+		return $vlu;
+	}
+
+	protected function getFieldTitles($list_of_fields): array
+	{
+		$field_titles = [];
+		foreach ($list_of_fields as $fieldname_string) {
+
+			$fieldname_pair = explode(':', $fieldname_string);
+			$fieldname = $fieldname_pair[0];
+
+			if ($fieldname == '_id')
+				$field_titles[] = common::translate('COM_CUSTOMTABLES_ID');
+			elseif ($fieldname == '_published')
+				$field_titles[] = common::translate('COM_CUSTOMTABLES_PUBLISHED');
+			else {
+				foreach ($this->ct->Table->fields as $fld) {
+					if ($fld['fieldname'] == $fieldname) {
+						$field_titles[] = $fld['fieldtitle' . $this->ct->Languages->Postfix];
+						break;
+					}
+				}
+			}
+		}
+		return $field_titles;
+	}
+
+	protected function prepareSearchElement($fld): string
+	{
+		if (isset($fld['fields']) and count($fld['fields']) > 0) {
+			return 'es_search_box_' . $fld['fieldname'] . ':' . implode(';', $fld['fields']) . ':';
+		} else {
+			return 'es_search_box_' . $fld['fieldname'] . ':' . $fld['fieldname'] . ':';
+		}
+
+		return '';
+	}
+
+	function searchbutton($label = '', $class_ = ''): string
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
+
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
+
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
+
+		$class = 'ctSearchBox';
+
+		if (isset($class_) and $class_ != '')
+			$class .= ' ' . $class_;
+		else
+			$class .= ' btn button-apply btn-primary';
+
+		$default_Label = common::translate('COM_CUSTOMTABLES_SEARCH');
+
+		if ($label == common::ctStripTags($label)) {
+			if ($this->ct->Env->toolbarIcons != '') {
+				$img = '<i class=\'' . $this->ct->Env->toolbarIcons . ' fa-search\' data-icon=\'' . $this->ct->Env->toolbarIcons . ' fa-search\' title=\'' . $label . '\'></i>';
+				$labelHtml = ($label !== '' ? '<span style=\'margin-left:10px;\'>' . $label . '</span>' : '');
+			} else {
+				$img = '';
+
+				if ($label == '')
+					$label = $default_Label;
+
+				$labelHtml = ($label !== '' ? '<span>' . $label . '</span>' : '');
+			}
+			return '<button class=\'' . $class . '\' onClick=\'ctSearchBoxDo()\' title=\'' . $default_Label . '\'>' . $img . $labelHtml . '</button>';
+		} else {
+			return '<button class=\'' . $class . '\' onClick=\'ctSearchBoxDo()\' title=\'' . $default_Label . '\'>' . $label . '</button>';
+		}
+	}
+
+	function searchreset($label = '', $class_ = '')
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
+
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
+
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
+
+		$class = 'ctSearchBox';
+
+		if (isset($class_) and $class_ != '')
+			$class .= ' ' . $class_;
+		else
+			$class .= ' btn button-apply btn-primary';
+
+		$default_Label = common::translate('COM_CUSTOMTABLES_SEARCHRESET');
+		if ($label == common::ctStripTags($label)) {
+			if ($this->ct->Env->toolbarIcons != '') {
+				$img = '<i class=\'' . $this->ct->Env->toolbarIcons . ' fa-times\' data-icon=\'' . $this->ct->Env->toolbarIcons . ' fa-times\' title=\'' . $label . '\'></i>';
+				$labelHtml = ($label !== '' ? '<span style=\'margin-left:10px;\'>' . $label . '</span>' : '');
+			} else {
+				$img = '';
+
+				if ($label == '')
+					$label = $default_Label;
+
+				$labelHtml = ($label !== '' ? '<span>' . $label . '</span>' : '');
+			}
+			return '<button class=\'' . $class . '\' onClick=\'ctSearchReset()\' title=\'' . $default_Label . '\'>' . $img . $labelHtml . '</button>';
+		} else {
+			return '<button class=\'' . $class . '\' onClick=\'ctSearchReset()\' title=\'' . $default_Label . '\'>' . $label . '</button>';
+		}
+	}
+
+	function message($text, $type = 'Message')
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
+
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
+
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
+
+		if ($type === 'error')
+			$this->ct->errors[] = $text;
+		else
+			$this->ct->messages[] = $text;
+
+		return null;
+	}
+
+	function navigation($list_type = 'list', $ul_css_class = '')
+	{
+		if ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != '')
+			return '';
+
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
+
+		$PathValue = $this->CleanNavigationPath($this->ct->Filter->PathValue);
+		if (count($PathValue) == 0)
+			return '';
+		elseif ($list_type == '' or $list_type == 'list') {
+			$vlu = '<ul' . ($ul_css_class != '' ? ' class="' . $ul_css_class . '"' : '') . '><li>' . implode('</li><li>', $PathValue) . '</li></ul>';
+			return $vlu;
+		} elseif ($list_type == 'comma')
+			return implode(',', $PathValue);
+		else
+			return 'navigation: Unknown list type';
+	}
+
+	protected function CleanNavigationPath($thePath)
+	{
+		//Returns a list of unique search path criteria - eleminates duplicates
+		$newPath = array();
+		if (count($thePath) == 0)
+			return $newPath;
+
+		for ($i = count($thePath) - 1; $i >= 0; $i--) {
+			$item = $thePath[$i];
+			if (count($newPath) == 0)
+				$newPath[] = $item;
+			else {
+				$found = false;
+				foreach ($newPath as $newitem) {
+					if (str_contains($newitem, $item)) {
+						$found = true;
+						break;
+					}
+				}
+				if (!$found)
+					$newPath[] = $item;
+			}
+		}
+		return array_reverse($newPath);
+	}
+
+	function captcha()
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
+
+		if ($this->ct->Env->isPlugin or (!is_null($this->ct->Params->ModuleId) and $this->ct->Params->ModuleId != 0))
+			return '';
+
+		if (!is_null($this->ct->Params->ModuleId))
+			return '';
+
+		if (defined('_JEXEC')) {
+			if ($this->ct->Env->version >= 4) {
+				$wa = $this->ct->document->getWebAssetManager();
+				$wa->useScript('keepalive')->useScript('form.validate');
+			} else {
+				HTMLHelper::_('behavior.formvalidation');
+				HTMLHelper::_('behavior.keepalive');
+			}
+		}
+
+		$p = $this->getReCaptchaParams();
+		if ($p === null) {
+			$this->ct->errors[] = '{{ html.captcha }} - Captcha plugin not enabled.';
+			return '';
+		}
+
+		$reCaptchaParams = json_decode($p->params);
+
+		if ($reCaptchaParams === null or $reCaptchaParams->public_key == "" or !isset($reCaptchaParams->size)) {
+			$this->ct->errors[] = '{{ html.captcha }} - Captcha Public Key or size not set.';
+			return '';
+		}
+
+		JPluginHelper::importPlugin('captcha');
+
+		if ($this->ct->Env->version < 4) {
+
+			$dispatcher = \JDispatcher::getInstance();
+			//$dispatcher = JEventDispatcher::getInstance();
+			$dispatcher->trigger('onInit', 'my_captcha_div');
+		} else {
+			$this->ct->app->triggerEvent('onInit', array(null, 'my_captcha_div', 'class=""'));
+		}
+
+		$vlu = '
     <div id="my_captcha_div"
 		class="g-recaptcha"
 		data-sitekey="' . $reCaptchaParams->public_key . '"
@@ -755,276 +752,278 @@ class Twig_Html_Tags
 		data-callback="recaptchaCallback">
 	</div>';
 
-        $this->ct->LayoutVariables['captcha'] = true;
-        return $vlu;
-    }
+		$this->ct->LayoutVariables['captcha'] = true;
+		return $vlu;
+	}
 
-    protected function getReCaptchaParams()
-    {
-        $db = Factory::getDBO();
-        $query = 'SELECT params FROM #__extensions WHERE ' . $db->quoteName("name") . '=' . $db->Quote("plg_captcha_recaptcha") . ' LIMIT 1';
-        $db->setQuery($query);
+	protected function getReCaptchaParams()
+	{
+		//$query = 'SELECT params FROM #__extensions WHERE ' . database::quoteName("name") . '=' . database::quote("plg_captcha_recaptcha") . ' LIMIT 1';
 
-        $rows = $db->loadObjectList();
-        if (count($rows) == 0)
-            return null;
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('name', 'plg_captcha_recaptcha');
 
-        return $rows[0];
-    }
+		$rows = database::loadObjectList('#__extensions', ['params', '', '', '', ''], $whereClause, null, null, 1);
+		if (count($rows) == 0)
+			return null;
 
-    /* --------------------------- PROTECTED FUNCTIONS ------------------- */
+		return $rows[0];
+	}
 
-    function button($type = 'save', $title = '', $redirectlink = null, $optional_class = '')
-    {
-        if ($this->ct->app->getName() == 'administrator')   //since   3.2
-            $formName = 'adminForm';
-        else {
-            if ($this->ct->Env->isModal)
-                $formName = 'ctEditModalForm';
-            else {
-                $formName = 'ctEditForm';
-                $formName .= $this->ct->Params->ModuleId;
-            }
-        }
+	/* --------------------------- PROTECTED FUNCTIONS ------------------- */
 
-        if ($this->ct->Env->frmt != '' and $this->ct->Env->frmt != 'html')
-            return '';
+	function button($type = 'save', $title = '', $redirectlink = null, $optional_class = '')
+	{
+		if ($this->ct->app->getName() == 'administrator')   //since   3.2
+			$formName = 'adminForm';
+		else {
+			if ($this->ct->Env->isModal)
+				$formName = 'ctEditModalForm';
+			else {
+				$formName = 'ctEditForm';
+				$formName .= $this->ct->Params->ModuleId;
+			}
+		}
 
-        if ($this->ct->Env->isPlugin)
-            return '';
+		if ($this->ct->Env->frmt != '' and $this->ct->Env->frmt != 'html')
+			return '';
 
-        if ($redirectlink === null and !is_null($this->ct->Params->returnTo))
-            $redirectlink = $this->ct->Params->returnTo;
+		if ($this->ct->Env->isPlugin)
+			return '';
 
-        switch ($type) {
-            case 'save':
-                $vlu = $this->renderSaveButton($optional_class, $title, $formName);
-                break;
+		if ($redirectlink === null and !is_null($this->ct->Params->returnTo))
+			$redirectlink = $this->ct->Params->returnTo;
 
-            case 'saveandclose':
-                $vlu = $this->renderSaveAndCloseButton($optional_class, $title, $redirectlink, $formName);
-                break;
+		switch ($type) {
+			case 'save':
+				$vlu = $this->renderSaveButton($optional_class, $title, $formName);
+				break;
 
-            case 'saveandprint':
-                $vlu = $this->renderSaveAndPrintButton($optional_class, $title, $redirectlink, $formName);
-                break;
+			case 'saveandclose':
+				$vlu = $this->renderSaveAndCloseButton($optional_class, $title, $redirectlink, $formName);
+				break;
 
-            case 'saveascopy':
+			case 'saveandprint':
+				$vlu = $this->renderSaveAndPrintButton($optional_class, $title, $redirectlink, $formName);
+				break;
 
-                if (!isset($this->ct->Table->record[$this->ct->Table->realidfieldname]) or $this->ct->Table->record[$this->ct->Table->realidfieldname] == 0)
-                    $vlu = '';
-                else
-                    $vlu = $this->renderSaveAsCopyButton($optional_class, $title, $redirectlink, $formName);
-                break;
+			case 'saveascopy':
 
-            case 'close':
-            case 'cancel':
-                $vlu = $this->renderCancelButton($optional_class, $title, $redirectlink, $formName);
-                break;
+				if (!isset($this->ct->Table->record[$this->ct->Table->realidfieldname]) or $this->ct->Table->record[$this->ct->Table->realidfieldname] == 0)
+					$vlu = '';
+				else
+					$vlu = $this->renderSaveAsCopyButton($optional_class, $title, $redirectlink, $formName);
+				break;
 
-            case 'delete':
-                $vlu = $this->renderDeleteButton($optional_class, $title, $redirectlink, $formName);
-                break;
+			case 'close':
+			case 'cancel':
+				$vlu = $this->renderCancelButton($optional_class, $title, $redirectlink, $formName);
+				break;
 
-            default:
-                $vlu = '';
+			case 'delete':
+				$vlu = $this->renderDeleteButton($optional_class, $title, $redirectlink);
+				break;
 
-        }//switch
+			default:
+				$vlu = '';
 
-        //Not clear where and how this variable used.
-        if ($this->ct->Env->frmt == 'json') {
-            $this->button_objects[] = ['type' => $type, 'title' => $title, 'redirectlink' => $redirectlink];
-            return $title;
-        }
+		}//switch
 
-        if ($this->isTwig)
-            return $vlu;
-        else
-            return $vlu;
-    }
+		//Not clear where and how this variable used.
+		if ($this->ct->Env->frmt == 'json') {
+			$this->button_objects[] = ['type' => $type, 'title' => $title, 'redirectlink' => $redirectlink];
+			return $title;
+		}
 
-    protected function renderSaveButton($optional_class, $title, $formName): string
-    {
-        if ($title == '')
-            $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SAVE');
+		return $vlu;
+	}
 
-        return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_save", $this->ct->Env->encoded_current_url,
-            true, "saveandcontinue");
-    }
+	protected function renderSaveButton($optional_class, $title, $formName): string
+	{
+		if ($title == '')
+			$title = common::translate('COM_CUSTOMTABLES_SAVE');
 
-    protected function renderButtonHTML($optional_class, string $title, $formName, string $buttonId,
-                                        string $redirect, bool $checkCaptcha, string $task): string
-    {
-        if ($this->ct->Env->frmt == 'json')
-            return $title;
+		return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_save", $this->ct->Env->encoded_current_url,
+			true, "saveandcontinue");
+	}
 
-        $attribute = '';
-        if ($checkCaptcha and ($this->ct->LayoutVariables['captcha'] ?? null))
-            $attribute = ' disabled="disabled"';
+	protected function renderButtonHTML($optional_class, string $title, $formName, string $buttonId,
+	                                    string $redirect, bool $checkCaptcha, string $task): string
+	{
+		if ($this->ct->Env->frmt == 'json')
+			return $title;
 
-        if ($optional_class != '')
-            $the_class = $optional_class;
-        else
-            $the_class = 'ctEditFormButton btn button-apply btn-success';
+		$attribute = '';
+		if ($checkCaptcha and ($this->ct->LayoutVariables['captcha'] ?? null))
+			$attribute = ' disabled="disabled"';
 
-        $the_class .= ' validate';
+		if ($optional_class != '')
+			$the_class = $optional_class;
+		else
+			$the_class = 'ctEditFormButton btn button-apply btn-success';
 
-        $isModal = ($this->ct->Env->isModal ? 'true' : 'false');
-        $parentField = $this->ct->Env->jinput->getCmd('parentfield');
+		$the_class .= ' validate';
 
-        if ($parentField === null)
-            $onclick = 'setTask(event, "' . $task . '","' . $redirect . '",true,"' . $formName . '",' . $isModal . ',null);';
-        else
-            $onclick = 'setTask(event, "' . $task . '","' . $redirect . '",true,"' . $formName . '",' . $isModal . ',"' . $parentField . '");';
+		$isModal = ($this->ct->Env->isModal ? 'true' : 'false');
+		$parentField = common::inputGetCmd('parentfield');
 
-        return '<input id="' . $buttonId . '" type="submit" class="' . $the_class . '"' . $attribute . ' onClick=\'' . $onclick . '\' value="' . $title . '">';
-    }
+		if ($parentField === null)
+			$onclick = 'setTask(event, "' . $task . '","' . $redirect . '",true,"' . $formName . '",' . $isModal . ',null);';
+		else
+			$onclick = 'setTask(event, "' . $task . '","' . $redirect . '",true,"' . $formName . '",' . $isModal . ',"' . $parentField . '");';
 
-    protected function renderSaveAndCloseButton($optional_class, $title, $redirectlink, $formName)
-    {
-        if ($title == '')
-            $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SAVEANDCLOSE');
+		return '<input id="' . $buttonId . '" type="submit" class="' . $the_class . '"' . $attribute . ' onClick=\'' . $onclick . '\' value="' . $title . '">';
+	}
 
-        return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandclose", base64_encode($redirectlink), true, "save");
-    }
+	protected function renderSaveAndCloseButton($optional_class, $title, $redirectLink, $formName)
+	{
+		if ($title == '')
+			$title = common::translate('COM_CUSTOMTABLES_SAVEANDCLOSE');
 
-    protected function renderSaveAndPrintButton($optional_class, $title, $redirectlink, $formName)
-    {
-        if ($title == '')
-            $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_NEXT');
+		$returnToEncoded = common::makeReturnToURL($redirectLink);
+		return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandclose", $returnToEncoded, true, "save");
+	}
 
-        return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandprint", base64_encode($redirectlink), true, "saveandprint");
-    }
+	protected function renderSaveAndPrintButton($optional_class, $title, $redirectLink, $formName)
+	{
+		if ($title == '')
+			$title = common::translate('COM_CUSTOMTABLES_NEXT');
 
-    protected function renderSaveAsCopyButton($optional_class, $title, $redirectlink, $formName)
-    {
-        if ($title == '')
-            $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_SAVEASCOPYANDCLOSE');
+		$returnToEncoded = common::makeReturnToURL($redirectLink);
 
-        return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandcopy", base64_encode($redirectlink), true, "saveascopy");
-    }
+		return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandprint", $returnToEncoded, true, "saveandprint");
+	}
 
-    protected function renderCancelButton($optional_class, $title, $redirectlink, $formName)
-    {
-        if ($this->ct->Env->isModal)
-            return '';
+	protected function renderSaveAsCopyButton($optional_class, $title, $redirectLink, $formName)
+	{
+		if ($title == '')
+			$title = common::translate('COM_CUSTOMTABLES_SAVEASCOPYANDCLOSE');
 
-        if ($title == '')
-            $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_CANCEL');
+		$returnToEncoded = common::makeReturnToURL($redirectLink);
 
-        if ($optional_class != '')
-            $cancel_class = $optional_class;
-        else
-            $cancel_class = 'ctEditFormButton btn button-cancel';
+		return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandcopy", $returnToEncoded, true, "saveascopy");
+	}
 
-        return $this->renderButtonHTML($cancel_class, $title, $formName, "customtables_button_cancel", base64_encode($redirectlink), false, "cancel");
-    }
+	protected function renderCancelButton($optional_class, $title, $redirectLink, $formName)
+	{
+		if ($this->ct->Env->isModal)
+			return '';
 
-    protected function renderDeleteButton($optional_class, $title, $redirectlink, $formName)
-    {
-        if ($title == '')
-            $title = JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_DELETE');
+		if ($title == '')
+			$title = common::translate('COM_CUSTOMTABLES_CANCEL');
 
-        if ($this->ct->Env->frmt == 'json')
-            return $title;
+		if ($optional_class != '')
+			$cancel_class = $optional_class;
+		else
+			$cancel_class = 'ctEditFormButton btn button-cancel';
 
-        if ($optional_class != '')
-            $class = $optional_class;
-        else
-            $class = 'ctEditFormButton btn button-cancel';
+		$returnToEncoded = common::makeReturnToURL($redirectLink);
 
-        return '<input id="customtables_button_delete" type="button" class="' . $class . '" value="' . $title . '"
+		return $this->renderButtonHTML($cancel_class, $title, $formName, "customtables_button_cancel", $returnToEncoded, false, "cancel");
+	}
+
+	protected function renderDeleteButton($optional_class, $title, $redirectLink)
+	{
+		if ($title == '')
+			$title = common::translate('COM_CUSTOMTABLES_DELETE');
+
+		if ($this->ct->Env->frmt == 'json')
+			return $title;
+
+		if ($optional_class != '')
+			$class = $optional_class;
+		else
+			$class = 'ctEditFormButton btn button-cancel';
+
+		$returnToEncoded = common::makeReturnToURL($redirectLink) ?? '';
+
+		return '<input id="customtables_button_delete" type="button" class="' . $class . '" value="' . $title . '"
 				onClick=\'
-                if (confirm("' . JoomlaBasicMisc::JTextExtended('COM_CUSTOMTABLES_DO_U_WANT_TO_DELETE') . '"))
+                if (confirm("' . common::translate('COM_CUSTOMTABLES_DO_U_WANT_TO_DELETE') . '"))
                 {
                     this.form.task.value="delete";
-                    ' . ($redirectlink != '' ? 'this.form.returnto.value="' . base64_encode($redirectlink) . '";' : '') . '
+                    ' . ($returnToEncoded != '' ? 'this.form.returnto.value="' . $returnToEncoded . '";' : '') . '
                     this.form.submit();
                 }
                 \'>' . PHP_EOL;
-    }
+	}
 
-    function tablehead()
-    {
-        $result = '<thead>';
-        $head_columns = func_get_args();
+	function tablehead()
+	{
+		$result = '<thead>';
+		$head_columns = func_get_args();
 
-        foreach ($head_columns as $head_column)
-            $result .= '<th>' . $head_column . '</th>';
+		foreach ($head_columns as $head_column)
+			$result .= '<th>' . $head_column . '</th>';
 
-        $result .= '</thead>';
+		$result .= '</thead>';
 
-        return $result;
-    }
+		return $result;
+	}
 
-    function recordlist()
-    {
-        return $this->id_list();
-    }
+	function recordlist()
+	{
+		return $this->id_list();
+	}
 
-    protected function id_list()
-    {
-        if (!isset($this->ct->Table)) {
-            $this->ct->app->enqueueMessage('{{ record.list }} - Table not loaded.', 'error');
-            return '';
-        }
+	protected function id_list()
+	{
+		if (!isset($this->ct->Table)) {
+			$this->ct->errors[] = '{{ record.list }} - Table not loaded.';
+			return '';
+		}
 
-        if (!isset($this->ct->Records)) {
-            $this->ct->app->enqueueMessage('{{ record.list }} - Records not loaded.', 'error');
-            return '';
-        }
+		if (!isset($this->ct->Records)) {
+			$this->ct->errors[] = '{{ record.list }} - Records not loaded.';
+			return '';
+		}
 
-        if ($this->ct->Table->recordlist === null)
-            $this->ct->getRecordList();
+		if ($this->ct->Table->recordlist === null)
+			$this->ct->getRecordList();
 
-        return implode(',', $this->ct->Table->recordlist);
-    }
+		return implode(',', $this->ct->Table->recordlist);
+	}
 
-    function toolbar()
-    {
-        if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-            return '';
+	function toolbar()
+	{
+		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+			return '';
 
-        if ($this->ct->Env->isPlugin)
-            return '';
+		if ($this->ct->Env->isPlugin)
+			return '';
 
-        $modes = func_get_args();
+		$modes = func_get_args();
 
-        $edit_userGroup = (int)$this->ct->Params->editUserGroups;
-        $publish_userGroup = (int)$this->ct->Params->publishUserGroups;
-        if ($publish_userGroup == 0)
-            $publish_userGroup = $edit_userGroup;
+		$edit_userGroup = (int)$this->ct->Params->editUserGroups;
+		$publish_userGroup = (int)$this->ct->Params->publishUserGroups;
+		if ($publish_userGroup == 0)
+			$publish_userGroup = $edit_userGroup;
 
-        $delete_userGroup = (int)$this->ct->Params->deleteUserGroups;
-        if ($delete_userGroup == 0)
-            $delete_userGroup = $edit_userGroup;
+		$delete_userGroup = (int)$this->ct->Params->deleteUserGroups;
+		if ($delete_userGroup == 0)
+			$delete_userGroup = $edit_userGroup;
 
-        $isEditable = CTUser::checkIfRecordBelongsToUser($this->ct, $edit_userGroup);
-        $isPublishable = CTUser::checkIfRecordBelongsToUser($this->ct, $publish_userGroup);
-        $isDeletable = CTUser::checkIfRecordBelongsToUser($this->ct, $delete_userGroup);
+		$isEditable = CTUser::checkIfRecordBelongsToUser($this->ct, $edit_userGroup);
+		$isPublishable = CTUser::checkIfRecordBelongsToUser($this->ct, $publish_userGroup);
+		$isDeletable = CTUser::checkIfRecordBelongsToUser($this->ct, $delete_userGroup);
 
-        $RecordToolbar = new RecordToolbar($this->ct, $isEditable, $isPublishable, $isDeletable);
+		$RecordToolbar = new RecordToolbar($this->ct, $isEditable, $isPublishable, $isDeletable);
 
-        if (count($modes) == 0)
-            $modes = ['edit', 'refresh', 'publish', 'delete'];
+		if (count($modes) == 0)
+			$modes = ['edit', 'refresh', 'publish', 'delete'];
 
-        if ($this->ct->Table->record === null)
-            return '';
+		if ($this->ct->Table->record === null)
+			return '';
 
-        $icons = [];
-        foreach ($modes as $mode)
-            $icons[] = $RecordToolbar->render($this->ct->Table->record, $mode);
+		$icons = [];
+		foreach ($modes as $mode)
+			$icons[] = $RecordToolbar->render($this->ct->Table->record, $mode);
 
-        return implode('', $icons);
-    }
+		return implode('', $icons);
+	}
 
-    function base64encode($str)
-    {
-        return base64_encode($str);
-    }
-
-    function checkboxcount()
-    {
-        return '<span id="ctTable' . $this->ct->Table->tableid . 'CheckboxCount">0</span>';
-    }
+	function checkboxcount()
+	{
+		return '<span id="ctTable' . $this->ct->Table->tableid . 'CheckboxCount">0</span>';
+	}
 }
