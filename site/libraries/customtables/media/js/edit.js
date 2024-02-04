@@ -1,3 +1,103 @@
+class CustomTablesEdit {
+
+    constructor() {
+
+    }
+
+    //A method to create or update table records using JavaScript. CustomTables handles data sanitization and validation.
+    saveRecord(url, fieldsAndValues, listing_id, successCallback, errorCallback) {
+
+        let completeURL = url + '?view=edititem&task=save&tmpl=component&clean=1';
+        if (listing_id !== undefined && listing_id !== null)
+            completeURL += '&listing_id=' + listing_id;
+
+        let postData = new URLSearchParams();
+
+        // Iterate over keysObject and append each key-value pair
+        for (const key in fieldsAndValues) {
+            if (fieldsAndValues.hasOwnProperty(key)) {
+                postData.append('comes_' + key, fieldsAndValues[key]);
+            }
+        }
+
+        fetch(completeURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: postData,
+        })
+            .then(response => {
+
+                if (response.redirected) {
+                    if (errorCallback && typeof errorCallback === 'function') {
+                        errorCallback('Login required or not authorized.');
+                    } else {
+                        console.error('Login required or not authorized. Error status code 200: Redirect.');
+                    }
+                    return null;
+                }
+
+                if (!response.ok) {
+                    // If the HTTP status code is not successful, throw an error object that includes the response
+                    throw {status: 'error', message: 'HTTP status code: ' + response.status, response: response};
+                    return null;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data === null)
+                    return;
+
+                console.log("data.status");
+                if (data.status === 'saved') {
+                    if (successCallback && typeof successCallback === 'function') {
+                        successCallback(data);
+                    } else {
+
+                    }
+                } else if (data.status === 'error') {
+                    if (errorCallback && typeof errorCallback === 'function') {
+                        errorCallback(data);
+                    } else {
+                        console.error(data.message);
+                    }
+                }
+            })
+            .catch(error => {
+                if (errorCallback && typeof errorCallback === 'function') {
+                    errorCallback({
+                        status: 'error',
+                        message: 'An error occurred during the request.',
+                    });
+                } else {
+                    console.error('Error', error);
+                }
+            });
+    }
+
+    //Reloads a particular table row (record) after changes have been made. It identifies the table and the specific row based on the provided listing_id and then triggers a refresh to update the displayed data.
+    reloadRecord(listing_id) {
+
+        // Select all table elements whose id attribute starts with 'ctTable_'
+        const tables = document.querySelectorAll('table[id^="ctTable_"]');
+        tables.forEach(table => {
+            let parts = table.id.split("_");
+            if (parts.length === 2) {
+                let tableId = parts[1];
+                let trId = 'ctTable_' + tableId + '_' + listing_id;
+                const records = table.querySelectorAll('tr[id^="' + trId + '"]');
+                if (records.length == 1) {
+                    let index = findRowIndexById(table.id, trId);
+                    ctCatalogUpdate(tableId, listing_id, index);
+                }
+            }
+        });
+    }
+}
+
+//---------------------------------
+
 let ctItemId = 0;
 
 function setTask(event, task, returnLink, submitForm, formName, isModal, modalFormParentField) {
@@ -1331,3 +1431,4 @@ async function onCTVirtualSelectServerSearch(searchValue, virtualSelect) {
         console.error("Error:", error);
     }
 }
+

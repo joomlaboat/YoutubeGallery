@@ -17,7 +17,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 
 use Exception;
 use Joomla\CMS\HTML\HTMLHelper;
-use JoomlaBasicMisc;
 
 class ListOfFields
 {
@@ -202,7 +201,7 @@ class ListOfFields
                 </td>';
 
 		$result .= '<td>' . common::translate($item->typeLabel) . '</td>';
-		$result .= '<td>' . common::escape($item->typeparams) . $this->checkTypeParams($item->type, $item->typeparams) . '</td>';
+		$result .= '<td>' . common::escape($item->typeparams) . $this->checkTypeParams($item->type, $item->typeparams ?? '') . '</td>';
 		$result .= '<td>' . common::translate($item->isrequired) . '</td>';
 		$result .= '<td>' . common::escape($this->ct->Table->tabletitle) . '</td>';
 		$result .= '<td class="text-center btns d-none d-md-table-cell">';
@@ -232,7 +231,7 @@ class ListOfFields
 	protected function checkTypeParams(string $type, string $typeParams): string
 	{
 		if ($type == 'sqljoin' or $type == 'records') {
-			$params = JoomlaBasicMisc::csv_explode(',', $typeParams, '"', false);
+			$params = CTMiscHelper::csv_explode(',', $typeParams, '"', false);
 
 			$error = [];
 
@@ -259,7 +258,7 @@ class ListOfFields
 
 	function getFieldTypesFromXML(bool $onlyWordpress = false): ?array
 	{
-		$xml = JoomlaBasicMisc::getXMLData('fieldtypes.xml');
+		$xml = CTMiscHelper::getXMLData('fieldtypes.xml');
 		if (count($xml) == 0 or !isset($xml->type))
 			return null;
 

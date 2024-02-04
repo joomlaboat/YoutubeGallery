@@ -16,7 +16,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 }
 
 use Joomla\CMS\Plugin\PluginHelper;
-use JoomlaBasicMisc;
 use Joomla\CMS\Version;
 use Joomla\CMS\Factory;
 use Joomla\Registry\Registry;
@@ -77,7 +76,7 @@ class Environment
 		} else
 			$this->version = 6;
 
-		$this->current_url = JoomlaBasicMisc::curPageURL();
+		$this->current_url = CTMiscHelper::curPageURL();
 
 		if (!str_contains($this->current_url, 'option=com_customtables')) {
 			$pair = explode('?', $this->current_url);
@@ -87,12 +86,12 @@ class Environment
 		} else
 			$this->current_sef_url = $this->current_url;
 
-		$tmp_current_url = JoomlaBasicMisc::deleteURLQueryOption($this->current_url, "listing_id");
-		$tmp_current_url = JoomlaBasicMisc::deleteURLQueryOption($tmp_current_url, 'number');
+		$tmp_current_url = CTMiscHelper::deleteURLQueryOption($this->current_url, "listing_id");
+		$tmp_current_url = CTMiscHelper::deleteURLQueryOption($tmp_current_url, 'number');
 
 		$this->encoded_current_url = common::makeReturnToURL($tmp_current_url);
 
-		$tmp_current_url = JoomlaBasicMisc::deleteURLQueryOption($tmp_current_url, 'returnto');
+		$tmp_current_url = CTMiscHelper::deleteURLQueryOption($tmp_current_url, 'returnto');
 		$this->encoded_current_url_no_return = common::makeReturnToURL($tmp_current_url);
 
 		$this->user = new CTUser();
@@ -199,7 +198,7 @@ class Environment
 	//https://stackoverflow.com/questions/6524301/detect-mobile-browser
 	public static function check_user_agent($type = NULL): bool
 	{
-		$user_agent = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
+		$user_agent = strtolower(common::getServerParam('HTTP_USER_AGENT') ?? '');
 		if ($type == 'bot') {
 			// matches popular bots
 			if (preg_match("/googlebot|adsbot|yahooseeker|yahoobot|msnbot|watchmouse|pingdom\.com|feedfetcher-google/", $user_agent)) {
@@ -228,7 +227,7 @@ class Environment
 
 	public static function check_user_agent_for_ie(): bool
 	{
-		$u = $_SERVER['HTTP_USER_AGENT'];
+		$u = common::getServerParam('HTTP_USER_AGENT');
 		if (str_contains($u, 'MSIE'))
 			return true;
 		elseif (str_contains($u, 'Trident'))
@@ -239,7 +238,7 @@ class Environment
 
 	public static function check_user_agent_for_apple(): bool
 	{
-		$user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+		$user_agent = strtolower(common::getServerParam('HTTP_USER_AGENT'));
 		if (preg_match("/iphone|itouch|ipod|ipad/", $user_agent)) {
 			// these are the most common
 			return true;

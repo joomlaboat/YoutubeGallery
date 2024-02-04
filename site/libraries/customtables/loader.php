@@ -41,6 +41,8 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
 	if (defined('_JEXEC')) {
 		define('CUSTOMTABLES_MEDIA_WEBPATH', URI::root(false) . 'components/com_customtables/libraries/customtables/media/');
 
+		define('CUSTOMTABLES_PLUGIN_WEBPATH', URI::root(false) . 'plugins/content/customtables/');
+
 		$url = URI::root(false);
 		if (strlen($url) > 0 and $url[strlen($url) - 1] == '/')
 			$url = substr($url, 0, strlen($url) - 1);
@@ -78,6 +80,7 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
 	if (defined('_JEXEC')) {
 		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'ct-common-joomla.php');
 		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'ct-database-joomla.php');
+		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'pagination.php');
 	} elseif (defined('WPINC')) {
 		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'ct-common-wp.php');
 		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'ct-database-wp.php');
@@ -100,7 +103,6 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
 
 	$pathDataTypes = $path . 'datatypes' . DIRECTORY_SEPARATOR;
 	require_once($pathDataTypes . 'datatypes.php');
-	require_once($pathDataTypes . 'filebox.php');
 	require_once($pathDataTypes . 'filemethods.php');
 
 	$pathDataTypes = $path . 'layouts' . DIRECTORY_SEPARATOR;
@@ -138,9 +140,6 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
 	require_once($pathDataTypes . 'forms.php');
 	require_once($pathDataTypes . 'inputbox.php');
 	require_once($pathDataTypes . 'value.php');
-
-	if (defined('_JEXEC'))
-		require_once($pathDataTypes . 'pagination.php');
 
 	$pathDataTypes = $path . 'tables' . DIRECTORY_SEPARATOR;
 	require_once($pathDataTypes . 'tables.php');

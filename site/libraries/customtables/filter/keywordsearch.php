@@ -13,7 +13,6 @@ use CustomTables\common;
 use CustomTables\CT;
 use CustomTables\database;
 use CustomTables\MySQLWhereClause;
-use Joomla\CMS\Factory;
 
 if (!defined('_JEXEC') and !defined('WPINC')) {
 	die('Restricted access');
@@ -192,7 +191,7 @@ class CustomTablesKeywordSearch
 					break;
 				}
 			}
-			//$fieldrow = ESTables::FieldRowByName($f, $this->ct->Table->fields);//2011.6.1
+			//$fieldrow = TableHelper::FieldRowByName($f, $this->ct->Table->fields);//2011.6.1
 
 			//any
 			$keyword_arr = explode(' ', $keywords);
@@ -257,7 +256,7 @@ class CustomTablesKeywordSearch
 						break;
 
 					case 'sqljoin':
-						Factory::getApplication()->enqueueMessage('Search box not ready yet.', 'error');
+						common::enqueueMessage('Search box not ready yet.');
 
 						$typeParamsArrayy = explode(',', $fieldrow['typeparams']);
 						/*
@@ -346,14 +345,13 @@ class CustomTablesKeywordSearch
 				break;
 
 			case 'sqljoin':
-				Factory::getApplication()->enqueueMessage('Search box not ready yet.', 'error');
+				common::enqueueMessage('Search box not ready yet.');
 				break;
 
 			case 'userid':
 			case 'user':
 				$inner = 'INNER JOIN #__users ON #__users.id=#__customtables_table_' . $this->ct->Table->tablename . '.es_' . $fieldname;
 				$whereClause->addCondition('#__users.name', $regExpression, 'REGEXP');
-				//$where = ' #__users.name REGEXP "' . $regExpression . '"';
 				break;
 		}
 		return $whereClause;

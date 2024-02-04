@@ -15,7 +15,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 	die('Restricted access');
 }
 
-use JoomlaBasicMisc;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Router\Route;
 use LayoutProcessor;
@@ -304,7 +303,7 @@ class Twig_Url_Tags
 
 	function server($param)
 	{
-		return $_SERVER[$param];
+		return common::getServerParam($param);
 	}
 
 	function format($format, $link_type = 'anchor', $image = '', $imagesize = '', $layoutname = '', $csv_column_separator = ','): string
@@ -316,15 +315,15 @@ class Twig_Url_Tags
 		$link = '';
 		/*
 				if ($menu_item_alias != '') {
-					$menu_item = JoomlaBasicMisc::FindMenuItemRowByAlias($menu_item_alias);//Accepts menu Itemid and alias
+					$menu_item = CTMiscHelper::FindMenuItemRowByAlias($menu_item_alias);//Accepts menu Itemid and alias
 					if ($menu_item != 0) {
 						$menu_item_id = (int)$menu_item['id'];
 						$link = $menu_item['link'];
 						$link .= '&Itemid=' . $menu_item_id;//.'&returnto='.$returnto;
 					}
 				} else {*/
-		$link = JoomlaBasicMisc::deleteURLQueryOption($this->ct->Env->current_url, 'frmt');
-		$link = JoomlaBasicMisc::deleteURLQueryOption($link, 'layout');
+		$link = CTMiscHelper::deleteURLQueryOption($this->ct->Env->current_url, 'frmt');
+		$link = CTMiscHelper::deleteURLQueryOption($link, 'layout');
 		//}
 
 		$link = Route::_($link);

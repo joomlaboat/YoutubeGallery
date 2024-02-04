@@ -11,7 +11,6 @@
 namespace CustomTables;
 
 use Exception;
-use JoomlaBasicMisc;
 use LayoutProcessor;
 use tagProcessor_Catalog;
 use tagProcessor_CatalogTableView;
@@ -101,14 +100,11 @@ class Catalog
 			} else {
 				//Show only shopping cart items. TODO: check the query
 				$this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], 0);
-				//$this->ct->Filter->where[] = $this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'] . '=0';
 			}
 		}
 
-		if ($this->ct->Params->listing_id !== null) {
+		if ($this->ct->Params->listing_id !== null)
 			$this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], $this->ct->Params->listing_id);
-			//$this->ct->Filter->where[] = $this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'] . '=' . database::quote($this->ct->Params->listing_id);
-		}
 
 // --------------------- Sorting
 		$this->ct->Ordering->parseOrderByParam();
@@ -166,9 +162,14 @@ class Catalog
 
 		$this->ct->LayoutVariables['layout_type'] = $Layouts->layoutType;
 
-// -------------------- Load Records
-		if (!$this->ct->getRecords()) {
+		// -------------------- Load Records
+		try {
+			$recordsLoaded = $this->ct->getRecords();
+		} catch (Exception $e) {
+			return $e->getMessage();
+		}
 
+		if (!$recordsLoaded) {
 			if (defined('_JEXEC'))
 				$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND');
 
@@ -176,6 +177,7 @@ class Catalog
 		}
 
 // -------------------- Parse Layouts
+
 		if ($this->ct->Env->legacySupport) {
 
 			if ($this->ct->Env->frmt == 'json') {
@@ -216,8 +218,7 @@ class Catalog
 
 		try {
 			$twig = new TwigProcessor($this->ct, $pageLayout, false, false, true, $pageLayoutNameString, $pageLayoutLink);
-
-			$pageLayout = @$twig->process();
+			$pageLayout = $twig->process();
 		} catch (Exception $e) {
 			$this->ct->errors[] = $e->getMessage();
 		}
@@ -228,7 +229,7 @@ class Catalog
 		}
 
 		if ($this->ct->Params->allowContentPlugins)
-			$pageLayout = JoomlaBasicMisc::applyContentPlugins($pageLayout);
+			$pageLayout = CTMiscHelper::applyContentPlugins($pageLayout);
 
 		return $pageLayout;
 	}

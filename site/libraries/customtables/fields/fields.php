@@ -18,10 +18,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 use CustomTablesFileMethods;
 use CustomTablesImageMethods;
 use Exception;
-use JoomlaBasicMisc;
-use ESTables;
-
-use Joomla\CMS\Factory;
 use CustomTables\ctProHelpers;
 
 class Field
@@ -29,7 +25,7 @@ class Field
 	var CT $ct;
 
 	var int $id;
-	var array $params;
+	var ?array $params;
 	var ?string $type;
 	var int $isrequired;
 	var ?string $defaultvalue;
@@ -51,7 +47,7 @@ class Field
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	function __construct(CT &$ct, array $fieldRow, $row = null, $parseParams = true)
+	function __construct(CT &$ct, array $fieldRow, ?array $row = null, bool $parseParams = true)
 	{
 		$this->ct = &$ct;
 
@@ -87,13 +83,33 @@ class Field
 					$this->description = $vlu;
 			}
 
-			$this->isrequired = intval($fieldRow['isrequired']);
-			$this->defaultvalue = $fieldRow['defaultvalue'];
-			$this->valuerule = $fieldRow['valuerule'];
-			$this->valuerulecaption = $fieldRow['valuerulecaption'];
+			if (isset($fieldRow['isrequired']))
+				$this->isrequired = intval($fieldRow['isrequired']);
+			else
+				$this->isrequired = false;
+
+			if (isset($fieldRow['defaultvalue']))
+				$this->defaultvalue = $fieldRow['defaultvalue'];
+			else
+				$this->defaultvalue = null;
+
+			if (isset($fieldRow['valuerule']))
+				$this->valuerule = $fieldRow['valuerule'];
+			else
+				$this->valuerule = null;
+
+			if (isset($fieldRow['valuerulecaption']))
+				$this->valuerulecaption = $fieldRow['valuerulecaption'];
+			else
+				$this->valuerulecaption = null;
+
 			$this->prefix = $this->ct->Env->field_input_prefix;
 			$this->comesfieldname = $this->prefix . $this->fieldname;
-			$this->params = JoomlaBasicMisc::csv_explode(',', $fieldRow['typeparams'], '"', false);
+
+			if (isset($fieldRow['typeparams']))
+				$this->params = CTMiscHelper::csv_explode(',', $fieldRow['typeparams'], '"', false);
+			else
+				$this->params = null;
 
 			if ($parseParams and $this->type != 'virtual')
 				$this->parseParams($row, $this->type);
@@ -156,9 +172,6 @@ class Fields
 				'column_default'
 			];
 
-			//$query = 'SELECT column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_name = ' . database::quote($realtablename)
-			//. ' AND column_name=' . database::quote($relaFieldName);
-
 			$whereClause->addCondition('table_name', $realtablename);
 			$whereClause->addCondition('column_name', $realFieldName);
 
@@ -176,25 +189,12 @@ class Fields
 				'EXTRA AS extra'
 			];
 
-			/*$query = 'SELECT COLUMN_NAME AS column_name,'
-				. 'DATA_TYPE AS data_type,'
-				. 'COLUMN_TYPE AS column_type,'
-				. 'IF(COLUMN_TYPE LIKE \'%unsigned\', \'YES\', \'NO\') AS is_unsigned,'
-				. 'IS_NULLABLE AS is_nullable,'
-				. 'COLUMN_DEFAULT AS column_default,'
-				. 'EXTRA AS extra'
-				. ' FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=' . database::quote($database)
-				. ' AND TABLE_NAME=' . database::quote($realtablename)
-				. ' AND column_name=' . database::quote($realFieldName)
-				. ' LIMIT 1';*/
-
 			$whereClause->addCondition('TABLE_SCHEMA', $database);
 			$whereClause->addCondition('TABLE_NAME', $realtablename);
 			$whereClause->addCondition('column_name', $realFieldName);
 
 			$rows = database::loadAssocList('information_schema.COLUMNS', $selects, $whereClause, null, null, 1);
 		}
-
 		$row = $rows[0];
 		return $row['is_nullable'] == 'YES';
 	}
@@ -228,12 +228,11 @@ class Fields
 				//Delete all photos belongs to the gallery
 
 				$imageMethods = new CustomTablesImageMethods;
-				$gallery_table_name = '#__customtables_gallery_' . $tableRow['tablename'] . '_' . $field->fieldname;
-				$imageMethods->DeleteGalleryImages($gallery_table_name, $field->fieldrow['tableid'], $field->fieldname, $field->params, true);
+				$imageMethods->DeleteGalleryImages($tableRow['tablename'] . '_' . $field->fieldname, $field->fieldrow['tableid']
+					, $field->fieldname, $field->params, true);
 
 				//Delete gallery table
-				$query = 'DROP TABLE IF EXISTS ' . $gallery_table_name;
-				database::setQuery($query);
+				database::dropTableIfExists($tableRow['tablename'] . '_' . $field->fieldname, 'gallery');
 			} elseif ($field->type == 'filebox') {
 				//Delete all files belongs to the filebox
 
@@ -241,8 +240,8 @@ class Fields
 				CustomTablesFileMethods::DeleteFileBoxFiles($fileBoxTableName, $field->fieldrow['tableid'], $field->fieldname, $field->params);
 
 				//Delete gallery table
-				$query = 'DROP TABLE IF EXISTS ' . $fileBoxTableName;
-				database::setQuery($query);
+				database::dropTableIfExists($tableRow['tablename'] . '_' . $field->fieldname, 'filebox');
+
 			} elseif ($field->type == 'image') {
 				if (Fields::checkIfFieldExists($tableRow['realtablename'], $field->realfieldname)) {
 					if (defined('_JEXEC')) {
@@ -284,8 +283,8 @@ class Fields
 		}
 
 		//Delete field from the list
-		$query = 'DELETE FROM #__customtables_fields WHERE id=' . $fieldid;
-		database::setQuery($query);
+		database::deleteRecord('#__customtables_fields', 'id', $fieldid);
+		//$query = 'DELETEFROM #__customtables_fields WHERE id=' . $fieldid;
 		return true;
 	}
 
@@ -424,7 +423,6 @@ class Fields
 			return null;
 
 		//get constrant name
-		//$query = 'show create table ' . $realtablename;
 		$tableCreateQuery = database::showCreateTable($realtablename);//::loadAssocList($query, ['', '', '', ''], $whereClause, null, null);
 
 		if (count($tableCreateQuery) == 0)
@@ -454,7 +452,7 @@ class Fields
 		$isrequired = (int)$fieldRow['isrequired'];
 
 		if ($fieldRow['type'] == 'virtual') {
-			$paramsList = JoomlaBasicMisc::csv_explode(',', $fieldRow['typeparams'], '"', false);
+			$paramsList = CTMiscHelper::csv_explode(',', $fieldRow['typeparams'], '"', false);
 			return ($paramsList[1] ?? 'virtual') == 'virtual' or '';
 		} else
 			return $isrequired == 2 or $isrequired == 3;
@@ -468,16 +466,7 @@ class Fields
 	{
 		if (Fields::checkIfFieldExists($realtablename, $realfieldname)) {
 			try {
-				$query = 'SET foreign_key_checks = 0;';
-				database::setQuery($query);
-
-				$query = 'ALTER TABLE ' . $realtablename . ' DROP ' . $realfieldname;
-
-				database::setQuery($query);
-
-				$query = 'SET foreign_key_checks = 1;';
-				database::setQuery($query);
-
+				database::dropColumn($realtablename, $realfieldname);
 				return true;
 			} catch (Exception $e) {
 				$msg = '<p style="color:#ff0000;">Caught exception: ' . $e->getMessage() . '</p>';
@@ -589,10 +578,15 @@ class Fields
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	public static function fixMYSQLField(string $realtablename, string $fieldname, string $PureFieldType, string &$msg): bool
+	public static function fixMYSQLField(string $realtablename, string $fieldname, array $PureFieldType, string &$msg, string $title): bool
 	{
 		if ($fieldname == 'id') {
-			$constrances = Fields::getTableConstrances($realtablename, '');
+			try {
+				$constrances = Fields::getTableConstrances($realtablename, '');
+			} catch (Exception $e) {
+				$msg = 'Caught exception fixMYSQLField->Fields::getTableConstrances: ' . $e->getMessage();
+				return false;
+			}
 
 			//Delete same table child-parent constrances
 			if (!is_null($constrances)) {
@@ -602,24 +596,31 @@ class Fields
 				}
 			}
 
-			$query = 'ALTER TABLE ' . $realtablename . ' CHANGE id id INT UNSIGNED NOT NULL AUTO_INCREMENT';
-			database::setQuery($query);
+			try {
+				database::changeColumn($realtablename, 'id', 'id', $PureFieldType, 'Primary Key');
+			} catch (Exception $e) {
+				$msg = 'Caught exception fixMYSQLField 1: ' . $e->getMessage();
+			}
 
 			$msg = '';
 			return true;
-		} elseif ($fieldname == 'published')
-			$query = 'ALTER TABLE ' . $realtablename . ' CHANGE published published TINYINT NOT NULL DEFAULT 1';
-		else
-			$query = 'ALTER TABLE ' . $realtablename . ' CHANGE ' . $fieldname . ' ' . $fieldname . ' ' . $PureFieldType;
-
-		try {
-			database::setQuery($query);
-			$msg = '';
-			return true;
-		} catch (Exception $e) {
-			$msg = '<p style="color:red;">Caught exception fixMYSQLField: ' . $e->getMessage() . '</p>';
-			return false;
+		} elseif ($fieldname == 'published') {
+			try {
+				database::changeColumn($realtablename, 'published', 'published', $PureFieldType, 'Publish Status');
+			} catch (Exception $e) {
+				$msg = 'Caught exception fixMYSQLField 2: ' . $e->getMessage();
+			}
+		} else {
+			//try {
+			database::changeColumn($realtablename, $fieldname, $fieldname, $PureFieldType, $title);
+			//} catch (Exception $e) {
+			//$msg = 'Caught exception fixMYSQLField 3: ' . $e->getMessage();
+			//return false;
+			//}
 		}
+
+		$msg = '';
+		return true;
 	}
 
 	/**
@@ -628,19 +629,11 @@ class Fields
 	 */
 	protected static function removeForeignKeyConstrance($realtablename, $constrance): void
 	{
-		$query = 'SET foreign_key_checks = 0;';
-		database::setQuery($query);
-
-		$query = 'ALTER TABLE ' . $realtablename . ' DROP FOREIGN KEY ' . $constrance;
-
 		try {
-			database::setQuery($query);
+			database::dropForeignKey($realtablename, $constrance);
 		} catch (Exception $e) {
-			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+			common::enqueueMessage($e->getMessage());
 		}
-
-		$query = 'SET foreign_key_checks = 1;';
-		database::setQuery($query);
 	}
 
 	/**
@@ -668,53 +661,32 @@ class Fields
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	public static function getFieldRowByName(string $fieldName, ?int $tableId = null, string $tableName = '')
+	public static function getFieldRowByName(string $fieldName, ?int $tableId = null, string $tableName = '', bool $assocList = false)
 	{
 		if ($fieldName == '')
 			return array();
 
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('s.published', 1);
-		if ($tableId !== null)
+
+		if (!empty($tableId))
 			$whereClause->addCondition('s.tableid', $tableId);
+		elseif (!empty($tableName))
+			$whereClause->addCondition('t.tablename', $tableName);
 		else
-			$whereClause->addCondition('s.fieldname', trim($fieldName));
+			return null;
+
+		$whereClause->addCondition('s.fieldname', trim($fieldName));
 
 		$from = '#__customtables_fields AS s';
 		if ($tableName != '')
-			$from .= ' INNER JOIN #__customtables_tables AS t ON t.tablename=' . database::quote($tableName);
+			$from .= ' INNER JOIN #__customtables_tables AS t ON t.id=s.tableid';
 
-		//$query = 'SELECT ' . Fields::getFieldRowSelects() . ' FROM #__customtables_fields AS s WHERE s.published=1 AND tableid=' . $tableId . ' AND fieldname=' . database::quote(trim($fieldName)) . ' LIMIT 1';
+		if ($assocList)
+			$rows = database::loadAssocList($from, self::getFieldRowSelectArray(), $whereClause, null, null, 1);
+		else
+			$rows = database::loadObjectList($from, self::getFieldRowSelectArray(), $whereClause, null, null, 1);
 
-		$rows = database::loadObjectList($from, self::getFieldRowSelectArray(), $whereClause, null, null, 1);
-
-		if (count($rows) != 1)
-			return null;
-
-		return $rows[0];
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	public static function getFieldAssocByName(string $fieldname, int $tableid): ?array
-	{
-		if ($fieldname == '')
-			$fieldname = common::inputGetCmd('fieldname', '');
-
-		if ($fieldname == '')
-			return null;
-
-		//$query = 'SELECT ' . Fields::getFieldRowSelects() . ' FROM #__customtables_fields AS s WHERE s.published=1 AND tableid=' . $tableid .
-		// ' AND fieldname="' . trim($fieldname) . '" LIMIT 1';
-
-		$whereClause = new MySQLWhereClause();
-		$whereClause->addCondition('published', 1);
-		$whereClause->addCondition('tableid', $tableid);
-		$whereClause->addCondition('fieldname', trim($fieldname));
-
-		$rows = database::loadAssocList('#__customtables_fields', Fields::getFieldRowSelectArray(), $whereClause, null, null, 1);
 		if (count($rows) != 1)
 			return null;
 
@@ -733,9 +705,9 @@ class Fields
 		return null;
 	}
 
-	public static function getRealFieldName($fieldname, $ctfields, $all_fields = false)
+	public static function getRealFieldName($fieldname, $ctFields, $all_fields = false)
 	{
-		foreach ($ctfields as $row) {
+		foreach ($ctFields as $row) {
 			if (($all_fields or $row['allowordering'] == 1) and $row['fieldname'] == $fieldname)
 				return $row['realfieldname'];
 		}
@@ -763,7 +735,7 @@ class Fields
 		$field['isdisabled'] = $fieldRow['isdisabled'];
 		$field['type'] = $fieldRow['type'];
 
-		$typeParams = JoomlaBasicMisc::csv_explode(',', $fieldRow['typeparams'], '"', false);
+		$typeParams = CTMiscHelper::csv_explode(',', $fieldRow['typeparams'], '"', false);
 		$field['typeparams'] = $typeParams;
 		$field['valuerule'] = $fieldRow['valuerule'];
 		$field['valuerulecaption'] = $fieldRow['valuerulecaption'];
@@ -778,25 +750,14 @@ class Fields
 		return $field;
 	}
 
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	public static function deleteTableLessFields(): void
-	{
-		$query = 'DELETE FROM #__customtables_fields AS f WHERE (SELECT id FROM #__customtables_tables AS t WHERE t.id = f.tableid) IS NULL';
-		database::setQuery($query);
-	}
-
 	//MySQL only
-
 	public static function getSelfParentField($ct)
 	{
 		//Check if this table has self-parent field - the TableJoin field linked with the same table.
 
 		foreach ($ct->Table->fields as $fld) {
 			if ($fld['type'] == 'sqljoin') {
-				$type_params = JoomlaBasicMisc::csv_explode(',', $fld['typeparams'], '"', false);
+				$type_params = CTMiscHelper::csv_explode(',', $fld['typeparams'], '"', false);
 				$join_tablename = $type_params[0];
 
 				if ($join_tablename == $ct->Table->tablename) {
@@ -819,10 +780,9 @@ class Fields
 		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'utilities' . DIRECTORY_SEPARATOR . 'importtables.php');
 
 		$ct = new CT;
-		$table_row = ESTables::getTableRowByID($tableId);
+		$table_row = TableHelper::getTableRowByID($tableId);
 		if (!is_object($table_row)) {
-			if (defined('_JEXEC'))
-				Factory::getApplication()->enqueueMessage('Table not found', 'error');
+			common::enqueueMessage('Table not found');
 			return null;
 		}
 
@@ -967,7 +927,6 @@ class Fields
 	 */
 	public static function getFieldID($tableid, $fieldname): int
 	{
-		//$query = 'SELECT id FROM #__customtables_fields WHERE published=1 AND tableid=' . (int)$tableid . ' AND fieldname=' . database::quote($fieldname);
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('published', 1);
 		$whereClause->addCondition('tableid', $tableid);
@@ -1018,20 +977,11 @@ class Fields
 			throw new Exception('Add New Field: Field name cannot be empty.');
 
 		if (!Fields::checkIfFieldExists($realtablename, $realfieldname)) {
-			$query = 'ALTER TABLE ' . $realtablename . ' ADD COLUMN ' . $realfieldname . ' ' . $fieldType . ' ' . $options;
 
-			if (defined('_JEXEC')) {
-				try {
-					database::setQuery($query);
-				} catch (Exception $e) {
-					throw new Exception($e->getMessage());
-				}
-			} elseif (defined('WPINC')) {
-				try {
-					database::setQuery($query);
-				} catch (Exception $e) {
-					throw new Exception($e->getMessage());
-				}
+			try {
+				database::addColumn($realtablename, $realfieldname, $fieldType, null, $options);
+			} catch (Exception $e) {
+				throw new Exception($e->getMessage());
 			}
 		}
 	}
@@ -1089,16 +1039,9 @@ class Fields
 		if ($new_type === null)
 			return false;
 
-		//Virtuality
-		if (isset($data['isrequired']) == 2 and ((int)$data['isrequired'] == 2 or (int)$data['isrequired'] == 3)) {
-			$defaultValue = self::addFieldPrefixToExpression($table_row->id, $data['defaultvalue']);
-		} else {
-			$defaultValue = $data['defaultvalue'];
-		}
-
-		$PureFieldType = '';
-		if ($new_type !== null and $new_typeparams !== null)
-			$PureFieldType = Fields::getPureFieldType($new_type, $new_typeparams, (int)$data['isrequired'], $defaultValue);
+		$PureFieldType = null;
+		if ($new_typeparams !== null)
+			$PureFieldType = Fields::getPureFieldType($new_type, $new_typeparams);
 
 		if ($realfieldname != '')
 			$fieldFound = Fields::checkIfFieldExists($realtablename, $realfieldname);
@@ -1107,7 +1050,7 @@ class Fields
 
 		if ($fieldid != 0 and $fieldFound) {
 
-			if ($PureFieldType != '') {
+			if ($PureFieldType !== null) {
 				try {
 					if (!Fields::ConvertFieldType($realtablename, $realfieldname, $ex_type, $new_type, $ex_typeparams, $new_typeparams, $PureFieldType, $fieldTitle)) {
 						$ct->errors[] = 'Field cannot be converted to new type.';
@@ -1126,7 +1069,7 @@ class Fields
 
 		if ($fieldid == 0 or !$fieldFound) {
 			//Add Field
-			Fields::addField($ct, $realtablename, $realfieldname, $new_type, $PureFieldType, $fieldTitle, $data);
+			Fields::addField($ct, $realtablename, $realfieldname, $PureFieldType, $fieldTitle, $data);
 		}
 
 		if ($new_type == 'sqljoin') {
@@ -1147,6 +1090,561 @@ class Fields
 			Fields::addForeignKey($realtablename, $realfieldname, '', '#__users', 'id', $msg);
 		}
 		return true;
+	}
+
+	public static function getPureFieldType(string $ct_fieldType, string $typeParams): array
+	{
+		$ct_fieldTypeArray = Fields::getProjectedFieldType($ct_fieldType, $typeParams);
+		return Fields::makeProjectedFieldType($ct_fieldTypeArray);
+	}
+
+	public static function getProjectedFieldType(string $ct_fieldType, ?string $typeParams): array
+	{
+		//Returns an array of mysql column parameters
+		if ($typeParams !== null)
+			$typeParamsArray = CTMiscHelper::csv_explode(',', $typeParams);
+		else
+			$typeParamsArray = null;
+
+		switch (trim($ct_fieldType)) {
+			case '_id':
+				return ['data_type' => 'int', 'is_nullable' => false, 'is_unsigned' => true, 'length' => null, 'default' => null, 'autoincrement' => true];
+
+			case '_published':
+				return ['data_type' => 'tinyint', 'is_nullable' => false, 'is_unsigned' => false, 'length' => null, 'default' => 1];
+
+			case 'filelink':
+			case 'file':
+			case 'alias':
+			case 'url':
+				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 1024, 'default' => null];
+			case 'color':
+				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 8, 'default' => null];
+			case 'string':
+			case 'multilangstring':
+				$l = (int)$typeParams;
+				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => ($l < 1 ? 255 : (min($l, 1024))), 'default' => null];
+			case 'signature':
+
+				$format = $typeParamsArray[3] ?? 'svg';
+
+				if ($format == 'svg-db')
+					return ['data_type' => 'text', 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null];
+				else
+					return ['data_type' => 'bigint', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null];
+
+			case 'blob':
+
+				if ($typeParamsArray[0] == 'tiny')
+					$type = 'tinyblob';
+				elseif ($typeParamsArray[0] == 'medium')
+					$type = 'mediumblob';
+				elseif ($typeParamsArray[0] == 'long')
+					$type = 'longblob';
+				else
+					$type = 'blob';
+
+				return ['data_type' => $type, 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null];
+
+			case 'text':
+			case 'multilangtext':
+
+				$type = 'text';
+				if (isset($typeParamsArray[2])) {
+					if ($typeParamsArray[2] == 'tiny')
+						$type = 'tinytext';
+					elseif ($typeParamsArray[2] == 'medium')
+						$type = 'mediumtext';
+					elseif ($typeParamsArray[2] == 'long')
+						$type = 'longtext';
+				}
+
+				return ['data_type' => $type, 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null];
+
+			case 'log':
+				//mediumtext
+				return ['data_type' => 'text', 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null];
+			case 'ordering':
+				return ['data_type' => 'int', 'is_nullable' => false, 'is_unsigned' => true, 'length' => null, 'default' => 0];
+			case 'time':
+			case 'int':
+				return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null];
+			case 'float':
+
+				if (count($typeParamsArray) == 1)
+					$l = '20,' . (int)$typeParamsArray[0];
+				elseif (count($typeParamsArray) == 2)
+					$l = (int)$typeParamsArray[1] . ',' . (int)$typeParamsArray[0];
+				else
+					$l = '20,2';
+				return ['data_type' => 'decimal', 'is_nullable' => true, 'is_unsigned' => false, 'length' => $l, 'default' => null];
+
+			case 'userid':
+			case 'user':
+			case 'usergroup':
+			case 'sqljoin':
+			case 'article':
+				//case 'multilangarticle':
+				return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => true, 'length' => null, 'default' => null];
+
+			case 'image':
+				$fileNameType = $typeParamsArray[3] ?? '';
+				$length = null;
+
+				if ($fileNameType == '') {
+					$type = 'bigint';
+				} else {
+					$type = 'varchar';
+					$length = 1024;
+				}
+
+				return ['data_type' => $type, 'is_nullable' => true, 'is_unsigned' => false, 'length' => $length, 'default' => null];
+
+			case 'checkbox':
+				return ['data_type' => 'tinyint', 'is_nullable' => false, 'is_unsigned' => false, 'length' => null, 'default' => 0];
+
+			case 'date':
+				if ($typeParamsArray !== null and $typeParamsArray[0] == 'datetime')
+					return ['data_type' => 'datetime', 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null];
+				else
+					return ['data_type' => 'date', 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null];
+
+			case 'creationtime':
+			case 'changetime':
+			case 'lastviewtime':
+				return ['data_type' => 'datetime', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null];
+
+			case 'viewcount':
+			case 'imagegallery':
+			case 'id':
+			case 'filebox':
+				return ['data_type' => 'bigint', 'is_nullable' => true, 'is_unsigned' => true, 'length' => null, 'default' => null];
+
+			case 'language':
+				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 5, 'default' => null];
+
+			case 'dummy':
+				return ['data_type' => null, 'is_nullable' => null, 'is_unsigned' => null, 'length' => null, 'default' => null];
+
+			case 'virtual':
+				$storage = $typeParamsArray[1] ?? '';
+
+				if ($storage == 'storedstring') {
+					$l = (int)$typeParamsArray[2] ?? 255;
+					return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => ($l < 1 ? 255 : (min($l, 4069))), 'default' => null];
+				} elseif ($storage == 'storedintegersigned')
+					return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null];
+				elseif ($storage == 'storedintegerunsigned')
+					return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => true, 'length' => null, 'default' => null];
+				else
+					return ['data_type' => null, 'is_nullable' => null, 'is_unsigned' => null, 'length' => null, 'default' => null];
+
+			case 'md5':
+				return ['data_type' => 'char', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 32, 'default' => null];
+
+			case 'phponadd':
+			case 'phponchange':
+			case 'phponview':
+				if (isset($typeParamsArray[1]) and $typeParamsArray[1] == 'dynamic')
+					return ['data_type' => null, 'is_nullable' => null, 'is_unsigned' => null, 'length' => null, 'default' => null]; //do not store field values
+				else
+					return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 255, 'default' => null];
+
+			default:
+				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 255, 'default' => null];
+		}
+	}
+
+	public static function makeProjectedFieldType(array $ct_fieldTypeArray): array
+	{
+		$type = (object)$ct_fieldTypeArray;
+		$elements = [];
+		$elements['is_nullable'] = true;
+		$elements['default'] = null;
+		$elements['autoincrement'] = $ct_fieldTypeArray['autoincrement'] ?? false;
+
+		switch ($ct_fieldTypeArray['data_type']) {
+			case 'varchar':
+				$elements['data_type'] = 'varchar(' . $type->length . ')';
+				break;
+
+			case 'tinytext':
+				$elements['data_type'] = 'tinytext';
+				break;
+
+			case 'text':
+				$elements['data_type'] = 'text';
+				break;
+
+			case 'mediumtext':
+				$elements['data_type'] = 'mediumtext';
+				break;
+
+			case 'longtext':
+				$elements['data_type'] = 'longtext';
+				break;
+
+			case 'tinyblob':
+				$elements['data_type'] = 'tinyblob';
+				break;
+
+			case 'blob':
+				$elements['data_type'] = 'blob';
+				break;
+
+			case 'mediumblob':
+				$elements['data_type'] = 'mediumblob';
+				break;
+
+			case 'longblob':
+				$elements['data_type'] = 'longblob';
+				break;
+
+			case 'char':
+				$elements['data_type'] = 'char';
+				$elements['length'] = $type->length;
+				break;
+
+			case 'int':
+				$elements['data_type'] = 'int';
+				$serverType = database::getServerType();
+				if ($serverType != 'postgresql') {
+					$elements['is_unsigned'] = $type->is_unsigned;
+				}
+				break;
+
+			case 'bigint':
+				$elements['data_type'] = 'bigint';
+				$serverType = database::getServerType();
+				if ($serverType != 'postgresql') {
+					$elements['is_unsigned'] = $type->is_unsigned;
+				}
+				break;
+
+			case 'decimal':
+				$serverType = database::getServerType();
+				if ($serverType == 'postgresql')
+					$elements['data_type'] = 'numeric';
+				else
+					$elements['data_type'] = 'decimal';
+
+				$elements['length'] = $type->length;
+
+				break;
+
+			case 'tinyint':
+				$serverType = database::getServerType();
+				if ($serverType == 'postgresql')
+					$elements['data_type'] = 'smallint';
+				else
+					$elements['data_type'] = 'tinyint';
+
+				break;
+
+			case 'date':
+				$elements['data_type'] = 'date';
+				break;
+
+			case 'datetime':
+				$serverType = database::getServerType();
+				if ($serverType == 'postgresql')
+					$elements['data_type'] = 'TIMESTAMP';
+				else
+					$elements['data_type'] = 'datetime';
+
+				break;
+
+			default:
+				return [];
+		}
+
+		if (is_string($type->is_nullable))
+			$elements['is_nullable'] = $type->is_nullable == 'YES';
+		else
+			$elements['is_nullable'] = $type->is_nullable;
+
+		if (isset($type->default))
+			$elements['default'] = $type->default;
+
+		if (isset($type->column_default))
+			$elements['default'] = $type->column_default;
+
+		return $elements;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.1.8
+	 */
+	public static function ConvertFieldType($realtablename, $realfieldname, $ex_type, $new_type, $ex_typeparams, $new_typeparams, $PureFieldType, $fieldtitle): bool
+	{
+		if ($new_type == 'blob' or $new_type == 'text' or $new_type == 'multilangtext' or $new_type == 'image') {
+			if ($new_typeparams == $ex_typeparams)
+				return true; //no need to convert
+		} else {
+			if ($new_type == $ex_type)
+				return true; //no need to convert
+		}
+
+		$inconvertible_types = array('dummy', 'virtual', 'imagegallery', 'file', 'filebox', 'signature', 'records', 'log');
+
+		if (in_array($new_type, $inconvertible_types) or in_array($ex_type, $inconvertible_types))
+			return false;
+
+		try {
+			database::changeColumn($realtablename, $realfieldname, $realfieldname, $PureFieldType, $fieldtitle);
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
+		}
+		return true;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function addField(CT $ct, string $realtablename, string $realfieldname, array $PureFieldType, string $fieldTitle, array $fieldRow): void
+	{
+		if (count($PureFieldType) == 0)
+			return;
+
+		if (!str_contains($PureFieldType['data_type'], 'multilang')) {
+			$AdditionOptions = '';
+			$serverType = database::getServerType();
+			if ($serverType != 'postgresql')
+				$AdditionOptions = ' COMMENT ' . database::quote($fieldTitle);
+
+			if ($PureFieldType['data_type'] != 'dummy' and !Fields::isVirtualField($fieldRow)) {
+				$fieldTypeString = fields::projectedFieldTypeToString($PureFieldType);
+				Fields::AddMySQLFieldNotExist($realtablename, $realfieldname, $fieldTypeString, $AdditionOptions);
+			}
+		} else {
+			$index = 0;
+			foreach ($ct->Languages->LanguageList as $lang) {
+				if ($index == 0)
+					$postfix = '';
+				else
+					$postfix = '_' . $lang->sef;
+
+				$AdditionOptions = '';
+				$serverType = database::getServerType();
+				if ($serverType != 'postgresql')
+					$AdditionOptions = ' COMMENT ' . database::quote($fieldTitle);
+
+				$fieldTypeString = fields::projectedFieldTypeToString($PureFieldType);
+				Fields::AddMySQLFieldNotExist($realtablename, $realfieldname . $postfix, $fieldTypeString, $AdditionOptions);
+
+				$index++;
+			}
+		}
+
+		if ($PureFieldType['data_type'] == 'imagegallery') {
+			//Create table
+			//get CT table name if possible
+
+			$tableName = str_replace(database::getDBPrefix() . 'customtables_table', '', $realtablename);
+			$fieldName = str_replace($ct->Env->field_prefix, '', $realfieldname);
+			Fields::CreateImageGalleryTable($tableName, $fieldName);
+		} elseif ($PureFieldType['data_type'] == 'filebox') {
+			//Create table
+			//get CT table name if possible
+			$tableName = str_replace(database::getDBPrefix() . 'customtables_table', '', $realtablename);
+			$fieldName = str_replace($ct->Env->field_prefix, '', $realfieldname);
+			Fields::CreateFileBoxTable($tableName, $fieldName);
+		}
+	}
+
+	public static function projectedFieldTypeToString(array $PureFieldType): string
+	{
+		if (key_exists('is_nullable', $PureFieldType) and is_string($PureFieldType['is_nullable']))
+			$is_nullable = $PureFieldType['is_nullable'] == 'YES';
+		else
+			$is_nullable = $PureFieldType['is_nullable'] ?? true;
+
+		return $PureFieldType['data_type']
+			. (($PureFieldType['length'] ?? null) !== null ? '(' . $PureFieldType['length'] . ')' : '')
+			. (($PureFieldType['is_unsigned'] ?? false) ? ' UNSIGNED' : '')
+			. ($is_nullable ? ' NULL' : ' NOT NULL')
+			. (($PureFieldType['default'] ?? null) !== null ? ' DEFAULT ' . $PureFieldType['default'] : '')
+			. (($PureFieldType['autoincrement'] ?? false) ? ' AUTO_INCREMENT' : '');
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function CreateImageGalleryTable($tablename, $fieldname): bool
+	{
+		$columns = [
+			'listingid bigint not null',
+			'ordering int not null',
+			'photo_ext varchar(10) not null',
+			'title varchar(100) null'
+		];
+		database::createTable('#__customtables_gallery_' . $tablename . '_' . $fieldname, 'photoid',
+			$columns, 'Image Gallery', null, 'BIGINT UNSIGNED');
+
+		return true;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function CreateFileBoxTable($tablename, $fieldname): bool
+	{
+		$columns = [
+			'listingid bigint not null',
+			'ordering int not null',
+			'file_ext varchar(10) not null',
+			'title varchar(100) null'
+		];
+		database::createTable('#__customtables_filebox_' . $tablename . '_' . $fieldname, 'fileid', $columns,
+			'File Box', null, 'BIGINT UNSIGNED');
+
+		return true;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function addIndexIfNotExist($realtablename, $realfieldname): void
+	{
+		$serverType = database::getServerType();
+
+		if ($serverType == 'postgresql') {
+			//Indexes not yet supported
+		} else {
+			$rows = database::getTableIndex($realtablename, $realfieldname);
+			//$query = 'SHOW INDEX FROM ' . $realtablename . ' WHERE Key_name = "' . $realfieldname . '"';
+
+			if (count($rows) == 0) {
+				database::addIndex($realtablename, $realfieldname);
+				//$query = 'ALTERTABLE ' . $realtablename . ' ADD INDEX(' . $realfieldname . ');';
+			}
+		}
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function addForeignKey($realtablename_, $realfieldname, string $new_typeparams, string $join_with_table_name, string $join_with_table_field, &$msg): bool
+	{
+		$realtablename = database::realTableName($realtablename_);
+		$serverType = database::getServerType();
+		if ($serverType == 'postgresql')
+			return false;
+
+		//Create Key only if possible
+		$typeParams = explode(',', $new_typeparams);
+
+		if ($join_with_table_name == '') {
+			if ($new_typeparams == '') {
+				$msg = 'Parameters not set.';
+				return false; //Exit if parameters not set
+			}
+
+			if (count($typeParams) < 2) {
+				$msg = 'Parameters not complete.';
+				return false;    // Exit if field not set (just in case)
+			}
+
+			$tableRow = TableHelper::getTableRowByName($typeParams[0]); //[0] - is tablename
+			if (!is_object($tableRow)) {
+				$msg = 'Join with table "' . $join_with_table_name . '" not found.';
+				return false;    // Exit if table to connect with not found
+			}
+
+			$join_with_table_name = $tableRow->realtablename;
+			$join_with_table_field = $tableRow->realidfieldname;
+		}
+
+		$join_with_table_name = database::realTableName($join_with_table_name);
+
+		Fields::removeForeignKey($realtablename, $realfieldname);
+
+		if (isset($typeParams[7]) and $typeParams[7] == 'addforeignkey') {
+			Fields::cleanTableBeforeNormalization($realtablename, $realfieldname, $join_with_table_name, $join_with_table_field);
+
+			try {
+				database::addForeignKey($realtablename, $realfieldname, $join_with_table_name, $join_with_table_field);
+				return true;
+			} catch (Exception $e) {
+				$msg = $e->getMessage();
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function cleanTableBeforeNormalization($realtablename, $realfieldname, $join_with_table_name, $join_with_table_field): void
+	{
+		$serverType = database::getServerType();
+		if ($serverType == 'postgresql')
+			return;
+
+		//Find broken records
+		$from = $realtablename . ' a LEFT JOIN ' . $join_with_table_name . ' b ON a.' . $realfieldname . '=b.' . $join_with_table_field;
+
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('b.' . $join_with_table_field, null, 'NULL');
+		$rows = database::loadAssocList($from, ['DISTINCT a.' . $realfieldname . ' AS customtables_distinct_temp_id'], $whereClause);
+
+		$whereClauseUpdate = new MySQLWhereClause();
+		$whereClauseUpdate->addOrCondition($realfieldname, 0);
+
+		foreach ($rows as $row) {
+			if ($row['customtables_distinct_temp_id'] != '')
+				$whereClauseUpdate->addOrCondition($realfieldname, $row['customtables_distinct_temp_id']);
+		}
+		database::update($realtablename, [$realfieldname => null], $whereClauseUpdate);
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.3
+	 */
+	protected static function findAndFixFieldOrdering(): void
+	{
+		$data = [
+			'ordering' => ['id', 'sanitized']
+		];
+		$whereClauseUpdate = new MySQLWhereClause();
+		$whereClauseUpdate->addOrCondition('ordering', null, 'NULL');
+		$whereClauseUpdate->addOrCondition('ordering', 0);
+
+		try {
+			database::update('#__customtables_fields', $data, $whereClauseUpdate);
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
+		}
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.3
+	 */
+	protected static function findAndFixOrderingFieldRecords(object $table_row, string $realFieldName): void
+	{
+		$ct = new CT;
+		$table_row_array = (array)$table_row;
+		$ct->setTable($table_row_array);
+
+		$data = [$realFieldName => [$ct->Table->realidfieldname, 'sanitized']];
+		$whereClauseUpdate = new MySQLWhereClause();
+		$whereClauseUpdate->addOrCondition($realFieldName, null, 'NULL');
+		$whereClauseUpdate->addOrCondition($realFieldName, 0);
+
+		try {
+			database::update($ct->Table->realtablename, $data, $whereClauseUpdate);
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
+		}
 	}
 
 	/**
@@ -1213,625 +1711,45 @@ class Fields
 
 		if ((int)$tableid_or_name > 0) {
 			$whereClause->addCondition('f.tableid', (int)$tableid_or_name);
-			//$where = 'f.published=1 AND f.tableid=' . (int)$tableid_or_name;
 		} else {
 			$w1 = '(SELECT t.id FROM #__customtables_tables AS t WHERE t.tablename=' . database::quote($tableid_or_name) . ' LIMIT 1)';
 			$whereClause->addCondition('f.tableid', $w1, '=', true);
-			//$where = 'f.published=1 AND f.tableid=' . $w1;
 		}
-
-		//$query = 'SELECT ' . Fields::getFieldRowSelects() . ' FROM #__customtables_fields AS f WHERE ' . $where . $order;
 
 		$output_type = $as_object ? 'OBJECT' : 'ARRAY_A';
 		return database::loadObjectList('#__customtables_fields AS f', self::getFieldRowSelectArray(), $whereClause,
 			($order_fields ? 'f.ordering, f.fieldname' : null), null, null, null, $output_type);
 	}
 
-	public static function getPureFieldType(string $ct_fieldType, string $typeParams, int $isRequiredOrGenerated = 0): string
+	public static function convertRawFieldType(array $rawDataType): array
 	{
-		$ct_fieldTypeArray = Fields::getProjectedFieldType($ct_fieldType, $typeParams);
-		if ($isRequiredOrGenerated == 2 or $isRequiredOrGenerated == 3) {
-			//$ct_fieldTypeArray['generation_expression'] = $defaultValue;
-			$ct_fieldTypeArray['extra'] = ($isRequiredOrGenerated == 2 ? 'VIRTUAL' : 'STORED') . ' GENERATED';
-			//$ct_fieldTypeArray['required_or_generated'] = $isRequiredOrGenerated;
-		} else {
-			//$ct_fieldTypeArray['required_or_generated'] = null;
+		$newData = [];
+		$newData['data_type'] = $rawDataType['data_type'];
+
+		if ($rawDataType['data_type'] == 'varchar' or $rawDataType['data_type'] == 'char' or $rawDataType['data_type'] == 'decimal') {
+
+			$newData['length'] = self::parse_column_type($rawDataType['column_type']);
+			if ($newData['length'] == '')
+				$newData['length'] = null;
 		}
 
-		return Fields::makeProjectedFieldType($ct_fieldTypeArray);
+		$newData['is_nullable'] = $rawDataType['is_nullable'] == 'YES';
+		$newData['is_unsigned'] = $rawDataType['is_unsigned'] == 'YES';
+		$newData['default'] = $rawDataType['column_default'] ?? null;
+		$newData['autoincrement'] = ($rawDataType['extra'] ?? '') == 'auto_increment';
+
+		return $newData;
 	}
 
-	public static function getProjectedFieldType(string $ct_fieldType, ?string $typeParams): array
+	protected static function parse_column_type(string $parse_column_type_string): string
 	{
-		//Returns an array of mysql column parameters
-		if ($typeParams !== null)
-			$typeParamsArray = JoomlaBasicMisc::csv_explode(',', $typeParams);
-		else
-			$typeParamsArray = null;
-
-		switch (trim($ct_fieldType)) {
-			case '_id':
-				return ['data_type' => 'int', 'is_nullable' => false, 'is_unsigned' => true, 'length' => null, 'default' => null, 'extra' => 'auto_increment'];
-
-			case '_published':
-				return ['data_type' => 'tinyint', 'is_nullable' => false, 'is_unsigned' => false, 'length' => null, 'default' => 1, 'extra' => null];
-
-			case 'filelink':
-			case 'file':
-			case 'alias':
-			case 'url':
-				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 1024, 'default' => null, 'extra' => null];
-			case 'color':
-				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 8, 'default' => null, 'extra' => null];
-			case 'string':
-			case 'multilangstring':
-				$l = (int)$typeParams;
-				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => ($l < 1 ? 255 : (min($l, 1024))), 'default' => null, 'extra' => null];
-			case 'signature':
-
-				$format = $typeParamsArray[3] ?? 'svg';
-
-				if ($format == 'svg-db')
-					return ['data_type' => 'text', 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null];
-				else
-					return ['data_type' => 'bigint', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null, 'extra' => null];
-
-			case 'blob':
-
-				if ($typeParamsArray[0] == 'tiny')
-					$type = 'tinyblob';
-				elseif ($typeParamsArray[0] == 'medium')
-					$type = 'mediumblob';
-				elseif ($typeParamsArray[0] == 'long')
-					$type = 'longblob';
-				else
-					$type = 'blob';
-
-				return ['data_type' => $type, 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null];
-
-			case 'text':
-			case 'multilangtext':
-
-				$type = 'text';
-				if (isset($typeParamsArray[2])) {
-					if ($typeParamsArray[2] == 'tiny')
-						$type = 'tinytext';
-					elseif ($typeParamsArray[2] == 'medium')
-						$type = 'mediumtext';
-					elseif ($typeParamsArray[2] == 'long')
-						$type = 'longtext';
-				}
-
-				return ['data_type' => $type, 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null];
-
-			case 'log':
-				//mediumtext
-				return ['data_type' => 'text', 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null];
-			case 'ordering':
-				return ['data_type' => 'int', 'is_nullable' => false, 'is_unsigned' => true, 'length' => null, 'default' => 0, 'extra' => null];
-			case 'time':
-			case 'int':
-				return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null, 'extra' => null];
-			case 'float':
-
-				if (count($typeParamsArray) == 1)
-					$l = '20,' . (int)$typeParamsArray[0];
-				elseif (count($typeParamsArray) == 2)
-					$l = (int)$typeParamsArray[1] . ',' . (int)$typeParamsArray[0];
-				else
-					$l = '20,2';
-				return ['data_type' => 'decimal', 'is_nullable' => true, 'is_unsigned' => false, 'length' => $l, 'default' => null, 'extra' => null];
-
-			case 'userid':
-			case 'user':
-			case 'usergroup':
-			case 'sqljoin':
-			case 'article':
-				//case 'multilangarticle':
-				return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => true, 'length' => null, 'default' => null, 'extra' => null];
-
-			case 'image':
-				$fileNameType = $typeParamsArray[3] ?? '';
-				$length = null;
-
-				if ($fileNameType == '') {
-					$type = 'bigint';
-				} else {
-					$type = 'varchar';
-					$length = 1024;
-				}
-
-				return ['data_type' => $type, 'is_nullable' => true, 'is_unsigned' => false, 'length' => $length, 'default' => null, 'extra' => null];
-
-			case 'checkbox':
-				return ['data_type' => 'tinyint', 'is_nullable' => false, 'is_unsigned' => false, 'length' => null, 'default' => 0, 'extra' => null];
-
-			case 'date':
-				if ($typeParamsArray !== null and $typeParamsArray[0] == 'datetime')
-					return ['data_type' => 'datetime', 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null];
-				else
-					return ['data_type' => 'date', 'is_nullable' => true, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null];
-
-			case 'creationtime':
-			case 'changetime':
-			case 'lastviewtime':
-				return ['data_type' => 'datetime', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null, 'extra' => null];
-
-			case 'viewcount':
-			case 'imagegallery':
-			case 'id':
-			case 'filebox':
-				return ['data_type' => 'bigint', 'is_nullable' => true, 'is_unsigned' => true, 'length' => null, 'default' => null, 'extra' => null];
-
-			case 'language':
-				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 5, 'default' => null, 'extra' => null];
-
-			case 'dummy':
-				return ['data_type' => null, 'is_nullable' => null, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null];
-
-			case 'virtual':
-				$storage = $typeParamsArray[1] ?? '';
-
-				if ($storage == 'storedstring') {
-					$l = (int)$typeParamsArray[2] ?? 255;
-					return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => ($l < 1 ? 255 : (min($l, 4069))), 'default' => null, 'extra' => null];
-				} elseif ($storage == 'storedintegersigned')
-					return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null, 'extra' => null];
-				elseif ($storage == 'storedintegerunsigned')
-					return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => true, 'length' => null, 'default' => null, 'extra' => null];
-				else
-					return ['data_type' => null, 'is_nullable' => null, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null];
-
-			case 'md5':
-				return ['data_type' => 'char', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 32, 'default' => null, 'extra' => null];
-
-			case 'phponadd':
-			case 'phponchange':
-			case 'phponview':
-				if (isset($typeParamsArray[1]) and $typeParamsArray[1] == 'dynamic')
-					return ['data_type' => null, 'is_nullable' => null, 'is_unsigned' => null, 'length' => null, 'default' => null, 'extra' => null]; //do not store field values
-				else
-					return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 255, 'default' => null, 'extra' => null];
-
-			default:
-				return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => 255, 'default' => null, 'extra' => null];
+		$parts = explode('(', $parse_column_type_string);
+		if (count($parts) > 1) {
+			$length = str_replace(')', '', $parts[1]);
+			if ($length != '')
+				return $length;
 		}
-	}
-
-	public static function makeProjectedFieldType(array $ct_fieldTypeArray): string
-	{
-		$type = (object)$ct_fieldTypeArray;
-		$elements = [];
-
-		switch ($type->data_type) {
-			case 'varchar':
-				$elements[] = 'varchar(' . $type->length . ')';
-				break;
-
-			case 'tinytext':
-				$elements[] = 'tinytext';
-				break;
-
-			case 'text':
-				$elements[] = 'text';
-				break;
-
-			case 'mediumtext':
-				$elements[] = 'mediumtext';
-				break;
-
-			case 'longtext':
-				$elements[] = 'longtext';
-				break;
-
-			case 'tinyblob':
-				$elements[] = 'tinyblob';
-				break;
-
-			case 'blob':
-				$elements[] = 'blob';
-				break;
-
-			case 'mediumblob':
-				$elements[] = 'mediumblob';
-				break;
-
-			case 'longblob':
-				$elements[] = 'longblob';
-				break;
-
-			case 'char':
-				$elements[] = 'char(' . $type->length . ')';
-				break;
-
-			case 'int':
-				$elements[] = 'int';
-				$serverType = database::getServerType();
-				if ($serverType != 'postgresql') {
-					if ($type->is_nullable !== null and $type->is_unsigned)
-						$elements[] = 'unsigned';
-				}
-				break;
-
-			case 'bigint':
-				$elements[] = 'bigint';
-				$serverType = database::getServerType();
-				if ($serverType != 'postgresql') {
-					if ($type->is_nullable !== null and $type->is_unsigned)
-						$elements[] = 'unsigned';
-				}
-				break;
-
-			case 'decimal':
-				$serverType = database::getServerType();
-				if ($serverType == 'postgresql')
-					$elements[] = 'numeric(' . $type->length . ')';
-				else
-					$elements[] = 'decimal(' . $type->length . ')';
-
-				break;
-
-			case 'tinyint':
-				$serverType = database::getServerType();
-				if ($serverType == 'postgresql')
-					$elements[] = 'smallint';
-				else
-					$elements[] = 'tinyint';
-
-				break;
-
-			case 'date':
-				$elements[] = 'date';
-				break;
-
-			case 'datetime':
-				$serverType = database::getServerType();
-				if ($serverType == 'postgresql')
-					$elements[] = 'TIMESTAMP';
-				else
-					$elements[] = 'datetime';
-
-				break;
-
-			default:
-				return '';
-		}
-
-		//Check for virtuality
-		if (isset($type->extra) and str_contains($type->extra, 'GENERATED')) {
-
-			$type->default = null;
-			/*
-			if ($type->extra == 'VIRTUAL GENERATED')
-				$elements[] = 'AS (' . $ct_fieldTypeArray['generation_expression'] . ') VIRTUAL';
-
-			if ($type->extra == 'STORED GENERATED')
-				$elements[] = 'AS (' . $ct_fieldTypeArray['generation_expression'] . ') STORED';
-			*/
-
-		} elseif (isset($type->required_or_generated)) {
-
-			$type->default = null;
-			/*
-			if ($type->required_or_generated == 2)
-				$elements[] = 'AS (' . $ct_fieldTypeArray['generation_expression'] . ') VIRTUAL';
-
-			if ($type->required_or_generated == 3)
-				$elements[] = 'AS (' . $ct_fieldTypeArray['generation_expression'] . ') STORED';
-			*/
-		}
-
-		if ($type->is_nullable)
-			$elements[] = 'null';
-		else
-			$elements[] = 'not null';
-
-		if (isset($type->default))
-			$elements[] = 'default ' . (is_numeric($type->default) ? $type->default : database::quote($type->default));
-
-		if ($type->extra !== null and !str_contains($type->extra, 'GENERATED'))
-			$elements[] = $type->extra;
-
-		return implode(' ', $elements);
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.1.8
-	 */
-	public static function ConvertFieldType($realtablename, $realfieldname, $ex_type, $new_type, $ex_typeparams, $new_typeparams, $PureFieldType, $fieldtitle): bool
-	{
-		if ($new_type == 'blob' or $new_type == 'text' or $new_type == 'multilangtext' or $new_type == 'image') {
-			if ($new_typeparams == $ex_typeparams)
-				return true; //no need to convert
-		} else {
-			if ($new_type == $ex_type)
-				return true; //no need to convert
-		}
-
-		$inconvertible_types = array('dummy', 'virtual', 'imagegallery', 'file', 'filebox', 'signature', 'records', 'log');
-
-		if (in_array($new_type, $inconvertible_types) or in_array($ex_type, $inconvertible_types))
-			return false;
-
-		$PureFieldType_ = $PureFieldType;
-
-		$serverType = database::getServerType();
-
-		if ($serverType == 'postgresql') {
-			$parts = explode(' ', $PureFieldType_);
-			$query = 'ALTER TABLE ' . $realtablename
-				. ' ALTER COLUMN ' . $realfieldname . ' TYPE ' . $parts[0];
-
-		} else {
-			$query = 'ALTER TABLE ' . $realtablename . ' CHANGE ' . $realfieldname . ' ' . $realfieldname . ' ' . $PureFieldType_;
-			$query .= ' COMMENT ' . database::quote($fieldtitle);
-		}
-
-		try {
-			database::setQuery($query);
-		} catch (Exception $e) {
-			throw new Exception($e->getMessage());
-		}
-		return true;
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	public static function addField(CT $ct, string $realtablename, string $realfieldname, string $fieldType, string $PureFieldType, string $fieldTitle, array $fieldRow): void
-	{
-		if ($PureFieldType == '')
-			return;
-
-		if (!str_contains($fieldType, 'multilang')) {
-			$AdditionOptions = '';
-			$serverType = database::getServerType();
-			if ($serverType != 'postgresql')
-				$AdditionOptions = ' COMMENT ' . database::quote($fieldTitle);
-
-			if ($fieldType != 'dummy' and !Fields::isVirtualField($fieldRow))
-				Fields::AddMySQLFieldNotExist($realtablename, $realfieldname, $PureFieldType, $AdditionOptions);
-		} else {
-			$index = 0;
-			foreach ($ct->Languages->LanguageList as $lang) {
-				if ($index == 0)
-					$postfix = '';
-				else
-					$postfix = '_' . $lang->sef;
-
-				$AdditionOptions = '';
-				$serverType = database::getServerType();
-				if ($serverType != 'postgresql')
-					$AdditionOptions = ' COMMENT ' . database::quote($fieldTitle);
-
-				Fields::AddMySQLFieldNotExist($realtablename, $realfieldname . $postfix, $PureFieldType, $AdditionOptions);
-
-				$index++;
-			}
-		}
-
-		if ($fieldType == 'imagegallery') {
-			//Create table
-			//get CT table name if possible
-
-			$tableName = str_replace(database::getDBPrefix() . 'customtables_table', '', $realtablename);
-			$fieldName = str_replace($ct->Env->field_prefix, '', $realfieldname);
-			Fields::CreateImageGalleryTable($tableName, $fieldName);
-		} elseif ($fieldType == 'filebox') {
-			//Create table
-			//get CT table name if possible
-			$tableName = str_replace(database::getDBPrefix() . 'customtables_table', '', $realtablename);
-			$fieldName = str_replace($ct->Env->field_prefix, '', $realfieldname);
-			Fields::CreateFileBoxTable($tableName, $fieldName);
-		}
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	public static function CreateImageGalleryTable($tablename, $fieldname): bool
-	{
-		$image_gallery_table = '#__customtables_gallery_' . $tablename . '_' . $fieldname;
-
-		$query = 'CREATE TABLE IF not EXISTS ' . $image_gallery_table . ' (
-  photoid bigint not null auto_increment,
-  listingid bigint not null,
-  ordering int not null,
-  photo_ext varchar(10) not null,
-  title varchar(100) null,
-   PRIMARY KEY  (photoid)
-) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci AUTO_INCREMENT=1 ;
-';
-		database::setQuery($query);
-		return true;
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	public static function CreateFileBoxTable($tablename, $fieldname): bool
-	{
-		$filebox_gallery_table = '#__customtables_filebox_' . $tablename . '_' . $fieldname;
-
-		$query = 'CREATE TABLE IF not EXISTS ' . $filebox_gallery_table . ' (
-  fileid bigint not null auto_increment,
-  listingid bigint not null,
-  ordering int not null,
-  file_ext varchar(10) not null,
-  title varchar(100) not null,
-   PRIMARY KEY  (fileid)
-) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci AUTO_INCREMENT=1 ;
-';
-		database::setQuery($query);
-		return true;
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	public static function addIndexIfNotExist($realtablename, $realfieldname): void
-	{
-		$serverType = database::getServerType();
-
-		if ($serverType == 'postgresql') {
-			//Indexes not yet supported
-		} else {
-			$rows = database::getTableIndex($realtablename, $realfieldname);
-			//$query = 'SHOW INDEX FROM ' . $realtablename . ' WHERE Key_name = "' . $realfieldname . '"';
-
-			if (count($rows) == 0) {
-				$query = 'ALTER TABLE ' . $realtablename . ' ADD INDEX(' . $realfieldname . ');';
-				database::setQuery($query);
-			}
-		}
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	public static function addForeignKey($realtablename_, $realfieldname, string $new_typeparams, string $join_with_table_name, string $join_with_table_field, &$msg): bool
-	{
-		$realtablename = database::realTableName($realtablename_);
-		$serverType = database::getServerType();
-		if ($serverType == 'postgresql')
-			return false;
-
-		//Create Key only if possible
-		$typeParams = explode(',', $new_typeparams);
-
-		if ($join_with_table_name == '') {
-			if ($new_typeparams == '') {
-				$msg = 'Parameters not set.';
-				return false; //Exit if parameters not set
-			}
-
-			if (count($typeParams) < 2) {
-				$msg = 'Parameters not complete.';
-				return false;    // Exit if field not set (just in case)
-			}
-
-			$tableRow = ESTables::getTableRowByName($typeParams[0]); //[0] - is tablename
-			if (!is_object($tableRow)) {
-				$msg = 'Join with table "' . $join_with_table_name . '" not found.';
-				return false;    // Exit if table to connect with not found
-			}
-
-			$join_with_table_name = $tableRow->realtablename;
-			$join_with_table_field = $tableRow->realidfieldname;
-		}
-
-		$join_with_table_name = database::realTableName($join_with_table_name);
-		$database = database::getDataBaseName();
-
-		Fields::removeForeignKey($realtablename, $realfieldname);
-
-		if (isset($typeParams[7]) and $typeParams[7] == 'addforignkey') {
-			Fields::cleanTableBeforeNormalization($realtablename, $realfieldname, $join_with_table_name, $join_with_table_field);
-
-			$query = 'ALTER TABLE ' . database::quoteName($realtablename) . ' ADD FOREIGN KEY (' . $realfieldname . ') REFERENCES '
-				. database::quoteName($database . '.' . $join_with_table_name) . ' (' . $join_with_table_field . ') ON DELETE RESTRICT ON UPDATE RESTRICT;';
-
-			try {
-				database::setQuery($query);
-				return true;
-			} catch (Exception $e) {
-				$msg = $e->getMessage();
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	public static function cleanTableBeforeNormalization($realtablename, $realfieldname, $join_with_table_name, $join_with_table_field): void
-	{
-		$serverType = database::getServerType();
-		if ($serverType == 'postgresql')
-			return;
-
-		//Find broken records
-		//$query = 'SELECT DISTINCT a.' . $realfieldname . ' AS customtables_distinct_temp_id FROM
-		//' . $realtablename . ' a LEFT JOIN ' . $join_with_table_name . ' b ON a.' . $realfieldname . '=b.' . $join_with_table_field
-		//. ' WHERE b.' . $join_with_table_field . ' IS NULL;';
-
-		$from = $realtablename . ' a LEFT JOIN ' . $join_with_table_name . ' b ON a.' . $realfieldname . '=b.' . $join_with_table_field;
-
-		$whereClause = new MySQLWhereClause();
-		$whereClause->addCondition('b.' . $join_with_table_field, null, 'NULL');
-		$rows = database::loadAssocList($from, ['DISTINCT a.' . $realfieldname . ' AS customtables_distinct_temp_id'], $whereClause);
-
-		$whereClauseUpdate = new MySQLWhereClause();
-		$whereClauseUpdate->addOrCondition($realfieldname, 0);
-		//$where_ids = array();
-		//$where_ids[] = $realfieldname . '=0';
-
-		foreach ($rows as $row) {
-			if ($row['customtables_distinct_temp_id'] != '')
-				$whereClauseUpdate->addOrCondition($realfieldname, $row['customtables_distinct_temp_id']);
-			//$where_ids[] = $realfieldname . '=' . $row['customtables_distinct_temp_id'];
-		}
-
-		database::update($realtablename, [$realfieldname => null], $whereClauseUpdate);
-
-		//$query = 'UPDATE ' . $realtablename . ' SET ' . $realfieldname . '=NULL WHERE ' . implode(' OR ', $where_ids) . ';';
-		//database::setQuery($query);
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.3
-	 */
-	protected static function findAndFixFieldOrdering(): void
-	{
-		$data = [
-			'ordering' => ['id', 'sanitized']
-		];
-		$whereClauseUpdate = new MySQLWhereClause();
-		$whereClauseUpdate->addOrCondition('ordering', null, 'NULL');
-		$whereClauseUpdate->addOrCondition('ordering', 0);
-
-		//$query = 'UPDATE #__customtables_fields SET ordering=id WHERE ordering IS NULL or ordering = 0';
-
-		try {
-			database::update('#__customtables_fields', $data, $whereClauseUpdate);
-		} catch (Exception $e) {
-			throw new Exception($e->getMessage());
-		}
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.3
-	 */
-	protected static function findAndFixOrderingFieldRecords(object $table_row, string $realFieldName): void
-	{
-		$ct = new CT;
-		$table_row_array = (array)$table_row;
-		$ct->setTable($table_row_array);
-
-		$data = [
-			$realFieldName => $ct->Table->realidfieldname
-		];
-		$whereClauseUpdate = new MySQLWhereClause();
-		$whereClauseUpdate->addOrCondition($realFieldName, null, 'NULL');
-		$whereClauseUpdate->addOrCondition($realFieldName, 0);
-
-		//$query = 'UPDATE ' . $ct->Table->realtablename . ' SET ' . database::quoteName($realFieldName) . '=' . database::quoteName($ct->Table->realidfieldname)
-		//' WHERE ' . database::quoteName($realFieldName) . ' IS NULL OR ' . database::quoteName($realFieldName) . ' = 0';
-
-		try {
-			database::update($ct->Table->realtablename, $data, $whereClauseUpdate);
-		} catch (Exception $e) {
-			throw new Exception($e->getMessage());
-		}
+		return '';
 	}
 
 	/**
@@ -1866,7 +1784,6 @@ class Fields
 				database::update($realtablename, $data, $whereClauseUpdate);
 
 				//$fixitQuery = 'UPDATE ' . $realtablename . ' SET ' . $realfieldname . '="' . $newRow . '" WHERE id=' . $fixRow->id;
-				//database::setQuery($fixitQuery);
 			}
 		}
 	}

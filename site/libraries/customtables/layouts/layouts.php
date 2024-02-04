@@ -18,8 +18,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 }
 
 use Exception;
-use Joomla\CMS\Factory;
-use JoomlaBasicMisc;
 use LayoutProcessor;
 
 class Layouts
@@ -49,14 +47,14 @@ class Layouts
 	function processLayoutTag(string &$htmlresult): bool
 	{
 		$options = array();
-		$fList = JoomlaBasicMisc::getListToReplace('layout', $options, $htmlresult, '{}');
+		$fList = CTMiscHelper::getListToReplace('layout', $options, $htmlresult, '{}');
 
 		if (count($fList) == 0)
 			return false;
 
 		$i = 0;
 		foreach ($fList as $fItem) {
-			$parts = JoomlaBasicMisc::csv_explode(',', $options[$i], '"', false);
+			$parts = CTMiscHelper::csv_explode(',', $options[$i], '"', false);
 			$layoutname = $parts[0];
 
 			$ProcessContentPlugins = false;
@@ -66,7 +64,7 @@ class Layouts
 			$layout = $this->getLayout($layoutname);
 
 			if ($ProcessContentPlugins)
-				JoomlaBasicMisc::applyContentPlugins($layout);
+				CTMiscHelper::applyContentPlugins($layout);
 
 			$htmlresult = str_replace($fItem, $layout, $htmlresult);
 			$i++;
@@ -220,7 +218,6 @@ class Layouts
 				database::update('#__customtables_layouts', $data, $whereClauseUpdate);
 
 				//$query = 'UPDATE #__customtables_layouts SET ' . $fieldName . '="' . addslashes($content) . '",modified=FROM_UNIXTIME(' . $file_ts . ') WHERE id=' . $layout_id;
-				//database::setQuery($query);
 				return $content;
 			}
 		} else {
@@ -243,7 +240,7 @@ class Layouts
 				try {
 					unlink($path);
 				} catch (Exception $e) {
-					Factory::getApplication()->enqueueMessage($path . '<br/>' . $e->getMessage(), 'error');
+					common::enqueueMessage($path . ': ' . $e->getMessage());
 					return false;
 				}
 
@@ -252,19 +249,19 @@ class Layouts
 
 		$msg = common::saveString2File($path, $layoutCode);
 		if ($msg !== null) {
-			Factory::getApplication()->enqueueMessage($path . '<br/>' . $msg, 'error');
+			common::enqueueMessage($path . ': ' . $msg);
 			return false;
 		}
 
 		try {
 			@$file_ts = filemtime($path);
 		} catch (Exception $e) {
-			Factory::getApplication()->enqueueMessage($path . '<br/>' . $e->getMessage(), 'error');
+			common::enqueueMessage($path . ': ' . $e->getMessage());
 			return false;
 		}
 
 		if ($file_ts == '') {
-			Factory::getApplication()->enqueueMessage($path . '<br/>No permission -  file not saved', 'error');
+			common::enqueueMessage($path . ': No permission -  file not saved');
 			return false;
 		} else {
 
@@ -273,13 +270,10 @@ class Layouts
 
 			if ($layout_id == 0) {
 				$whereClauseUpdate->addCondition('layoutname', $layoutName);
-				//$query = 'UPDATE #__customtables_layouts SET modified=FROM_UNIXTIME(' . $file_ts . ') WHERE layoutname=' . database::quote($layoutName);
 			} else {
 				$whereClauseUpdate->addCondition('id', $layout_id);
-				//$query = 'UPDATE #__customtables_layouts SET modified=FROM_UNIXTIME(' . $file_ts . ') WHERE id=' . $layout_id;
 			}
 			database::update('#__customtables_layouts', $data, $whereClauseUpdate);
-			//database::setQuery($query);
 		}
 		return true;
 	}
@@ -342,7 +336,7 @@ class Layouts
 				try {
 					@unlink($path);
 				} catch (Exception $e) {
-					Factory::getApplication()->enqueueMessage($path . '<br/>' . $e->getMessage(), 'error');
+					common::enqueueMessage($path . ': ' . $e->getMessage());
 					return false;
 				}
 			}
@@ -514,7 +508,7 @@ class Layouts
 			$this->ct->errors[] = $twig->errorMessage;
 
 		if ($applyContentPlugins and $this->ct->Params->allowContentPlugins)
-			$content = JoomlaBasicMisc::applyContentPlugins($content);
+			$content = CTMiscHelper::applyContentPlugins($content);
 
 		return $content;
 	}
@@ -555,8 +549,10 @@ class Layouts
 	 */
 	protected function renderCatalog(): string
 	{
-		if ($this->ct->Env->frmt == 'html')
-			common::loadJSAndCSS($this->ct->Params, $this->ct->Env);
+		if ($this->ct->Env->frmt == 'html') {
+			if (defined('_JEXEC'))
+				common::loadJSAndCSS($this->ct->Params, $this->ct->Env);
+		}
 
 		// -------------------- Table
 
@@ -613,7 +609,7 @@ class Layouts
 		if ($this->ct->Params->listing_id !== null)
 			$this->ct->applyLimits(1);
 		else
-			$this->ct->applyLimits($this->ct->Params->limit);
+			$this->ct->applyLimits($this->ct->Params->limit ?? 0);
 
 		$this->ct->LayoutVariables['layout_type'] = $this->layoutType;
 
@@ -645,7 +641,7 @@ class Layouts
 				$this->ct->errors[] = $twig->errorMessage;
 
 			if ($this->ct->Params->allowContentPlugins)
-				$pageLayout = JoomlaBasicMisc::applyContentPlugins($pageLayout);
+				$pageLayout = CTMiscHelper::applyContentPlugins($pageLayout);
 		}
 		return $pageLayout;
 	}

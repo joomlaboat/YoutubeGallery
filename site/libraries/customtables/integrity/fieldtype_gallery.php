@@ -15,11 +15,11 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 	die('Restricted access');
 }
 
+use CustomTables\common;
 use CustomTables\CT;
+use CustomTables\TableHelper;
 use CustomTables\Fields;
 use CustomTables\IntegrityChecks;
-use Joomla\CMS\Factory;
-use ESTables;
 
 class IntegrityFieldType_Gallery extends IntegrityChecks
 {
@@ -27,9 +27,9 @@ class IntegrityFieldType_Gallery extends IntegrityChecks
 	{
 		$gallery_table_name = '#__customtables_gallery_' . $ct->Table->tablename . '_' . $fieldname;
 
-		if (!ESTables::checkIfTableExists($gallery_table_name)) {
+		if (!TableHelper::checkIfTableExists($gallery_table_name)) {
 			Fields::CreateImageGalleryTable($ct->Table->tablename, $fieldname);
-			Factory::getApplication()->enqueueMessage('Gallery Table "' . $gallery_table_name . '" created.');
+			common::enqueueMessage(common::translate('Gallery Table "' . $gallery_table_name . '" created.'));
 		}
 
 		$g_ExistingFields = Fields::getExistingFields($gallery_table_name, false);
@@ -52,7 +52,7 @@ class IntegrityFieldType_Gallery extends IntegrityChecks
 
 			if (!$g_found) {
 				Fields::AddMySQLFieldNotExist($gallery_table_name, $g_fieldname, 'varchar(100) null', '');
-				Factory::getApplication()->enqueueMessage('Gallery Field "' . $g_fieldname . '" added.');
+				common::enqueueMessage('Gallery Field "' . $g_fieldname . '" added.');
 			}
 			$moreThanOneLanguage = true;
 		}

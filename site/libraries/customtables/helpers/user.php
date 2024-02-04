@@ -101,7 +101,7 @@ class CTUser
 	public static function ResetPassword(CT $ct, ?string $listing_id): bool
 	{
 		if ($listing_id === null or $listing_id === '' or $listing_id == 0) {
-			Factory::getApplication()->enqueueMessage('Table record selected.', 'error');
+			common::enqueueMessage('Table record selected.');
 			return false;
 		}
 
@@ -109,14 +109,14 @@ class CTUser
 			if (ob_get_contents()) ob_end_clean();
 
 		if ($ct->Table->useridrealfieldname === null or $ct->Table->useridrealfieldname == '') {
-			Factory::getApplication()->enqueueMessage('User ID field not found.', 'error');
+			common::enqueueMessage('User ID field not found.');
 			return false;
 		}
 
 		$ct->Table->loadRecord($listing_id);
 
 		if ($ct->Table->record === null) {
-			Factory::getApplication()->enqueueMessage('User record ID: "' . $listing_id . '" not found.', 'error');
+			common::enqueueMessage('User record ID: "' . $listing_id . '" not found.');
 			return false;
 		}
 
@@ -163,8 +163,7 @@ class CTUser
 
 		if (Email::sendEmail($user_email, $subject, $messageBody)) {
 			//clean exit
-
-			Factory::getApplication()->enqueueMessage('User password has been reset and sent to the email "' . $user_email . '".');
+			common::enqueueMessage(common::translate('User password has been reset and sent to the email "' . $user_email . '"'));
 			return true;
 		}
 
@@ -193,7 +192,6 @@ class CTUser
 		database::update('#__users', $data, $whereClauseUpdate);
 
 		//$query = 'UPDATE #__users SET password=md5("' . $password . '"), requireReset=0 WHERE id=' . $userid;
-		//database::setQuery($query); // Consider using prepared statements to prevent SQL injection.
 		return $userid;
 	}
 
@@ -238,7 +236,7 @@ class CTUser
 	public static function CreateUser(string $realtablename, string $realidfieldname, string $email, string $name, string $usergroups, string $listing_id, string $useridfieldname): bool
 	{
 		if ($name == '') {
-			Factory::getApplication()->enqueueMessage(common::translate('COM_CUSTOMTABLES_USERACCOUNT_NAME_NOT_SET'), 'error');
+			common::enqueueMessage(common::translate('COM_CUSTOMTABLES_USERACCOUNT_NAME_NOT_SET'));
 			return false;
 		}
 
@@ -247,23 +245,23 @@ class CTUser
 		$articleId = 0;
 
 		if (!@Email::checkEmail($email)) {
-			Factory::getApplication()->enqueueMessage(common::translate('COM_CUSTOMTABLES_INCORRECT_EMAIL') . ' "' . $email . '"', 'error');
+			common::enqueueMessage(common::translate('COM_CUSTOMTABLES_INCORRECT_EMAIL') . ' "' . $email . '"');
 			return false;
 		}
 
 		$realUserId = CTUser::CreateUserAccount($name, $email, $password, $email, $usergroups, $msg, $articleId);
 
 		if ($msg != '') {
-			Factory::getApplication()->enqueueMessage($msg, 'error');
+			common::enqueueMessage($msg);
 			return false;
 		}
 
 		if ($realUserId !== null) {
 			CTUser::UpdateUserField($realtablename, $realidfieldname, $useridfieldname, $realUserId, $listing_id);
-			Factory::getApplication()->enqueueMessage(common::translate('COM_CUSTOMTABLES_USER_CREATE_PSW_SENT'));
+			common::enqueueMessage(common::translate('COM_CUSTOMTABLES_USER_CREATE_PSW_SENT'));
 		} else {
 			$msg = common::translate('COM_CUSTOMTABLES_ERROR_USER_NOTCREATED');
-			Factory::getApplication()->enqueueMessage($msg, 'error');
+			common::enqueueMessage($msg);
 		}
 		return true;
 	}
@@ -354,7 +352,6 @@ class CTUser
 		foreach ($group_ids as $group_id) {
 			//$query = 'INSERT #__user_usergroup_map SET user_id=' . $user->id . ', group_id=' . $group_id;
 			database::insert('#__user_usergroup_map', ['user_id' => $user->id, 'group_id' => $group_id]);
-			//database::setQuery($query);
 		}
 
 		// Compile the notification mail values.
@@ -401,22 +398,17 @@ class CTUser
 
 	static protected function getUserGroupIDsByName(string $group_names): ?array
 	{
-		$new_names = array();
 		$names = explode(',', $group_names);
-
 		$whereClause = new MySQLWhereClause();
 
 		foreach ($names as $name) {
 			$n = preg_replace("/[^[:alnum:][:space:]]/u", '', trim($name));
 			if ($n != '')
 				$whereClause->addOrCondition('title', $n);
-			//$new_names[] = 'title=' . database::quote($n);
 		}
 
-		if (count($new_names) == 0)
+		if (!$whereClause->hasConditions())
 			return null;
-
-		//$query = 'SELECT id FROM #__usergroups WHERE ' . implode(' OR ', $new_names);
 
 		try {
 			$rows = database::loadObjectList('#__usergroups', ['id'], $whereClause);
@@ -443,9 +435,6 @@ class CTUser
 		$whereClauseUpdate = new MySQLWhereClause();
 		$whereClauseUpdate->addCondition($realidfieldname, $listing_id);
 		database::update($realtablename, $data, $whereClauseUpdate);
-
-		//$query = 'UPDATE ' . $realtablename . ' SET ' . $userIdFieldName . '=' . $existing_user_id . ' WHERE ' . $realidfieldname . '=' . database::quote($listing_id) . ' LIMIT 1';
-		//database::setQuery($query);
 	}
 
 	/**
@@ -454,8 +443,6 @@ class CTUser
 	 */
 	static public function CheckIfUserNameExist(string $username): bool
 	{
-		//$query = 'SELECT id FROM #__users WHERE username=' . database::quote($username) . ' LIMIT 1';
-
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('username', $username);
 
@@ -472,8 +459,6 @@ class CTUser
 	 */
 	static public function CheckIfUserExist(string $username, string $email)
 	{
-		//$query = 'SELECT id FROM #__users WHERE username=' . database::quote($username) . ' AND email=' . database::quote($email) . ' LIMIT 1';
-
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('username', $username);
 		$whereClause->addCondition('email', $email);
@@ -494,7 +479,6 @@ class CTUser
 	{
 		$existing_user = '';
 		$existing_name = '';
-		//$query = 'SELECT id, username, name FROM #__users WHERE email=' . database::quote($email) . ' LIMIT 1';
 
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('email', $email);
@@ -538,8 +522,6 @@ class CTUser
 	 */
 	public static function showUserGroup(int $userid): string
 	{
-		//$query = 'SELECT title FROM #__usergroups WHERE id=' . $userid . ' LIMIT 1';
-
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('id', $userid);
 
@@ -561,17 +543,12 @@ class CTUser
 
 		$whereClause = new MySQLWhereClause();
 
-		//$where = array();
 		$valueArray = explode(',', $valueArrayString);
 		foreach ($valueArray as $value) {
 			if ($value != '') {
 				$whereClause->addOrCondition('id', (int)$value);
-				//$where[] = 'id=' . (int)$value;
 			}
 		}
-
-		//$query = 'SELECT title FROM #__usergroups WHERE ' . implode(' OR ', $where) . ' ORDER BY title';
-
 		$options = database::loadAssocList('#__usergroups', ['title'], $whereClause, 'title');
 
 		if (count($options) == 0)

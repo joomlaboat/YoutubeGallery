@@ -19,7 +19,6 @@ use Exception;
 use Joomla\CMS\Helper\ModuleHelper;
 use Joomla\CMS\Factory;
 use Joomla\Registry\Registry;
-use JoomlaBasicMisc;
 
 class Params
 {
@@ -165,7 +164,7 @@ class Params
 		$this->getForceItemId($menu_params);
 
 		if (!$blockExternalVars and common::inputGetString('alias', ''))
-			$this->alias = JoomlaBasicMisc::slugify(common::inputGetString('alias'));
+			$this->alias = CTMiscHelper::slugify(common::inputGetString('alias'));
 		else
 			$this->alias = null;
 
@@ -197,7 +196,7 @@ class Params
 		//Filter
 		$this->userIdField = $menu_params->get('useridfield');
 
-		if (!$blockExternalVars and common::inputGetString('filter', '')) {
+		if (!$blockExternalVars and common::inputGetString('filter')) {
 
 			$filter = common::inputGetString('filter', '');
 			if (is_array($filter)) {
@@ -222,7 +221,7 @@ class Params
 		$this->forceSortBy = $menu_params->get('forcesortby');
 
 		//Limit
-		$this->limit = common::inputGetInt('limit', ($menu_params->get('limit') ?? 20));
+		$this->limit = common::inputGetInt('limit', (int)($menu_params->get('limit') ?? 20));
 
 		//Layouts
 		$this->pageLayout = $menu_params->get('escataloglayout');
@@ -366,7 +365,7 @@ class Params
 					return;
 				}
 			} elseif ($forceItemId != '') {
-				$this->ItemId = (int)JoomlaBasicMisc::FindItemidbyAlias($forceItemId);//Accepts menu Itemid and alias
+				$this->ItemId = (int)CTMiscHelper::FindItemidbyAlias($forceItemId);//Accepts menu Itemid and alias
 				return;
 			}
 		}

@@ -16,9 +16,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 }
 
 use Exception;
-use JoomlaBasicMisc;
-use ESTables;
-
 use Joomla\CMS\Router\Route;
 use LayoutProcessor;
 
@@ -67,13 +64,13 @@ class Twig_Record_Tags
 		$view_link = '';
 
 		if ($menu_item_alias != "") {
-			$menu_item = JoomlaBasicMisc::FindMenuItemRowByAlias($menu_item_alias);//Accepts menu Itemid and alias
+			$menu_item = CTMiscHelper::FindMenuItemRowByAlias($menu_item_alias);//Accepts menu Itemid and alias
 			if ($menu_item != 0) {
 				$menu_item_id = (int)$menu_item['id'];
 				$link = $menu_item['link'];
 
 				if ($link != '')
-					$view_link = JoomlaBasicMisc::deleteURLQueryOption($link, 'view');
+					$view_link = CTMiscHelper::deleteURLQueryOption($link, 'view');
 			}
 		}
 
@@ -94,7 +91,7 @@ class Twig_Record_Tags
 
 		$view_link .= '&amp;Itemid=' . ($menu_item_id == 0 ? $this->ct->Params->ItemId : $menu_item_id);
 		$view_link .= (is_null($this->ct->Params->ModuleId) ? '' : '&amp;ModuleId=' . $this->ct->Params->ModuleId);
-		$view_link = JoomlaBasicMisc::deleteURLQueryOption($view_link, 'returnto');
+		$view_link = CTMiscHelper::deleteURLQueryOption($view_link, 'returnto');
 
 		if ($add_returnto) {
 			if ($custom_not_base64_returnto)
@@ -178,7 +175,7 @@ class Twig_Record_Tags
 
 		foreach ($join_table_fields as $join_table_field) {
 			if ($join_table_field['type'] == 'sqljoin') {
-				$typeParams = JoomlaBasicMisc::csv_explode(',', $join_table_field['typeparams'], '"', false);
+				$typeParams = CTMiscHelper::csv_explode(',', $join_table_field['typeparams'], '"', false);
 				$join_table_join_to_table = $typeParams[0];
 				if ($join_table_join_to_table == $this->ct->Table->tablename)
 					return intval($this->advancedJoin('count', $join_table, '_id', $join_table_field['fieldname'], '_id', $filter));
@@ -198,7 +195,7 @@ class Twig_Record_Tags
 	{
 		if ($sj_tablename === null or $sj_tablename == '') return '';
 
-		$tableRow = ESTables::getTableRowByNameAssoc($sj_tablename);
+		$tableRow = TableHelper::getTableRowByNameAssoc($sj_tablename);
 
 		if (!is_array($tableRow)) return '';
 
@@ -264,9 +261,9 @@ class Twig_Record_Tags
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	protected function join_getRealFieldName($fieldName, $tableRow): ?array
+	protected function join_getRealFieldName(string $fieldName, array $tableRow): ?array
 	{
-		$tableId = $tableRow['id'];
+		$tableId = (int)$tableRow['id'];
 
 		if ($fieldName == '_id') {
 			return [$tableRow['realidfieldname'], '_id'];
@@ -294,32 +291,23 @@ class Twig_Record_Tags
 	                                   $field2_type, $field3_readValue, MySQLWhereClause $whereClauseAdditional, $order_by_option): array
 	{
 		$whereClause = new MySQLWhereClause();
-		//$whereClause->addCondition('',);
-
 		$selects = [];
 
 		if ($sj_function == 'count')
 			$selects[] = 'count(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu';
-		//$query = 'SELECT count(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
 		elseif ($sj_function == 'sum')
 			$selects[] = 'sum(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu';
-		//$query = 'SELECT sum(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
 		elseif ($sj_function == 'avg')
 			$selects[] = 'avg(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu';
-		//$query = 'SELECT avg(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
 		elseif ($sj_function == 'min')
 			$selects[] = 'min(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu';
-		//$query = 'SELECT min(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
 		elseif ($sj_function == 'max')
 			$selects[] = 'max(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu';
-		//$query = 'SELECT max(' . $tableRow['realtablename'] . '.' . $field3_readValue . ') AS vlu ';
 		else {
 			//need to resolve record value if it's "records" type
-			$selects[] = $tableRow['realtablename'] . '.' . $field3_readValue . ' AS vlu';
-			//$query = 'SELECT ' . $tableRow['realtablename'] . '.' . $field3_readValue . ' AS vlu '; //value or smart
+			$selects[] = $tableRow['realtablename'] . '.' . $field3_readValue . ' AS vlu';//value or smart
 		}
 
-		//$query .= ' FROM ' . $this->ct->Table->realtablename . ' ';
 		$sj_tablename = $tableRow['tablename'];
 
 		$leftJoin = '';
@@ -345,27 +333,18 @@ class Twig_Record_Tags
 			}
 		}
 
-		//$wheres = array();
-
 		if ($this->ct->Table->tablename != $sj_tablename) {
 			//don't attach to specific record when it is the same table, example : to find averages
 			$whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], $this->ct->Table->record[$this->ct->Table->realidfieldname]);
-			//$wheres[] = $this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'] . '=' . database::quote($this->ct->Table->record[$this->ct->Table->realidfieldname]);
 		}
 
 		if ($whereClauseAdditional->hasConditions())
 			$whereClause->addNestedCondition($whereClauseAdditional);
-		//$wheres[] = '(' . $additional_where . ')';
 
-		//if (count($wheres) > 0)
-		//	$query .= ' WHERE ' . implode(' AND ', $wheres);
-
-		//$query .= ' LIMIT 1';
 		$from = $this->ct->Table->realtablename . ' ' . $leftJoin;
 
 		return database::loadAssocList($from, $selects, $whereClause,
 			($order_by_option != '' ? $tableRow['realtablename'] . '.' . $order_by_option : null), null, 1);
-		//return $query;
 	}
 
 	/**
@@ -420,7 +399,7 @@ class Twig_Record_Tags
 
 		foreach ($join_table_fields as $join_table_field) {
 			if ($join_table_field['type'] == 'sqljoin') {
-				$typeParams = JoomlaBasicMisc::csv_explode(',', $join_table_field['typeparams'], '"', false);
+				$typeParams = CTMiscHelper::csv_explode(',', $join_table_field['typeparams'], '"', false);
 				$join_table_join_to_table = $typeParams[0];
 				if ($join_table_join_to_table == $this->ct->Table->tablename)
 					return $this->advancedJoin($function, $join_table, '_id', $join_table_field['fieldname'], $value_field, $filter);
@@ -496,7 +475,7 @@ class Twig_Record_Tags
 
 		foreach ($join_table_fields as $join_table_field) {
 			if ($join_table_field['type'] == 'sqljoin') {
-				$typeParams = JoomlaBasicMisc::csv_explode(',', $join_table_field['typeparams'], '"', false);
+				$typeParams = CTMiscHelper::csv_explode(',', $join_table_field['typeparams'], '"', false);
 				$join_table_join_to_table = $typeParams[0];
 				if ($join_table_join_to_table == $this->ct->Table->tablename) {
 					$complete_filter = $join_table_field['fieldname'] . '=' . $this->ct->Table->record[$this->ct->Table->realidfieldname];
@@ -544,7 +523,7 @@ class Twig_Record_Tags
 			return null;
 		}
 
-		$tableRow = ESTables::getTableRowByNameAssoc($tableName);
+		$tableRow = TableHelper::getTableRowByNameAssoc($tableName);
 		if (!is_array($tableRow)) {
 			$this->ct->errors[] = '{{ record.count("' . $tableName . '") }} - Table not found.';
 			return null;
@@ -734,11 +713,12 @@ class Twig_Table_Tags
 	function recordstotal(): int
 	{
 		if (!isset($this->ct->Table) or $this->ct->Table->fields === null)
-			return 'Table not selected';
+			return -1;//Table not selected
 
 		$whereClause = new MySQLWhereClause();
+		$count = $this->ct->getNumberOfRecords($whereClause);
 
-		return $this->ct->getNumberOfRecords($whereClause);
+		return $count === null ? -1 : $count;
 	}
 
 	function records(): int
@@ -836,13 +816,11 @@ class Twig_Tables_Tags
 			return '';
 		}
 
-		return 'abc';
-
 		$join_table_fields = Fields::getFields($table);
 
 		$join_ct = new CT;
 		$tables = new Tables($join_ct);
-		$tableRow = ESTables::getTableRowByNameAssoc($table);
+		$tableRow = TableHelper::getTableRowByNameAssoc($table);
 		$join_ct->setTable($tableRow);
 
 		if (is_numeric($record_id_or_filter) and (int)$record_id_or_filter > 0) {

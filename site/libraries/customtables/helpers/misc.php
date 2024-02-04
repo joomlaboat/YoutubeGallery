@@ -8,20 +8,21 @@
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
+namespace CustomTables;
+
 // no direct access
 if (!defined('_JEXEC') and !defined('WPINC')) {
 	die('Restricted access');
 }
 
-use CustomTables\common;
-use CustomTables\database;
-use CustomTables\Fields;
-
-use CustomTables\MySQLWhereClause;
+use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Version;
+use JPluginHelper;
+use stdClass;
+use tagProcessor_Value;
 
-class JoomlaBasicMisc
+class CTMiscHelper
 {
 	static public function array_insert(array &$array, $insert, $position = -1)
 	{
@@ -53,14 +54,14 @@ class JoomlaBasicMisc
 
 		if ($max_size < 0) {
 			// Start with post_max_size.
-			$post_max_size = JoomlaBasicMisc::parse_size(ini_get('post_max_size'));
+			$post_max_size = CTMiscHelper::parse_size(ini_get('post_max_size'));
 			if ($post_max_size > 0) {
 				$max_size = $post_max_size;
 			}
 
 			// If upload_max_size is less, then reduce. Except if upload_max_size is
 			// zero, which indicates no limit.
-			$upload_max = JoomlaBasicMisc::parse_size(ini_get('upload_max_filesize'));
+			$upload_max = CTMiscHelper::parse_size(ini_get('upload_max_filesize'));
 			if ($upload_max > 0 && $upload_max < $max_size) {
 				$max_size = $upload_max;
 			}
@@ -151,12 +152,12 @@ class JoomlaBasicMisc
 		$img = array();
 		preg_match_all('/(src|alt)=("[^"]*")/i', $img_tag, $img, PREG_SET_ORDER);
 
-		$image = JoomlaBasicMisc::getSrcParam($img);
+		$image = CTMiscHelper::getSrcParam($img);
 
 		if ($image == '') {
 			$img = array();
 			preg_match_all("/(src|alt)=('[^']*')/i", $img_tag, $img, PREG_SET_ORDER);
-			$image = JoomlaBasicMisc::getSrcParam($img);
+			$image = CTMiscHelper::getSrcParam($img);
 
 			if ($image == '')
 				return '';
@@ -273,7 +274,7 @@ class JoomlaBasicMisc
 
 				$count++;
 				if ($count > 1000) {
-					Factory::getApplication()->enqueueMessage('Quote count > 1000', 'error');
+					common::enqueueMessage('Quote count > 1000');
 					return [];
 				}
 
@@ -363,7 +364,7 @@ class JoomlaBasicMisc
 
 				$count++;
 				if ($count > 1000) {
-					Factory::getApplication()->enqueueMessage('Too many quotes.', 'error');
+					common::enqueueMessage('Too many quotes.');
 					return [];
 				}
 
@@ -492,9 +493,6 @@ class JoomlaBasicMisc
 	 */
 	public static function getGroupIdByTitle($grouptitle): string
 	{
-		// Build the database query to get the rules for the asset.
-		//$query = 'SELECT id FROM #__usergroups WHERE title=' . database::quote(trim($grouptitle)) . ' LIMIT 1';
-
 		// Execute the query and load the rules from the result.
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('title', trim($grouptitle));
@@ -618,8 +616,6 @@ class JoomlaBasicMisc
 	 */
 	public static function FindItemidbyAlias($alias)
 	{
-		//$query = 'SELECT id FROM #__menu WHERE published=1 AND alias=' . database::quote($alias);
-
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('published', 1);
 		$whereClause->addCondition('alias', $alias);
@@ -638,12 +634,11 @@ class JoomlaBasicMisc
 	 */
 	public static function FindMenuItemRowByAlias($alias)
 	{
-		//$query = 'SELECT * FROM #__menu WHERE published=1 AND alias=' . database::quote($alias);
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('published', 1);
 		$whereClause->addCondition('alias', $alias);
 
-		$rows = database::loadAssocList('#__menu', ['*'], $whereClause, null, null);
+		$rows = database::loadAssocList('#__menu', ['*'], $whereClause);
 		if (!$rows) return 0;
 		if (count($rows) < 1) return 0;
 
@@ -684,7 +679,7 @@ class JoomlaBasicMisc
 
 				$htmlresult = $article->text;*/
 
-				$htmlresult = Joomla\CMS\HTML\Helpers\Content::prepare($htmlresult, $content_params);
+				$htmlresult = \Joomla\CMS\HTML\Helpers\Content::prepare($htmlresult, $content_params);
 
 			} else {
 				$o = new stdClass();
@@ -731,10 +726,10 @@ class JoomlaBasicMisc
 
 	public static function getHTMLTagParameters($tag): array
 	{
-		$params = JoomlaBasicMisc::csv_explode(' ', $tag, '"', true);
+		$params = CTMiscHelper::csv_explode(' ', $tag, '"', true);
 		$result = [];
 		foreach ($params as $param) {
-			$param = JoomlaBasicMisc::csv_explode('=', $param, '"', false);
+			$param = CTMiscHelper::csv_explode('=', $param, '"', false);
 			if (count($param) == 2) {
 				$result[strtolower($param[0])] = $param[1];
 			}

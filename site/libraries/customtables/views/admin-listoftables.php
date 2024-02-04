@@ -11,13 +11,11 @@
 namespace CustomTables;
 
 // no direct access
-use ESTables;
-use Exception;
-use Joomla\CMS\Factory;
-
 if (!defined('_JEXEC') and !defined('WPINC')) {
 	die('Restricted access');
 }
+
+use Exception;
 
 class ListOfTables
 {
@@ -34,12 +32,7 @@ class ListOfTables
 			$whereClause = new MySQLWhereClause();
 			$rows = database::loadObjectList($realtablename, ['COUNT(' . $realIdField . ') AS count'], $whereClause, null, null, 1);
 		} catch (Exception $e) {
-			if (defined('_JEXEC')) {
-				$app = Factory::getApplication();
-				$app->enqueueMessage('Table "' . $realtablename . '" - ' . $e->getMessage(), 'error');
-			} else {
-				throw new Exception($e->getMessage());
-			}
+			common::enqueueMessage('Table "' . $realtablename . '" - ' . $e->getMessage());
 			return 0;
 		}
 		return $rows[0]->count;
@@ -62,7 +55,7 @@ class ListOfTables
 	{
 		$fieldCount = '(SELECT COUNT(fields.id) FROM #__customtables_fields AS fields WHERE fields.tableid=a.id AND (fields.published=0 or fields.published=1) LIMIT 1)';
 
-		$selects = ESTables::getTableRowSelectArray();
+		$selects = TableHelper::getTableRowSelectArray();
 
 		if (defined('_JEXEC')) {
 			$categoryName = '(SELECT categoryname FROM #__customtables_categories AS categories WHERE categories.id=a.tablecategory LIMIT 1)';
@@ -110,28 +103,13 @@ class ListOfTables
 	 */
 	function deleteTable(int $tableId): bool
 	{
-		$table_row = ESTables::getTableRowByID($tableId);
+		$table_row = TableHelper::getTableRowByID($tableId);
 
 		if (isset($table_row->tablename) and (!isset($table_row->customtablename))) // do not delete third-party tables
-		{
-			$realtablename = database::getDBPrefix() . 'customtables_table_' . $table_row->tablename; //not available for custom tablenames
-			$serverType = database::getServerType();
-			if ($serverType == 'postgresql')
-				$query = 'DROP TABLE IF EXISTS ' . $realtablename;
-			else
-				$query = 'DROP TABLE IF EXISTS ' . database::quoteName($realtablename);
+			database::dropTableIfExists($table_row->tablename);
 
-			database::setQuery($query);
-			$serverType = database::getServerType();
-
-			if ($serverType == 'postgresql') {
-				$query = 'DROP SEQUENCE IF EXISTS ' . $realtablename . '_seq CASCADE';
-				database::setQuery($query);
-			}
-		}
-		database::setQuery('DELETE FROM #__customtables_tables WHERE id=' . $tableId);
-
-		Fields::deleteTableLessFields();
+		database::deleteRecord('#__customtables_tables', 'id', $tableId);
+		database::deleteTableLessFields();
 		return true;
 	}
 
@@ -180,7 +158,7 @@ class ListOfTables
 		if (common::inputPostCmd('task', null, 'create-edit-table') === 'save2copy') {
 			$originalTableId = common::inputPostInt('originaltableid', null, 'create-edit-table');
 			if ($originalTableId !== null) {
-				$old_tablename = ESTables::getTableName($originalTableId);
+				$old_tablename = TableHelper::getTableName($originalTableId);
 
 				// Handle copy table name
 				$copyTableName = $newTableName;
@@ -188,7 +166,7 @@ class ListOfTables
 					$copyTableName = 'copy_of_' . $newTableName;
 				}
 
-				while (ESTables::getTableID($newTableName) != 0) {
+				while (TableHelper::getTableID($newTableName) != 0) {
 					$copyTableName = 'copy_of_' . $newTableName;
 				}
 
@@ -227,7 +205,7 @@ class ListOfTables
 
 		// If it's a new table, check if field name is unique or add number "_1" if it's not.
 		if ($tableId === null) {
-			$already_exists = ESTables::getTableID($newTableName);
+			$already_exists = TableHelper::getTableID($newTableName);
 			if ($already_exists == 0) {
 				$data ['tablename'] = $newTableName;
 			} else {
@@ -245,7 +223,7 @@ class ListOfTables
 			//Case: Table renamed, check if the new name is available.
 			$this->ct->getTable($tableId);
 			if ($newTableName != $this->ct->Table->tablename) {
-				$already_exists = ESTables::getTableID($newTableName);
+				$already_exists = TableHelper::getTableID($newTableName);
 				if ($already_exists != 0) {
 					return ['Table rename aborted. Table with this name already exists.'];
 				}
@@ -254,7 +232,7 @@ class ListOfTables
 			if (common::inputPostString('customtablename', null, 'create-edit-table') == '')//do not rename real table if it's a third-party table - not part of the Custom Tables
 			{
 				//This function will find the old Table Name of existing table and rename MySQL table.
-				ESTables::renameTableIfNeeded($tableId, $database, $dbPrefix, $newTableName);
+				TableHelper::renameTableIfNeeded($tableId, $newTableName);
 				$data['tablename'] = $newTableName;
 			}
 
@@ -273,11 +251,11 @@ class ListOfTables
 		if ($customTableName == '-new-') {
 			// Case: Creating a new third-party table
 			$customTableName = $newTableName;
-			ESTables::createTableIfNotExists($database, $dbPrefix, $newTableName, $tableTitle, $customTableName);
+			TableHelper::createTableIfNotExists($database, $dbPrefix, $newTableName, $tableTitle, $customTableName);
 			//$messages[] = ['New third-party table created.'];
 
 			//Add fields if it's a third-party table and no fields added yet.
-			ESTables::addThirdPartyTableFieldsIfNeeded($database, $newTableName, $customTableName);
+			TableHelper::addThirdPartyTableFieldsIfNeeded($database, $newTableName, $customTableName);
 			//$messages[] = __('Third-party fields added.', 'customtables');
 		} else {
 			// Case: Updating an existing table or creating a new custom table
@@ -285,11 +263,11 @@ class ListOfTables
 
 			if ($originalTableId != 0 and $old_tablename != '') {
 				// Copying an existing table
-				ESTables::copyTable($this->ct, $originalTableId, $newTableName, $old_tablename, $customTableName);
+				TableHelper::copyTable($this->ct, $originalTableId, $newTableName, $old_tablename, $customTableName);
 				//$messages[] = __('Table copied.', 'customtables');
 			} else {
 				// Creating a new custom table (without copying)
-				ESTables::createTableIfNotExists($database, $dbPrefix, $newTableName, $tableTitle, $customTableName);
+				TableHelper::createTableIfNotExists($database, $dbPrefix, $newTableName, $tableTitle, $customTableName);
 				//$messages[] = __('Table created.', 'customtables');
 			}
 		}

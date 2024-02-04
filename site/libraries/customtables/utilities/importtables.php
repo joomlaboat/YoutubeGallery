@@ -11,9 +11,6 @@
 namespace CustomTables;
 
 use Exception;
-use Joomla\CMS\Factory;
-use ESTables;
-use JoomlaBasicMisc;
 use JTableNested;
 
 // no direct access
@@ -94,7 +91,7 @@ class ImportTables
 					ImportTables::processRecords($table['table']['tablename'], $table['records']);
 			} else {
 				$msg = 'Could not Add or Update table "' . $table['table']['tablename'] . '"';
-				Factory::getApplication()->enqueueMessage($msg, 'error');
+				common::enqueueMessage($msg);
 
 				return false;
 			}
@@ -113,7 +110,7 @@ class ImportTables
 
 		$tablename = $table_new['tablename'];
 
-		$table_old = ESTables::getTableRowByNameAssoc($tablename);
+		$table_old = TableHelper::getTableRowByNameAssoc($tablename);
 
 		if (is_array($table_old) and count($table_old) > 0) {
 			$tableid = $table_old['id'];
@@ -126,19 +123,14 @@ class ImportTables
 		}
 
 		//Create mysql table
-		$tabletitle = $table_new['tabletitle'] ?? $table_new['tabletitle_1'];
+		$tableTitle = $table_new['tabletitle'] ?? $table_new['tabletitle_1'];
 
-		$query = '
-                CREATE TABLE IF NOT EXISTS #__customtables_table_' . $tablename . '
-                (
-                	id int(10) NOT NULL auto_increment,
-                	published tinyint(1) DEFAULT "1",
-                	PRIMARY KEY  (id)
-                ) ENGINE=InnoDB COMMENT="' . $tabletitle . '" DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci AUTO_INCREMENT=1;
-        ';
-
-		database::setQuery($query);
-
+		$columns = [
+			'id int(10) NOT NULL auto_increment',
+			'published tinyint(1) DEFAULT "1"',
+			'PRIMARY KEY  (id)',
+		];
+		database::createTable('#__customtables_table_' . $tablename, $columns, $tableTitle);
 		ImportTables::updateTableCategory($tableid, $table_new, $categoryname);
 		return $tableid;
 	}
@@ -186,7 +178,6 @@ class ImportTables
 			database::update($mySQLTableName, $data, $whereClauseUpdate);
 
 			//$query = 'UPDATE ' . $mySQLTableName . ' SET ' . implode(', ', $sets) . ' WHERE id=' . (int)$rows_old['id'];
-			//database::setQuery($query);
 		}
 	}
 
@@ -220,35 +211,6 @@ class ImportTables
 		return '';
 	}
 
-	/*
-	protected static function dbQuoteByType($value, $type = null): float|int|string|null
-	{
-		if ($type === null) {
-			if ($value === null)
-				return 'NULL';
-
-			if (is_numeric($value)) {
-				if (floor($value) != $value)
-					$type = 'float';
-				else
-					$type = 'int';
-			} else
-				$type = 'string';
-		}
-
-		if ($type == '' or $type == 'string')
-			return database::quote($value);
-
-		if ($type == 'int')
-			return (int)$value;
-
-		if ($type == 'float')
-			return (float)$value;
-
-		return null;
-	}
-	*/
-
 	/**
 	 * @throws Exception
 	 * @since 3.2.2
@@ -273,13 +235,11 @@ class ImportTables
 
 		foreach ($keys as $key) {
 			$isOk = false;
-			//$type = null;
 
 			if (isset($field_conversion_map[$key])) {
 				$isOk = true;
 				if (is_array($field_conversion_map[$key])) {
 					$fieldname = $field_conversion_map[$key]['name'];
-					//$type = $field_conversion_map[$key]['type'];
 				} else
 					$fieldname = $field_conversion_map[$key];
 			} elseif (count($field_conversion_map) > 0 and in_array($key, $field_conversion_map)) {
@@ -394,7 +354,6 @@ class ImportTables
 			database::update('#__customtables_tables', $data, $whereClauseUpdate);
 
 			//$query = 'UPDATE ' . $mysqlTableName . ' SET tablecategory=' . (int)$categoryId . ' WHERE id=' . (int)$tableid;
-			//database::setQuery($query);
 		}
 	}
 
@@ -413,12 +372,10 @@ class ImportTables
 
 		if (is_null($value))
 			$whereClause->addCondition($fieldname, null, 'NULL');
-		//$query = 'SELECT * FROM ' . $mysqlTableName . ' WHERE ' . $fieldname . ' IS NULL';
 		else
 			$whereClause->addCondition($fieldname, $value);
-		//$query = 'SELECT * FROM ' . $mysqlTableName . ' WHERE ' . $fieldname . '=' . database::quote($value);
 
-		$rows = database::loadAssocList($mysqlTableName, ['*'], $whereClause, null, null);
+		$rows = database::loadAssocList($mysqlTableName, ['*'], $whereClause);
 		if (count($rows) == 0)
 			return 0;
 
@@ -457,7 +414,8 @@ class ImportTables
 		$field_new['tableid'] = $tableid;//replace tableid
 		$fieldName = $field_new['fieldname'];
 
-		$field_old = Fields::getFieldAssocByName($fieldName, $tableid);
+		$field_old = Fields::getFieldRowByName($fieldName, $tableid);
+
 		if (is_array($field_old) and count($field_old) > 0) {
 			$fieldid = $field_old['id'];
 			ImportTables::updateRecords('fields', $field_new, $field_old);
@@ -561,7 +519,7 @@ class ImportTables
 			$new_menuType = $menuitem_new['menutype'];
 
 		//Check NEW $menuitem_new['menutype']
-		$new_menutype_alias = substr(JoomlaBasicMisc::slugify($new_menuType), 0, 24);
+		$new_menutype_alias = substr(CTMiscHelper::slugify($new_menuType), 0, 24);
 		$menutype_old = ImportTables::getRecordByField('#__menu_types', 'menutype', $new_menutype_alias, false);
 
 		if (!is_array($menutype_old) or count($menutype_old) == 0) {
@@ -683,7 +641,7 @@ class ImportTables
 	 */
 	public static function addMenu($title, $alias, $link, $menuTypeOrTitle, $extension_name, $access_, $menuParamsString, $home = 0): bool
 	{
-		$menuType = JoomlaBasicMisc::slugify($menuTypeOrTitle);
+		$menuType = CTMiscHelper::slugify($menuTypeOrTitle);
 		ImportTables::addMenutypeIfNotExist($menuType, $menuTypeOrTitle);
 
 		if ((int)$access_ == 0) {
@@ -691,7 +649,7 @@ class ImportTables
 
 			$access_row = ImportTables::getRecordByField('#__viewlevels', 'title', $access_, false);
 			if (!is_array($access_row) or count($access_row) == 0) {
-				Factory::getApplication()->enqueueMessage('Cannot find access level "' . $access_ . '"', 'error');
+				common::enqueueMessage('Cannot find access level "' . $access_ . '"');
 				return false;
 			}
 			$access = $access_row['id'];
@@ -699,7 +657,7 @@ class ImportTables
 			$access = $access_;
 
 		if ($access == 0) {
-			Factory::getApplication()->enqueueMessage('Cannot find access level "' . $access_ . '", found 0.', 'error');
+			common::enqueueMessage('Cannot find access level "' . $access_ . '", found 0.');
 			return false;
 		}
 
@@ -737,7 +695,7 @@ class ImportTables
 		$menuitem_old = ImportTables::getRecordByField('#__menu', 'alias', $alias, false);
 
 		if (is_array($menuitem_old) and count($menuitem_old) > 0) {
-			Factory::getApplication()->enqueueMessage('Updating external menu Item "' . $alias . '".', 'notice');
+			common::enqueueMessage('Updating external menu Item "' . $alias . '".', 'notice');
 
 			$menuitem_new['parent_id'] = 1; //TODO: Add menu parent functionality
 			$menuitem_new['level'] = 1;
@@ -747,11 +705,9 @@ class ImportTables
 
 			ImportTables::updateRecords('#__menu', $menuitem_new, $menuitem_old, false);
 		} else {
-			Factory::getApplication()->enqueueMessage('Adding external menu Item "' . $alias . '".', 'notice');
-
+			common::enqueueMessage('Adding external menu Item "' . $alias . '".', 'notice');
 			ImportTables::rebuildMenuTree($menuitem_new);//,'oxford-sms','tos-shared-files',$component_id);
 		}
-
 		return true;
 	}
 
@@ -765,11 +721,11 @@ class ImportTables
 
 		if (!is_array($menutype_old) or count($menutype_old) == 0) {
 			//Create new menu type
-			$inserts = array();
-			$inserts[] = 'asset_id=0';
-			$inserts[] = 'menutype=' . database::quote($menutype);
-			$inserts[] = 'title=' . database::quote($menutype_title);
-			$inserts[] = 'description=' . database::quote('Menu Type created by CustomTables');
+			$data = [];
+			$data['asset_id=0'];
+			$data['menutype'] = $menutype;
+			$data['title'] = $menutype_title;
+			$data['description'] = 'Menu Type created by CustomTables';
 		}
 	}
 
@@ -787,7 +743,7 @@ class ImportTables
 		// save is the shortcut method for bind, check and store
 		$menuTable->save($menuitem_new);
 		if ($menuTable->getError() != '') {
-			Factory::getApplication()->enqueueMessage($menuTable->getError(), 'error');
+			common::enqueueMessage($menuTable->getError());
 		}
 		return $menuTable->id;
 	}

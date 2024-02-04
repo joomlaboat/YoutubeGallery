@@ -16,7 +16,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 }
 
 use Exception;
-use JoomlaBasicMisc;
 use LayoutProcessor;
 use tagProcessor_PHP;
 use CustomTables\ctProHelpers;
@@ -114,7 +113,7 @@ class Details
 			return false;
 
 		if (!is_null($this->ct->Params->alias) and $this->ct->Table->alias_fieldname != '')
-			$filter = $this->ct->Table->alias_fieldname . '=' . database::quote($this->ct->Params->alias);
+			$filter = $this->ct->Table->alias_fieldname . '="' . $this->ct->Params->alias . '"';
 
 		if ($filter != '') {
 			if ($this->ct->Params->alias == '') {
@@ -314,7 +313,7 @@ class Details
 			$this->ct->errors[] = $twig->errorMessage;
 
 		if ($this->ct->Params->allowContentPlugins)
-			$layoutDetailsContent = JoomlaBasicMisc::applyContentPlugins($layoutDetailsContent);
+			$layoutDetailsContent = CTMiscHelper::applyContentPlugins($layoutDetailsContent);
 
 		return $layoutDetailsContent;
 	}

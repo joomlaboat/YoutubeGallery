@@ -15,14 +15,13 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 	die('Restricted access');
 }
 
+use CustomTables\common;
 use CustomTables\database;
+use CustomTables\TableHelper;
 use CustomTables\IntegrityChecks;
 use CustomTables\MySQLWhereClause;
 use Exception;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Uri\Uri;
-
-use ESTables;
 
 class IntegrityTables extends IntegrityChecks
 {
@@ -39,8 +38,7 @@ class IntegrityTables extends IntegrityChecks
 		foreach ($tables as $table) {
 
 			//Check if table exists
-			$rows = database::getTableStatus(database::getDataBaseName(), database::realTableName($table['tablename']), false);
-			//$query_check_table = 'SHOW TABLES LIKE ' . database::quote();
+			$rows = database::getTableStatus($table['tablename']);
 
 			$tableExists = !(count($rows) == 0);
 
@@ -76,13 +74,13 @@ class IntegrityTables extends IntegrityChecks
 		try {
 			return self::getTablesQuery();
 		} catch (Exception $e) {
-			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+			common::enqueueMessage($e->getMessage());
 		}
 
 		try {
 			self::getTablesQuery(true);
 		} catch (Exception $e) {
-			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+			common::enqueueMessage($e->getMessage());
 		}
 		return null;
 	}
@@ -103,7 +101,7 @@ class IntegrityTables extends IntegrityChecks
 			$categoryName = '(SELECT categoryname FROM #__customtables_categories AS categories WHERE categories.id=a.tablecategory LIMIT 1)';
 			$fieldCount = '(SELECT COUNT(fields.id) FROM #__customtables_fields AS fields WHERE fields.tableid=a.id AND fields.published=1 LIMIT 1)';
 
-			$selects = ESTables::getTableRowSelectArray();
+			$selects = TableHelper::getTableRowSelectArray();
 
 			$selects[] = $categoryName . ' AS categoryname';
 			$selects[] = $fieldCount . ' AS fieldcount';
@@ -114,9 +112,6 @@ class IntegrityTables extends IntegrityChecks
 		$orderDirection = 'asc';
 
 		$whereClause->addCondition('a.published', 1);
-
-		//return 'SELECT ' . implode(',', $selects) . ' FROM ' . database::quoteName('#__customtables_tables') . ' AS a WHERE a.published = 1 ORDER BY '
-		//. database::quoteName($orderCol) . ' ' . $orderDirection;
 
 		return database::loadAssocList('#__customtables_tables AS a', $selects, $whereClause, $orderCol, $orderDirection);
 	}
@@ -130,12 +125,12 @@ class IntegrityTables extends IntegrityChecks
 		$dbPrefix = database::getDBPrefix();
 
 		foreach ($tables_rows as $row) {
-			if (!ESTables::checkIfTableExists($dbPrefix . 'customtables_table_' . $row['tablename'])) {
+			if (!TableHelper::checkIfTableExists($dbPrefix . 'customtables_table_' . $row['tablename'])) {
 				$database = database::getDataBaseName();
 
 				if ($row['customtablename'] === null or $row['customtablename'] == '') {
-					if (ESTables::createTableIfNotExists($database, $dbPrefix, $row['tablename'], $row['tabletitle'], $row['customtablename'])) {
-						Factory::getApplication()->enqueueMessage('Table "' . $row['tabletitle'] . '" created.', 'notice');
+					if (TableHelper::createTableIfNotExists($database, $dbPrefix, $row['tablename'], $row['tabletitle'], $row['customtablename'])) {
+						common::enqueueMessage('Table "' . $row['tabletitle'] . '" created.');
 					}
 				}
 			}
@@ -148,9 +143,6 @@ class IntegrityTables extends IntegrityChecks
 	 */
 	protected static function getZeroRecordID($realtablename, $realidfieldname)
 	{
-		//$query = 'SELECT COUNT(' . $realidfieldname . ') AS cd_zeroIdRecords FROM ' . database::quoteName($realtablename) . ' AS a'
-		//. ' WHERE ' . $realidfieldname . '=0 LIMIT 1';
-
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition($realidfieldname, 0);
 

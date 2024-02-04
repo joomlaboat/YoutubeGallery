@@ -16,15 +16,12 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 }
 
 use CustomTables;
+use CustomTables\common;
 use CustomTables\CT;
 use CustomTables\database;
+use CustomTables\TableHelper;
 use CustomTables\Fields;
 use CustomTables\IntegrityChecks;
-
-//use CustomTables\Integrity\IntegrityFields;
-
-use Joomla\CMS\Factory;
-use ESTables;
 
 class IntegrityCoreTables extends IntegrityChecks
 {
@@ -40,85 +37,68 @@ class IntegrityCoreTables extends IntegrityChecks
 		IntegrityCoreTables::createCoreTableIfNotExists($ct, IntegrityCoreTables::getCoreTableFields_Log());
 	}
 
-	protected static function createCoreTableIfNotExists(CT &$ct, $table)
+	protected static function createCoreTableIfNotExists(CT &$ct, object $table)
 	{
-		if (!ESTables::checkIfTableExists($table->realtablename))
+		if (!TableHelper::checkIfTableExists($table->realtablename))
 			IntegrityCoreTables::createCoreTable($ct, $table);
 		else
 			IntegrityCoreTables::checkCoreTable($ct, $table->realtablename, $table->fields);
 	}
 
-	protected static function createCoreTable(CT &$ct, $table): bool
+	protected static function createCoreTable(CT &$ct, object $table): bool
 	{
 		//TODO:
 		//Add InnoDB Row Formats to config file
 		//https://dev.mysql.com/doc/refman/5.7/en/innodb-row-format.html
 
 		$serverType = database::getServerType();
-		$fields_sql = IntegrityCoreTables::prepareAddFieldQuery($ct, $table->fields, ($serverType == 'postgresql' ? 'postgresql_type' : 'mysql_type'));
+		$fields_sql = IntegrityCoreTables::prepareAddFieldQuery($ct, $table->fields, ($serverType == 'postgresql' ? 'postgresql_type' : 'mysql_type'), true);
 		$indexes_sql = IntegrityCoreTables::prepareAddIndexQuery($table->indexes);
 
+		//Check if table exists
+		$tableExists = false;
 		if ($serverType == 'postgresql') {
-			//PostgreeSQL
 			$fields = Fields::getListOfExistingFields($table->realtablename, false);
 
-			if (count($fields) == 0) {
-				//create new table
-				database::setQuery('CREATE SEQUENCE IF NOT EXISTS ' . $table->realtablename . '_seq');
-
-				$query = '
-				CREATE TABLE IF NOT EXISTS ' . $table->realtablename . '
-				(
-					' . implode(',', $fields_sql) . ',
-					PRIMARY KEY (id)
-				)';
-
-				database::setQuery($query);
-				database::setQuery('ALTER SEQUENCE ' . $table->realtablename . '_seq RESTART WITH 1');
-
-				Factory::getApplication()->enqueueMessage('Table "' . $table->realtablename . '" added.', 'notice');
-				return true;
-			}
+			if (count($fields) > 0)
+				$tableExists = true;
 		} else {
-			//Mysql
+			//Mysql;
+			$rows = database::getTableStatus($table->tablename);
 
-			$query = '
-			CREATE TABLE IF NOT EXISTS ' . $table->realtablename . '
-				(
-					' . implode(',', $fields_sql) . ',
-					PRIMARY KEY (id)
-					
-					' . (count($indexes_sql) > 0 ? ',' . implode(',', $indexes_sql) : '') . '
-					
-				) ENGINE=InnoDB' . (isset($table->comments) and $table->comments !== null ? ' COMMENT=' . database::quoteName($table->comments) : '')
-				. ' DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci AUTO_INCREMENT=1;
-			';
-
-			database::setQuery($query);
-			CustomTables\common::enqueueMessage('Table "' . $table->realtablename . '" added.', 'notice');
-			return true;
+			if (count($rows) > 0)
+				$tableExists = true;
 		}
+
+		if (!$tableExists)
+			database::createTable($table->realtablename, 'id', $fields_sql, $table->comment, $indexes_sql);
+
+		CustomTables\common::enqueueMessage('Table "' . $table->realtablename . '" added.', 'notice');
+		return true;
+
 		return false;
 	}
 
-	protected static function prepareAddFieldQuery(CT &$ct, $fields, $db_type): array
+	protected static function prepareAddFieldQuery(CT &$ct, $fields, $db_type, $ignoreId = false): array
 	{
 		$fields_sql = [];
 		foreach ($fields as $field) {
-			if (isset($field['multilang']) and $field['multilang'] == true) {
-				$moreThanOneLanguage = false;
-				foreach ($ct->Languages->LanguageList as $lang) {
-					$fieldname = $field['name'];
+			if (!$ignoreId or $field['name'] != 'id') {
+				if (isset($field['multilang']) and $field['multilang'] == true) {
+					$moreThanOneLanguage = false;
+					foreach ($ct->Languages->LanguageList as $lang) {
+						$fieldname = $field['name'];
 
-					if ($moreThanOneLanguage)
-						$fieldname .= '_' . $lang->sef;
+						if ($moreThanOneLanguage)
+							$fieldname .= '_' . $lang->sef;
 
-					$fields_sql[] = database::quoteName($fieldname) . ' ' . $field[$db_type];
+						$fields_sql[] = '`' . $fieldname . '` ' . $field[$db_type];
 
-					$moreThanOneLanguage = true;
+						$moreThanOneLanguage = true;
+					}
+				} else {
+					$fields_sql[] = '`' . ($field['name']) . '` ' . $field[$db_type];
 				}
-			} else {
-				$fields_sql[] = database::quoteName($field['name']) . ' ' . $field[$db_type];
 			}
 		}
 		return $fields_sql;
@@ -127,11 +107,9 @@ class IntegrityCoreTables extends IntegrityChecks
 	protected static function prepareAddIndexQuery($indexes): array
 	{
 		$indexes_sql = [];
-		foreach ($indexes as $index) {
-			$index_name = database::quoteName($index['name']);
-			$fld = database::quoteName($index['field']);
-			$indexes_sql[] = 'KEY ' . $index_name . ' (' . $fld . ')';
-		}
+		foreach ($indexes as $index)
+			$indexes_sql[] = 'KEY `' . $index['name'] . '` (`' . $index['field'] . '`)';
+
 		return $indexes_sql;
 	}
 
@@ -155,13 +133,13 @@ class IntegrityCoreTables extends IntegrityChecks
 					if (isset($projected_field['ct_typeparams']) and $projected_field['ct_typeparams'] != '')
 						$typeParams = $projected_field['ct_typeparams'];
 
-					IntegrityCoreTables::checkCoreTableFields($realtablename, $ExistingFields, $projected_realfieldname, $ct_fieldtype, $typeParams);
+					IntegrityCoreTables::checkCoreTableFields($realtablename, $ExistingFields, $projected_realfieldname, $ct_fieldtype, $typeParams, $projected_field['name']);
 				}
 			}
 		}
 	}
 
-	public static function checkCoreTableFields($realtablename, $ExistingFields, $realfieldname, $ct_fieldType, $ct_typeparams = '')
+	public static function checkCoreTableFields($realtablename, $ExistingFields, $realfieldname, $ct_fieldType, string $ct_typeparams = '', ?string $field_title = null)
 	{
 		$existingFieldFound = null;
 		foreach ($ExistingFields as $ExistingField) {
@@ -181,8 +159,8 @@ class IntegrityCoreTables extends IntegrityChecks
 				$PureFieldType = Fields::makeProjectedFieldType($projected_data_type);
 
 				$msg = '';
-				if (!Fields::fixMYSQLField($realtablename, $realfieldname, $PureFieldType, $msg)) {
-					Factory::getApplication()->enqueueMessage($msg, 'error');
+				if (!Fields::fixMYSQLField($realtablename, $realfieldname, $PureFieldType, $msg, $field_title)) {
+					common::enqueueMessage($msg);
 					return false;
 				}
 			}

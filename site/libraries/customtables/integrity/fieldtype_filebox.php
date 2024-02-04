@@ -15,11 +15,11 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 	die('Restricted access');
 }
 
+use CustomTables\common;
 use CustomTables\CT;
+use CustomTables\TableHelper;
 use CustomTables\Fields;
 use CustomTables\IntegrityChecks;
-use Joomla\CMS\Factory;
-use ESTables;
 
 class IntegrityFieldType_FileBox extends IntegrityChecks
 {
@@ -27,9 +27,9 @@ class IntegrityFieldType_FileBox extends IntegrityChecks
 	{
 		$filebox_table_name = '#__customtables_filebox_' . $ct->Table->tablename . '_' . $fieldname;
 
-		if (!ESTables::checkIfTableExists($filebox_table_name)) {
+		if (!TableHelper::checkIfTableExists($filebox_table_name)) {
 			Fields::CreateFileBoxTable($ct->Table->tablename, $fieldname);
-			Factory::getApplication()->enqueueMessage('File Box Table "' . $filebox_table_name . '" created.');
+			common::enqueueMessage(common::translate('File Box Table "' . $filebox_table_name . '" created.'));
 		}
 
 		$g_ExistingFields = Fields::getExistingFields($filebox_table_name, false);
@@ -52,7 +52,7 @@ class IntegrityFieldType_FileBox extends IntegrityChecks
 
 			if (!$g_found) {
 				Fields::AddMySQLFieldNotExist($filebox_table_name, $g_fieldname, 'varchar(100) null', '');
-				Factory::getApplication()->enqueueMessage('File Box Field "' . $g_fieldname . '" added.');
+				common::enqueueMessage(common::translate('File Box Field "' . $g_fieldname . '" added.'));
 			}
 			$moreThanOneLanguage = true;
 		}

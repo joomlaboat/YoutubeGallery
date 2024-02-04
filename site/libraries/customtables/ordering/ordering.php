@@ -18,7 +18,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 use Exception;
 use Joomla\CMS\Factory;
 use Joomla\Registry\Registry;
-use JoomlaBasicMisc;
 use Joomla\Utilities\ArrayHelper;
 
 class Ordering
@@ -49,11 +48,11 @@ class Ordering
 	public static function addEditHTMLTagParams(string $result, string $tag, array $paramsToAddEdit): string
 	{
 		$options = array();
-		$fList = JoomlaBasicMisc::getListToReplace($tag, $options, $result, "<>", ' ');
+		$fList = CTMiscHelper::getListToReplace($tag, $options, $result, "<>", ' ');
 		$i = 0;
 		foreach ($fList as $fItem) {
 
-			$params = JoomlaBasicMisc::getHTMLTagParameters(strtolower($options[$i]));
+			$params = CTMiscHelper::getHTMLTagParameters(strtolower($options[$i]));
 
 			foreach ($paramsToAddEdit as $key => $value) {
 				$params[$key] = $value;
@@ -163,11 +162,6 @@ class Ordering
 			case 'creationtime':
 			case 'changetime':
 			case 'lastviewtime':
-				/*
-								if (count($field->params) > 0 and $field->params[0] != '') {
-									return 'DATE_FORMAT(' . $field->realfieldname . ', ' . database::quote($field->params[0]) . ')';
-								} else
-									*/
 				return $field->realfieldname;
 
 			default:
@@ -233,15 +227,6 @@ class Ordering
 
 		foreach ($this->Table->fields as $row) {
 			if ($row['allowordering'] == 1) {
-
-				/*
-				if (!array_key_exists($row['fieldtitle' . $this->Table->Languages->Postfix])) {
-
-					Factory::getApplication()->enqueueMessage('1:' .
-						common::translate('COM_CUSTOMTABLES_ERROR_LANGFIELDNOTFOUND'), 'Error');
-					return null;
-				}
-				*/
 
 				$fieldType = $row['type'];
 				$fieldname = $row['fieldname'];
@@ -327,11 +312,6 @@ class Ordering
 			$whereClauseUpdate = new MySQLWhereClause();
 			$whereClauseUpdate->addCondition($this->Table->realidfieldname, (int)$pks[$i]);
 			database::update($this->Table->realtablename, $data, $whereClauseUpdate);
-
-			//$query = 'UPDATE ' . $this->Table->realtablename . ' SET ' . database::quoteName($realFieldName) . '=' . $order[$i] . ' WHERE '
-			//. database::quoteName($this->Table->realidfieldname) . '=' . (int)$pks[$i];
-
-			//database::setQuery($query);
 		}
 		return true;
 	}

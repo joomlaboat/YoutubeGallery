@@ -145,7 +145,7 @@ class com_YoutubeGalleryInstallerScript
 
 	function updateYGv3table($old_table, $new_table, $map, $exceptions = array())
 	{
-		if (!ESTables::checkIfTableExists($old_table))
+		if (!TableHelper::checkIfTableExists($old_table))
 			return false;
 
 		$db = Factory::getDBO();

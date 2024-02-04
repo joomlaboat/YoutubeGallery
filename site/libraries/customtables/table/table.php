@@ -15,7 +15,6 @@ if (!defined('_JEXEC') and !defined('WPINC')) {
 	die('Restricted access');
 }
 
-use ESTables;
 use Exception;
 
 class Table
@@ -73,10 +72,10 @@ class Table
 		if ($tablename_or_id_not_sanitized === null or $tablename_or_id_not_sanitized == '')
 			return;
 		elseif (is_numeric($tablename_or_id_not_sanitized)) {
-			$this->tablerow = ESTables::getTableRowByIDAssoc((int)$tablename_or_id_not_sanitized);// int sanitizes the input
+			$this->tablerow = TableHelper::getTableRowByIDAssoc((int)$tablename_or_id_not_sanitized);// int sanitizes the input
 		} else {
 			$tablename_or_id = strtolower(trim(preg_replace('/\W/', '', $tablename_or_id_not_sanitized)));//[^a-zA-Z_\d]
-			$this->tablerow = ESTables::getTableRowByNameAssoc($tablename_or_id);
+			$this->tablerow = TableHelper::getTableRowByNameAssoc($tablename_or_id);
 		}
 
 		if (is_null($this->tablerow))
@@ -176,8 +175,6 @@ class Table
 	 */
 	public function getRecordFieldValue($listingId, $resultField)
 	{
-		//$query = ' SELECT ' . $resultField . ' FROM ' . $this->realtablename . ' WHERE ' . $this->realidfieldname . '=' . database::quote($listingId) . ' LIMIT 1';
-
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition($this->realidfieldname, $listingId);
 
@@ -195,12 +192,13 @@ class Table
 	 */
 	function loadRecord(?string $listing_id)
 	{
-		//$query = 'SELECT ' . implode(',', $this->selects) . ' FROM ' . $this->realtablename . ' WHERE ' . $this->realidfieldname . '=' . database::quote($listing_id) . ' LIMIT 1';
-
 		$whereClause = new MySQLWhereClause();
-		if (!empty($listing_id))
-			$whereClause->addCondition($this->realidfieldname, $listing_id);
+		if (empty($listing_id)) {
+			$this->record = null;
+			return null;
+		}
 
+		$whereClause->addCondition($this->realidfieldname, $listing_id);
 		$rows = database::loadAssocList($this->realtablename, $this->selects, $whereClause, null, null, 1);
 
 		if (count($rows) < 1) return $this->record = null;
@@ -214,9 +212,6 @@ class Table
 		if ($listing_id === null or $listing_id === '' or (is_numeric($listing_id) and $listing_id === 0))
 			return false;
 
-		//$query = 'SELECT ' . $this->realidfieldname . ' FROM ' . $this->realtablename . ' WHERE ' . $this->realidfieldname . '=' . database::quote($listing_id) . ' LIMIT 1';
-
-		//return database::loadRowList($query) == 1;
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition($this->realidfieldname, $listing_id);
 		$col = database::loadColumn($this->realtablename, ['COUNT(' . $this->realidfieldname . ') AS c'], $whereClause, null, null, 1);
@@ -224,7 +219,6 @@ class Table
 			return false;
 
 		return $col[0] == 1;
-		//return database::loadColumn($query) == 1;
 	}
 
 	function isRecordNull(): bool
