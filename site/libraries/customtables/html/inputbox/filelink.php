@@ -10,7 +10,7 @@
 
 namespace CustomTables;
 
-if (!defined('_JEXEC') and !defined('WPINC')) {
+if (!defined('_JEXEC') and !defined('ABSPATH')) {
 	die('Restricted access');
 }
 
@@ -30,7 +30,11 @@ class InputBox_fileLink extends BaseInputBox
 				$value = $defaultValue;
 		}
 
-		$path = CUSTOMTABLES_IMAGES_PATH . DIRECTORY_SEPARATOR . $this->field->params[0] ?? '';
+		if ($this->field->params === null or count($this->field->params) == 0)
+			$path = CUSTOMTABLES_IMAGES_PATH . DIRECTORY_SEPARATOR;
+		else {
+			$path = CUSTOMTABLES_IMAGES_PATH . DIRECTORY_SEPARATOR . $this->field->params[0] ?? '';
+		}
 
 		//Check if the path does not start from the root directory
 		if (!empty($path)) {

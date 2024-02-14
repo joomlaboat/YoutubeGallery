@@ -15,8 +15,6 @@ use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\Registry\Registry;
-use JoomlaBasicMisc;
 
 use Joomla\CMS\Uri\Uri;
 use RecursiveDirectoryIterator;
@@ -24,9 +22,17 @@ use RecursiveIteratorIterator;
 
 class common
 {
-	public static function enqueueMessage($text, $type): void
+	public static function enqueueMessage($text, $type = 'error'): void
 	{
-		echo '<div class="success-message">' . $text . '</div>';
+		//Types: error, success-message, notice
+
+		if (defined('_JEXEC'))
+			Factory::getApplication()->enqueueMessage($text, $type);
+		elseif (defined('WPINC')) {
+			if ($type == 'notice')
+				$type = 'success-message';
+			echo '<div class="' . esc_attr($type) . '"><p>' . esc_html($text) . '</p></div>';
+		}
 	}
 
 	public static function translate(string $text, int|float $value = null): string
@@ -223,9 +229,9 @@ class common
 		if ($param === null)
 			return $items;
 
-		$a = JoomlaBasicMisc::csv_explode(' and ', $param, '"', true);
+		$a = CTMiscHelper::csv_explode(' and ', $param, '"', true);
 		foreach ($a as $b) {
-			$c = JoomlaBasicMisc::csv_explode(' or ', $b, '"', true);
+			$c = CTMiscHelper::csv_explode(' or ', $b, '"', true);
 
 			if (count($c) == 1)
 				$items[] = array('and', $b);
@@ -302,7 +308,7 @@ class common
 		return false;
 	}
 
-	public static function ctStripTags($argument): bool|string
+	public static function ctStripTags(string $argument): string
 	{
 		return strip_tags($argument);
 	}
@@ -335,7 +341,7 @@ class common
 		return $string;
 	}
 
-	public static function ctJsonEncode($argument): bool|string
+	public static function ctJsonEncode($argument): string
 	{
 		return json_encode($argument);
 	}
@@ -343,6 +349,7 @@ class common
 	public static function getReturnToURL(bool $decode = true): ?string
 	{
 		$returnto = common::inputGet('returnto', null, 'BASE64');
+
 		if ($returnto === null)
 			return null;
 
@@ -376,7 +383,7 @@ class common
 	public static function makeReturnToURL(string $currentURL = null): ?string
 	{
 		if ($currentURL === null)
-			$currentURL = JoomlaBasicMisc::curPageURL();
+			$currentURL = CTMiscHelper::curPageURL();
 
 		return base64_encode($currentURL);
 	}
@@ -384,7 +391,7 @@ class common
 	public static function curPageURL(): string
 	{
 		$WebsiteRoot = str_replace(Uri::root(true), '', Uri::root());
-		$RequestURL = $_SERVER["REQUEST_URI"];
+		$RequestURL = common::getServerParam("REQUEST_URI");
 
 		if ($WebsiteRoot != '' and $WebsiteRoot[strlen($WebsiteRoot) - 1] == '/') {
 			if ($RequestURL != '' and $RequestURL[0] == '/') {
@@ -394,6 +401,11 @@ class common
 		}
 
 		return $WebsiteRoot . $RequestURL;
+	}
+
+	public static function getServerParam(string $param)
+	{
+		return $_SERVER[$param];
 	}
 
 	public static function ctParseUrl($argument)
@@ -492,12 +504,19 @@ class common
 
 	public static function inputGetString($parameter, $default = null): ?string
 	{
-		return Factory::getApplication()->input->getString($parameter, $default);
+		return Factory::getApplication()->input->get->getString($parameter, $default);
 	}
 
 	public static function inputGetBase64(string $parameter, $default = null)
 	{
 		return Factory::getApplication()->input->get($parameter, $default, 'BASE64');
+	}
+
+	public static function loadJQueryUI(): void
+	{
+		HTMLHelper::_('jquery.framework');
+		HTMLHelper::_('script', 'https://code.jquery.com/ui/1.13.2/jquery-ui.js');
+		HTMLHelper::_('stylesheet', 'https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css');
 	}
 
 	public static function loadJSAndCSS(Params $params, Environment $env): void
@@ -519,15 +538,15 @@ class common
 		}
 
 		if (defined('_JEXEC')) {
-			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/jquery.uploadfile.js"></script>');
-			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/jquery.form.js"></script>');
+			$document->addCustomTag('<script src="' . CUSTOMTABLES_PLUGIN_WEBPATH . 'js/jquery.uploadfile.js"></script>');
+			$document->addCustomTag('<script src="' . CUSTOMTABLES_PLUGIN_WEBPATH . 'js/jquery.form.js"></script>');
+			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/uploader.js"></script>');
 			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/ajax.js"></script>');
 			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/base64.js"></script>');
 			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/catalog.js"></script>');
 			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/edit.js"></script>');
 			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/esmulti.js"></script>');
 			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/modal.js"></script>');
-			$document->addCustomTag('<script src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'js/uploader.js"></script>');
 
 			$document->addCustomTag('<script src="' . URI::root(true) . '/components/com_customtables/libraries/virtualselect/virtual-select.min.js"></script>');
 			$document->addCustomTag('<link rel="stylesheet" href="' . URI::root(true) . '/components/com_customtables/libraries/virtualselect/virtual-select.min.css" />');

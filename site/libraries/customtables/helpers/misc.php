@@ -11,7 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('WPINC')) {
+if (!defined('_JEXEC') and !defined('ABSPATH')) {
 	die('Restricted access');
 }
 
@@ -688,7 +688,7 @@ class CTMiscHelper
 
 				JPluginHelper::importPlugin('content');
 
-				$dispatcher = JDispatcher::getInstance();
+				$dispatcher = \JDispatcher::getInstance();
 				$dispatcher->trigger('onContentPrepare', array('com_content.article', &$o, &$content_params, 0));
 
 				$htmlresult = $o->text;

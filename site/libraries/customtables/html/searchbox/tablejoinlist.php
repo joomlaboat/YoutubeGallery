@@ -11,7 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('WPINC')) {
+if (!defined('_JEXEC') and !defined('ABSPATH')) {
 	die('Restricted access');
 }
 
@@ -28,12 +28,12 @@ class Search_tablejoinlist extends BaseSearch
 
 	function render($value): string
 	{
-		if (str_contains($this->attributes['onchange'], 'onkeypress='))
+		if (str_contains($this->attributes['onchange'] ?? '', 'onkeypress='))
 			$this->attributes['onchange'] .= ' onkeypress="es_SearchBoxKeyPress(event)"';
 
 		$result = '';
 
-		if (count($this->field->params) < 1)
+		if ($this->field->params === null or count($this->field->params) < 1)
 			$result .= 'table not specified';
 
 		if (count($this->field->params) < 2)

@@ -11,7 +11,7 @@
 
 namespace CustomTables\Integrity;
 
-if (!defined('_JEXEC') and !defined('WPINC')) {
+if (!defined('_JEXEC') and !defined('ABSPATH')) {
 	die('Restricted access');
 }
 
@@ -32,7 +32,7 @@ class IntegrityFieldType_Gallery extends IntegrityChecks
 			common::enqueueMessage(common::translate('Gallery Table "' . $gallery_table_name . '" created.'));
 		}
 
-		$g_ExistingFields = Fields::getExistingFields($gallery_table_name, false);
+		$g_ExistingFields = database::getExistingFields($gallery_table_name, false);
 
 		$moreThanOneLanguage = false;
 		foreach ($ct->Languages->LanguageList as $lang) {

@@ -11,7 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('WPINC')) {
+if (!defined('_JEXEC') and !defined('ABSPATH')) {
 	die('Restricted access');
 }
 
@@ -159,7 +159,7 @@ class CTUser
 		$messageBody = str_replace('{PASSWORD_CLEAR}', $password, $messageBody);
 
 		if ($ct->Env->clean)
-			die;
+			die;//Clean Exit
 
 		if (Email::sendEmail($user_email, $subject, $messageBody)) {
 			//clean exit

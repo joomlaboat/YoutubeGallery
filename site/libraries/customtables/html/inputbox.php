@@ -11,7 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('WPINC')) {
+if (!defined('_JEXEC') and !defined('ABSPATH')) {
 	die('Restricted access');
 }
 
@@ -347,7 +347,7 @@ abstract class BaseInputBox
 	{
 		$result = '';
 		foreach ($attributes as $key => $attr)
-			$result .= ' ' . htmlspecialchars($key) . '="' . htmlspecialchars($attr) . '"';
+			$result .= ' ' . htmlspecialchars($key) . '="' . htmlspecialchars($attr ?? '') . '"';
 
 		return $result;
 	}

@@ -9,6 +9,10 @@
  **/
 
 // no direct access
+if (!defined('_JEXEC') and !defined('ABSPATH')) {
+	die('Restricted access');
+}
+
 use CustomTables\common;
 use CustomTables\CT;
 use CustomTables\database;
@@ -16,10 +20,6 @@ use CustomTables\TableHelper;
 use CustomTables\Filtering;
 use CustomTables\FindSimilarImage;
 use CustomTables\MySQLWhereClause;
-
-if (!defined('_JEXEC') and !defined('WPINC')) {
-	die('Restricted access');
-}
 
 class CustomTablesImageMethods
 {

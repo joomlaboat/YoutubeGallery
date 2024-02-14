@@ -11,7 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('WPINC')) {
+if (!defined('_JEXEC') and !defined('ABSPATH')) {
 	die('Restricted access');
 }
 
@@ -58,13 +58,9 @@ class ListOfFields
 
 		$selects = [
 			'a.*',
-			'(SELECT tabletitle FROM #__customtables_tables AS tables WHERE tables.id=a.tableid) AS tabletitle'
+			'TABLE_TITLE',
+			'REAL_FIELD_NAME'
 		];
-
-		if ($serverType == 'postgresql')
-			$selects[] = 'CASE WHEN customfieldname!=\'\' THEN customfieldname ELSE CONCAT(\'es_\',fieldname) END AS realfieldname';
-		else
-			$selects[] = 'IF(customfieldname!=\'\', customfieldname, CONCAT(\'es_\',fieldname)) AS realfieldname';
 
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('tableid', $tableId);

@@ -11,7 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('WPINC')) {
+if (!defined('_JEXEC') and !defined('ABSPATH')) {
 	die('Restricted access');
 }
 
@@ -47,7 +47,7 @@ class TwigProcessor
 
 	public function __construct(CT $ct, $layoutContent, $getEditFieldNamesOnly = false, $DoHTMLSpecialChars = false, $parseParams = true, ?string $layoutName = null, ?string $pageLayoutLink = null)
 	{
-		$this->debug = false;
+		$this->debug = true;//false;
 
 		$this->parseParams = $parseParams;
 		$this->errorMessage = null;
@@ -474,7 +474,7 @@ class fieldObject
 
 			require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR
 				. 'customtables' . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . 'inputbox' . DIRECTORY_SEPARATOR . 'filebox.php');
-			
+
 			$files = InputBox_filebox::getFileBoxRows($this->ct->Table->tablename, $this->field->fieldname, $this->ct->Table->record[$this->ct->Table->realidfieldname]);
 			$fileList = [];
 			foreach ($files as $file)

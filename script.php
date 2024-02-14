@@ -15,6 +15,7 @@ use CustomTables\ImportTables;
 use CustomTables\IntegrityChecks;
 
 //use CustomTables\ImportTables;
+use CustomTables\TableHelper;
 use Joomla\CMS\Factory;
 
 
