@@ -38,7 +38,7 @@ class IntegrityTables extends IntegrityChecks
 		foreach ($tables as $table) {
 
 			//Check if table exists
-			$rows = database::getTableStatus($table['tablename']);
+			$rows = database::getTableStatus($table['tablename'], 'table');
 
 			$tableExists = !(count($rows) == 0);
 
@@ -64,7 +64,6 @@ class IntegrityTables extends IntegrityChecks
 				}
 			}
 		}
-
 		return $result;
 	}
 
@@ -127,7 +126,7 @@ class IntegrityTables extends IntegrityChecks
 
 				if ($row['customtablename'] === null or $row['customtablename'] == '') {
 					if (TableHelper::createTableIfNotExists($database, $dbPrefix, $row['tablename'], $row['tabletitle'], $row['customtablename'])) {
-						common::enqueueMessage('Table "' . $row['tabletitle'] . '" created.');
+						common::enqueueMessage('Table "' . $row['tabletitle'] . '" created.', 'notice');
 					}
 				}
 			}

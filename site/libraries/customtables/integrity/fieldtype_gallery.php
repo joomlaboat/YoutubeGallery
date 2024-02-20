@@ -17,6 +17,7 @@ if (!defined('_JEXEC') and !defined('ABSPATH')) {
 
 use CustomTables\common;
 use CustomTables\CT;
+use CustomTables\database;
 use CustomTables\TableHelper;
 use CustomTables\Fields;
 use CustomTables\IntegrityChecks;
@@ -29,7 +30,7 @@ class IntegrityFieldType_Gallery extends IntegrityChecks
 
 		if (!TableHelper::checkIfTableExists($gallery_table_name)) {
 			Fields::CreateImageGalleryTable($ct->Table->tablename, $fieldname);
-			common::enqueueMessage(common::translate('Gallery Table "' . $gallery_table_name . '" created.'));
+			common::enqueueMessage(common::translate('Gallery Table "' . $gallery_table_name . '" created.'), 'notice');
 		}
 
 		$g_ExistingFields = database::getExistingFields($gallery_table_name, false);

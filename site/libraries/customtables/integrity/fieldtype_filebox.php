@@ -17,6 +17,7 @@ if (!defined('_JEXEC') and !defined('ABSPATH')) {
 
 use CustomTables\common;
 use CustomTables\CT;
+use CustomTables\database;
 use CustomTables\TableHelper;
 use CustomTables\Fields;
 use CustomTables\IntegrityChecks;
@@ -29,7 +30,7 @@ class IntegrityFieldType_FileBox extends IntegrityChecks
 
 		if (!TableHelper::checkIfTableExists($filebox_table_name)) {
 			Fields::CreateFileBoxTable($ct->Table->tablename, $fieldname);
-			common::enqueueMessage(common::translate('File Box Table "' . $filebox_table_name . '" created.'));
+			common::enqueueMessage(common::translate('File Box Table "' . $filebox_table_name . '" created.'), 'notice');
 		}
 
 		$g_ExistingFields = database::getExistingFields($filebox_table_name, false);
