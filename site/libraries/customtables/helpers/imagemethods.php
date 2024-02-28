@@ -9,9 +9,7 @@
  **/
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use CustomTables\common;
 use CustomTables\CT;

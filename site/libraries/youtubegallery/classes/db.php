@@ -363,7 +363,7 @@ class YouTubeGalleryDB
 
 	function update_playlist(bool $force_update = false): void
 	{
-		$start = strtotime($this->videoListRow->es_lastplaylistupdate);
+		$start = strtotime($this->videoListRow->es_lastplaylistupdate ?? '');
 		$end = strtotime(date('Y-m-d H:i:s'));
 		$days_diff = ($end - $start) / 86400;
 

@@ -64,7 +64,7 @@ class YouTubeGalleryData
 			$b = trim(str_replace("\r", '', $b));
 			$listItem = CTMiscHelper::csv_explode(',', $b, '"', false);
 
-			$theLink = trim($listItem[0]);
+			$theLink = trim($listItem[0] ?? '');
 			if ($theLink != '') {
 				$item = array();
 				if (isset($listItem[1]))

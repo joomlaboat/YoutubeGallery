@@ -13,9 +13,7 @@ namespace CustomTables;
 /* All tags already implemented using Twig */
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use Exception;
 use LayoutProcessor;

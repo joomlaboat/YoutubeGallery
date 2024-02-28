@@ -11,9 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 class InputBox_radio extends BaseInputBox
 {
@@ -24,7 +22,7 @@ class InputBox_radio extends BaseInputBox
 
 	function render(?string $value, ?string $defaultValue): string
 	{
-		$result = '<ul>';
+		$result = '<ul class="' . ($this->attributes['class'] == '' ? 'list-unstyled' : $this->attributes['class']) . '">';
 		$i = 0;
 
 		if ($value === null) {
@@ -41,15 +39,13 @@ class InputBox_radio extends BaseInputBox
 		foreach ($this->field->params as $radioValue) {
 			$v = trim($radioValue);
 
-
-			$this->attributes['value'] = $v;
+			$attributes = $this->attributes;
+			$attributes['value'] = $v;
 
 			if ($value == $v)
-				$this->attributes['checked'] = 'checked';
+				$attributes['checked'] = 'checked';
 
-			//$this->attributes['id'] = $element_id . '_' . $i;
-
-			$result .= '<input id="' . $element_id . '_' . $i . '" ' . self::attributes2String($this->attributes) . ' />'
+			$result .= '<li><input id="' . $element_id . '_' . $i . '" ' . self::attributes2String($attributes) . ' />'
 				. '<label for="' . $element_id . '_' . $i . '">' . $v . '</label></li>';
 
 			$i++;

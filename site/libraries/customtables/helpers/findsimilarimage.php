@@ -10,9 +10,7 @@
 
 namespace CustomTables;
 
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 class FindSimilarImage
 {

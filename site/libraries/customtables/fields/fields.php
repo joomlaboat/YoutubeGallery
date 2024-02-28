@@ -11,9 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use CustomTablesFileMethods;
 use CustomTablesImageMethods;
@@ -694,23 +692,6 @@ class Fields
 		return $field;
 	}
 
-	//MySQL only
-	public static function getSelfParentField($ct)
-	{
-		//Check if this table has self-parent field - the TableJoin field linked with the same table.
-
-		foreach ($ct->Table->fields as $fld) {
-			if ($fld['type'] == 'sqljoin') {
-				$type_params = CTMiscHelper::csv_explode(',', $fld['typeparams'], '"', false);
-				$join_tablename = $type_params[0];
-
-				if ($join_tablename == $ct->Table->tablename) {
-					return $fld;//['fieldname'];
-				}
-			}
-		}
-		return null;
-	}
 
 	/**
 	 * @throws Exception
@@ -1424,6 +1405,7 @@ class Fields
 			'photo_ext varchar(10) not null',
 			'title varchar(100) null'
 		];
+
 		database::createTable('#__customtables_gallery_' . $tablename . '_' . $fieldname, 'photoid',
 			$columns, 'Image Gallery', null, 'BIGINT UNSIGNED');
 

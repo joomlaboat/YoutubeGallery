@@ -11,9 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\Uri\Uri;

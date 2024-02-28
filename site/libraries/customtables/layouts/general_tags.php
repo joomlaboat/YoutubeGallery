@@ -11,9 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Router\Route;
@@ -394,7 +392,10 @@ class Twig_Document_Tags
 
 	function setpagetitle($pageTitle): void
 	{
-		$this->ct->document->setTitle(common::translate($pageTitle));
+		if (defined('_JEXEC'))
+			$this->ct->document->setTitle(common::translate($pageTitle));
+		else
+			$this->ct->document->setTitle($pageTitle);
 	}
 
 	function setheadtag($tag): void

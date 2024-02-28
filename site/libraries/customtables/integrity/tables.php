@@ -11,9 +11,7 @@
 
 namespace CustomTables\Integrity;
 
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use CustomTables\common;
 use CustomTables\database;
@@ -32,6 +30,9 @@ class IntegrityTables extends IntegrityChecks
 	public static function checkTables(&$ct)
 	{
 		$tables = IntegrityTables::getTables();
+		if ($tables === null)
+			return [];
+
 		IntegrityTables::checkIfTablesExists($tables);
 		$result = [];
 
@@ -99,7 +100,9 @@ class IntegrityTables extends IntegrityChecks
 		} else {
 			$selects = TableHelper::getTableRowSelectArray();
 
-			$selects[] = 'CATEGORY_NAME';
+			if (defined('_JEXEC'))
+				$selects[] = 'CATEGORY_NAME';
+
 			$selects[] = 'FIELD_COUNT';
 		}
 
@@ -116,7 +119,7 @@ class IntegrityTables extends IntegrityChecks
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	protected static function checkIfTablesExists($tables_rows)
+	protected static function checkIfTablesExists(array $tables_rows)
 	{
 		$dbPrefix = database::getDBPrefix();
 

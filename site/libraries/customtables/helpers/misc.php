@@ -11,9 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use Exception;
 use Joomla\CMS\Factory;
@@ -511,7 +509,11 @@ class CTMiscHelper
 		$parts = explode('.', $filename);
 		$filename_array = array();
 
-		$filename_array[] = common::translate($parts[0]);
+		if (defined('_JEXEC'))
+			$filename_array[] = common::translate($parts[0]);
+		else
+			$filename_array[] = $parts[0];
+
 		if (count($parts) > 1) {
 			for ($i = 1; $i < count($parts); $i++)
 				$filename_array[] = $parts[$i];
@@ -659,28 +661,7 @@ class CTMiscHelper
 			$content_params = $mainframe->getParams('com_content');
 
 			if ($version >= 4) {
-
-				/*$article = new \stdClass();
-				$article->text = $htmlresult;
-
-				$dispatcher = Factory::getContainer()->get(DispatcherInterface::class);
-
-				PluginHelper::importPlugin('content', null, true, $dispatcher);
-
-				$params = new Registry();
-				$context = 'text';
-
-				$dispatcher->dispatch('onContentPrepare', new ContentPrepareEvent('onContentPrepare', [
-					'context' => $context,
-					'subject' => $article,
-					'params' => $params,
-					'page' => 0,
-				]));
-
-				$htmlresult = $article->text;*/
-
 				$htmlresult = \Joomla\CMS\HTML\Helpers\Content::prepare($htmlresult, $content_params);
-
 			} else {
 				$o = new stdClass();
 				$o->text = $htmlresult;
@@ -694,7 +675,9 @@ class CTMiscHelper
 				$htmlresult = $o->text;
 			}
 
-			$myDoc->setTitle(common::translate($pageTitle)); //because content plugins may overwrite the title
+			if (defined('_JEXEC'))
+				$myDoc->setTitle(common::translate($pageTitle)); //because content plugins may overwrite the title
+
 		}
 		return $htmlresult;
 	}

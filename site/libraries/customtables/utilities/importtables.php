@@ -14,9 +14,7 @@ use Exception;
 use JTableNested;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 class ImportTables
 {
@@ -592,8 +590,6 @@ class ImportTables
 	 */
 	public static function menuGetMaxRgt()
 	{
-		//$query = 'SELECT rgt FROM #__menu ORDER BY rgt DESC LIMIT 1';
-
 		$whereClause = new MySQLWhereClause();
 		$rows = database::loadAssocList('#__menu', ['rgt'], $whereClause, 'rgt', null, 1);
 

@@ -11,12 +11,11 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use Exception;
 use JApplicationHelper;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\User\User;
 use Joomla\CMS\User\UserFactoryInterface;
 use Joomla\CMS\Version;
@@ -163,7 +162,7 @@ class CTUser
 
 		if (Email::sendEmail($user_email, $subject, $messageBody)) {
 			//clean exit
-			common::enqueueMessage(common::translate('User password has been reset and sent to the email "' . $user_email . '"'));
+			common::enqueueMessage(Text::sprintf("User password has been reset and sent to the email '%s'", $user_email));
 			return true;
 		}
 

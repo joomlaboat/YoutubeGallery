@@ -11,9 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use Exception;
 use tagProcessor_General;
@@ -50,7 +48,6 @@ class Inputbox
 	{
 		$this->ct = &$ct;
 		$this->isTwig = $isTwig;
-
 		$this->cssclass = $option_list[0] ?? '';
 		$this->attributes = str_replace('****quote****', '"', $option_list[1] ?? '');//Optional Parameter
 

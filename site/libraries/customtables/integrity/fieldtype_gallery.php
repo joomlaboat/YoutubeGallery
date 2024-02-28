@@ -11,9 +11,7 @@
 
 namespace CustomTables\Integrity;
 
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use CustomTables\common;
 use CustomTables\CT;
@@ -21,6 +19,7 @@ use CustomTables\database;
 use CustomTables\TableHelper;
 use CustomTables\Fields;
 use CustomTables\IntegrityChecks;
+use Joomla\CMS\Language\Text;
 
 class IntegrityFieldType_Gallery extends IntegrityChecks
 {
@@ -30,7 +29,7 @@ class IntegrityFieldType_Gallery extends IntegrityChecks
 
 		if (!TableHelper::checkIfTableExists($gallery_table_name)) {
 			Fields::CreateImageGalleryTable($ct->Table->tablename, $fieldname);
-			common::enqueueMessage(common::translate('Gallery Table "' . $gallery_table_name . '" created.'), 'notice');
+			common::enqueueMessage(Text::sprintf("Gallery Table '%s' created.", $gallery_table_name), 'notice');
 		}
 
 		$g_ExistingFields = database::getExistingFields($gallery_table_name, false);
@@ -53,7 +52,7 @@ class IntegrityFieldType_Gallery extends IntegrityChecks
 
 			if (!$g_found) {
 				Fields::AddMySQLFieldNotExist($gallery_table_name, $g_fieldname, 'varchar(100) null', '');
-				common::enqueueMessage('Gallery Field "' . $g_fieldname . '" added.');
+				common::enqueueMessage("Gallery Field '" . $g_fieldname . "' added.");
 			}
 			$moreThanOneLanguage = true;
 		}

@@ -11,9 +11,7 @@
 namespace CustomTables;
 
 // no direct access
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 use Joomla\CMS\HTML\HTMLHelper;
 use JESPagination;
@@ -207,7 +205,10 @@ class Twig_Html_Tags
 		if ($defaultLabel === null)
 			$defaultLabel = 'COM_CUSTOMTABLES_GO_BACK';
 
-		$label = common::translate($defaultLabel);
+		if (defined('_JEXEC'))
+			$label = common::translate($defaultLabel);
+		else
+			$label = $defaultLabel;
 
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -220,6 +221,9 @@ class Twig_Html_Tags
 
 		if ($returnto == '')
 			$returnto = common::getReturnToURL() ?? '';
+
+		if ($returnto == '')
+			$returnto = $this->ct->Params->returnTo;
 
 		if ($returnto == '')
 			return '';

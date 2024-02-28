@@ -13,9 +13,7 @@ namespace CustomTables;
 // no direct access
 use Exception;
 
-if (!defined('_JEXEC') and !defined('ABSPATH')) {
-	die('Restricted access');
-}
+defined('_JEXEC') or die();
 
 class ListOfLayouts
 {
