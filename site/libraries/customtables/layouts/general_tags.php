@@ -13,6 +13,8 @@ namespace CustomTables;
 // no direct access
 defined('_JEXEC') or die();
 
+use Exception;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Router\Route;
 use LayoutProcessor;
@@ -68,7 +70,11 @@ class Twig_User_Tags
 		$this->user_id = (int)$this->ct->Env->user->id;
 	}
 
-	function name($user_id = 0): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
+	function name($user_id = 0): ?string
 	{
 		if ($user_id == 0)
 			$user_id = $this->user_id;
@@ -77,13 +83,26 @@ class Twig_User_Tags
 			return '';
 
 		$userRow = CTUser::GetUserRow($user_id);
-		if ($userRow !== null)
-			return $userRow['name'];
+		if ($userRow !== null) {
+			if (defined('_JEXEC')) {
+				return $userRow['name'];
+			} elseif (defined('WPINC')) {
+				return $userRow['display_name'];
+			} else {
+				common::enqueueMessage('Warning: The {{ user.name }} tag is not supported in the current version of the Custom Tables.');
+				return null;
+			}
+		}
 
-		return 'user: ' . $user_id . ' not found.';
+		common::enqueueMessage('Warning: User: ' . $user_id . ' not found.');
+		return null;
 	}
 
-	function username($user_id = 0): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
+	function username($user_id = 0): ?string
 	{
 		if ($user_id == 0)
 			$user_id = $this->user_id;
@@ -92,13 +111,26 @@ class Twig_User_Tags
 			return '';
 
 		$userRow = CTUser::GetUserRow($user_id);
-		if ($userRow !== null)
-			return $userRow['username'];
+		if ($userRow !== null) {
+			if (defined('_JEXEC')) {
+				return $userRow['username'];
+			} elseif (defined('WPINC')) {
+				return $userRow['user_login'];
+			} else {
+				common::enqueueMessage('Warning: The {{ user.username }} tag is not supported in the current version of the Custom Tables.');
+				return null;
+			}
+		}
 
-		return 'user: ' . $user_id . ' not found.';
+		common::enqueueMessage('Warning: User: ' . $user_id . ' not found.');
+		return null;
 	}
 
-	function email($user_id = 0): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
+	function email($user_id = 0): ?string
 	{
 		if ($user_id == 0)
 			$user_id = $this->user_id;
@@ -107,8 +139,16 @@ class Twig_User_Tags
 			return '';
 
 		$userRow = CTUser::GetUserRow($user_id);
-		if ($userRow !== null)
-			return $userRow['email'];
+		if ($userRow !== null) {
+			if (defined('_JEXEC')) {
+				return $userRow['email'];
+			} elseif (defined('WPINC')) {
+				return $userRow['user_email'];
+			} else {
+				common::enqueueMessage('Warning: The {{ user.email }} tag is not supported in the current version of the Custom Tables.');
+				return null;
+			}
+		}
 
 		return 'user: ' . $user_id . ' not found.';
 	}
@@ -121,7 +161,82 @@ class Twig_User_Tags
 		return $this->user_id;
 	}
 
-	function lastvisitdate($user_id = 0): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
+	function lastvisitdate(int $user_id = 0, string $format = 'Y-m-d H:i:s'): ?string
+	{
+		if ($user_id == 0)
+			$user_id = $this->user_id;
+
+		if ($user_id == 0)
+			return '';
+
+		// Check if the environment is recognized
+		$isJoomla = defined('_JEXEC');
+		$isWordPress = defined('WPINC');
+
+		if ($isJoomla) {
+			$userRow = CTUser::GetUserRow($user_id);
+			if ($userRow !== null) {
+				if ($userRow['lastvisitDate'] == '0000-00-00 00:00:00')
+					return 'Never';
+				else
+					$date = $userRow['lastvisitDate'];
+			} else
+				return 'user: ' . $user_id . ' not found.';
+
+			$timestamp = strtotime($date);
+		} elseif ($isWordPress) {
+			$timestamp = null;
+			$whereClause = new MySQLWhereClause();
+			$whereClause->addCondition('user_id', $user_id);
+			$whereClause->addCondition('meta_key', 'session_tokens');
+			$rows = database::loadAssocList('#__usermeta', ['meta_value AS session_tokens'], $whereClause, 'umeta_id', 'desc', 1);
+
+			if (count($rows) === 0)
+				return 'Never';
+
+			$serialized_session_tokens = $rows[0]['session_tokens'];
+
+			// Unserialize the data
+			$session_tokens_array = unserialize($serialized_session_tokens);
+
+			// The unserialized data is now an array, where the keys are the session token strings
+			// and the values are arrays containing the session token data
+			$found = false;
+			foreach ($session_tokens_array as $token_data) {
+				// Check if the token data array has a 'login' key
+				if (isset($token_data['login'])) {
+					$timestamp = $token_data['login'];
+					$found = true;
+					break; // Exit the loop after finding the first 'login' value
+				}
+			}
+			if (!$found)
+				return 'Probably never';
+		} else {
+			common::enqueueMessage('Warning: The {{ user.lastvisitdate }} tag is not supported in the current version of the Custom Tables.');
+			return null;
+		}
+
+		if ($format === 'timestamp')
+			return (string)$timestamp;
+
+		if ($isJoomla)
+			return HTMLHelper::date($timestamp, $format);
+		elseif ($isWordPress)
+			return date_i18n($format, $timestamp);
+
+		return null;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
+	function registerdate(int $user_id = 0, string $format = 'Y-m-d H:i:s'): ?string
 	{
 		if ($user_id == 0)
 			$user_id = $this->user_id;
@@ -131,34 +246,45 @@ class Twig_User_Tags
 
 		$userRow = CTUser::GetUserRow($user_id);
 		if ($userRow !== null) {
-			if ($userRow['lastvisitDate'] == '0000-00-00 00:00:00')
-				return 'Never';
-			else
-				return $userRow['lastvisitDate'];
-		}
 
+			// Check if the environment is recognized
+			$isJoomla = defined('_JEXEC');
+			$isWordPress = defined('WPINC');
+
+			if ($isJoomla) {
+				$date = $userRow['registerDate'];
+			} elseif ($isWordPress) {
+				$date = $userRow['user_registered'];
+			} else {
+				common::enqueueMessage('Warning: The {{ user.registerdate }} tag is not supported in the current version of the Custom Tables.');
+				return null;
+			}
+
+			if ($date == '0000-00-00 00:00:00')
+				return 'Never';
+			else {
+
+				$timestamp = strtotime($date);
+
+				if ($format === 'timestamp')
+					return (string)$timestamp;
+
+				if ($isJoomla) {
+					return HTMLHelper::date($timestamp, $format);
+				}
+
+				if ($isWordPress) {
+					return date_i18n($format, $timestamp);
+				}
+			}
+		}
 		return 'user: ' . $user_id . ' not found.';
 	}
 
-	function registerdate($user_id = 0): string
-	{
-		if ($user_id == 0)
-			$user_id = $this->user_id;
-
-		if ($user_id == 0)
-			return '';
-
-		$userRow = CTUser::GetUserRow($user_id);
-		if ($userRow !== null) {
-			if ($userRow['registerDate'] == '0000-00-00 00:00:00')
-				return 'Never';
-			else
-				return $userRow['registerDate'];
-		}
-
-		return 'user: ' . $user_id . ' not found.';
-	}
-
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
 	function usergroups($user_id = 0): array
 	{
 		if ($user_id == 0)
@@ -167,7 +293,7 @@ class Twig_User_Tags
 		if ($user_id == 0)
 			return [];
 
-		return explode(',', CTUser::GetUserGroups($user_id));
+		return CTUser::GetUserGroups($user_id);
 	}
 }
 
@@ -187,19 +313,30 @@ class Twig_Url_Tags
 		return $this->ct->Env->current_url;
 	}
 
-	function base64(): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function base64(): ?string
 	{
-		if (defined('_JEXEC'))
+		if (defined('_JEXEC')) {
 			return $this->ct->Env->encoded_current_url;
-		else
-			return '{{ url.base64() }} - Not supported in WordPress version';
+		} else {
+			common::enqueueMessage('Warning: The {{ url.base64() }} tag is not supported in the current version of the Custom Tables for WordPress plugin.');
+			return null;
+		}
 	}
 
-	function root(): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function root(): ?string
 	{
 		if (!$this->ct->Env->advancedTagProcessor) {
-			$this->ct->errors[] = 'url.root: This Field Type available in PRO version only.';
-			return 'url.root: This Field Type available in PRO version only.';
+			//$this->ct->errors[] = 'url.root: This Field Type available in PRO version only.';
+			common::enqueueMessage('Warning: The {{ url.root }} ' . common::translate('COM_CUSTOMTABLES_AVAILABLE'));
+			return null;
 		}
 
 		$include_host = false;
@@ -221,9 +358,12 @@ class Twig_Url_Tags
 				$add_trailing_slash = false;
 		}
 
-		if ($include_host)
-			$WebsiteRoot = Uri::root();
-		else
+		if ($include_host) {
+			if (defined('_JEXEC'))
+				$WebsiteRoot = Uri::root();
+			else
+				$WebsiteRoot = home_url();
+		} else
 			$WebsiteRoot = CUSTOMTABLES_MEDIA_HOME_URL;
 
 		if ($add_trailing_slash) {
@@ -238,136 +378,198 @@ class Twig_Url_Tags
 		return $WebsiteRoot;
 	}
 
-	function getuint($param, $default = 0)
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function getuint($param, $default = 0): ?int
 	{
 		return common::inputGetUInt($param, $default);
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
 	function getfloat($param, $default = 0): float
 	{
 		return common::inputGetFloat($param, $default);
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
 	function getword($param, $default = ''): string
 	{
 		return common::inputGetWord($param, $default);
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
 	function getalnum($param, $default = ''): string
 	{
 		return common::inputGetCmd($param, $default);
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
 	function getcmd($param, $default = ''): string
 	{
 		return common::inputGetCmd($param, $default);
 	}
 
-	function getstringandencode($param, $default = ''): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function getstringandencode($param, $default = ''): ?string
 	{
-		if ($this->ct->Env->advancedTagProcessor and class_exists('CustomTables\ctProHelpers'))
+		if ($this->ct->Env->advancedTagProcessor and class_exists('CustomTables\ctProHelpers')) {
 			return ctProHelpers::getstringandencode($param, $default);
-		else
-			return '{{ url.getstringandencode() }} - Not supported in WordPress version';
+		} else {
+			common::enqueueMessage('Warning: The {{ url.getstringandencode() }} ' . common::translate('COM_CUSTOMTABLES_AVAILABLE'));
+			return null;
+		}
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
 	function getstring($param, $default = ''): string
 	{
 		return common::inputGetString($param, $default);
 	}
 
-	function getstringanddecode($param, $default = ''): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function getstringanddecode($param, $default = ''): ?string
 	{
-		if ($this->ct->Env->advancedTagProcessor and class_exists('CustomTables\ctProHelpers'))
+		if ($this->ct->Env->advancedTagProcessor and class_exists('CustomTables\ctProHelpers')) {
 			return ctProHelpers::getstringanddecode($param, $default);
-		else
-			return '{{ url.getstringanddecode() }} - Not supported in WordPress version';
+		} else {
+			common::enqueueMessage('Warning: The {{ url.getstringanddecode() }} ' . common::translate('COM_CUSTOMTABLES_AVAILABLE'));
+			return null;
+		}
 	}
 
-	function itemid(): int
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function itemid(): ?int
 	{
-		return common::inputGetInt('Itemid', 0);
+		if (defined('_JEXEC'))
+			return common::inputGetInt('Itemid', 0);
+		else {
+			common::enqueueMessage('Warning: The {{ url.itemid }} tag is not supported in the current version of the Custom Tables for WordPress plugin.');
+			return null;
+		}
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
 	function getint($param, $default = 0): ?int
 	{
 		return common::inputGetInt($param, $default);
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
 	function set($option, $param = ''): void
 	{
-		common::inputSet($option, $param);
+		if (defined('_JEXEC'))
+			common::inputSet($option, $param);
+		else
+			common::enqueueMessage('Warning: The {{ url.set() }} tag is not supported in the current version of the Custom Tables for WordPress plugin.');
 	}
 
-	function server($param)
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function server($param): ?string
 	{
+		if (!$this->ct->Env->advancedTagProcessor) {
+			common::enqueueMessage('Warning: The {{ url.server }} ' . common::translate('COM_CUSTOMTABLES_AVAILABLE'));
+			return null;
+		}
 		return common::getServerParam($param);
 	}
 
-	function format($format, $link_type = 'anchor', $image = '', $imagesize = '', $layoutname = '', $csv_column_separator = ','): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function format($format, $link_type = 'anchor', $image = '', $imagesize = '', $layoutname = '', $csv_column_separator = ','): ?string
 	{
-		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
-			return '';
-		//$csv_column_separator parameter is only for csv output format
+		if (defined('_JEXEC')) {
+			if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+				return '';
 
-		$link = '';
-		/*
-				if ($menu_item_alias != '') {
-					$menu_item = CTMiscHelper::FindMenuItemRowByAlias($menu_item_alias);//Accepts menu Itemid and alias
-					if ($menu_item != 0) {
-						$menu_item_id = (int)$menu_item['id'];
-						$link = $menu_item['link'];
-						$link .= '&Itemid=' . $menu_item_id;//.'&returnto='.$returnto;
+			$link = CTMiscHelper::deleteURLQueryOption($this->ct->Env->current_url, 'frmt');
+			$link = CTMiscHelper::deleteURLQueryOption($link, 'layout');
+			//}
+
+			$link = Route::_($link);
+
+			//check if format supported
+			$allowed_formats = ['csv', 'json', 'xml', 'xlsx', 'pdf', 'image'];
+			if ($format == '' or !in_array($format, $allowed_formats))
+				$format = 'csv';
+
+			$link .= (!str_contains($link, '?') ? '?' : '&') . 'frmt=' . $format . '&clean=1';
+
+			if ($layoutname != '')
+				$link .= '&layout=' . $layoutname;
+
+			if ($format == 'csv' and $csv_column_separator != ',')
+				$link .= '&sep=' . $csv_column_separator;
+
+			if ($link_type == 'anchor' or $link_type == '') {
+				$allowed_sizes = ['16', '32', '48'];
+				if ($imagesize == '' or !in_array($imagesize, $allowed_sizes))
+					$imagesize = 32;
+
+				if ($format == 'image')
+					$format_image = 'jpg';
+				else
+					$format_image = $format;
+
+				$alt = 'Download ' . strtoupper($format) . ' file';
+
+				if ($image == '') {
+					if ($this->ct->Env->toolbarIcons != '' and $format == 'csv') {
+						$img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' fa-file-csv" data-icon="' . $this->ct->Env->toolbarIcons . ' fa-file-csv" title="' . $alt . '"></i>';
+					} else {
+						$image = '/components/com_customtables/libraries/customtables/media/images/fileformats/' . $imagesize . 'px/' . $format_image . '.png';
+						$img = '<img src="' . $image . '" alt="' . $alt . '" title="' . $alt . '" style="width:' . $imagesize . 'px;height:' . $imagesize . 'px;">';
 					}
-				} else {*/
-		$link = CTMiscHelper::deleteURLQueryOption($this->ct->Env->current_url, 'frmt');
-		$link = CTMiscHelper::deleteURLQueryOption($link, 'layout');
-		//}
-
-		$link = Route::_($link);
-
-		//check if format supported
-		$allowed_formats = ['csv', 'json', 'xml', 'xlsx', 'pdf', 'image'];
-		if ($format == '' or !in_array($format, $allowed_formats))
-			$format = 'csv';
-
-		$link .= (!str_contains($link, '?') ? '?' : '&') . 'frmt=' . $format . '&clean=1';
-
-		if ($layoutname != '')
-			$link .= '&layout=' . $layoutname;
-
-		if ($format == 'csv' and $csv_column_separator != ',')
-			$link .= '&sep=' . $csv_column_separator;
-
-		if ($link_type == 'anchor' or $link_type == '') {
-			$allowed_sizes = ['16', '32', '48'];
-			if ($imagesize == '' or !in_array($imagesize, $allowed_sizes))
-				$imagesize = 32;
-
-			if ($format == 'image')
-				$format_image = 'jpg';
-			else
-				$format_image = $format;
-
-			$alt = 'Download ' . strtoupper($format) . ' file';
-
-			if ($image == '') {
-				if ($this->ct->Env->toolbarIcons != '' and $format == 'csv') {
-					$img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' fa-file-csv" data-icon="' . $this->ct->Env->toolbarIcons . ' fa-file-csv" title="' . $alt . '"></i>';
-				} else {
-					$image = '/components/com_customtables/libraries/customtables/media/images/fileformats/' . $imagesize . 'px/' . $format_image . '.png';
+				} else
 					$img = '<img src="' . $image . '" alt="' . $alt . '" title="' . $alt . '" style="width:' . $imagesize . 'px;height:' . $imagesize . 'px;">';
-				}
-			} else
-				$img = '<img src="' . $image . '" alt="' . $alt . '" title="' . $alt . '" style="width:' . $imagesize . 'px;height:' . $imagesize . 'px;">';
 
-			return '<a href="' . $link . '" class="toolbarIcons" id="ctToolBarExport2CSV" target="_blank">' . $img . '</a>';
+				return '<a href="' . $link . '" class="toolbarIcons" id="ctToolBarExport2CSV" target="_blank">' . $img . '</a>';
 
-		} elseif ($link_type == '_value' or $link_type == 'linkonly') {
-			//link only
-			return $link;
+			} elseif ($link_type == '_value' or $link_type == 'linkonly') {
+				//link only
+				return $link;
+			}
+			return '';
+		} else {
+			common::enqueueMessage('Warning: The {{ url.format() }} tag is not supported in the current version of the Custom Tables for WordPress plugin.');
+			return null;
 		}
-		return '';
 	}
 }
 
@@ -390,12 +592,18 @@ class Twig_Document_Tags
 		$this->ct->document->setMetaData('description', $metadescription);
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
 	function setpagetitle($pageTitle): void
 	{
-		if (defined('_JEXEC'))
+		if (defined('_JEXEC')) {
 			$this->ct->document->setTitle(common::translate($pageTitle));
-		else
-			$this->ct->document->setTitle($pageTitle);
+		} elseif (defined('WPINC')) {
+			common::enqueueMessage('Warning: The {{ document.setpagetitle }} tag is not supported in the current version of the Custom Tables for WordPress.');
+		} else
+			common::enqueueMessage('Warning: The {{ document.setpagetitle }} tag is not supported in the current version of the Custom Tables.');
 	}
 
 	function setheadtag($tag): void
@@ -403,8 +611,17 @@ class Twig_Document_Tags
 		$this->ct->document->addCustomTag($tag);
 	}
 
-	function layout($layoutName): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function layout(string $layoutName = ''): ?string
 	{
+		if ($layoutName == '') {
+			common::enqueueMessage('Warning: The {{ document.layout("layout_name") }} layout name is required.');
+			return null;
+		}
+
 		if (!isset($this->ct->Table)) {
 			$this->ct->errors[] = '{{ document.layout }} - Table not loaded.';
 			return '';
@@ -424,34 +641,29 @@ class Twig_Document_Tags
 		}
 
 		$twig = new TwigProcessor($this->ct, $layout, $this->ct->LayoutVariables['getEditFieldNamesOnly'] ?? false);
-
 		$number = 1;
 		$html_result = '';
 
-		if ($layouts->layoutType == 6) {
-			if (!is_null($this->ct->Records)) {
+		if ($layouts->layoutType == 6 and !is_null($this->ct->Records)) {
+			foreach ($this->ct->Records as $row) {
+				$row['_number'] = $number;
+				$row['_islast'] = $number == count($this->ct->Records);
 
-				foreach ($this->ct->Records as $row) {
-					$row['_number'] = $number;
-					$row['_islast'] = $number == count($this->ct->Records);
+				$html_result_layout = $twig->process($row);
+				if ($twig->errorMessage !== null)
+					$this->ct->errors[] = $twig->errorMessage;
 
-					$html_result_layout = $twig->process($row);
-					if ($twig->errorMessage !== null)
-						$this->ct->errors[] = $twig->errorMessage;
-
-					if ($this->ct->Env->legacySupport) {
-						$LayoutProc = new LayoutProcessor($this->ct);
-						$LayoutProc->layout = $html_result_layout;
-						$html_result_layout = $LayoutProc->fillLayout($row);
-					}
-
-					$html_result .= $html_result_layout;
-
-					$number++;
+				if ($this->ct->Env->legacySupport) {
+					$LayoutProc = new LayoutProcessor($this->ct);
+					$LayoutProc->layout = $html_result_layout;
+					$html_result_layout = $LayoutProc->fillLayout($row);
 				}
+
+				$html_result .= $html_result_layout;
+
+				$number++;
 			}
 		} else {
-			///if (!is_null($this->ct->Table->record))
 			$html_result = $twig->process($this->ct->Table->record);
 			if ($twig->errorMessage !== null)
 				$this->ct->errors[] = $twig->errorMessage;
@@ -462,13 +674,19 @@ class Twig_Document_Tags
 				$html_result = $LayoutProc->fillLayout($this->ct->Table->record);
 			}
 		}
-
 		return $html_result;
 	}
 
-	function sitename(): string
+	function sitename(): ?string
 	{
-		return $this->ct->app->get('sitename');
+		if (defined('_JEXEC'))
+			return $this->ct->app->get('sitename');
+		elseif (defined('WPINC'))
+			return get_bloginfo('name');
+		else
+			common::enqueueMessage('Warning: The {{ document.sitename }} tag is not supported in the current version of the Custom Tables.');
+
+		return null;
 	}
 
 	function languagepostfix(): string

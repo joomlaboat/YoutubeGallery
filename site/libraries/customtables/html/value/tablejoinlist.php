@@ -119,8 +119,7 @@ class Value_tablejoinlist extends BaseValue
 		try {
 			$ct->getRecords();
 		} catch (Exception $e) {
-			echo '$e->getMessage()=' . $e->getMessage() . '*<br/>';
-			return $e->getMessage();
+			return 'resolveRecordTypeValue error: ' . $e->getMessage();
 		}
 		return self::processRecordRecords($ct, $layoutcode, $rowValue, $ct->Records, $separatorCharacter);
 	}
@@ -151,7 +150,7 @@ class Value_tablejoinlist extends BaseValue
 			try {
 				$htmlresult .= $twig->process($row);
 			} catch (Exception $e) {
-				echo $e->getMessage();
+				return 'processRecordRecords: ' . $e->getMessage();
 			}
 
 			if ($twig->errorMessage !== null)

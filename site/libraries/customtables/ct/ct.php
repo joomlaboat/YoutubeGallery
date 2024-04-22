@@ -18,7 +18,6 @@ use Exception;
 use Joomla\CMS\Factory;
 use CustomTablesKeywordSearch;
 use Joomla\CMS\Language\Text;
-use Joomla\Registry\Registry;
 use CustomTables\CustomPHP\CleanExecute;
 
 class CT
@@ -36,6 +35,7 @@ class CT
 	var int $LimitStart;
 	var bool $isEditForm;
 	var array $editFields;
+	var array $editFieldTypes;
 	var array $LayoutVariables;
 	var array $errors;
 	var array $messages;
@@ -44,7 +44,7 @@ class CT
 	var $app;
 	var $document;
 
-	function __construct(?Registry $menuParams = null, $blockExternalVars = true, ?string $ModuleId = null, bool $enablePlugin = true)
+	function __construct(?array $menuParams = null, $blockExternalVars = true, ?string $ModuleId = null, bool $enablePlugin = true)
 	{
 		$this->errors = [];
 		$this->messages = [];
@@ -63,6 +63,7 @@ class CT
 		$this->isEditForm = false;
 		$this->LayoutVariables = [];
 		$this->editFields = [];
+		$this->editFieldTypes = [];
 
 		$this->Limit = 0;
 		$this->LimitStart = 0;
@@ -101,7 +102,7 @@ class CT
 		return false;
 	}
 
-	function setParams($menuParams = null, $blockExternalVars = true, ?string $ModuleId = null): void
+	function setParams(array $menuParams = null, $blockExternalVars = true, ?string $ModuleId = null): void
 	{
 		$this->Params->setParams($menuParams, $blockExternalVars, $ModuleId);
 	}
@@ -113,8 +114,13 @@ class CT
 	function getTable($tableNameOrID, $userIdFieldName = null): void
 	{
 		$this->Table = new Table($this->Languages, $this->Env, $tableNameOrID, $userIdFieldName);
-		$this->Ordering = new Ordering($this->Table, $this->Params);
-		$this->prepareSEFLinkBase();
+
+		if ($this->Table !== null) {
+			$this->Ordering = new Ordering($this->Table, $this->Params);
+			$this->prepareSEFLinkBase();
+		} else {
+			$this->Ordering = null;
+		}
 	}
 
 	/**
@@ -127,7 +133,6 @@ class CT
 		$this->Table->setTable($tableRow, $userIdFieldName);
 
 		$this->Ordering = new Ordering($this->Table, $this->Params);
-
 		$this->prepareSEFLinkBase();
 	}
 
@@ -410,11 +415,15 @@ class CT
 
 		database::deleteRecord($this->Table->realtablename, $this->Table->realidfieldname, $listing_id);
 
-		$this->Table->saveLog($listing_id, 5);
+		if ($this->Env->advancedTagProcessor)
+			$this->Table->saveLog($listing_id, 5);
+
 		$new_row = array();
 
-		if ($this->Env->advancedTagProcessor)
-			CleanExecute::executeCustomPHPfile($this->Table->tablerow['customphp'], $new_row, $row);
+		if (defined('_JEXEC')) {
+			if ($this->Env->advancedTagProcessor)
+				CleanExecute::executeCustomPHPfile($this->Table->tablerow['customphp'], $new_row, $row);
+		}
 
 		return 1;
 	}

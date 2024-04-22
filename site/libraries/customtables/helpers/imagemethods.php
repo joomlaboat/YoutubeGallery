@@ -347,10 +347,10 @@ class CustomTablesImageMethods
 
 			do {
 				if ($fileNameType == '') {
-					$ImageID = gmdate("YmdHis") . ($i > 0 ? $i : '');
+					$ImageID = common::currentDate("YmdHis") . ($i > 0 ? $i : '');
 					$ImageID .= ($i > 0 ? $i : '');
 				} else {
-					$ImageID = common::inputPostString('com' . $realfieldname . '_filename', '');
+					$ImageID = common::inputPostString('com' . $realfieldname . '_filename', '', 'create-edit-record');
 					if ($fileNameType == 'transliterated') {
 
 						if (function_exists("transliterator_transliterate"))

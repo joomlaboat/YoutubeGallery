@@ -15,6 +15,7 @@ defined('_JEXEC') or die();
 
 use CustomTablesImageMethods;
 use Exception;
+use InvalidArgumentException;
 use Joomla\CMS\HTML\HTMLHelper;
 
 use CT_FieldTypeTag_file;
@@ -111,6 +112,9 @@ class Value
 				return $rowValue;
 			case 'googlemapcoordinates':
 
+				if (defined('WPINC'))
+					return 'CustomTables for WordPress: "googlemapcoordinates" field type is not available yet.';
+
 				if (count($option_list) == 0 or $option_list[0] == 'map') {
 
 					$parts = explode(',', $rowValue ?? '');
@@ -153,6 +157,10 @@ class Value
 				return $this->TextFunctions($rowValue, $option_list);
 
 			case 'blob':
+
+				if (defined('WPINC'))
+					return 'CustomTables for WordPress: "blob" field type is not available yet.';
+
 				return $this->blobProcess($rowValue, $option_list);
 
 			case 'color':
@@ -160,17 +168,26 @@ class Value
 
 			case 'file':
 
+				if (defined('WPINC'))
+					return 'CustomTables for WordPress: "file" field type is not available yet.';
+
 				return CT_FieldTypeTag_file::process($rowValue, $this->field, $option_list, $row[$this->ct->Table->realidfieldname], false);
 
 			case 'image':
 				$imageSRC = '';
 				$imagetag = '';
 
+				if (defined('WPINC'))
+					return 'CustomTables for WordPress: "image" field type is not available yet.';
+
 				CT_FieldTypeTag_image::getImageSRCLayoutView($option_list, $rowValue, $this->field->params, $imageSRC, $imagetag);
 
 				return $imagetag;
 
 			case 'signature':
+
+				if (defined('WPINC'))
+					return 'CustomTables for WordPress: "signature" field type is not available yet.';
 
 				$imageSRC = '';
 				$imagetag = '';
@@ -209,10 +226,16 @@ class Value
 				return null;
 
 			case 'article':
-				//case 'multilangarticle':
+
+				if (defined('WPINC'))
+					return 'CustomTables for WordPress: "article" field type is not available.';
+
 				return $this->articleProcess($rowValue, $option_list);
 
 			case 'imagegallery':
+
+				if (defined('WPINC'))
+					return 'CustomTables for WordPress: "imagegallery" field type is not available yet.';
 
 				$getGalleryRows = CT_FieldTypeTag_imagegallery::getGalleryRows($this->ct->Table->tablename, $this->field->fieldname, $this->row[$this->ct->Table->realidfieldname]);
 
@@ -224,6 +247,9 @@ class Value
 				return implode('', $imageTagList);
 
 			case 'filebox':
+
+				if (defined('WPINC'))
+					return 'CustomTables for WordPress: "filebox" field type is not available yet.';
 
 				require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR
 					. 'customtables' . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . 'inputbox' . DIRECTORY_SEPARATOR . 'filebox.php');
@@ -292,6 +318,10 @@ class Value
 
 	protected function orderingProcess($value): string
 	{
+		if (defined('WPINC')) {
+			return 'orderingProcess not yet supported by WordPress version of the Custom Tables.';
+		}
+
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return $value;
 
@@ -469,34 +499,44 @@ class Value
 		if ($rowValue == '' or $rowValue == '0000-00-00' or $rowValue == '0000-00-00 00:00:00')
 			return '';
 
-		$PHPDate = strtotime($rowValue);
-
 		if (($option_list[0] ?? '') != '') {
-			if ($option_list[0] == 'timestamp')
-				return $PHPDate;
+			return common::formatDate($rowValue, $option_list[0]);
+		} else {
 
-			return gmdate($option_list[0], $PHPDate);
-		} else
-			return HTMLHelper::date($PHPDate);
+			if ($this->field->params !== null and count($this->field->params) > 0 and $this->field->params[0] == 'datetime')
+				return common::formatDate($rowValue);
+			else
+				return common::formatDate($rowValue, 'Y-m-d');
+		}
 	}
 
-	protected function timeProcess(?string $value, array $option_list): string
+	/**
+	 * Formats a date/time string or returns a Unix timestamp based on the provided options.
+	 *
+	 * @param string|null $value The date/time string to be formatted. If null, an empty string is returned.
+	 * @param array $option_list An array of options for formatting the date/time.
+	 *                        If the first element is 'timestamp', the Unix timestamp will be returned.
+	 *                        Otherwise, it should be a valid date/time format string.
+	 *
+	 * @return string The formatted date/time string or Unix timestamp.
+	 *
+	 * @throws InvalidArgumentException If the options are invalid.
+	 *
+	 * @since 3.2.9
+	 */
+	protected function timeProcess(?string $value, array $option_list = []): string
 	{
-		if ($value === null)
+		if ($value === null) {
 			return '';
-
-		$PHPDate = strtotime($value);
-		if (isset($option_list[0]) and $option_list[0] != '') {
-			if ($option_list[0] == 'timestamp')
-				return $PHPDate;
-
-			return gmdate($option_list[0], $PHPDate);
-		} else {
-			if ($value == '0000-00-00 00:00:00')
-				return '';
-
-			return HTMLHelper::date($PHPDate);
 		}
+
+		$format = $option_list[0] ?? 'Y-m-d H:i:s';
+
+		if ($value === '0000-00-00 00:00:00') {
+			return '';
+		}
+
+		return common::formatDate($value, $format);
 	}
 
 	protected function virtualProcess(): string

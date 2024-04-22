@@ -27,7 +27,6 @@ class ListOfFields
 	var ?bool $canEdit;
 	var ?bool $saveOrder;
 	var string $dbPrefix;
-	var int $tableid;
 
 	function __construct(CT $ct, ?array $items = null, ?bool $canState = null, ?bool $canDelete = null, ?bool $canEdit = null, ?bool $saveOrder = null)
 	{
@@ -51,7 +50,6 @@ class ListOfFields
 	 */
 	function getListQuery(int $tableId, $published = null, $search = null, $type = null, $orderCol = null, $orderDirection = null, $limit = 0, $start = 0, bool $returnQueryString = false)
 	{
-		$this->tableid = common::inputGetInt('tableid', 0);
 		$selects = [
 			'a.*',
 			'TABLE_TITLE',
@@ -90,8 +88,8 @@ class ListOfFields
 			$whereClause->addCondition('a.type', (int)$type);
 
 		// Filter by Type
-		if ($this->tableid != 0)
-			$whereClause->addCondition('a.tableid', (int)$this->tableid);
+		if ($tableId != 0)
+			$whereClause->addCondition('a.tableid', (int)$tableId);
 
 		return database::loadAssocList('#__customtables_fields AS a', $selects, $whereClause, $orderCol, $orderDirection, $limit, $start, null, $returnQueryString);
 	}
@@ -111,6 +109,10 @@ class ListOfFields
 
 	protected function renderBodyLine(object $item, int $i, $canCheckin, $userChkOut): string
 	{
+		if (defined('WPINC')) {
+			return 'renderBodyLine is meant for Joomla only. WordPress has another method to show the list of fields.';
+		}
+
 		$hashRealTableName = database::realTableName($this->ct->Table->realtablename);
 		$hashRealTableName = str_replace($this->dbPrefix, '#__', $hashRealTableName);
 
@@ -257,6 +259,16 @@ class ListOfFields
 
 	function getFieldTypesFromXML(bool $onlyWordpress = false): ?array
 	{
+		/* file example:
+
+		<type ct_name="alias" name="alias" label="Alias (For SEO Links)"
+          description="Alias field that can be used instead of listing_id for SEO purpose." ct_alias="alias"
+          disabled="false" ct_special="false" priority="1" wordpress="true">
+        <params>
+        </params>
+    </type>
+		*/
+
 		$xml = CTMiscHelper::getXMLData('fieldtypes.xml');
 		if (count($xml) == 0 or !isset($xml->type))
 			return null;
@@ -282,9 +294,24 @@ class ListOfFields
 				$option['label'] = (string)$type_att->label;
 				$option['description'] = (string)$type_att->description;
 				$option['proversion'] = $is4Pro;
+				$option['order'] = (int)$type_att->order; // Store priority attribute
 				$options[] = $option;
 			}
 		}
+
+
+		//Sort array
+		// Define an array to hold the 'priority' values
+		$orders = [];
+
+		// Extract the 'priority' values and store them in the $priorities array
+		foreach ($options as $key => $option) {
+			$orders[$key] = $option['order'];
+		}
+
+		// Sort the $options array based on the 'priority' values
+		array_multisort($orders, SORT_ASC, $options);
+
 		return $options;
 	}
 }

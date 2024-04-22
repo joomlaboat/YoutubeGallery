@@ -31,31 +31,32 @@ function openLayoutWizard() {
 }
 
 //Used in layouteditor.php
-function loadFields(tableselector_id_, field_box_id_, CMSType) {
+function loadFields(tableselector_id_, field_box_id_) {
     tableselector_id = tableselector_id_;
     field_box_id = field_box_id_;
     tableselector_obj = document.getElementById(tableselector_id);
-    loadFieldsUpdate(CMSType);
+    loadFieldsUpdate();
 }
 
-function loadFieldsUpdate(CMSType) {
+function loadFieldsUpdate() {
     let tableid = tableselector_obj.value;
     if (tableid !== current_table_id)
-        loadFieldsData(tableid, CMSType);
+        loadFieldsData(tableid);
 }
 
-function loadFieldsData(tableid, CMSType) {
+function loadFieldsData(tableid) {
     current_table_id = 0;
     tableid = parseInt(tableid);
     if (isNaN(tableid) || tableid === 0)
         return;//table not selected
 
     let url = '';
-    if (CMSType === 'Joomla') {
+
+    if (window.Joomla instanceof Object) {
         const parts = location.href.split("/administrator/");
         const websiteRoot = parts[0] + "/administrator/";
         url = websiteRoot + "index.php?option=com_customtables&view=api&frmt=json&task=getfields&tableid=" + tableid;
-    } else if (CMSType === 'WordPress') {
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
         let parts = location.href.split("wp-admin/admin.php?");
         url = parts[0] + 'wp-admin/admin.php?page=customtables-api-fields&table=' + tableid;
     } else {
@@ -111,10 +112,10 @@ function updateFieldsBox() {
 
 function renderTabs(tabSetId, tabs) {
 
-    if (typeof wp !== 'undefined') {
-        return renderTabsWordPress(tabSetId, tabs);
-    } else if (typeof Joomla !== 'undefined') {
+    if (typeof Joomla !== 'undefined') {
         return renderTabsJoomla(tabSetId, tabs);
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
+        return renderTabsWordPress(tabSetId, tabs);
     } else {
         console.log('CMS not supported.');
         return 'CMS not supported.';
@@ -572,14 +573,33 @@ function addFieldTag(tagStartChar, postfix, tagEndChar, tag, param_count) {
 
 function FillLayout() {
     let editor = getActiveEditor();//codemirror_editors[codemirror_active_index];
-    let t = parseInt(document.getElementById("jform_layouttype").value);
-    if (isNaN(t) || t === 0) {
+
+    let layoutType;
+    let tableId;
+
+    if (window.Joomla instanceof Object) {
+        layoutType = parseInt(document.getElementById("jform_layouttype").value);
+        tableId = parseInt(document.getElementById("jform_tableid").value);
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
+        layoutType = parseInt(document.getElementById('layouttype').value);
+        tableId = parseInt(document.getElementById('table').value);
+
+        if (codemirror_active_index == 1)
+            codemirror_active_areatext_id = 'layoutmobile';
+        else if (codemirror_active_index == 2)
+            codemirror_active_areatext_id = 'layoutcss';
+        else if (codemirror_active_index == 3)
+            codemirror_active_areatext_id = 'layoutjs';
+        else
+            codemirror_active_areatext_id = 'layoutcode';
+    }
+
+    if (isNaN(layoutType) || layoutType === 0) {
         alert("Type not selected.");
         return;
     }
 
-    let tableid = parseInt(document.getElementById("jform_tableid").value);
-    if (isNaN(tableid) || tableid === 0) {
+    if (isNaN(tableId) || tableId === 0) {
         alert("Table not selected.");
         return;
     }
@@ -588,12 +608,13 @@ function FillLayout() {
     layout_obj.value = editor.getValue();
 
     let v = layout_obj.value;
+
     if (v !== '') {
         alert("Layout Content is not empty, delete it first.");
         return;
     }
 
-    switch (t) {
+    switch (layoutType) {
         case 1:
             layout_obj.value = getLayout_SimpleCatalog();
             break;
@@ -637,6 +658,7 @@ function FillLayout() {
     editor.getDoc().setValue(layout_obj.value);
 }
 
+//Only for Joomla
 function getLayout_Page() {
 
     let result = "";
@@ -676,6 +698,7 @@ function getLayout_Page() {
     return result;
 }
 
+//Only for Joomla
 function getLayout_Item() {
     let result = "";
     let l = wizardFields.length;
@@ -738,7 +761,10 @@ function getLayout_SimpleCatalog() {
     result += '<div style="float:right;">{{ html.recordcount }}</div>\r\n';
     result += '<div style="float:left;">{{ html.add }}</div>\r\n';
     result += '\r\n';
-    result += '<div style="text-align:center;">{{ html.print }}</div>\r\n';
+
+    if (window.Joomla instanceof Object)
+        result += '<div style="text-align:center;">{{ html.print }}</div>\r\n';
+
     result += '<div class="datagrid">\r\n';
     result += '<div>{{ html.batch(\'edit\',\'publish\',\'unpublish\',\'refresh\',\'delete\') }}</div>';
     result += '\r\n';
@@ -1053,7 +1079,7 @@ function getLayout_Record() {
 
 function getActiveEditor() {
     let cm;
-    if (typeof wp !== 'undefined')
+    if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar'))
         cm = codemirror_editors[codemirror_active_index].codemirror;
     else if (typeof Joomla !== 'undefined')
         cm = codemirror_editors[codemirror_active_index];

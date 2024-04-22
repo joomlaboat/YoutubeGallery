@@ -94,10 +94,11 @@ function renderInputBox(id, param, vlu, attributes, fieldTypeParametersList) {
                     //Get Current Table ID
                     let currentTableId;
                     let obj;
-                    if (typeof wp !== 'undefined') {
-                        obj = document.getElementById('table');
-                    } else if (typeof Joomla !== 'undefined') {
+
+                    if (typeof Joomla !== 'undefined') {
                         obj = document.getElementById('jform_tableid');
+                    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
+                        obj = document.getElementById('table');
                     }
 
                     if (!obj)
@@ -157,7 +158,7 @@ function renderInputBox(id, param, vlu, attributes, fieldTypeParametersList) {
     return '<input data-type="' + param_att.type + '" type="text" id="' + id + '" value="' + vlu + '" ' + attributes + '>';
 }
 
-function updateTypeParams(type_id, typeparams_id_, typeparams_box_id_, CMSType) {
+function updateTypeParams(type_id, typeparams_id_, typeparams_box_id_) {
     type_obj = document.getElementById(type_id);
     typeparams_id = typeparams_id_;
     typeparams_obj = document.getElementById(typeparams_id);
@@ -165,7 +166,7 @@ function updateTypeParams(type_id, typeparams_id_, typeparams_box_id_, CMSType) 
     typeparams_box_obj = document.getElementById(typeparams_box_id_);
 
     if (!field_type_loaded) {
-        loadTypes(typeparams_box_obj, type_id, typeparams_id, typeparams_box_id_, CMSType);
+        loadTypes(typeparams_box_obj, type_id, typeparams_id, typeparams_box_id_);
     } else {
         updateParameters();
     }
@@ -681,10 +682,12 @@ function renderInput_List(id, param, value, onchange) {
     for (let o = 0; o < options.length; o++) {
         const opt = options[o]["@attributes"];
 
-        if (opt.value === value)
-            result += '<option value="' + opt.value + '" selected="selected">' + opt.label + '</option>';
-        else
-            result += '<option value="' + opt.value + '" >' + opt.label + '</option>';
+        if (window.Joomla instanceof Object || (typeof (opt.wordpress) !== "undefined" & opt.wordpress === "true")) {
+            if (opt.value === value)
+                result += '<option value="' + opt.value + '" selected="selected">' + opt.label + '</option>';
+            else
+                result += '<option value="' + opt.value + '" >' + opt.label + '</option>';
+        }
     }
 
     result += '</select>';
@@ -1007,9 +1010,18 @@ function renderInput_Layout_checktype(layouttype_str, t) {
 
 function renderInput_Layout(id, param, value, onchange) {
     let param_att = param["@attributes"];
+    let currentLayout;
+    let currentTable;
 
-    let currentLayout = document.getElementById('jform_layoutname').value;
-    let currentTable = parseInt(document.getElementById('jform_tableid').value);
+    if (window.Joomla instanceof Object) {
+        currentLayout = document.getElementById('jform_layoutname').value;
+        currentTable = parseInt(document.getElementById('jform_tableid').value);
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
+        currentLayout = document.getElementById('layoutname').value;
+        currentTable = parseInt(document.getElementById('table').value);
+    } else {
+        return 'renderInput_Layout not supported in this type of CMS';
+    }
 
     let layout_table = "";
     if (param_att.table != null)
@@ -1085,15 +1097,13 @@ function findTheType(typename) {
 }
 
 //Used in onchange event
-function loadTypes_silent(CMSType) {
-
-    let parts = location.href.split("/administrator/");
+function loadTypes_silent() {
 
     let url = '';
-    if (CMSType == 'Joomla') {
+    if (window.Joomla instanceof Object) {
         let parts = location.href.split("/administrator/");
         url = parts[0] + '/index.php?option=com_customtables&view=xml&xmlfile=fieldtypes&Itemid=-1';
-    } else if (CMSType == 'WordPress') {
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
         let parts = location.href.split("wp-admin/admin.php?");
         url = parts[0] + 'wp-admin/admin.php?page=customtables-api-xml&xmlfile=fieldtypes';
     } else {
@@ -1133,19 +1143,19 @@ function loadTypes_silent(CMSType) {
     }
 }
 
-function loadTypes(typeparams_box_obj, jform_type, jform_typeparams, typeparams_box, CMSType) {
+function loadTypes(typeparams_box_obj, jform_type, jform_typeparams, typeparams_box) {
 
     typeparams_box_obj.innerHTML = 'Loading...';
 
     let url = '';
-    if (CMSType == 'Joomla') {
+    if (window.Joomla instanceof Object) {
         let parts = location.href.split("/administrator/");
         url = parts[0] + '/index.php?option=com_customtables&view=xml&xmlfile=fieldtypes&Itemid=-1';
-    } else if (CMSType == 'WordPress') {
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
         let parts = location.href.split("wp-admin/admin.php?");
         url = parts[0] + 'wp-admin/admin.php?page=customtables-api-xml&xmlfile=fieldtypes';
     } else {
-        typeparams_box_obj.innerHTML = 'CMS Not Supported.';
+        typeparams_box_obj.innerHTML = 'CMS Not Supported. #A8';
         return;
     }
 
@@ -1171,7 +1181,7 @@ function loadTypes(typeparams_box_obj, jform_type, jform_typeparams, typeparams_
 
                 field_types = json_object.fieldtypes.type;
                 field_type_loaded = true;
-                updateTypeParams(jform_type, jform_typeparams, typeparams_box, CMSType);
+                updateTypeParams(jform_type, jform_typeparams, typeparams_box);
             }
         };
         http.send(params);

@@ -187,20 +187,34 @@ function ctDeleteRecord(msg, tableid, recordId, toolbarBoxId, ModuleId) {
     if (confirm(msg)) {
 
         let element_tableid_tr = "ctTable_" + tableid + '_' + recordId;
-        let link = ctWebsiteRoot + 'index.php?option=com_customtables&view=catalog&Itemid=' + ctItemId;
+        let link
+
+        // Check if a Joomla class is defined
+        if (window.Joomla instanceof Object) {
+            link = ctWebsiteRoot + 'index.php?option=com_customtables&view=catalog&Itemid=' + ctItemId;
+        } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
+            link = window.location.href;
+        } else {
+            return;
+        }
+
         link = esPrepareLink(['task', "listing_id", 'returnto', 'ids', 'tableid'], ['tableid=' + tableid, 'task=delete', 'listing_id=' + recordId], link);
 
         let tr_object = document.getElementById(element_tableid_tr);
-        if (tr_object) {
+
+        //WordPress version does not support dynamic record deletion yet. TODO: Add this functionality
+        if (typeof wp === 'undefined' && tr_object) {
 
             link = esPrepareLink([], ['clean=1', 'tmpl=component'], link);
             runTheTask('delete', tableid, recordId, link, ['deleted'], false);
         } else {
 
-            let returnto = btoa(window.location.href);
-            link = esPrepareLink([], ['returnto=' + returnto], link);
+            if (typeof wp === 'undefined') {
+                let returnto = btoa(window.location.href);
+                link = esPrepareLink([], ['returnto=' + returnto], link);
+            }
 
-            if (ModuleId !== 0) link = esPrepareLink(['option', 'view', 'ModuleId'], ['option=com_customtables', 'view=catalog', 'ModuleId=' + ModuleId], link);
+            if (typeof ModuleId !== 'undefined' && ModuleId !== 0) link = esPrepareLink(['option', 'view', 'ModuleId'], ['option=com_customtables', 'view=catalog', 'ModuleId=' + ModuleId], link);
 
             window.location.href = link;
         }
@@ -239,8 +253,22 @@ function ctSearchBoxDo() {
         }
     }
 
-    let link = ctWebsiteRoot + 'index.php?option=com_customtables&view=catalog&Itemid=' + ctItemId;
-    link = esPrepareLink(['where', 'task', "listing_id", 'returnto'], ["where=" + encodeURIComponent(w.join(" and "))], link);//Base64.encode
+    // Check if a Joomla class is defined
+    let link = ctWebsiteRoot;
+
+    if (typeof Joomla !== 'undefined') {
+        link += 'index.php?option=com_customtables&view=catalog&Itemid=' + ctItemId;
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
+        console.log("ctWebsiteRoot:" + ctWebsiteRoot);
+    }
+
+    let whereList = [];
+
+    if (w.length > 0)
+        whereList.push("where=" + encodeURIComponent(w.join(" and ")));
+
+    link = esPrepareLink(['where', 'task', "listing_id", 'returnto'], whereList, link);
+    console.log("link:" + link);
     window.location.href = link;
 }
 

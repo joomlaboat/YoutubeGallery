@@ -28,6 +28,10 @@ class Search_range extends BaseSearch
 
 	function render($value): string
 	{
+		if (defined('WPINC')) {
+			return 'The tag Date field type not yet supported by WordPress version of the Custom Tables.';
+		}
+
 		$result = '';
 
 		if ($this->ct->Env->version < 4)
@@ -52,10 +56,10 @@ class Search_range extends BaseSearch
 			$value_max = $values[1];
 
 		if ($value_min == '')
-			$value_min = common::inputPostString($this->objectName . '_min');
+			$value_min = common::inputPostString($this->objectName . '_min', null, 'create-edit-record');
 
 		if ($value_max == '')
-			$value_max = common::inputPostString($this->objectName . '_max');
+			$value_max = common::inputPostString($this->objectName . '_max', null, 'create-edit-record');
 
 		//header function
 

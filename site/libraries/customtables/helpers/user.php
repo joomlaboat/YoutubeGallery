@@ -200,10 +200,15 @@ class CTUser
 	 */
 	static public function GetUserRow(int $userid): ?array
 	{
-		//$query = 'SELECT * FROM #__users WHERE id=' . $userid . ' LIMIT 1';
-
 		$whereClause = new MySQLWhereClause();
-		$whereClause->addCondition('id', $userid);
+
+		if (defined('_JEXEC')) {
+			$whereClause->addCondition('ID', $userid);
+		} elseif (defined('WPINC')) {
+			$whereClause->addCondition('id', $userid);
+		} else {
+			return 'GetUserRow not supported.';
+		}
 
 		$rows = database::loadAssocList('#__users', ['*'], $whereClause, null, null, 1);
 		if (count($rows) == 0)
@@ -212,20 +217,45 @@ class CTUser
 			return $rows[0];
 	}
 
-	static public function GetUserGroups(int $userid): string
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
+	static public function GetUserGroups(int $userid): array
 	{
-		$groups = Access::getGroupsByUser($userid);
+		if (defined('_JEXEC')) {
+			$groups = Access::getGroupsByUser($userid);
 
-		$whereClause = new MySQLWhereClause();
-		$whereClause->addCondition('id', '(' . implode(',', $groups) . ')', 'IN', true);
+			$whereClause = new MySQLWhereClause();
+			$whereClause->addCondition('id', '(' . implode(',', $groups) . ')', 'IN', true);
 
-		$rows = database::loadRowList('#__usergroups', ['title'], $whereClause);
+			$rows = database::loadRowList('#__usergroups', ['title'], $whereClause);
 
-		$groupList = array();
-		foreach ($rows as $group)
-			$groupList[] = $group[0];
+			$groupList = array();
+			foreach ($rows as $group)
+				$groupList[] = $group[0];
 
-		return implode(',', $groupList);
+			return $groupList;
+
+		} elseif (defined('WPINC')) {
+			$user = get_userdata($userid);
+			$roles = $user->roles;
+
+			$role_names = array();
+
+			global $wp_roles;
+			$all_roles = $wp_roles->roles;
+
+			foreach ($roles as $role) {
+				if (isset($all_roles[$role]['name'])) {
+					$role_names[] = $all_roles[$role]['name'];
+				}
+			}
+
+			return $role_names;
+		} else {
+			return [];
+		}
 	}
 
 	/**

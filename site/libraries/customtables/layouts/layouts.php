@@ -27,6 +27,8 @@ class Layouts
 	var ?string $pageLayoutNameString;
 	var ?string $pageLayoutLink;
 	var ?string $layoutCode;
+	var ?string $layoutCodeCSS;
+	var ?string $layoutCodeJS;
 
 	function __construct(&$ct)
 	{
@@ -36,6 +38,8 @@ class Layouts
 		$this->pageLayoutNameString = null;
 		$this->pageLayoutLink = null;
 		$this->layoutCode = null;
+		$this->layoutCodeCSS = null;
+		$this->layoutCodeJS = null;
 	}
 
 	/**
@@ -52,7 +56,7 @@ class Layouts
 
 		$i = 0;
 		foreach ($fList as $fItem) {
-			$parts = CTMiscHelper::csv_explode(',', $options[$i], '"', false);
+			$parts = CTMiscHelper::csv_explode(',', $options[$i]);
 			$layoutname = $parts[0];
 
 			$ProcessContentPlugins = false;
@@ -117,16 +121,13 @@ class Layouts
 		$this->layoutType = (int)$row['layouttype'];
 
 		if ($this->ct->Env->isMobile and trim($row['layoutmobile']) != '') {
-
 			$layoutCode = $row['layoutmobile'];
 			if ($checkLayoutFile and $this->ct->Env->folderToSaveLayouts !== null and is_string($layoutNameOrId)) {
 				$content = $this->getLayoutFileContent($row['id'], $layoutNameOrId, $layoutCode, $row['modified_timestamp'], $layoutNameOrId . '_mobile.html', 'layoutmobile');
 				if ($content != null)
 					$layoutCode = $content;
 			}
-
 		} else {
-
 			$layoutCode = $row['layoutcode'];
 			if ($checkLayoutFile and $this->ct->Env->folderToSaveLayouts !== null and is_string($layoutNameOrId)) {
 				$content = $this->getLayoutFileContent($row['id'], $layoutNameOrId, $layoutCode, $row['modified_timestamp'], $layoutNameOrId . '.html', 'layoutcode');
@@ -142,7 +143,7 @@ class Layouts
 		if ($processLayoutTag)
 			$this->processLayoutTag($layoutCode);
 
-		if ($addHeaderCode)
+		if ($addHeaderCode and $this->ct->Env->advancedTagProcessor)
 			$this->addCSSandJSIfNeeded($row, $checkLayoutFile);
 
 		$this->pageLayoutNameString = $row['layoutname'];
@@ -169,12 +170,8 @@ class Layouts
 			$file_ts = filemtime($this->ct->Env->folderToSaveLayouts . DIRECTORY_SEPARATOR . $filename);
 
 			if ($db_layout_ts == 0) {
-
-				//$query = 'SELECT UNIX_TIMESTAMP(modified) AS ts FROM #__customtables_layouts WHERE id=' . $layout_id . ' LIMIT 1';
-
 				$whereClause = new MySQLWhereClause();
 				$whereClause->addCondition('id', $layout_id);
-
 				$rows = database::loadAssocList('#__customtables_layouts', ['MODIFIED_TIMESTAMP'], $whereClause, null, null, 1);
 
 				if (count($rows) != 0) {
@@ -188,8 +185,9 @@ class Layouts
 
 				$data = [
 					$fieldName => addslashes($content),
-					'modified' => ['FROM_UNIXTIME(' . $file_ts . ')', 'sanitized']
+					'modified' => common::formatDateFromTimeStamp($file_ts)
 				];
+
 				$whereClauseUpdate = new MySQLWhereClause();
 				$whereClauseUpdate->addCondition('id', $layout_id);
 				database::update('#__customtables_layouts', $data, $whereClauseUpdate);
@@ -240,7 +238,7 @@ class Layouts
 			return false;
 		} else {
 
-			$data = ['modified' => ['FROM_UNIXTIME(' . $file_ts . ')', 'sanitized']];
+			$data = ['modified' => common::formatDateFromTimeStamp($file_ts)];
 			$whereClauseUpdate = new MySQLWhereClause();
 
 			if ($layout_id == 0) {
@@ -269,13 +267,13 @@ class Layouts
 
 		if ($layoutContent != '') {
 			$twig = new TwigProcessor($this->ct, $layoutContent, $this->ct->LayoutVariables['getEditFieldNamesOnly'] ?? false);
-			$layoutContent = '<style>' . $twig->process($this->ct->Table->record ?? null) . '</style>';
+			$this->layoutCodeCSS = $twig->process($this->ct->Table->record ?? null);
 
 			if (defined('_JEXEC')) {
 				if ($twig->errorMessage !== null)
 					$this->ct->errors[] = $twig->errorMessage;
 
-				$this->ct->document->addCustomTag($layoutContent);
+				$this->ct->document->addCustomTag('<style>' . $this->layoutCodeCSS . '</style>');
 			}
 		}
 
@@ -288,13 +286,13 @@ class Layouts
 
 		if ($layoutContent != '') {
 			$twig = new TwigProcessor($this->ct, $layoutContent, $this->ct->LayoutVariables['getEditFieldNamesOnly'] ?? false);
-			$layoutContent = $twig->process($this->ct->Table->record);
+			$this->layoutCodeJS = $twig->process($this->ct->Table->record ?? null);
 
 			if (defined('_JEXEC')) {
 				if ($twig->errorMessage !== null)
 					$this->ct->errors[] = $twig->errorMessage;
 
-				$this->ct->document->addCustomTag('<script>' . $layoutContent . '</script>');
+				$this->ct->document->addCustomTag('<script>' . $this->layoutCodeJS . '</script>');
 			}
 		}
 	}
@@ -317,108 +315,6 @@ class Layouts
 			}
 		}
 		return true;
-	}
-
-	function createDefaultLayout_Edit(array $fields, bool $addToolbar = true): string
-	{
-		$this->layoutType = 2;
-		$result = '<legend>{{ table.title }}</legend>{{ html.goback() }}<div class="form-horizontal">';
-
-		$fieldTypes_to_skip = ['log', 'phponview', 'phponchange', 'phponadd', 'md5', 'id', 'server', 'userid', 'viewcount', 'lastviewtime', 'changetime', 'creationtime', 'imagegallery', 'filebox', 'dummy', 'virtual'];
-
-		foreach ($fields as $field) {
-			if (!in_array($field['type'], $fieldTypes_to_skip)) {
-				$result .= '<div class="control-group">';
-				$result .= '<div class="control-label">{{ ' . $field['fieldname'] . '.label }}</div><div class="controls">{{ ' . $field['fieldname'] . '.edit }}</div>';
-				$result .= '</div>';
-			}
-		}
-
-		$result .= '</div>';
-
-		foreach ($fields as $field) {
-			if ($field['type'] === "dummy") {
-				$result .= '<p><span style="color: #FB1E3D; ">*</span>' . ' {{ ' . $field['fieldname'] . '.title }}</p>';
-				break;
-			}
-		}
-
-		if ($addToolbar)
-			$result .= '<div style="text-align:center;">{{ html.button("save") }} {{ html.button("saveandclose") }} {{ html.button("saveascopy") }} {{ html.button("cancel") }}</div>';
-		return $result;
-	}
-
-	function createDefaultLayout_Details(array $fields): string
-	{
-		$this->layoutType = 4;
-		$result = '<legend>{{ table.title }}</legend>{{ html.goback() }}<div class="form-horizontal">';
-
-		$fieldTypes_to_skip = ['dummy'];
-
-		foreach ($fields as $field) {
-			if (!in_array($field['type'], $fieldTypes_to_skip)) {
-				$result .= '<div class="control-group">';
-				$result .= '<div class="control-label">{{ ' . $field['fieldname'] . '.title }}</div><div class="controls">{{ ' . $field['fieldname'] . ' }}</div>';
-				$result .= '</div>';
-			}
-		}
-
-		$result .= '</div>';
-
-		return $result;
-	}
-
-	function createDefaultLayout_Email(array $fields): string
-	{
-		$this->layoutType = 4;
-		$result = 'Dear ...<br/>A new records has been added to {{ table.title }} table.<br/><br/>Details below:<br/>';
-
-		$fieldTypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy'];
-
-		foreach ($fields as $field) {
-			if (!in_array($field['type'], $fieldTypes_to_skip))
-				$result .= '{{ ' . $field['fieldname'] . '.title }}: {{ ' . $field['fieldname'] . ' }}<br/>';
-		}
-		return $result;
-	}
-
-	function createDefaultLayout_Edit_WP($fields, $addToolbar = true): string
-	{
-		$this->layoutType = 2;
-		$result = '<table class="form-table" role="presentation">';
-
-		$fieldTypes_to_skip = ['log', 'phponview', 'phponchange', 'phponadd', 'md5', 'id', 'server', 'userid', 'viewcount', 'lastviewtime', 'changetime', 'creationtime', 'imagegallery', 'filebox', 'dummy', 'virtual'];
-
-		foreach ($fields as $field) {
-
-			if (!in_array($field['type'], $fieldTypes_to_skip)) {
-
-				$attribute = 'for="' . $this->ct->Env->field_input_prefix . $field['fieldname'] . '"';
-				$label = '<th scope="row">
-                            <label ' . $attribute . '>'
-					. '{{ ' . $field['fieldname'] . '.title }}'
-					. ((int)$field['isrequired'] == 1 ? '<span class="description">(' . __('required', 'customtables') . ')</span>' : '')
-					. '</label>
-                        </th>';
-
-				$input = '<td>
-                            {{ ' . $field['fieldname'] . '.edit }}
-                        </td>';
-
-				$result .= '<tr class="form-field ' . ((int)$field['isrequired'] == 1 ? 'form-required' : 'form') . '">'
-					. $label
-					. $input
-					. '</tr>';
-			}
-		}
-
-		$result .= '</table>';
-
-
-		if ($addToolbar)
-			$result .= '<div style="text-align:center;">{{ button("save") }} {{ button("saveandclose") }} {{ button("saveascopy") }} {{ button("cancel") }}</div>
-';
-		return $result;
 	}
 
 	/**
@@ -459,10 +355,10 @@ class Layouts
 			2 => 'Edit Form',
 			4 => 'Details',
 			//3 => 'COM_CUSTOMTABLES_LAYOUTS_DETAILS',
-			//7 => 'Email Message',
-			//8 => 'XML File',
-			//9 => 'CSV File',
-			//10 => 'JSON File'
+			7 => 'Email Message',
+			8 => 'XML File',
+			9 => 'CSV File',
+			10 => 'JSON File'
 		);
 	}
 
@@ -489,17 +385,33 @@ class Layouts
 	}
 
 	/**
+	 * Used in WordPress version
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	function renderMixedLayout(int $layoutId): string
+	function renderMixedLayout(int $layoutId, int $layoutType = null): array
 	{
-		if ($layoutId !== 0)
+		if ($layoutId !== 0) {
 			$this->getLayout($layoutId);
-		//$this->getLayoutRowById($layoutId);
+			if ($this->layoutType === null)
+				return ['html' => 'CustomTable: Layout "' . $layoutId . '" not found'];
 
-		if ($this->layoutType === null)
-			return 'CustomTable: Layout "' . $layoutId . '" not found';
+
+		} else {
+			if ($layoutType == 1 or $layoutType == 5)
+				$this->layoutCode = $this->createDefaultLayout_SimpleCatalog($this->ct->Table->fields);
+			elseif ($layoutType == 2) {
+				if (defined('_JEXEC'))
+					$this->layoutCode = $this->createDefaultLayout_Edit($this->ct->Table->fields);
+				elseif (defined('WPINC'))
+					$this->layoutCode = $this->createDefaultLayout_Edit_WP($this->ct->Table->fields);
+			} elseif ($layoutType == 4 or $layoutType == 6 or $layoutType == 3)
+				$this->layoutCode = $this->createDefaultLayout_Details($this->ct->Table->fields);
+			elseif ($layoutType == 7)
+				$this->layoutCode = $this->createDefaultLayout_Email($this->ct->Table->fields);
+			elseif ($layoutType == 9)
+				$this->layoutCode = $this->createDefaultLayout_CSV($this->ct->Table->fields);
+		}
 		/*
 		 * <option value="1">Simple Catalog</option>
 				<option value="5">Catalog Page</option>
@@ -513,181 +425,78 @@ class Layouts
 				<option value="10">JSON File</option>
 		 */
 
+		$task = common::inputPostCmd('task', null, 'create-edit-record');
+		if ($task === null)
+			$task = common::inputGetCmd('task');
+
+		$output = ['style' => $this->layoutCodeCSS, 'script' => $this->layoutCodeJS];
+
 		if ($this->layoutType == 1 or $this->layoutType == 5) {
-			return $this->renderCatalog();
-		}
-		return 'CustomTable: Unknown Layout Type';
-	}
 
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	protected function renderCatalog(): string
-	{
-		if ($this->ct->Env->frmt == 'html') {
-			if (defined('_JEXEC'))
-				common::loadJSAndCSS($this->ct->Params, $this->ct->Env);
-		}
+			if ($task == 'delete') {
 
-		// -------------------- Table
-
-		if ($this->ct->Table === null) {
-			$this->ct->getTable($this->ct->Params->tableName);
-
-			if ($this->ct->Table->tablename === null) {
-				$this->ct->errors[] = 'Catalog View: Table not selected.';
-				return 'Catalog View: Table not selected.';
-			}
-		}
-
-		// --------------------- Filter
-		$this->ct->setFilter($this->ct->Params->filter, $this->ct->Params->showPublished);
-
-		if (!$this->ct->Params->blockExternalVars) {
-			if (common::inputGetString('filter', '') and is_string(common::inputGetString('filter', '')))
-				$this->ct->Filter->addWhereExpression(common::inputGetString('filter', ''));
-		}
-
-		if (!$this->ct->Params->blockExternalVars)
-			$this->ct->Filter->addQueryWhereFilter();
-
-		// --------------------- Shopping Cart
-		if ($this->ct->Params->showCartItemsOnly) {
-			$cookieValue = common::inputCookieGet($this->ct->Params->showCartItemsPrefix . $this->ct->Table->tablename);
-
-			if (isset($cookieValue)) {
-				if ($cookieValue == '') {
-					$this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], 0);
-				} else {
-					$items = explode(';', $cookieValue);
-					//$arr = array();
-					foreach ($items as $item) {
-						$pair = explode(',', $item);
-						$this->ct->Filter->whereClause->addOrCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], (int)$pair[0]);
-						//$arr[] = $this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'] . '=' . (int)$pair[0];//id must be a number
+				$listing_id = common::inputGetCmd('listing_id', 0);
+				if (!empty($listing_id)) {
+					if ($this->ct->deleteSingleRecord($listing_id) === 1) {
+						common::enqueueMessage(common::translate('COM_CUSTOMTABLES_LISTOFRECORDS_N_ITEMS_DELETED_1'), 'notice');
+					} else {
+						common::enqueueMessage(common::translate('COM_CUSTOMTABLES_LISTOFRECORDS_N_ITEMS_NOT_DELETED_1'));
 					}
-					//$this->ct->Filter->whereClause->addOrCondition()where[] = '(' . implode(' OR ', $arr) . ')';
 				}
-			} else {
-				//Show only shopping cart items. TODO: check the query
-				$this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], 0);
 			}
-		}
 
-		if ($this->ct->Params->listing_id !== null)
-			$this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], $this->ct->Params->listing_id);
+			$output['html'] = $this->renderCatalog();
 
-		// --------------------- Sorting
-		$this->ct->Ordering->parseOrderByParam();
+		} elseif ($this->layoutType == 2) {
 
-		// --------------------- Limit
-		if ($this->ct->Params->listing_id !== null)
-			$this->ct->applyLimits(1);
-		else
-			$this->ct->applyLimits($this->ct->Params->limit ?? 0);
+			if ($task == 'saveandcontinue' or $task == 'save') {
+				$record = new record($this->ct);
+				$record->editForm->layoutContent = $this->layoutCode;
+				$listing_id = common::inputGetCmd('id');
+				if ($record->save($listing_id, false)) {
+					common::enqueueMessage(common::translate('COM_CUSTOMTABLES_RECORD_SAVED'), 'notice');
+				} else {
+					common::enqueueMessage(common::translate('COM_CUSTOMTABLES_RECORD_NOT_SAVED'));
 
-		$this->ct->LayoutVariables['layout_type'] = $this->layoutType;
+					if ($record->ct->Params !== null and $record->ct->Params->msgItemIsSaved !== null)
+						common::enqueueMessage($record->ct->Params->msgItemIsSaved);
+				}
 
-		// -------------------- Load Records
-		if (!$this->ct->getRecords()) {
+				if ($task == 'save') {
 
-			if (defined('_JEXEC'))
-				$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND');
+					$link = common::getReturnToURL();
+					if ($link === null)
+						$link = $this->ct->Params->returnTo;
 
-			return 'CustomTables: Records not loaded.';
-		}
+					$link = CTMiscHelper::deleteURLQueryOption($link, 'view' . $this->ct->Table->tableid);
 
-		// -------------------- Parse Layouts
-		if ($this->ct->Env->frmt == 'json') {
+					common::redirect($link);
+				}
 
-			$pathViews = CUSTOMTABLES_LIBRARIES_PATH
-				. DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
+			} elseif ($task == 'cancel') {
+				common::enqueueMessage(common::translate('COM_CUSTOMTABLES_EDIT_CANCELED'), 'notice');
+				$link = common::getReturnToURL();
+				if ($link === null)
+					$link = $this->ct->Params->returnTo;
 
-			require_once($pathViews . 'json.php');
-			$jsonOutput = new ViewJSON($this->ct);
-			die($jsonOutput->render($this->layoutCode));
-		}
+				$link = CTMiscHelper::deleteURLQueryOption($link, 'view' . $this->ct->Table->tableid);
 
-		$twig = new TwigProcessor($this->ct, $this->layoutCode, false, false, true, $this->pageLayoutNameString, $this->pageLayoutLink);
-		$pageLayout = $twig->process();
-
-		if (defined('_JEXEC')) {
-			if ($twig->errorMessage !== null)
-				$this->ct->errors[] = $twig->errorMessage;
-
-			if ($this->ct->Params->allowContentPlugins)
-				$pageLayout = CTMiscHelper::applyContentPlugins($pageLayout);
-		}
-		return $pageLayout;
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 3.2.2
-	 */
-	function getLayoutRowById(int $layoutId): ?array
-	{
-		$selects = [
-			'id',
-			'tableid',
-			'layoutname',
-			'layoutcode',
-			'layoutmobile',
-			'layoutcss',
-			'layoutjs',
-			'layouttype',
-			'MODIFIED_TIMESTAMP'
-		];
-
-		$whereClause = new MySQLWhereClause();
-		$whereClause->addCondition('id', $layoutId);
-
-		$rows = database::loadAssocList('#__customtables_layouts', $selects, $whereClause, null, null, 1);
-		if (count($rows) != 1)
-			return null;
-
-		return $rows[0];
-	}
-
-	function createDefaultLayout_CSV($fields): string
-	{
-		$this->layoutType = 9;
-
-		$result = '';
-
-		$fieldTypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy', 'ordering'];
-		$fieldTypes_to_pureValue = ['image', 'imagegallery', 'filebox', 'file'];
-
-		foreach ($fields as $field) {
-
-			if (!in_array($field['type'], $fieldTypes_to_skip)) {
-				if ($result !== '')
-					$result .= ',';
-
-				$result .= '"{{ ' . $field['fieldname'] . '.title }}"';
+				common::redirect($link, common::translate('COM_CUSTOMTABLES_EDIT_CANCELED'));
 			}
-		}
 
-		$result .= PHP_EOL . "{% block record %}";
+			$output['html'] = $this->renderEditForm();
 
-		$firstField = true;
-		foreach ($fields as $field) {
+			if ($this->ct->LayoutVariables['captcha'])
+				$output['captcha'] = true;
 
-			if (!in_array($field['type'], $fieldTypes_to_skip)) {
+			$output['fieldtypes'] = $this->ct->editFieldTypes;
 
-				if (!$firstField)
-					$result .= ',';
+		} elseif ($this->layoutType == 4) {
+			$output['html'] = $this->renderDetails();
+		} else
+			$output['html'] = 'CustomTable: Unknown Layout Type';
 
-				if (!in_array($field['type'], $fieldTypes_to_pureValue))
-					$result .= '"{{ ' . $field['fieldname'] . ' }}"';
-				else
-					$result .= '"{{ ' . $field['fieldname'] . '.value }}"';
-
-				$firstField = false;
-			}
-		}
-		return $result . PHP_EOL . "{% endblock %}";
+		return $output;
 	}
 
 	function createDefaultLayout_SimpleCatalog(array $fields, bool $addToolbar = true): string
@@ -844,5 +653,322 @@ class Layouts
 		}
 
 		return $result;
+	}
+
+	function createDefaultLayout_Edit(array $fields, bool $addToolbar = true): string
+	{
+		$this->layoutType = 2;
+		$result = '<legend>{{ table.title }}</legend>{{ html.goback() }}<div class="form-horizontal">';
+
+		$fieldTypes_to_skip = ['log', 'phponview', 'phponchange', 'phponadd', 'md5', 'id', 'server', 'userid', 'viewcount', 'lastviewtime', 'changetime', 'creationtime', 'imagegallery', 'filebox', 'dummy', 'virtual'];
+
+		foreach ($fields as $field) {
+			if (!in_array($field['type'], $fieldTypes_to_skip)) {
+				$result .= '<div class="control-group">';
+				$result .= '<div class="control-label">{{ ' . $field['fieldname'] . '.label }}</div><div class="controls">{{ ' . $field['fieldname'] . '.edit }}</div>';
+				$result .= '</div>';
+			}
+		}
+
+		$result .= '</div>';
+
+		foreach ($fields as $field) {
+			if ($field['type'] === "dummy") {
+				$result .= '<p><span style="color: #FB1E3D; ">*</span>' . ' {{ ' . $field['fieldname'] . '.title }}</p>';
+				break;
+			}
+		}
+
+		if ($addToolbar)
+			$result .= '<div style="text-align:center;">{{ html.button("save") }} {{ html.button("saveandclose") }} {{ html.button("saveascopy") }} {{ html.button("cancel") }}</div>';
+		return $result;
+	}
+
+	function createDefaultLayout_Edit_WP(array $fields, bool $addToolbar = true): string
+	{
+		$this->layoutType = 2;
+		$result = '<table class="form-table" role="presentation">';
+
+		$fieldTypes_to_skip = ['log', 'phponview', 'phponchange', 'phponadd', 'md5', 'id', 'server', 'userid', 'viewcount', 'lastviewtime', 'changetime', 'creationtime', 'imagegallery', 'filebox', 'dummy', 'virtual'];
+
+		foreach ($fields as $field) {
+
+			if (!in_array($field['type'], $fieldTypes_to_skip)) {
+
+				$attribute = 'for="' . $this->ct->Env->field_input_prefix . $field['fieldname'] . '"';
+				$label = '<th scope="row">
+                            <label ' . $attribute . '>'
+					. '{{ ' . $field['fieldname'] . '.title }}'
+					. ((int)$field['isrequired'] == 1 ? '<span class="description">(' . __('required', 'customtables') . ')</span>' : '')
+					. '</label>
+                        </th>';
+
+				$input = '<td>
+                            {{ ' . $field['fieldname'] . '.edit }}
+                        </td>';
+
+				$result .= '<tr class="form-field ' . ((int)$field['isrequired'] == 1 ? 'form-required' : 'form') . '">'
+					. $label
+					. $input
+					. '</tr>';
+			}
+		}
+
+		$result .= '</table>';
+
+
+		if ($addToolbar)
+			$result .= '<div style="text-align:center;">{{ html.button("save") }} {{ html.button("saveandclose") }} {{ html.button("saveascopy") }} {{ html.button("cancel") }}</div>
+';
+		return $result;
+	}
+
+	function createDefaultLayout_Details(array $fields): string
+	{
+		$this->layoutType = 4;
+		$result = '<legend>{{ table.title }}</legend>{{ html.goback() }}<div class="form-horizontal">';
+
+		$fieldTypes_to_skip = ['dummy'];
+
+		foreach ($fields as $field) {
+			if (!in_array($field['type'], $fieldTypes_to_skip)) {
+				$result .= '<div class="control-group">';
+				$result .= '<div class="control-label">{{ ' . $field['fieldname'] . '.title }}</div><div class="controls">{{ ' . $field['fieldname'] . ' }}</div>';
+				$result .= '</div>';
+			}
+		}
+
+		$result .= '</div>';
+
+		return $result;
+	}
+
+	function createDefaultLayout_Email(array $fields): string
+	{
+		$this->layoutType = 4;
+		$result = 'Dear ...<br/>A new records has been added to {{ table.title }} table.<br/><br/>Details below:<br/>';
+
+		$fieldTypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy'];
+
+		foreach ($fields as $field) {
+			if (!in_array($field['type'], $fieldTypes_to_skip))
+				$result .= '{{ ' . $field['fieldname'] . '.title }}: {{ ' . $field['fieldname'] . ' }}<br/>';
+		}
+		return $result;
+	}
+
+	function createDefaultLayout_CSV($fields): string
+	{
+		$this->layoutType = 9;
+
+		$result = '';
+
+		$fieldTypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy', 'ordering'];
+		$fieldTypes_to_pureValue = ['image', 'imagegallery', 'filebox', 'file'];
+
+		foreach ($fields as $field) {
+
+			if (!in_array($field['type'], $fieldTypes_to_skip)) {
+				if ($result !== '')
+					$result .= ',';
+
+				$result .= '"{{ ' . $field['fieldname'] . '.title }}"';
+			}
+		}
+
+		$result .= PHP_EOL . "{% block record %}";
+
+		$firstField = true;
+		foreach ($fields as $field) {
+
+			if (!in_array($field['type'], $fieldTypes_to_skip)) {
+
+				if (!$firstField)
+					$result .= ',';
+
+				if (!in_array($field['type'], $fieldTypes_to_pureValue))
+					$result .= '"{{ ' . $field['fieldname'] . ' }}"';
+				else
+					$result .= '"{{ ' . $field['fieldname'] . '.value }}"';
+
+				$firstField = false;
+			}
+		}
+		return $result . PHP_EOL . "{% endblock %}";
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	protected function renderCatalog(): string
+	{
+		if ($this->ct->Env->frmt == 'html')
+			common::loadJSAndCSS($this->ct->Params, $this->ct->Env);
+
+		// -------------------- Table
+
+		if ($this->ct->Table === null) {
+			$this->ct->getTable($this->ct->Params->tableName);
+
+			if ($this->ct->Table->tablename === null) {
+				$this->ct->errors[] = 'Catalog View: Table not selected.';
+				return 'Catalog View: Table not selected.';
+			}
+		}
+
+		// --------------------- Filter
+		$this->ct->setFilter($this->ct->Params->filter, $this->ct->Params->showPublished);
+
+		if (!$this->ct->Params->blockExternalVars) {
+			if (common::inputGetString('filter', '') and is_string(common::inputGetString('filter', '')))
+				$this->ct->Filter->addWhereExpression(common::inputGetString('filter', ''));
+		}
+
+		if (!$this->ct->Params->blockExternalVars)
+			$this->ct->Filter->addQueryWhereFilter();
+
+		// --------------------- Shopping Cart
+		if ($this->ct->Params->showCartItemsOnly) {
+			$cookieValue = common::inputCookieGet($this->ct->Params->showCartItemsPrefix . $this->ct->Table->tablename);
+
+			if (isset($cookieValue)) {
+				if ($cookieValue == '') {
+					$this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], 0);
+				} else {
+					$items = explode(';', $cookieValue);
+					//$arr = array();
+					foreach ($items as $item) {
+						$pair = explode(',', $item);
+						$this->ct->Filter->whereClause->addOrCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], (int)$pair[0]);
+					}
+				}
+			} else {
+				//Show only shopping cart items. TODO: check the query
+				$this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], 0);
+			}
+		}
+
+		if ($this->ct->Params->listing_id !== null)
+			$this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], $this->ct->Params->listing_id);
+
+		// --------------------- Sorting
+		$this->ct->Ordering->parseOrderByParam();
+
+		// --------------------- Limit
+		if ($this->ct->Params->listing_id !== null)
+			$this->ct->applyLimits(1);
+		else
+			$this->ct->applyLimits($this->ct->Params->limit ?? 0);
+
+		$this->ct->LayoutVariables['layout_type'] = $this->layoutType;
+
+		// -------------------- Load Records
+		if (!$this->ct->getRecords()) {
+
+			if (defined('_JEXEC'))
+				$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND');
+
+			return 'CustomTables: Records not loaded.';
+		}
+
+		// -------------------- Parse Layouts
+		if ($this->ct->Env->frmt == 'json') {
+
+			$pathViews = CUSTOMTABLES_LIBRARIES_PATH
+				. DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
+
+			require_once($pathViews . 'json.php');
+			$jsonOutput = new ViewJSON($this->ct);
+			die($jsonOutput->render($this->layoutCode));
+		}
+
+		$twig = new TwigProcessor($this->ct, $this->layoutCode, false, false, true, $this->pageLayoutNameString, $this->pageLayoutLink);
+		$pageLayout = $twig->process();
+
+		if (defined('_JEXEC')) {
+			if ($twig->errorMessage !== null)
+				$this->ct->errors[] = $twig->errorMessage;
+
+			if ($this->ct->Params->allowContentPlugins)
+				$pageLayout = CTMiscHelper::applyContentPlugins($pageLayout);
+		}
+		return $pageLayout;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	protected function renderEditForm(): string
+	{
+		$recordRow = null;
+
+		if ($this->ct->Table->tablename !== null) {
+			$listing_id = common::inputGetCmd('listing_id');
+
+			if ($listing_id !== null) {
+				$recordRow = $this->ct->Table->loadRecord($listing_id);
+			}
+		}
+
+		$formLink = common::curPageURL();
+
+		$editForm = new Edit($this->ct);
+		$editForm->layoutContent = $this->layoutCode;
+		return $editForm->render($recordRow, $formLink, 'ctEditForm');
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
+	protected function renderDetails(): string
+	{
+		if ($this->ct->Table->record === null) {
+			return 'Record not loaded';
+		}
+
+		$details = new Details($this->ct);
+
+		if ($details->load()) {
+
+			if ($details->layoutType == 8)
+				$this->ct->Env->frmt = 'xml';
+			elseif ($details->layoutType == 9)
+				$this->ct->Env->frmt = 'csv';
+			elseif ($details->layoutType == 10)
+				$this->ct->Env->frmt = 'json';
+		}
+
+		return $details->render();
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	function getLayoutRowById(int $layoutId): ?array
+	{
+		$selects = [
+			'id',
+			'tableid',
+			'layoutname',
+			'layoutcode',
+			'layoutmobile',
+			'layoutcss',
+			'layoutjs',
+			'layouttype',
+			'MODIFIED_TIMESTAMP'
+		];
+
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('id', $layoutId);
+
+		$rows = database::loadAssocList('#__customtables_layouts', $selects, $whereClause, null, null, 1);
+		if (count($rows) != 1)
+			return null;
+
+		return $rows[0];
 	}
 }

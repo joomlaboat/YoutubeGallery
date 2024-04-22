@@ -65,25 +65,25 @@ function findTagSets(layouttypeid, priority) {
     return tagsets_;
 }
 
-function loadTagParams(type_id, tags_box, CMSType) {
+function loadTagParams(type_id, tags_box) {
 
     type_obj = document.getElementById(type_id);
 
     if (!layout_tags_loaded) {
-        loadTags(type_id, tags_box, CMSType);
+        loadTags(type_id, tags_box);
     } else {
         updateTagsParameters();
     }
 }
 
-function loadTags(type_id, tags_box, CMSType) {
+function loadTags(type_id, tags_box) {
     type_obj = document.getElementById(type_id);
 
     let url = '';
-    if (CMSType == 'Joomla') {
+    if (window.Joomla instanceof Object) {
         let parts = location.href.split("/administrator/");
         url = parts[0] + '/index.php?option=com_customtables&view=xml&xmlfile=tags&Itemid=-1';
-    } else if (CMSType == 'WordPress') {
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
         let parts = location.href.split("wp-admin/admin.php?");
         url = parts[0] + 'wp-admin/admin.php?page=customtables-api-xml&xmlfile=tags';
     } else {
@@ -116,7 +116,7 @@ function loadTags(type_id, tags_box, CMSType) {
                 layout_tags = s.layouts.tagset;
 
                 layout_tags_loaded = true;
-                loadTagParams(type_id, tags_box, CMSType);
+                loadTagParams(type_id, tags_box);
 
             }
         };
@@ -884,12 +884,13 @@ function renderTags(index, tagSet) {
     let buttonClass = "";
     let buttonClassPro = "";
 
-    if (typeof wp !== 'undefined') {
-        buttonClass = "button button-primary";
-        buttonClassPro = "button";
-    } else if (typeof Joomla !== 'undefined') {
+
+    if (typeof Joomla !== 'undefined') {
         buttonClass = "btn-primary";
         buttonClassPro = "btn-default";
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
+        buttonClass = "button button-primary";
+        buttonClassPro = "button";
     }
 
     for (let i = 0; i < tags.length; i++) {
@@ -909,26 +910,42 @@ function renderTags(index, tagSet) {
             if (tagSetAttributes.name === 'filters')
                 fullTagName = tag.examplevalue + ' | ' + fullTagName;
 
-            if (params.length === 0)
-                t = '{{ ' + fullTagName + ' }}';
-            else
-                t = '{{ ' + fullTagName + '(<span>Params</span>)' + ' }}';
 
-            result += '<div style="vertical-align:top;display:inline-block;">';
+            let isOk = true;
 
-            if (proversion || typeof (tag.proversion) === "undefined" || parseInt(tag.proversion) !== 1) {
-                result += '<a href=\'javascript:addTag("{{ "," }}","' + btoa(fullTagName) + '",' + params.length + ');\' class="' + buttonClass + '" title="' + tag.description + '">' + t + '</a> ';
-            } else {
-                result += '<div style="display:inline-block;"><div class="' + buttonClassPro + '" title="' + tag.description + '">' + t + ' *</div></div> ';
+            if (typeof (tag.layouttypes) != "undefined" && tag.deprecated !== "") {
+                let layoutTypes = tag.layouttypes.split(",");
+                isOk = layoutTypes.includes(current_layout_type + "");
             }
-            result += '</div>';
+
+            if (isOk) {
+                if (params.length === 0)
+                    t = '{{ ' + fullTagName + ' }}';
+                else
+                    t = '{{ ' + fullTagName + '(<span>Params</span>)' + ' }}';
+
+                if (window.Joomla instanceof Object || (typeof (tag.wordpress) !== "undefined" & tag.wordpress === "true")) {
+                    result += '<div style="vertical-align:top;display:inline-block;">';
+
+                    if (proversion || typeof (tag.proversion) === "undefined" || parseInt(tag.proversion) !== 1) {
+                        result += '<a href=\'javascript:addTag("{{ "," }}","' + btoa(fullTagName) + '",' + params.length + ');\' class="' + buttonClass + '" title="' + tag.description + '">' + t + '</a> ';
+                    } else {
+                        result += '<div style="display:inline-block;"><div class="' + buttonClassPro + '" title="' + tag.description + '">' + t + ' *</div></div> ';
+                    }
+                    result += '</div>';
+                }
+            }
         }
     }
 
     result += '</div>';
 
-    if (!proversion)
-        result += '<div class="ct_doc_pro_label"><a href="https://joomlaboat.com/custom-tables#buy-extension" target="_blank">* Get Custom Tables PRO Version</a></div>';
+    if (!proversion) {
+        if (window.Joomla instanceof Object)
+            result += '<div class="ct_doc_pro_label"><a href="https://joomlaboat.com/custom-tables#buy-extension" target="_blank">* Get Custom Tables PRO Version</a></div>';
+        else
+            result += '<div class="ct_doc_pro_label"><a href="https://ct4.us" target="_blank">* Get Custom Tables PRO Version</a></div>';
+    }
 
     return result;
 }
@@ -1190,5 +1207,8 @@ function adjustEditorHeight() {
             editorHeight += 20;
 
         editor.style.height = editorHeight + 'px';
+        let cm = codemirror_editors[i];
+        if (cm && cm.codemirror)
+            cm.codemirror.refresh();
     }
 }

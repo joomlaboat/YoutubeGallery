@@ -15,8 +15,6 @@ defined('_JEXEC') or die();
 
 use CustomTablesImageMethods;
 use Exception;
-use Joomla\CMS\Component\ComponentHelper;
-
 use CT_FieldTypeTag_image;
 use CT_FieldTypeTag_file;
 use CustomTables\ctProHelpers;
@@ -63,7 +61,11 @@ class SaveFieldQuerySet
 	 */
 	protected function getSaveFieldSetType(): void
 	{
-		$listing_id = $this->row_old[$this->ct->Table->realidfieldname];
+		if ($this->row_old !== null and key_exists($this->ct->Table->realidfieldname, $this->row_old))
+			$listing_id = $this->row_old[$this->ct->Table->realidfieldname];
+		else
+			$listing_id = null;
+
 		switch ($this->field->type) {
 			case 'records':
 				$value = self::get_record_type_value($this->field);
@@ -99,7 +101,7 @@ class SaveFieldQuerySet
 				break;
 
 			case 'radio':
-				$value = common::inputPostCmd($this->field->comesfieldname, null, 'create-edit-record');
+				$value = common::inputPostString($this->field->comesfieldname, null, 'create-edit-record');
 
 				if (isset($value)) {
 					$this->setNewValue($value);
@@ -183,11 +185,10 @@ class SaveFieldQuerySet
 				return;
 
 			case 'text':
-
-				$value = common::inputPost($this->field->comesfieldname, null, 'raw');
+				$value = common::inputPostRaw($this->field->comesfieldname, null, 'create-edit-record');
 
 				if (isset($value)) {
-					$this->setNewValue(ComponentHelper::filterText($value));
+					$this->setNewValue(common::filterText($value));
 					return;
 				}
 				break;
@@ -202,7 +203,7 @@ class SaveFieldQuerySet
 					} else
 						$postfix = '_' . $lang->sef;
 
-					$value = ComponentHelper::filterText(common::inputPost($this->field->comesfieldname . $postfix, null, 'raw'));
+					$value = common::filterText(common::inputPostRaw($this->field->comesfieldname . $postfix, null, 'create-edit-record'));
 
 					if (isset($value)) {
 						$this->row_old[$this->field->realfieldname . $postfix] = $value;
@@ -232,7 +233,7 @@ class SaveFieldQuerySet
 				break;
 
 			case 'user':
-				$value = common::inputPost($this->field->comesfieldname, null, 'create-edit-record');
+				$value = common::inputPostInt($this->field->comesfieldname, null, 'create-edit-record');
 
 				if (isset($value)) {
 					$value = common::inputPostInt($this->field->comesfieldname, null, 'create-edit-record');
@@ -248,7 +249,7 @@ class SaveFieldQuerySet
 
 				if ($this->ct->isRecordNull($this->row_old) or $this->isCopy) {
 
-					$value = common::inputPost($this->field->comesfieldname, null, 'create-edit-record');
+					$value = common::inputPostInt($this->field->comesfieldname, null, 'create-edit-record');
 
 					if ((!isset($value) or $value == 0)) {
 
@@ -477,6 +478,7 @@ class SaveFieldQuerySet
 
 			case 'date':
 				$value = common::inputPostString($this->field->comesfieldname, null, 'create-edit-record');
+
 				if (isset($value)) {
 					if ($value == '' or $value == '0000-00-00') {
 
@@ -492,7 +494,7 @@ class SaveFieldQuerySet
 				return;
 
 			case 'time':
-				$value = common::inputPostString($this->field->comesfieldname);
+				$value = common::inputPostString($this->field->comesfieldname, null, 'create-edit-record');
 				if (isset($value)) {
 					if ($value == '') {
 						$this->setNewValue(null);
@@ -503,15 +505,12 @@ class SaveFieldQuerySet
 				return;
 
 			case 'creationtime':
-				if ($this->row_old[$this->ct->Table->realidfieldname] == 0 or $this->row_old[$this->ct->Table->realidfieldname] == '' or $this->isCopy) {
-					$value = gmdate('Y-m-d H:i:s');
-					$this->setNewValue($value);
-				}
+				if ($this->row_old[$this->ct->Table->realidfieldname] == 0 or $this->row_old[$this->ct->Table->realidfieldname] == '' or $this->isCopy)
+					$this->setNewValue(common::currentDate());
 				return;
 
 			case 'changetime':
-				$value = gmdate('Y-m-d H:i:s');
-				$this->setNewValue($value);
+				$this->setNewValue(common::currentDate());
 				return;
 
 			case 'server':

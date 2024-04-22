@@ -155,7 +155,7 @@ class TableHelper
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	public static function createTableIfNotExists($database, $dbPrefix, $tableName, $tableTitle, $complete_table_name = ''): bool
+	public static function createTableIfNotExists(string $dbPrefix, string $tableName, string $tableTitle, string $complete_table_name = ''): bool
 	{
 		if ($complete_table_name == '')
 			$realTableName = $dbPrefix . 'customtables_table_' . $tableName;
@@ -271,7 +271,7 @@ class TableHelper
 				'COLUMN_NAME AS column_name',
 				'DATA_TYPE AS data_type',
 				'COLUMN_TYPE AS column_type',
-				'IF(COLUMN_TYPE LIKE "%unsigned", "YES", "NO") AS is_unsigned',
+				'COLUMN_IS_UNSIGNED',
 				'IS_NULLABLE AS is_nullable',
 				'COLUMN_DEFAULT AS column_default',
 				'COLUMN_COMMENT AS column_comment',

@@ -22,6 +22,7 @@ class YoutubeGalleryViewSettings extends JViewLegacy
     /**
      * display method of Youtube Gallery view
      * @return void
+     * @throws Exception
      */
 
     public function display($tpl = null)

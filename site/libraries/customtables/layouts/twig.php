@@ -45,7 +45,7 @@ class TwigProcessor
 
 	public function __construct(CT $ct, $layoutContent, $getEditFieldNamesOnly = false, $DoHTMLSpecialChars = false, $parseParams = true, ?string $layoutName = null, ?string $pageLayoutLink = null)
 	{
-		$this->debug = true;//false;
+		$this->debug = true;
 
 		$this->parseParams = $parseParams;
 		$this->errorMessage = null;
@@ -561,8 +561,12 @@ class fieldObject
 			$Inputbox = new Inputbox($this->ct, $this->field->fieldrow, $args);
 			$value = $Inputbox->getDefaultValueIfNeeded($this->ct->Table->record);
 
+			$this->ct->editFields[] = $this->field->fieldname;
+
+			if (!in_array($this->field->type, $this->ct->editFieldTypes))
+				$this->ct->editFieldTypes[] = $this->field->type;
+
 			if ($this->getEditFieldNamesOnly) {
-				$this->ct->editFields[] = $this->field->fieldname;
 				return '';
 			} else
 				return $Inputbox->render($value, $this->ct->Table->record);
@@ -748,7 +752,7 @@ class fieldObject
 			$showPublishedString = '';
 
 		if ($this->field->type != 'sqljoin' and $this->field->type != 'records') {
-			$this->ct->errors[] = '{{ ' . $this->field->fieldname . '.get }}. Wrong field type "' . $this->field->type . '". ".get" method is only available for Table Join and Records filed types.';
+			$this->ct->errors[] = '{{ ' . $this->field->fieldname . '.layout() }}. Wrong field type "' . $this->field->type . '". ".layout()" method is only available for Table Join and Records filed types.';
 			return '';
 		}
 

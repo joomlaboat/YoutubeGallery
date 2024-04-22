@@ -26,16 +26,16 @@
     <tagset name="html" label="HTML" description="HTML Tags to render HTML code." priority="2">
 
         <tag name="add" label="Add New" startchar="{" endchar="}"
-             description="Renders 'Add New Record' button" twigclass="html">
+             description="Renders 'Add New Record' button" twigclass="html" wordpress="true">
 
             <params>
-                <param type="string" name="alias" label="Menu Itemid or Alias (Optional)"
+                <param type="string" name="alias" label="Menu Alias or Itemid in Joomla (Optional)"
                        description="To redirect to a specific Menu Item."/>
             </params>
         </tag>
 
         <tag name="recordcount" label="Record Count (as text)" startchar="{" endchar="}"
-             description="Example: Found 23 record(s)" twigclass="html">
+             description="Example: Found 23 record(s)" twigclass="html" wordpress="true">
         </tag>
 
         <tag name="checkboxcount" label="Record Selected (as HTML SPAN tag)" startchar="{" endchar="}"
@@ -98,7 +98,7 @@
 
         <tag name="search" label="Search Box" startchar="{" endchar="}"
              description="An input or select box to enter the search parameter." twigclass="html"
-             image="https://joomlaboat.com/images/components/ct/tags/search-box.png">
+             image="https://joomlaboat.com/images/components/ct/tags/search-box.png" wordpress="true">
             <params>
                 <param type="field" name="field" label="Field(s)"
                        description="Select Table Field to search in. To search in multiple fields type the field names separated by comma. Example: {{ html.search('firstname,lastname') }} In case of the Table Join and Records Join field types a rendering layout ca be used. Example {{ html.search('fieldname:layoutname') }}"
@@ -120,7 +120,8 @@
         </tag>
 
         <tag name="searchbutton" label="Search Button" startchar="{" endchar="}" description="Renders a Search Button"
-             twigclass="html" image="https://joomlaboat.com/images/components/ct/tags/search-button.png">
+             twigclass="html" image="https://joomlaboat.com/images/components/ct/tags/search-button.png"
+             wordpress="true">
             <params>
                 <param name="label" label="Button Label" type="string" example="Search"
                        description="The label of the button. Leaving the label parameter empty will produce an icon only (a magnifying glass). You can also pass HTML code as the label argument to control the button look completely. "/>
@@ -141,15 +142,15 @@
         </tag>
 
         <tag name="toolbar" label="Toolbar" startchar="{" endchar="}" description="Renders the toolbar"
-             hidedefaultexample="1" repetitive="1" twigclass="html">
+             hidedefaultexample="1" repetitive="1" twigclass="html" wordpress="true">
             <params>
                 <param name="button" label="Button" type="list" example="edit">
                     <option value="" label="- None"/>
                     <option value="checkbox" label="Checkbox"/>
-                    <option value="edit" label="Edit"/>
+                    <option value="edit" label="Edit" wordpress="true"/>
                     <option value="editmodal" label="Edit Modal Form"/>
                     <option value="refresh" label="Refresh"/>
-                    <option value="delete" label="Delete"/>
+                    <option value="delete" label="Delete" wordpress="true"/>
                     <option value="publish" label="Publish/Unpublish"/>
                     <option value="gallery" label="Image Gallery"/>
                     <option value="filebox" label="File Box"/>
@@ -188,14 +189,14 @@
         </tag>
 
         <tag name="button" label="Button" startchar="{" endchar="}" added="2019-05-28" hidedefaultexample="1"
-             description="Renders form submit button. " twigclass="html">
+             description="Renders form submit button. " twigclass="html" wordpress="true">
             <params>
                 <param name="type" label="Type" type="list" example="save">
 
                     <option value="save" label="Save" description=""/>
-                    <option value="saveandclose" label="Save &#38; Close" description=""/>
+                    <option value="saveandclose" label="Save &#38; Close" description="" wordpress="true"/>
                     <option value="saveascopy" label="Save as Copy"/>
-                    <option value="cancel" label="Cancel"/>
+                    <option value="cancel" label="Cancel" wordpress="true"/>
                     <option value="delete" label="Delete"/>
                 </param>
                 <param name="label" label="Button Label" type="string" example="Click here to save the form"
@@ -210,7 +211,16 @@
         </tag>
 
         <tag name="captcha" label="Captcha" startchar="{" endchar="}" twigclass="html"
-             description="Provides the use of a captcha plugin (if enabled)." proversion="1"/>
+             description="Provides the use of a captcha plugin (if enabled)." proversion="1" wordpress="true">
+            <params>
+
+                <param name="public_key" label="Site Key" type="string" required="true"
+                       example="6Ld3l34UABCDEF6t1cEdbdNSKKyNbegQXm72_mDU" joomla="false"/>
+
+                <param name="private_key" label="Secret Key" type="string" required="true"
+                       example="6Ld3l34UAAAAAA0yMlsl7G9MyVRdx6OhKtYvV1AM" joomla="false"/>
+            </params>
+        </tag>
 
         <tag name="message" label="Alert Message" startchar="{" endchar="}"
              description="Renders an alert message above the main content." twigclass="html" proversion="1">
@@ -288,16 +298,18 @@
     </tagset>
 
     <!-- Record Tags -->
-    <tagset name="record" label="Record" description="Tags related to a single record." priority="1">
+    <tagset name="record" label="Record" description="Tags associated with a single record." priority="1">
 
-        <tag name="id" label="record ID" startchar="{" endchar="}" description="Returns record ID" twigclass="record"/>
+        <tag name="id" label="record ID" startchar="{" endchar="}" description="Returns record ID" twigclass="record"
+             wordpress="true"/>
 
         <tag name="number" label="Record Number" startchar="{" endchar="}"
-             description="Returns record number (in current order), not record id." twigclass="record"/>
+             description="Returns record number (in current order), not record id." twigclass="record"
+             wordpress="true"/>
 
         <tag name="published" label="Published" startchar="{" endchar="}"
              description="Returns the «Yes» word (language depended) if the record is published and «No» if not."
-             twigclass="record">
+             twigclass="record" wordpress="true">
             <params>
                 <param name="format" label="Format" description="What type of value to return." type="list">
                     <option value="" label="Text (Yes/No)"
@@ -318,7 +330,7 @@
         <tag name="link" label="Link to detailed page" startchar="{" endchar="}"
              description="Link to record details page (Details Layout will be used, the one selected in the current menu item.)"
              twigclass="record"
-             twigreplacement="record.link" twigreplacementparams="true">
+             twigreplacement="record.link" twigreplacementparams="true" wordpress="true">
             <params>
                 <param name="add_returnto" label="Add '&#38;returnto=' parameter" description="
 				To add '&#38;returnto=' query parameter to the link to allow 'Go Back' button on detailed or edit web page."
@@ -332,7 +344,8 @@
         </tag>
         --------------------
         <tag name="count" label="Count" startchar="{" endchar="}" proversion="1"
-             description="Returns the number of records in selected table that match the filter." twigclass="record">
+             description="Returns the number of records in selected table that match the filter." twigclass="record"
+             wordpress="true">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table to count records from." example="products"/>
@@ -342,7 +355,8 @@
         </tag>
 
         <tag name="avg" label="Average" startchar="{" endchar="}" proversion="1"
-             description="Calculates the average value of all the records that match the filter." twigclass="record">
+             description="Calculates the average value of all the records that match the filter." twigclass="record"
+             wordpress="true">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table to count records from." example="products"
@@ -355,7 +369,8 @@
         </tag>
 
         <tag name="min" label="Minimum" startchar="{" endchar="}" proversion="1"
-             description="Returns the minimum of all the records that match the filter." twigclass="record">
+             description="Returns the minimum of all the records that match the filter." twigclass="record"
+             wordpress="true">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table to count records from." example="products"
@@ -368,7 +383,8 @@
         </tag>
 
         <tag name="max" label="Maximum" startchar="{" endchar="}" proversion="1"
-             description="Returns the maximum of all the records that match the filter." twigclass="record">
+             description="Returns the maximum of all the records that match the filter." twigclass="record"
+             wordpress="true">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table to count records from." example="products"
@@ -382,7 +398,7 @@
 
         <tag name="sum" label="Sum" startchar="{" endchar="}" proversion="1"
              description="Summarizes values of a selected field of all the records that match the filter."
-             twigclass="record">
+             twigclass="record" wordpress="true">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table to count records from." example="products"
@@ -396,7 +412,7 @@
 
         <tag name="joincount" label="Table Join - Count" startchar="{" endchar="}" proversion="1"
              description="Counts records from a joined table (Table Join)."
-             twigclass="record">
+             twigclass="record" wordpress="false">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table that has a Table Join type field." example="products"/>
@@ -406,7 +422,8 @@
         </tag>
 
         <tag name="joinavg" label="Table Join - Average" startchar="{" endchar="}" proversion="1"
-             description="Calculates the average value of all the records that match the filter." twigclass="record">
+             description="Calculates the average value of all the records that match the filter." twigclass="record"
+             wordpress="false">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table that has a Table Join type field." example="products"
@@ -419,7 +436,8 @@
         </tag>
 
         <tag name="joinmin" label="Table Join - Minimum" startchar="{" endchar="}" proversion="1"
-             description="Finds the minimum value of all the records that match the filter." twigclass="record">
+             description="Finds the minimum value of all the records that match the filter." twigclass="record"
+             wordpress="false">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table that has a Table Join type field." example="products"
@@ -432,7 +450,8 @@
         </tag>
 
         <tag name="joinmax" label="Table Join - Maximum" startchar="{" endchar="}" proversion="1"
-             description="Finds the maximum value of all the records that match the filter." twigclass="record">
+             description="Finds the maximum value of all the records that match the filter." twigclass="record"
+             wordpress="false">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table that has a Table Join type field." example="products"
@@ -446,7 +465,7 @@
 
         <tag name="joinsum" label="Table Join - Sum" startchar="{" endchar="}" proversion="1"
              description="Summarizes values of a selected field of all the records that match the filter."
-             twigclass="record">
+             twigclass="record" wordpress="false">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table that has a Table Join type field." example="products"
@@ -459,7 +478,8 @@
         </tag>
 
         <tag name="joinvalue" label="Table Join - Value" startchar="{" endchar="}" proversion="1"
-             description="Returns the value of selected field of all the records that match." twigclass="record">
+             description="Returns the value of selected field of all the records that match." twigclass="record"
+             wordpress="false">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table that has a Table Join type field." example="products"
@@ -473,7 +493,7 @@
 
         <tag name="jointable" label="Join Table - Table" startchar="{" endchar="}" proversion="1"
              description="Returns the records from another table these that connected to current record and match the filter. Records will be formatted by selected layout."
-             twigclass="record">
+             twigclass="record" wordpress="false">
             <params>
                 <param type="layout" name="layout" label="Catalog Layout" table=""
                        layouttype="catalogpage,simplecatalog"/>
@@ -488,7 +508,8 @@
         <!--    description="Code to Textual Representation." proversion="1" /> -->
 
         <tag name="advancedjoin" label="Table Join" startchar="{" endchar="}" proversion="1"
-             description="Returns value of joined table field." hidedefaultexample="1" twigclass="record">
+             description="Returns value of joined table field." hidedefaultexample="1" twigclass="record"
+             wordpress="false">
             <params>
                 <param name="function" label="Function" type="list" description="What to do with returned value(s)"
                        example="count">
@@ -520,15 +541,15 @@
         </tag>
 
         <tag name="missingfields" label="Returns a List of required fields that are missing." startchar="{" endchar="}"
-             proversion="1" twigclass="record"
+             proversion="1" twigclass="record" wordpress="true"
              description="Returns a string List, separated by a Separator, of required fields (field names) that are missing or NULL."/>
 
         <tag name="missingfieldslist" label="Returns an Array of required fields that are missing." startchar="{"
-             endchar="}" proversion="1" twigclass="record"
+             endchar="}" proversion="1" twigclass="record" wordpress="true"
              description="Returns an Array of required fields (field names) that are missing or NULL."/>
 
         <tag name="islast"
-             label="Check if Record is Last in List"
+             label="Check if Record is Last in List" wordpress="true"
              startchar="{"
              endchar="}" proversion="1" twigclass="record"
              description="Evaluates whether the current record is the last in the sequence being rendered. This is particularly useful for formatting output lists where a trailing character, such as a comma, is not required after the last item."
@@ -572,37 +593,41 @@
     </tagset>
 
     <!-- Table Tags -->
-    <tagset name="table" label="Table" description="Tags related current to current table." priority="1">
+    <tagset name="table" label="Table" description="Tags associated with the current table." priority="1">
 
         <tag name="records" label="Record Count (filtered)" startchar="{" endchar="}"
-             description="Returns the number of records in the table that met filter criteria" twigclass="table"/>
+             description="Returns the number of records in the table that met filter criteria" twigclass="table"
+             wordpress="true"/>
 
         <tag name="recordstotal" label="Total Number of Records" startchar="{" endchar="}"
-             description="Returns the total number of records in the table" hidedefaultexample="1" twigclass="table"/>
+             description="Returns the total number of records in the table" hidedefaultexample="1" twigclass="table"
+             wordpress="true"/>
 
         <tag name="recordpagestart" label="Page Start Record number" startchar="{" endchar="}"
              description="Returns the pagination start from record number" hidedefaultexample="1" twigclass="table"
-             example="{{ table.recordpagestart + table.recordsperpage }}"/>
+             example="{{ table.recordpagestart + table.recordsperpage }}" wordpress="true"/>
 
         <tag name="recordsperpage" label="Number of records per page" startchar="{" endchar="}"
              description="Returns number of records per page" hidedefaultexample="1" twigclass="table"
-             example="{{ table.recordpagestart + table.recordsperpage }}"
+             example="{{ table.recordpagestart + table.recordsperpage }}" wordpress="true"
         />
 
         <tag name="title" label="Table Title" startchar="{" endchar="}"
-             description="Returns the current table title." hidedefaultexample="1" twigclass="table"/>
+             description="Returns the current table title." hidedefaultexample="1" twigclass="table" wordpress="true"/>
 
         <tag name="description" label="Description" startchar="{" endchar="}"
-             description="Returns current table description." hidedefaultexample="1" twigclass="table"/>
+             description="Returns current table description." hidedefaultexample="1" twigclass="table"
+             wordpress="false"/>
 
         <tag name="name" label="Table Name" startchar="{" endchar="}" proversion="1"
-             description="Returns the current table name." hidedefaultexample="1" twigclass="table"/>
+             description="Returns the current table name." hidedefaultexample="1" twigclass="table" wordpress="true"/>
 
         <tag name="id" label="Table ID" startchar="{" endchar="}" proversion="1"
-             description="Returns current table ID." hidedefaultexample="1" twigclass="table"/>
+             description="Returns current table ID." hidedefaultexample="1" twigclass="table" wordpress="true"/>
 
         <tag name="fields" label="Fields" startchar="{" endchar="}"
-             description="Return the number of fields in the table" hidedefaultexample="1" twigclass="table"/>
+             description="Return the number of fields in the table" hidedefaultexample="1" twigclass="table"
+             wordpress="true"/>
 
         <!-- Deprecated -->
 
@@ -636,7 +661,7 @@
 
         <tag name="getvalue" label="Get Value" startchar="{" endchar="}"
              description="Read a record field value from selected table."
-             twigclass="tables" proversion="1">
+             twigclass="tables" proversion="1" wordpress="true">
             <params>
                 <param name="tablename" label="Table" type="table"
                        description="The name of the Table that has a Table Join type field." example="products"
@@ -653,7 +678,7 @@
 
         <tag name="getrecord" label="Get Record" startchar="{" endchar="}"
              description="Renders another table single record using selected layout."
-             twigclass="tables" proversion="1">
+             twigclass="tables" proversion="1" wordpress="true">
             <params>
                 <param type="layout" name="layout" label="Catalog Layout" table=""
                        layouttype="catalogpage,simplecatalog"
@@ -667,7 +692,7 @@
 
         <tag name="getrecords" label="Get Records" startchar="{" endchar="}"
              description="Renders another table records using selected layout."
-             twigclass="tables" proversion="1">
+             twigclass="tables" proversion="1" wordpress="true">
             <params>
                 <param type="layout" name="layout" label="Catalog Layout" table=""
                        layouttype="catalogpage,simplecatalog"
@@ -686,10 +711,10 @@
     <tagset name="fields" label="Fields" description="Tags related to current table fields." priority="1">
 
         <tag name="count" label="Field Count (number)" startchar="{" endchar="}"
-             description="Return the number of fields in the table" twigclass="fields"/>
+             description="Return the number of fields in the table" twigclass="fields" wordpress="true"/>
 
         <tag name="list" label="List of field parameters" startchar="{" endchar="}" proversion="1"
-             description="Returns the list of fields. Example: country,city,phone" twigclass="fields">
+             description="Returns the list of fields. Example: country,city,phone" twigclass="fields" wordpress="false">
             <params>
                 <param name="option" label="Field attribute" type="list" description="Select one attribute.">
                     <option value="fieldname" label="Field Name"/>
@@ -707,16 +732,16 @@
         </tag>
 
         <tag name="json" label="Field Json Array" startchar="{" endchar="}" proversion="1"
-             description="Returns the array of fields in JSON format" twigclass="fields"/>
+             description="Returns the array of fields in JSON format" twigclass="fields" wordpress="false"/>
     </tagset>
 
     <!-- User Tags -->
     <tagset name="user" label="User" description="Tags related Joomla user accounts." priority="2">
         <tag name="id" label="Current User ID" startchar="{" endchar="}"
-             description="Returns Current User ID" proversion="1" twigclass="user"/>
+             description="Returns Current User ID" proversion="1" twigclass="user" wordpress="true"/>
 
         <tag name="name" label="User Full Name" startchar="{" endchar="}"
-             description="Returns User full name." proversion="1" twigclass="user">
+             description="Returns User full name." proversion="1" twigclass="user" wordpress="true">
             <params>
                 <param name="userid" label="User ID"
                        description="To get the Full Name of the specific user, leave it blank to get the Current User's Full Name"
@@ -725,7 +750,7 @@
         </tag>
 
         <tag name="username" label="Username" startchar="{" endchar="}"
-             description="Returns Username." proversion="1" twigclass="user">
+             description="Returns Username." proversion="1" twigclass="user" wordpress="true">
             <params>
                 <param name="userid" label="User ID"
                        description="To get the Username of the specific user, leave it blank to get the Current User's Username"
@@ -734,7 +759,7 @@
         </tag>
 
         <tag name="email" label="Email" startchar="{" endchar="}"
-             description="Returns User email address." proversion="1" twigclass="user">
+             description="Returns User email address." proversion="1" twigclass="user" wordpress="true">
             <params>
                 <param name="userid" label="User ID"
                        description="To get the Email of the specific user, leave it blank to get the Current User's Email"
@@ -743,26 +768,32 @@
         </tag>
 
         <tag name="lastvisitdate" label="Last Visit Date" startchar="{" endchar="}"
-             description="Returns User Last Visit Date." proversion="1" twigclass="user">
+             description="Returns User Last Visit Date." proversion="1" twigclass="user" wordpress="true">
             <params>
                 <param name="userid" label="User ID"
                        description="To get the Last Visit Date of the specific user, leave it blank to get the Current User's Last Visit Date"
                        hidden="false" default="" type="string"/>
+
+                <param name="format" example="Y-m-d" label="Format" type="string"
+                       description="PHP date format i.e. 'Y-m-d H:i:s' or Joomla defined format (language supported) if left empty. 'timestamp' to return the datetime in UNIX timestamp format."/>
             </params>
         </tag>
 
         <tag name="registerdate" label="Register Date" startchar="{" endchar="}"
-             description="Returns User Registration Date." proversion="1" twigclass="user">
+             description="Returns User Registration Date." proversion="1" twigclass="user" wordpress="true">
             <params>
                 <param name="userid" label="User ID"
                        description="To get the Register Date of the specific user, leave it blank to get the Current User's Register Date"
                        hidden="false" default="" type="string"/>
+
+                <param name="format" example="Y-m-d" label="Format" type="string"
+                       description="PHP date format i.e. 'Y-m-d H:i:s' or Joomla defined format (language supported) if left empty. 'timestamp' to return the datetime in UNIX timestamp format."/>
             </params>
         </tag>
 
         <tag name="usergroups" label="User Groups" startchar="{" endchar="}"
              description="Returns an array of User Group names. Use |join(',') filter to return a string" proversion="1"
-             twigclass="user">
+             twigclass="user" wordpress="true">
             <params>
                 <param name="userid" label="User ID"
                        description="To get the User Group Names of the specific user, leave it blank to get the Current User's User Groups Names."
@@ -791,11 +822,12 @@
     <!-- Url Tags -->
     <tagset name="url" label="URL" description="Tags related current URL and links." priority="2">
 
-        <tag name="link" label="Link" startchar="{" endchar="}" description="Current URL" twigclass="url"/>
+        <tag name="link" label="Link" startchar="{" endchar="}" description="Current URL" twigclass="url"
+             wordpress="true"/>
 
         <tag name="format" label="Output Format" startchar="{" endchar="}" proversion="1"
              description="A link to download current page records in a specific format." hidedefaultexample="1"
-             twigclass="url">
+             twigclass="url" wordpress="false">
             <params>
                 <param name="format" label="Format" type="list" description="Select the output format.">
                     <option value="csv" label="CSV" description="Generates CSV file"/>
@@ -831,67 +863,77 @@
         </tag>
 
         <tag name="itemid" label="Menu Itemid" startchar="{" endchar="}" description="Joomla menu item Itemid"
-             twigclass="url" proversion="1"/>
+             twigclass="url" proversion="1" wordpress="false"/>
 
         <tag name="getint" label="Integer" startchar="{" endchar="}"
-             description="Returns the first integer found in the parameter value." twigclass="url">
+             description="Returns the first integer found in the parameter value." twigclass="url" wordpress="true">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
             </params>
         </tag>
+
         <tag name="getstring" label="String" startchar="{" endchar="}"
-             description="Converts the input to a plain text string; strips all tags / attributes." twigclass="url">
+             description="Converts the input to a plain text string; strips all tags / attributes." twigclass="url"
+             wordpress="true">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
             </params>
         </tag>
+
         <tag name="getuint" label="Unsigned Integer" startchar="{" endchar="}" description="Returns an unsigned int."
-             twigclass="url" proversion="1">
+             twigclass="url" proversion="1" wordpress="true">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
             </params>
         </tag>
+
         <tag name="getfloat" label="Float/Decimal" startchar="{" endchar="}"
-             description="Only use the first floating-point value if the list is provided." twigclass="url">
+             description="Only use the first floating-point value if the list is provided." twigclass="url"
+             wordpress="true">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
             </params>
         </tag>
+
         <tag name="getword" label="Word" startchar="{" endchar="}"
-             description="Only allow characters a-z, and underscores." twigclass="url">
+             description="Only allow characters a-z, and underscores." twigclass="url" wordpress="true">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
             </params>
         </tag>
+
         <tag name="getalnum" label="Alphanumeric" startchar="{" endchar="}" description="Allow a-z and 0-9 only."
-             twigclass="url">
+             twigclass="url" wordpress="true">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
             </params>
         </tag>
+
         <tag name="getcmd" label="Command" startchar="{" endchar="}"
              description="Allow a-z, 0-9, underscore, dot, dash. Also, removes leading dots from the result."
-             twigclass="url">
+             twigclass="url" wordpress="true">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
             </params>
         </tag>
+
         <tag name="getstringandencode" label="Base64 Encode" startchar="{" endchar="}"
-             description="Returns encoded value of query parameter." twigclass="url" proversion="1">
+             description="Returns encoded value of query parameter." twigclass="url" proversion="1" wordpress="true">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
             </params>
         </tag>
+
         <tag name="getstringanddecode" label="Base64 Decode" startchar="{" endchar="}"
-             description="Returns decoded value of query parameter." twigclass="url" proversion="1">
+             description="Returns decoded value of query parameter." twigclass="url" proversion="1" wordpress="true">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
@@ -899,11 +941,11 @@
         </tag>
 
         <tag name="base64" label="Base64 Encode URL" startchar="{" endchar="}"
-             description="Returns base64 encoded current URL." twigclass="url" proversion="1"/>
+             description="Returns base64 encoded current URL." twigclass="url" proversion="1" wordpress="false"/>
 
         <tag name="root" label="Website Root URI" startchar="{" endchar="}"
              description="Returns the root URI for the request." twigclass="url"
-             proversion="1">
+             proversion="1" wordpress="true">
 
             <params>
                 <param name="include_host" label="Include Host" description="Include Website protocol, host, port, etc."
@@ -918,7 +960,7 @@
 
         <tag name="set" label="Set query parameter" startchar="{" endchar="}"
              description="Sets a URI query parameter value." twigclass="url"
-             proversion="1">
+             proversion="1" wordpress="false" layouttypes="1,2,4,5,6">
             <params>
                 <param name="parameter" label="Parameter" type="string" description="Url query parameter"
                        example="firstname"/>
@@ -928,7 +970,7 @@
 
         <tag name="server" label="Server" startchar="{" endchar="}"
              description="Server and execution environment information" twigclass="url"
-             proversion="1">
+             proversion="1" wordpress="false">
             <params>
                 <param name="option" label="Option" type="list" description="Select what information to return.">
                     <option value="REMOTE_ADDR" label="REMOTE_ADDR"
@@ -1071,7 +1113,7 @@
             priority="3">
 
         <tag name="setpagetitle" label="Set Page Title" startchar="{" endchar="}" twigclass="document"
-             description="A command to set the Page Title." proversion="1">
+             description="A command to set the Page Title." proversion="1" layouttypes="1,2,4,5,6" wordpress="false">
             <params>
                 <param name="title" label="Title" type="string" description="Type the Page Title here."
                        example="JoomlaBoat - Custom Tables"/>
@@ -1079,7 +1121,8 @@
         </tag>
 
         <tag name="setheadtag" label="HTML Document Head Tag" startchar="{" endchar="}" hidedefaultexample="1"
-             description="Places whatever provided to HTML document head tag." proversion="1" twigclass="document">
+             description="Places whatever provided to HTML document head tag." proversion="1" twigclass="document"
+             layouttypes="1,2,4,5,6" wordpress="false">
             <params>
                 <param name="content" label="Content" type="string"
                        example="&lt;script src='/components/com_oxfordsms/js/ajax.js' type='text/javascript'&gt;&lt;/script&gt;"
@@ -1088,7 +1131,8 @@
         </tag>
 
         <tag name="setmetakeywords" label="Set Meta Keywords" startchar="{" endchar="}" twigclass="document"
-             description="A command to place a meta keywords into the head of the page." proversion="1">
+             description="A command to place a meta keywords into the head of the page." proversion="1"
+             layouttypes="1,2,4,5,6" wordpress="false">
             <params>
                 <param name="keywords" label="Keywords" type="string"
                        description="List of keywords. You may include [fieldname] to get keywords from. "/>
@@ -1096,7 +1140,8 @@
         </tag>
 
         <tag name="setmetadescription" label="Set Meta Description" startchar="{" endchar="}" twigclass="document"
-             description="A command to place a meta description into the head of the page." proversion="1">
+             description="A command to place a meta description into the head of the page." proversion="1"
+             layouttypes="1,2,4,5,6" wordpress="false">
             <params>
                 <param name="description" label="Description" type="string"
                        example="custom tables, the best joomla extension, [producttitle], database"
@@ -1106,7 +1151,7 @@
 
         <tag name="layout" label="Extend Layout" startchar="{" endchar="}"
              description="Includes the content of selected layout." hidedefaultexample="0" proversion="1"
-             twigclass="document">
+             twigclass="document" wordpress="true">
             <params>
                 <param name="layoutname" label="Layout Name" type="layout" description="Layout Name."
                        examplenoquotes="0" table="current" example="my_script_layout"/>
@@ -1115,26 +1160,27 @@
         </tag>
 
         <tag name="languagepostfix" label="Language Postfix" startchar="{" endchar="}"
-             description="Current page Language Postfix." proversion="1" twigclass="document"/>
+             description="Current page Language Postfix." proversion="1" twigclass="document" wordpress="false"/>
 
         <tag name="attachment" label="Email file attachment" startchar="{" endchar="}" layouttypes="7"
              description="The link to a file that will be attached to an email. Works in Email Layout Type."
-             proversion="1" twigclass="document">
+             proversion="1" twigclass="document" wordpress="false">
         </tag>
 
-        <tag name="sitename" label="Site Name" startchar="{" endchar="}"
-             description="Return the Site Name set in configuration.php file" proversion="1" twigclass="document"/>
+        <tag name="sitename" label="Site Name" startchar="{" endchar="}" layouttypes="1,2,4,5,6"
+             description="Return the Site Name set in configuration.php file" proversion="1" twigclass="document"
+             wordpress="true"/>
 
         <!-- Deprecated -->
 
         <tag name="pagetitle" label="Set Page Title" startchar="{" endchar="}" deprecated="1"
-             twigreplacement="document.setpagetitle"/>
+             twigreplacement="document.setpagetitle" layouttypes="1,2,4,5,6"/>
         <tag name="headtag" label="HTML Document Head Tag" startchar="{" endchar="}" deprecated="1"
-             twigreplacement="document.setheadtag"/>
+             twigreplacement="document.setheadtag" layouttypes="1,2,4,5,6"/>
         <tag name="metakeywords" label="Set Meta Keywords" startchar="{" endchar="}" deprecated="1"
-             twigreplacement="document.setnetakeywords"/>
+             twigreplacement="document.setmetakeywords" layouttypes="1,2,4,5,6"/>
         <tag name="metadescription" label="Set Meta Description" startchar="{" endchar="}" deprecated="1"
-             twigreplacement="document.setmetadescription"/>
+             twigreplacement="document.setmetadescription" layouttypes="1,2,4,5,6"/>
 
     </tagset>
 
@@ -1212,15 +1258,16 @@
     <tagset name="filters" label="Filters" description="Extended Twig Filters. {{ value | filter }}" priority="3"
             proversion="1">
         <tag name="base64encode" description="Encodes the given string with base64." examplevalue="'hello world'"
-             proversion="1"/>
+             proversion="1" wordpress="true"/>
         <tag name="base64decode" description="Decodes a base64 encoded string." examplevalue="'aGVsbG8gd29ybGQ='"
-             proversion="1"/>
-        <tag name="md5" description="Calculates the MD5 hash of string." examplevalue="'hello world'" proversion="1"/>
+             proversion="1" wordpress="true"/>
+        <tag name="md5" description="Calculates the MD5 hash of string." examplevalue="'hello world'" proversion="1"
+             wordpress="true"/>
         <tag name="ucwords" description="Uppercase the first character of each word in a string."
-             examplevalue="'hello world'" proversion="1"/>
+             examplevalue="'hello world'" proversion="1" wordpress="true"/>
         <tag name="json_encode" description="Returns the JSON representation of a value." examplevalue="{a:1,b:2}"
-             proversion="1"/>
+             proversion="1" wordpress="true"/>
         <tag name="json_decode" description="Decodes a JSON string."
-             examplevalue="'{&quot;a&quot;:1,&quot;b&quot;:2}'" proversion="1"/>
+             examplevalue="'{&quot;a&quot;:1,&quot;b&quot;:2}'" proversion="1" wordpress="true"/>
     </tagset>
 </layouts>

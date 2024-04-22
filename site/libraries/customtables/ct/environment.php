@@ -16,7 +16,6 @@ defined('_JEXEC') or die();
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Version;
 use Joomla\CMS\Factory;
-use Joomla\Registry\Registry;
 use Joomla\CMS\Component\ComponentHelper;
 
 class Environment
@@ -58,8 +57,8 @@ class Environment
 				$plugin = PluginHelper::getPlugin('content', 'customtables');
 
 				if (!is_null($plugin) and is_object($plugin) > 0) {
-					$pluginParams = new Registry($plugin->params);
-					$this->CustomPHPEnabled = (int)$pluginParams->get("phpPlugin") == 1;
+					$pluginParamsArray = json_decode($plugin->params);
+					$this->CustomPHPEnabled = (int)$pluginParamsArray->phpPlugin == 1;
 				}
 			}
 			$this->field_prefix = 'es_';
@@ -74,7 +73,7 @@ class Environment
 		} else
 			$this->version = 6;
 
-		$this->current_url = CTMiscHelper::curPageURL();
+		$this->current_url = common::curPageURL();
 
 		if (!str_contains($this->current_url, 'option=com_customtables')) {
 			$pair = explode('?', $this->current_url);
@@ -115,12 +114,12 @@ class Environment
 				$this->WebsiteRoot = '';
 		} else {
 			if (get_option('permalink_structure')) {
-				$website_root = home_url();
-				if (substr($website_root, -1) !== '/') {
-					$website_root .= '/';
+				$this->WebsiteRoot = home_url();
+				if (substr($this->WebsiteRoot, -1) !== '/') {
+					$this->WebsiteRoot .= '/';
 				}
 			} else {
-				$website_root = '';
+				$this->WebsiteRoot = '';
 			}
 		}
 
@@ -142,6 +141,15 @@ class Environment
 
 			if (file_exists($path . 'servertags.php'))
 				require_once($path . 'servertags.php');
+		} elseif (defined('WPINC') and defined('CustomTablesWPPro\CTWPPRO')) {
+			$path = WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'customtablespro' . DIRECTORY_SEPARATOR . 'helpers.php';
+			$path = str_replace('/', DIRECTORY_SEPARATOR, $path);
+			$path = str_replace('\\', DIRECTORY_SEPARATOR, $path);
+
+			if (file_exists($path)) {
+				$this->advancedTagProcessor = true;
+				require_once($path);
+			}
 		}
 
 		$this->isMobile = self::check_user_agent('mobile');

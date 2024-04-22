@@ -13,9 +13,11 @@ namespace CustomTables;
 // no direct access
 defined('_JEXEC') or die();
 
+use Exception;
+use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use JESPagination;
-use JPluginHelper;
+use Joomla\CMS\Router\Route;
 
 class Twig_Html_Tags
 {
@@ -69,22 +71,32 @@ class Twig_Html_Tags
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return ''; //Not permitted
 
-		if ($Alias_or_ItemId != '' and is_numeric($Alias_or_ItemId) and (int)$Alias_or_ItemId > 0)
-			$link = '/index.php?option=com_customtables&amp;view=edititem&amp;returnto=' . $this->ct->Env->encoded_current_url . '&amp;Itemid=' . $Alias_or_ItemId;
-		elseif ($Alias_or_ItemId != '')
-			$link = '/index.php/' . $Alias_or_ItemId . '?returnto=' . $this->ct->Env->encoded_current_url;
-		else
-			$link = '/index.php?option=com_customtables&amp;view=edititem&amp;returnto=' . $this->ct->Env->encoded_current_url
-				. '&amp;Itemid=' . $this->ct->Params->ItemId;
+		if (defined('_JEXEC')) {
+			$link = CUSTOMTABLES_MEDIA_HOME_URL;
 
-		if (!is_null($this->ct->Params->ModuleId))
-			$link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
+			if ($Alias_or_ItemId != '' and is_numeric($Alias_or_ItemId) and (int)$Alias_or_ItemId > 0)
+				$link .= '/index.php?option=com_customtables&amp;view=edititem&amp;returnto=' . $this->ct->Env->encoded_current_url . '&amp;Itemid=' . $Alias_or_ItemId;
+			elseif ($Alias_or_ItemId != '')
+				$link .= '/index.php/' . $Alias_or_ItemId . '?returnto=' . $this->ct->Env->encoded_current_url;
+			else
+				$link .= '/index.php?option=com_customtables&amp;view=edititem&amp;returnto=' . $this->ct->Env->encoded_current_url
+					. '&amp;Itemid=' . $this->ct->Params->ItemId;
 
-		if (common::inputGetCmd('tmpl', '') != '')
-			$link .= '&amp;tmpl=' . common::inputGetCmd('tmpl', '');
+			if (!is_null($this->ct->Params->ModuleId))
+				$link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
 
-		if (!is_null($this->ct->Params->ModuleId))
-			$link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
+			if (common::inputGetCmd('tmpl', '') != '')
+				$link .= '&amp;tmpl=' . common::inputGetCmd('tmpl', '');
+
+			if (!is_null($this->ct->Params->ModuleId))
+				$link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
+		} elseif (defined('WPINC')) {
+			$link = common::curPageURL();
+			$link = CTMiscHelper::deleteURLQueryOption($link, 'view' . $this->ct->Table->tableid);
+			$link .= (str_contains($link, '?') ? '&amp;' : '?') . 'view' . $this->ct->Table->tableid . '=edititem';
+		} else {
+			return '{{ html.add }} not supported.';
+		}
 
 		$alt = common::translate('COM_CUSTOMTABLES_ADD');
 
@@ -94,11 +106,15 @@ class Twig_Html_Tags
 			$img = '<img src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/icons/new.png" alt="' . $alt . '" title="' . $alt . '" />';
 		}
 
-		return '<a href="' . CUSTOMTABLES_MEDIA_HOME_URL . $link . '" id="ctToolBarAddNew' . $this->ct->Table->tableid . '" class="toolbarIcons">' . $img . '</a>';
+		return '<a href="' . $link . '" id="ctToolBarAddNew' . $this->ct->Table->tableid . '" class="toolbarIcons">' . $img . '</a>';
 	}
 
 	function importcsv(): string
 	{
+		if (defined('WPINC')) {
+			return 'The tag "{{ html.importcsv() }}" not yet supported by WordPress version of the Custom Tables.';
+		}
+
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
 
@@ -120,13 +136,13 @@ class Twig_Html_Tags
 
 		HTMLHelper::_('behavior.formvalidator');
 
-		$urlstr = '/index.php?option=com_customtables&amp;view=fileuploader&amp;tmpl=component&'
-			. 'tableid=' . $this->ct->Table->tableid . '&'
-			. 'task=importcsv&'
-			. $objectname . '_fileid=' . $fileid
-			. '&Itemid=' . $this->ct->Params->ItemId
-			. (is_null($this->ct->Params->ModuleId) ? '' : '&ModuleId=' . $this->ct->Params->ModuleId)
-			. '&fieldname=' . $objectname;
+		$urlstr = Route::_('index.php?option=com_customtables&amp;view=fileuploader&amp;tmpl=component'
+			. '&amp;tableid=' . $this->ct->Table->tableid
+			. '&amp;task=importcsv'
+			. '&amp;' . $objectname . '_fileid=' . $fileid
+			. '&amp;Itemid=' . $this->ct->Params->ItemId
+			. (is_null($this->ct->Params->ModuleId) ? '' : '&amp;ModuleId=' . $this->ct->Params->ModuleId)
+			. '&amp;fieldname=' . $objectname);
 
 		return '<div>
                     <div id="ct_fileuploader_' . $objectname . '"></div>
@@ -159,15 +175,21 @@ class Twig_Html_Tags
 		if (!is_null($this->ct->Params->ModuleId))
 			return '';
 
-		$pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit, '', $this->ct->Env->version, $show_arrow_icons);
+		if (defined('_JEXEC')) {
+			$pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit, '', $this->ct->Env->version, $show_arrow_icons);
+		} elseif (defined('WPINC')) {
+			return '{{ html.pagination }} not supported in WordPress version';
+		} else {
+			return '{{ html.pagination }} not supported in this type of CMS';
+		}
 
 		if ($this->ct->Env->version < 4)
 			return '<div class="pagination">' . $pagination->getPagesLinks() . '</div>';
 		else
-			return '<div style="display:inline-block">' . $pagination->getPagesLinks() . '</div>';
+			return '<div style="display:inline-block;">' . $pagination->getPagesLinks() . '</div>';
 	}
 
-	function limit($the_step = 5)
+	function limit($the_step = 5): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -182,7 +204,7 @@ class Twig_Html_Tags
 		return common::translate('COM_CUSTOMTABLES_SHOW') . ': ' . $pagination->getLimitBox($the_step);
 	}
 
-	function orderby()
+	function orderby(): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -250,7 +272,7 @@ class Twig_Html_Tags
 		return $vlu;
 	}
 
-	function batch()
+	function batch(): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -284,7 +306,23 @@ class Twig_Html_Tags
 			} else {
 				if (in_array($mode, $available_modes)) {
 					$rid = 'esToolBar_' . $mode . '_box_' . $this->ct->Table->tableid;
-					$alt = common::translate('COM_CUSTOMTABLES_' . strtoupper($mode) . '_SELECTED');
+
+					switch ($mode) {
+						case 'publish':
+							$alt = common::translate('COM_CUSTOMTABLES_PUBLISH_SELECTED');
+							break;
+						case 'unpublish':
+							$alt = common::translate('COM_CUSTOMTABLES_UNPUBLISH_SELECTED');
+							break;
+						case 'refresh':
+							$alt = common::translate('COM_CUSTOMTABLES_REFRESH_SELECTED');
+							break;
+						case 'delete':
+							$alt = common::translate('COM_CUSTOMTABLES_DELETE_SELECTED');
+							break;
+						default:
+							return 'unsupported batch toolbar icon.';
+					}
 
 					if ($this->ct->Env->toolbarIcons != '') {
 						$icons = ['publish' => 'fa-check-circle', 'unpublish' => 'fa-ban', 'refresh' => 'fa-sync', 'delete' => 'fa-trash'];
@@ -301,15 +339,10 @@ class Twig_Html_Tags
 		if (count($html_buttons) == 0)
 			return '';
 
-		$vlu = implode('', $html_buttons);
-
-		if ($this->isTwig)
-			return $vlu;
-		else
-			return $vlu;
+		return implode('', $html_buttons);
 	}
 
-	protected function getAvailableModes()
+	protected function getAvailableModes(): array
 	{
 		$available_modes = array();
 		if ($this->ct->Env->user->id != 0) {
@@ -331,7 +364,7 @@ class Twig_Html_Tags
 		return $available_modes;
 	}
 
-	function print($linktype = '', $label = '', $class = 'ctEditFormButton btn button')
+	function print($linktype = '', $label = '', $class = 'ctEditFormButton btn button'): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -367,13 +400,13 @@ class Twig_Html_Tags
 			else
 				$vlu = '<input type="button" class="' . $class . '" value="' . $label . '" onClick=\'' . $onClick . '\' />';
 		}
-
-		if ($this->isTwig)
-			return $vlu;
-		else
-			return $vlu;
+		return $vlu;
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
 	function search($list_of_fields_string_or_array = null, $class = '', $reload = false, $improved = ''): string
 	{
 		if (is_string($reload))
@@ -557,8 +590,6 @@ class Twig_Html_Tags
 		} else {
 			return 'es_search_box_' . $fld['fieldname'] . ':' . $fld['fieldname'] . ':';
 		}
-
-		return '';
 	}
 
 	function searchbutton($label = '', $class_ = ''): string
@@ -599,7 +630,7 @@ class Twig_Html_Tags
 		}
 	}
 
-	function searchreset($label = '', $class_ = '')
+	function searchreset($label = '', $class_ = ''): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -636,7 +667,7 @@ class Twig_Html_Tags
 		}
 	}
 
-	function message($text, $type = 'Message')
+	function message($text, $type = 'Message'): ?string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -655,7 +686,7 @@ class Twig_Html_Tags
 		return null;
 	}
 
-	function navigation($list_type = 'list', $ul_css_class = '')
+	function navigation($list_type = 'list', $ul_css_class = ''): string
 	{
 		if ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != '')
 			return '';
@@ -675,9 +706,9 @@ class Twig_Html_Tags
 			return 'navigation: Unknown list type';
 	}
 
-	protected function CleanNavigationPath($thePath)
+	protected function CleanNavigationPath($thePath): array
 	{
-		//Returns a list of unique search path criteria - eleminates duplicates
+		//Returns a list of unique search path criteria - eliminates duplicates
 		$newPath = array();
 		if (count($thePath) == 0)
 			return $newPath;
@@ -701,8 +732,15 @@ class Twig_Html_Tags
 		return array_reverse($newPath);
 	}
 
-	function captcha()
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
+	function captcha(): string
 	{
+		if (!$this->ct->Env->advancedTagProcessor)
+			return '{{ html.captcha }} - Captcha Available in PRO Version only.';
+
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
 
@@ -712,85 +750,62 @@ class Twig_Html_Tags
 		if (!is_null($this->ct->Params->ModuleId))
 			return '';
 
+		$site_key = null;
+		$secret_key = null;
+
+		$functionParams = func_get_args();
+		if (isset($functionParams[0]))
+			$site_key = $functionParams[0];
+
+		if (isset($functionParams[1]))
+			$secret_key = $functionParams[1];
+
 		if (defined('_JEXEC')) {
-			if ($this->ct->Env->version >= 4) {
-				$wa = $this->ct->document->getWebAssetManager();
-				$wa->useScript('keepalive')->useScript('form.validate');
-			} else {
-				HTMLHelper::_('behavior.formvalidation');
-				HTMLHelper::_('behavior.keepalive');
-			}
+			$app = Factory::getApplication();
+			$document = $app->getDocument();
+			$document->addCustomTag('<script src="https://www.google.com/recaptcha/api.js"></script>');
 		}
-
-		$p = $this->getReCaptchaParams();
-		if ($p === null) {
-			$this->ct->errors[] = '{{ html.captcha }} - Captcha plugin not enabled.';
-			return '';
-		}
-
-		$reCaptchaParams = json_decode($p->params);
-
-		if ($reCaptchaParams === null or $reCaptchaParams->public_key == "" or !isset($reCaptchaParams->size)) {
-			$this->ct->errors[] = '{{ html.captcha }} - Captcha Public Key or size not set.';
-			return '';
-		}
-
-		JPluginHelper::importPlugin('captcha');
-
-		if ($this->ct->Env->version < 4) {
-
-			$dispatcher = \JDispatcher::getInstance();
-			//$dispatcher = JEventDispatcher::getInstance();
-			$dispatcher->trigger('onInit', 'my_captcha_div');
-		} else {
-			$this->ct->app->triggerEvent('onInit', array(null, 'my_captcha_div', 'class=""'));
-		}
-
-		$vlu = '
-    <div id="my_captcha_div"
-		class="g-recaptcha"
-		data-sitekey="' . $reCaptchaParams->public_key . '"
-		data-theme="' . $reCaptchaParams->theme . '"
-		data-size="' . $reCaptchaParams->size . '"
-		data-callback="recaptchaCallback">
-	</div>';
 
 		$this->ct->LayoutVariables['captcha'] = true;
-		return $vlu;
+		$this->ct->LayoutVariables['captcha_secret_key'] = $secret_key;
+
+		if ($site_key === null)
+			return 'The tag "{{ html.captcha(SITE_KEY) }}" please provide the reCaptcha Site Key';
+
+		if ($secret_key === null)
+			return 'The tag "{{ html.captcha(SITE_KEY, SECRET_KEY) }}" please provide the reCaptcha Secret Key';
+
+		return '
+    <div id="my_captcha_div"
+		class="g-recaptcha"
+		data-sitekey="' . $site_key . '"
+		data-callback="recaptchaCallback">
+	</div>';
 	}
-
-	protected function getReCaptchaParams()
-	{
-		$whereClause = new MySQLWhereClause();
-		$whereClause->addCondition('name', 'plg_captcha_recaptcha');
-
-		$rows = database::loadObjectList('#__extensions', ['params'], $whereClause, null, null, 1);
-		if (count($rows) == 0)
-			return null;
-
-		return $rows[0];
-	}
-
-	/* --------------------------- PROTECTED FUNCTIONS ------------------- */
 
 	function button($type = 'save', $title = '', $redirectlink = null, $optional_class = '')
 	{
-		if ($this->ct->app->getName() == 'administrator')   //since   3.2
-			$formName = 'adminForm';
-		else {
-			if ($this->ct->Env->isModal)
-				$formName = 'ctEditModalForm';
+		if (defined('_JEXEC')) {
+			if ($this->ct->app->getName() == 'administrator')   //since   3.2
+				$formName = 'adminForm';
 			else {
-				$formName = 'ctEditForm';
-				$formName .= $this->ct->Params->ModuleId;
+				if ($this->ct->Env->isModal)
+					$formName = 'ctEditModalForm';
+				else {
+					$formName = 'ctEditForm';
+					$formName .= $this->ct->Params->ModuleId;
+				}
 			}
+
+		} elseif (defined('WPINC')) {
+			$formName = 'ctEditForm';
 		}
 
 		if ($this->ct->Env->frmt != '' and $this->ct->Env->frmt != 'html')
-			return '';
+			return '1';
 
 		if ($this->ct->Env->isPlugin)
-			return '';
+			return '2';
 
 		if ($redirectlink === null and !is_null($this->ct->Params->returnTo))
 			$redirectlink = $this->ct->Params->returnTo;
@@ -849,7 +864,7 @@ class Twig_Html_Tags
 	}
 
 	protected function renderButtonHTML($optional_class, string $title, $formName, string $buttonId,
-	                                    string $redirect, bool $checkCaptcha, string $task): string
+										string $redirect, bool $checkCaptcha, string $task): string
 	{
 		if ($this->ct->Env->frmt == 'json')
 			return $title;
@@ -876,7 +891,7 @@ class Twig_Html_Tags
 		return '<input id="' . $buttonId . '" type="submit" class="' . $the_class . '"' . $attribute . ' onClick=\'' . $onclick . '\' value="' . $title . '">';
 	}
 
-	protected function renderSaveAndCloseButton($optional_class, $title, $redirectLink, $formName)
+	protected function renderSaveAndCloseButton($optional_class, $title, $redirectLink, $formName): string
 	{
 		if ($title == '')
 			$title = common::translate('COM_CUSTOMTABLES_SAVEANDCLOSE');
@@ -885,7 +900,7 @@ class Twig_Html_Tags
 		return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandclose", $returnToEncoded, true, "save");
 	}
 
-	protected function renderSaveAndPrintButton($optional_class, $title, $redirectLink, $formName)
+	protected function renderSaveAndPrintButton($optional_class, $title, $redirectLink, $formName): string
 	{
 		if ($title == '')
 			$title = common::translate('COM_CUSTOMTABLES_NEXT');
@@ -895,7 +910,7 @@ class Twig_Html_Tags
 		return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandprint", $returnToEncoded, true, "saveandprint");
 	}
 
-	protected function renderSaveAsCopyButton($optional_class, $title, $redirectLink, $formName)
+	protected function renderSaveAsCopyButton($optional_class, $title, $redirectLink, $formName): string
 	{
 		if ($title == '')
 			$title = common::translate('COM_CUSTOMTABLES_SAVEASCOPYANDCLOSE');
@@ -905,7 +920,7 @@ class Twig_Html_Tags
 		return $this->renderButtonHTML($optional_class, $title, $formName, "customtables_button_saveandcopy", $returnToEncoded, true, "saveascopy");
 	}
 
-	protected function renderCancelButton($optional_class, $title, $redirectLink, $formName)
+	protected function renderCancelButton($optional_class, $title, $redirectLink, $formName): string
 	{
 		if ($this->ct->Env->isModal)
 			return '';
@@ -949,7 +964,7 @@ class Twig_Html_Tags
                 \'>' . PHP_EOL;
 	}
 
-	function tablehead()
+	function tablehead(): string
 	{
 		$result = '<thead>';
 		$head_columns = func_get_args();
@@ -962,12 +977,12 @@ class Twig_Html_Tags
 		return $result;
 	}
 
-	function recordlist()
+	function recordlist(): string
 	{
 		return $this->id_list();
 	}
 
-	protected function id_list()
+	protected function id_list(): string
 	{
 		if (!isset($this->ct->Table)) {
 			$this->ct->errors[] = '{{ record.list }} - Table not loaded.';
@@ -985,7 +1000,11 @@ class Twig_Html_Tags
 		return implode(',', $this->ct->Table->recordlist);
 	}
 
-	function toolbar()
+	/**
+	 * @throws Exception
+	 * @since 3.2.8
+	 */
+	function toolbar(): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -1023,8 +1042,64 @@ class Twig_Html_Tags
 		return implode('', $icons);
 	}
 
-	function checkboxcount()
+	function checkboxcount(): string
 	{
 		return '<span id="ctTable' . $this->ct->Table->tableid . 'CheckboxCount">0</span>';
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function paypal(): ?string
+	{
+		//string $business_email, string $item_name, float $price, bool $isProduction = true
+		$functionParams = func_get_args();
+
+		if (!isset($functionParams[0]) or $functionParams[0] == '') {
+			$this->ct->errors[] = '{{ html.paypal(email) }} business email address is required.';
+			return null;
+		} else
+			$business_email = $functionParams[0];
+
+		if (!isset($functionParams[1]) or $functionParams[1] == '') {
+			$this->ct->errors[] = '{{ html.paypal(email,item_name) }} item name is required.';
+			return null;
+		} else
+			$item_name = $functionParams[1];
+
+		if (!isset($functionParams[2]) or $functionParams[2] == '') {
+			$this->ct->errors[] = '{{ html.paypal(email,item_name,price) }} price must be more than zero.';
+			return null;
+		} else
+			$price = (float)$functionParams[2];
+
+		if (isset($functionParams[3]) and $functionParams[3]) {
+			//Sandbox
+			$PayPalURL = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
+		} else {
+			//Production
+			$PayPalURL = 'https://www.paypal.com/cgi-bin/webscr';
+		}
+
+		return '<form action="' . $PayPalURL . '" method="post">
+    <!-- Identify your business so that you can collect the payments. -->
+    <input type="hidden" name="business" value="' . $business_email . '" />
+
+    <!-- Specify a Buy Now button. -->
+    <input type="hidden" name="cmd" value="_xclick" />
+
+    <!-- Specify details about the item that buyers will purchase. -->
+    <input type="hidden" name="item_name" value="' . $item_name . '" />
+    <input type="hidden" name="amount" value="' . $price . '" />
+    <input type="hidden" name="currency_code" value="USD" />
+
+    <!-- Display the payment button. -->
+    <input type="image" name="submit" style="border:none;display:inline-block;" src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/paypal-checkout-button.png"
+           alt="Buy Now">
+    <div style="position:absolute;"><img style="border:none;width:1px;height:1px;display:inline-block;margin:0;"
+                                         alt="PayPal Buy Now" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif"
+                                         class="button"></div>
+</form>';
 	}
 }
