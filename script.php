@@ -69,7 +69,6 @@ class com_YoutubeGalleryInstallerScript
             Factory::getApplication()->enqueueMessage($msg, 'error');
             return false;
         }
-
         //com_YoutubeGalleryInstallerScript::updateYGv3tov4();
         return true;
     }
