@@ -8,6 +8,7 @@
 
 // No direct access to this file
 use Joomla\CMS\Factory;
+use YouTubeGallery\Helper;
 
 defined('_JEXEC') or die('Restricted access');
 

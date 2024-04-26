@@ -7,17 +7,19 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\FormController;
+
 // import Joomla controllerform library
-jimport('joomla.application.component.controllerform');
+//jimport('joomla.application.component.controllerform');
 
 /**
  * YoutubeGallery - CategoryForm Controller
  */
-class YoutubeGalleryControllerCategoryForm extends JControllerForm
+class YoutubeGalleryControllerCategoryForm extends FormController
 {
 
     function display($cachable = false, $urlparams = array())
@@ -35,7 +37,7 @@ class YoutubeGalleryControllerCategoryForm extends JControllerForm
             $cid = $jinput->get('cid', array(), 'ARRAY');
 
             if (!count($cid)) {
-                $this->setRedirect('index.php?option=com_youtubegallery&view=categories', JText::_('COM_YOUTUBEGALLERY_NO_CATEGORIES_SELECTED'), 'error');
+                $this->setRedirect('index.php?option=com_youtubegallery&view=categories', Text::_('COM_YOUTUBEGALLERY_NO_CATEGORIES_SELECTED'), 'error');
                 return false;
             }
 
@@ -79,7 +81,7 @@ class YoutubeGalleryControllerCategoryForm extends JControllerForm
         // attempt to store, update user accordingly
 
         if ($task != 'save' and $task != 'apply' and $task != 'categoryform.save' and $task != 'categoryform.apply') {
-            $msg = JText::_('COM_YOUTUBEGALLERY_CATEGORY_WAS_UNABLE_TO_SAVE');
+            $msg = Text::_('COM_YOUTUBEGALLERY_CATEGORY_WAS_UNABLE_TO_SAVE');
 
             $link = 'index.php?option=com_youtubegallery&view=categories';
             $this->setRedirect($link, $msg, 'error');
@@ -94,12 +96,12 @@ class YoutubeGalleryControllerCategoryForm extends JControllerForm
                 $link = 'index.php?option=com_youtubegallery&view=categoryform&layout=edit&id=' . $model->id;
             }
 
-            $msg = JText::_('COM_YOUTUBEGALLERY_CATEGORY_SAVED_SUCCESSFULLY');
+            $msg = Text::_('COM_YOUTUBEGALLERY_CATEGORY_SAVED_SUCCESSFULLY');
 
             $this->setRedirect($link, $msg);
         } else {
 
-            $msg = JText::_('COM_YOUTUBEGALLERY_CATEGORY_WAS_UNABLE_TO_SAVE');
+            $msg = Text::_('COM_YOUTUBEGALLERY_CATEGORY_WAS_UNABLE_TO_SAVE');
             $this->setRedirect($link, $msg, 'error');
         }
 

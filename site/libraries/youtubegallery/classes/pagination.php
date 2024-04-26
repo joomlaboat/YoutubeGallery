@@ -10,6 +10,8 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Uri\Uri;
 use YouTubeGallery\Helper;
 
 class YGPagination extends JObject
@@ -210,13 +212,9 @@ class YGPagination extends JObject
 
         $data = new stdClass;
 
+        $WebsiteRoot = Uri::root();
 
-        $WebsiteRoot = '';
-
-        $WebsiteRoot = JURI::root();
-
-        $u = JURI::getInstance();
-        $uri = $u->toString();
+        $u = Uri::getInstance();
         $URLPath = $u->getPath();
 
         if ($WebsiteRoot[strlen($WebsiteRoot) - 1] != '/') //Root must have slash / in the end
@@ -289,11 +287,11 @@ class YGPagination extends JObject
 
         $Translations = array();
 
-        $Translations['all'] = JText::_('JLIB_HTML_VIEW_ALL');
-        $Translations['start'] = JText::_('JLIB_HTML_START');
-        $Translations['prev'] = JText::_('JPREV');
-        $Translations['next'] = JText::_('JNEXT');
-        $Translations['end'] = JText::_('JLIB_HTML_END');
+        $Translations['all'] = Text::_('JLIB_HTML_VIEW_ALL');
+        $Translations['start'] = Text::_('JLIB_HTML_START');
+        $Translations['prev'] = Text::_('JPREV');
+        $Translations['next'] = Text::_('JNEXT');
+        $Translations['end'] = Text::_('JLIB_HTML_END');
 
         $URLPath .= YGPagination::QuestionmarkOrAnd($URLPath) . $u->getQuery();
 
@@ -439,10 +437,10 @@ class YGPagination extends JObject
 
         // If there are results found.
         if ($this->total > 0) {
-            $msg = JText::sprintf('JLIB_HTML_RESULTS_OF', $fromResult, $toResult, $this->total);
+            $msg = Text::sprintf('JLIB_HTML_RESULTS_OF', $fromResult, $toResult, $this->total);
             $html .= "\n" . $msg;
         } else {
-            $html .= "\n" . JText::_('JLIB_HTML_NO_RECORDS_FOUND');
+            $html .= "\n" . Text::_('JLIB_HTML_NO_RECORDS_FOUND');
         }
 
         return $html;
@@ -489,7 +487,7 @@ class YGPagination extends JObject
         // Initialise variables.
         $html = null;
         if ($this->get('pages.total') > 1) {
-            $html .= JText::sprintf('JLIB_HTML_PAGE_CURRENT_OF_TOTAL', $this->get('pages.current'), $this->get('pages.total'));
+            $html .= Text::sprintf('JLIB_HTML_PAGE_CURRENT_OF_TOTAL', $this->get('pages.current'), $this->get('pages.total'));
         }
         return $html;
     }
@@ -650,7 +648,7 @@ class YGPagination extends JObject
     {
         $html = "<div class=\"list-footer\">\n";
 
-        $html .= "\n<div class=\"limit\">" . JText::_('JGLOBAL_DISPLAY_NUM') . $list['limitfield'] . "</div>";
+        $html .= "\n<div class=\"limit\">" . Text::_('JGLOBAL_DISPLAY_NUM') . $list['limitfield'] . "</div>";
         $html .= $list['pageslinks'];
         $html .= "\n<div class=\"counter\">" . $list['pagescounter'] . "</div>";
 
@@ -682,7 +680,7 @@ class YGPagination extends JObject
 
         $limits[] = JHTML::_('select.option', $the_step * 10);
         $limits[] = JHTML::_('select.option', $the_step * 20);
-        $limits[] = JHTML::_('select.option', '0', JText::_('JALL'));
+        $limits[] = JHTML::_('select.option', '0', Text::_('JALL'));
 
         $selected = $this->_viewall ? 0 : $this->limit;
 

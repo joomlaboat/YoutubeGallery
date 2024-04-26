@@ -9,18 +9,16 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted Access');
 
-use Joomla\CMS\Access\Access;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
-use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
-use Joomla\CMS\String\PunycodeHelper;
+use Joomla\CMS\Uri\Uri;
 
 $document = Factory::getDocument();
 
-$adminpath = JURI::root(true) . '/administrator/components/com_youtubegallery/';
+$adminpath = Uri::root(true) . '/administrator/components/com_youtubegallery/';
 $document->addCustomTag('<script src="' . $adminpath . 'js/videolist.js"></script>');
 
 ?>

@@ -9,6 +9,7 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\MVC\Model\AdminModel;
 
 // import Joomla modelform library
 jimport('joomla.application.component.modeladmin');
@@ -16,7 +17,7 @@ jimport('joomla.application.component.modeladmin');
 /**
  * YoutubeGallery - Theme Form Model
  */
-class YoutubegalleryModelListandthemeselection extends JModelAdmin
+class YoutubegalleryModelListandthemeselection extends AdminModel
 {
     public $id;
 

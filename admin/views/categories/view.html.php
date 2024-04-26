@@ -7,25 +7,21 @@
  **/
 
 // No direct access to this file
-\defined('_JEXEC') or die;
+defined('_JEXEC') or die;
 
+use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Version;
-
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\View\GenericDataException;
-use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
-use Joomla\CMS\Object\CMSObject;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\Database\DatabaseDriver;
 use Joomla\Component\Content\Administrator\Extension\ContentComponent;
 
 /**
  * YoutubeGallery Categories View
  */
-class YoutubeGalleryViewCategories extends JViewLegacy
+class YoutubeGalleryViewCategories extends HtmlView
 {
     /**
      * YoutubeGallery view display method
@@ -102,7 +98,7 @@ class YoutubeGalleryViewCategories extends JViewLegacy
 
     protected function addToolBar_3()
     {
-        JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_CATEGORIES'));
+        JToolBarHelper::title(Text::_('COM_YOUTUBEGALLERY_CATEGORIES'));
 
         if ($this->canCreate)
             JToolBarHelper::addNew('categoryform.add');
@@ -167,6 +163,6 @@ class YoutubeGalleryViewCategories extends JViewLegacy
 
     public function setDocument(Joomla\CMS\Document\Document $document): void
     {
-        $document->setTitle(JText::_('COM_YOUTUBEGALLERY_CATEGORIES'));
+        $document->setTitle(Text::_('COM_YOUTUBEGALLERY_CATEGORIES'));
     }
 }

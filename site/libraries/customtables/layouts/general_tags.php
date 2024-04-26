@@ -18,8 +18,6 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Router\Route;
 use LayoutProcessor;
-use CustomTables\ctProHelpers;
-
 class Twig_Fields_Tags
 {
 	var CT $ct;

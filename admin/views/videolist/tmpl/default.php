@@ -8,6 +8,9 @@
 
 // No direct access to this file
 use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
 
 defined('_JEXEC') or die('Restricted Access');
 
@@ -125,30 +128,30 @@ $s = Factory::getApplication()->input->getVar('search');
     }
 </script>
 
-<form action="<?php echo JRoute::_('index.php?option=com_youtubegallery&view=videolist'); ?>" method="post"
+<form action="<?php echo Route::_('index.php?option=com_youtubegallery&view=videolist'); ?>" method="post"
       name="adminForm" id="adminForm">
 
     <h3>Items on this page: <?php echo count($this->items); ?></h3>
     <?php
     if (count($this->items) == 0)
-        echo '<p><b>' . JText::_('COM_YOUTUBEGALLERY_NOVIDEOSFOUND') . '</p>';
+        echo '<p><b>' . Text::_('COM_YOUTUBEGALLERY_NOVIDEOSFOUND') . '</p>';
     ?>
 
     <div id="j-main-container" class="span10">
         <div id="filter-bar" class="btn-toolbar">
             <div class="filter-search btn-group pull-left">
                 <label for="search"
-                       class="element-invisible"><?php echo JText::_('COM_YOUTUBEGALLERY_SEARCHTITLE'); ?></label>
-                <input type="text" name="search" placeholder="<?php echo JText::_('COM_YOUTUBEGALLERY_SEARCHTITLE'); ?>"
+                       class="element-invisible"><?php echo Text::_('COM_YOUTUBEGALLERY_SEARCHTITLE'); ?></label>
+                <input type="text" name="search" placeholder="<?php echo Text::_('COM_YOUTUBEGALLERY_SEARCHTITLE'); ?>"
                        id="search" value="<?php echo $s; ?>"
-                       title="<?php echo JText::_('COM_YOUTUBEGALLERY_SEARCHTITLE'); ?>"/>
+                       title="<?php echo Text::_('COM_YOUTUBEGALLERY_SEARCHTITLE'); ?>"/>
             </div>
             <div class="btn-group pull-left hidden-phone">
                 <button class="btn tip hasTooltip" type="submit" title="COM_YOUTUBEGALLERY_SEARCH"><i
                             class="icon-search"></i></button>
                 <button class="btn tip hasTooltip" type="button"
                         onclick="document.id('search').value='';this.form.submit();"
-                        title="<?php echo JText::_('COM_YOUTUBEGALLERY_CLEAR'); ?>"><i class="icon-remove"></i></button>
+                        title="<?php echo Text::_('COM_YOUTUBEGALLERY_CLEAR'); ?>"><i class="icon-remove"></i></button>
             </div>
 
         </div>
@@ -164,10 +167,7 @@ $s = Factory::getApplication()->input->getVar('search');
     <input type="hidden" id="view" name="view" value="videolist"/>
     <input type="hidden" id="boxchecked" name="boxchecked" value="0"/>
     <input type="hidden" name="listid" value="<?php echo Factory::getApplication()->input->getInt('listid'); ?>"/>
-    <?php echo JHtml::_('form.token'); ?>
-
-    <p><?php // echo JText::_('COM_YOUTUBEGALLERY_IFSTATUSOFTHEVIDEO'); ?></p>
-
+    <?php echo HTMLHelper::_('form.token'); ?>
 </form>
 
 <p><a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help (Contact Tech-Support)</a>

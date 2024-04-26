@@ -12,7 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 
 //Show preview
-
+echo 'B';
 $jinput = Factory::getApplication()->input;
 $videolist = $jinput->getInt('videolist');
 $theme = $jinput->getInt('theme');
@@ -22,12 +22,11 @@ if ($videolist == 0) {
 } elseif ($theme == 0) {
     echo 'Theme not selected.';
 } else {
+    echo 'a';
     $htmlresult = '{youtubegalleryid=' . $videolist . ',' . $theme . '}';
 
     require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . 'content' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR . 'youtubegallery.php');
-
     plgContentYoutubeGallery::plgYoutubeGallery($htmlresult, true);
-
 
     echo '
 		<div style="width:100%;vertical-align:top;transform-origin: center top;

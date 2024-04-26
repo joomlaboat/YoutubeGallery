@@ -7,17 +7,20 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+
 // import Joomla view library
-jimport('joomla.application.component.view');
+//jimport('joomla.application.component.view');
 
 /**
  * Youtube Gallery Theme Export View
  */
-class YoutubeGalleryViewThemeImport extends JViewLegacy
+class YoutubeGalleryViewThemeImport extends HtmlView
 {
     /**
      * display method of Youtube Gallery view
@@ -35,7 +38,7 @@ class YoutubeGalleryViewThemeImport extends JViewLegacy
     {
         $jinput = Factory::getApplication()->input;
         $jinput->get->set('hidemainmenu', true);
-        JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_THEME_IMPORT'));
-        JToolBarHelper::cancel('themeimport.cancel', 'JTOOLBAR_CLOSE');
+        ToolbarHelper::title(Text::_('COM_YOUTUBEGALLERY_THEME_IMPORT'));
+        ToolbarHelper::cancel('themeimport.cancel', 'JTOOLBAR_CLOSE');
     }
 }

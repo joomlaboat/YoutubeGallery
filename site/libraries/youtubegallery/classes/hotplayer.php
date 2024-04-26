@@ -11,7 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 
 use CustomTables\Environment;
 use Joomla\CMS\Factory;
-use YouTubeGallery\Helper;
+use Joomla\CMS\Uri\Uri;
 
 class YoutubeGalleryHotPlayer
 {
@@ -31,9 +31,9 @@ class YoutubeGalleryHotPlayer
         $document = Factory::getDocument();
 
         if (Environment::check_user_agent_for_ie())
-            $document->addScript(JURI::root(true) . '/components/com_youtubegallery/js/player_ie_533.js');//Thankx to https://babeljs.io/
+            $document->addScript(Uri::root(true) . '/components/com_youtubegallery/js/player_ie_533.js');//Thankx to https://babeljs.io/
         else
-            $document->addScript(JURI::root(true) . '/components/com_youtubegallery/js/player_533.js');
+            $document->addScript(Uri::root(true) . '/components/com_youtubegallery/js/player_533.js');
 
         $autoplay = ((int)$theme_row->es_autoplay == 1 ? 'true' : 'false');
         $allowplaylist = ((int)$theme_row->es_allowplaylist == 1 or $theme_row->es_repeat == 1 ? 'true' : 'false'); //to loop video or to play the next one
@@ -52,7 +52,7 @@ class YoutubeGalleryHotPlayer
             . $autoplay . ','
             . $allowplaylist . ');
 			
-	youtubeplayer' . $videoListRow->id . '.WebsiteRoot="' . JURI::root(true) . '";
+	youtubeplayer' . $videoListRow->id . '.WebsiteRoot="' . Uri::root(true) . '";
     YoutubeGalleryPlayerObjects.push(youtubeplayer' . $videoListRow->id . ');
     
 	function onYouTubeIframeAPIReady() {

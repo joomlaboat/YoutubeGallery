@@ -7,18 +7,19 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
-// import Joomla controllerform library
-jimport('joomla.application.component.controllerform');
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\FormController;
 
+// import Joomla controllerform library
+//jimport('joomla.application.component.controllerform');
 
 /**
  * YoutubeGallery - themeform Controller
  */
-class YoutubeGalleryControllerThemeForm extends JControllerForm
+class YoutubeGalleryControllerThemeForm extends FormController
 {
 
     function display($cachable = false, $urlparams = array())
@@ -35,7 +36,7 @@ class YoutubeGalleryControllerThemeForm extends JControllerForm
             $cid = Factory::getApplication()->input->getVar('cid', array(), 'post', 'array');
 
             if (!count($cid)) {
-                $this->setRedirect('index.php?option=com_youtubegallery&view=themelist', JText::_('COM_YOUTUBEGALLERY_NO_THEME_SELECTED'), 'error');
+                $this->setRedirect('index.php?option=com_youtubegallery&view=themelist', Text::_('COM_YOUTUBEGALLERY_NO_THEME_SELECTED'), 'error');
                 return false;
             }
 
@@ -81,7 +82,7 @@ class YoutubeGalleryControllerThemeForm extends JControllerForm
         // attempt to store, update user accordingly
 
         if ($task != 'save' and $task != 'apply' and $task != 'themeform.save' and $task != 'themeform.apply') {
-            $msg = JText::_('COM_YOUTUBEGALLERY_THEME_WAS_UNABLE_TO_SAVE');
+            $msg = Text::_('COM_YOUTUBEGALLERY_THEME_WAS_UNABLE_TO_SAVE');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg, 'error');
         }
@@ -98,13 +99,13 @@ class YoutubeGalleryControllerThemeForm extends JControllerForm
                 $link = 'index.php?option=com_youtubegallery&view=themeform&layout=edit&id=' . $model->id;
             }
 
-            $msg = JText::_('COM_YOUTUBEGALLERY_THEME_SAVED_SUCCESSFULLY');
+            $msg = Text::_('COM_YOUTUBEGALLERY_THEME_SAVED_SUCCESSFULLY');
 
             $this->setRedirect($link, $msg);
         } else {
 
             $link = 'index.php?option=com_youtubegallery&view=themeform&layout=edit&id=' . $model->id;
-            $msg = JText::_('COM_YOUTUBEGALLERY_THEME_WAS_UNABLE_TO_SAVE');
+            $msg = Text::_('COM_YOUTUBEGALLERY_THEME_WAS_UNABLE_TO_SAVE');
             $this->setRedirect($link, $msg, 'error');
         }
 

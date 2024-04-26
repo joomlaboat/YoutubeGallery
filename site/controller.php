@@ -10,9 +10,11 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
-// import Joomla controller library
-jimport('joomla.application.component.controller');
+use Joomla\CMS\MVC\Controller\BaseController;
 
-class YoutubeGalleryController extends JControllerLegacy
+// import Joomla controller library
+//jimport('joomla.application.component.controller');
+
+class YoutubeGalleryController extends BaseController
 {
 }

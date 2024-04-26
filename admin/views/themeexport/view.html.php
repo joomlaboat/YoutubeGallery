@@ -7,17 +7,21 @@
  **/
 
 // No direct access to this file
-use Joomla\Archive\Zip;
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
-// import Joomla view library
-jimport('joomla.application.component.view');
-jimport('joomla.filesystem.folder');
-jimport('joomla.filesystem.file');
+use Joomla\Archive\Zip;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Uri\Uri;
 
-class YoutubeGalleryViewThemeExport extends JViewLegacy
+// import Joomla view library
+//jimport('joomla.application.component.view');
+//jimport('joomla.filesystem.folder');
+//jimport('joomla.filesystem.file');
+
+class YoutubeGalleryViewThemeExport extends HtmlView
 {
 
     public function display($tpl = null)
@@ -183,10 +187,10 @@ class ygExportTheme
     static protected function saveXMLFile($themeName, $themetitle)
     {
         $createdDate = date('F Y');
-        $b = JURI::root();
+        $b = Uri::root();
         $user = Factory::getUser();
 
-        $result = '<?xml version="1.0" encoding="utf-8"?>
+        return '<?xml version="1.0" encoding="utf-8"?>
 <extension type="file" version="3.0" method="upgrade">
     <name>YoutubeGalleryTheme_' . $themeName . '</name>
     <version>5.3.8</version>
@@ -215,7 +219,6 @@ More Themes</a></div>
 </files>
 </extension>
 ';
-        return $result;
     }
 
     static protected function saveScriptFile($themeName)
@@ -242,7 +245,7 @@ More Themes</a></div>
         $jinput = Factory::getApplication()->input;
         $jinput->get->set('hidemainmenu', true);
 
-        JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_THEME_EXPORT'));
-        JToolBarHelper::cancel('themeexport.cancel', 'JTOOLBAR_CLOSE');
+        ToolbarHelper::title(Text::_('COM_YOUTUBEGALLERY_THEME_EXPORT'));
+        ToolbarHelper::cancel('themeexport.cancel', 'JTOOLBAR_CLOSE');
     }
 }

@@ -7,17 +7,20 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\FormController;
+use Joomla\CMS\Router\Route;
+
 // import Joomla controlleradmin library
-jimport('joomla.application.component.controlleradmin');
+//jimport('joomla.application.component.controlleradmin');
 
 /**
  * Youtube Gallery - LinksList Controller
  */
-class YoutubeGalleryControllerLinksList extends JControllerAdmin
+class YoutubeGalleryControllerLinksList extends FormController
 {
     /**
      * Proxy for getModel.
@@ -31,16 +34,16 @@ class YoutubeGalleryControllerLinksList extends JControllerAdmin
         $cid = Factory::getApplication()->input->post->get('cid', array(), 'array');
 
         if (count($cid) < 1) {
-            $this->setRedirect('index.php?option=com_youtubegallery&view=linkslist', JText::_('COM_YOUTUBEGALLERY_NO_ITEMS_SELECTED'), 'error');
+            $this->setRedirect('index.php?option=com_youtubegallery&view=linkslist', Text::_('COM_YOUTUBEGALLERY_NO_ITEMS_SELECTED'), 'error');
             return false;
         }
 
         if ($model->RefreshPlayist($cid, true)) {
-            $msg = JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_UPDATED_SUCCESSFULLY');
+            $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_UPDATED_SUCCESSFULLY');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg);
         } else {
-            $msg = JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_UPDATE');
+            $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_UPDATE');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg, 'error');
         }
@@ -59,17 +62,17 @@ class YoutubeGalleryControllerLinksList extends JControllerAdmin
         $cid = Factory::getApplication()->input->post->get('cid', array(), 'array');
 
         if (count($cid) < 1) {
-            $this->setRedirect('index.php?option=com_youtubegallery&view=linkslist', JText::_('COM_YOUTUBEGALLERY_NO_ITEMS_SELECTED'), 'error');
+            $this->setRedirect('index.php?option=com_youtubegallery&view=linkslist', Text::_('COM_YOUTUBEGALLERY_NO_ITEMS_SELECTED'), 'error');
 
             return false;
         }
 
         if ($model->RefreshPlayist($cid, false)) {
-            $msg = JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESHED_SUCCESSFULLY');
+            $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESHED_SUCCESSFULLY');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg);
         } else {
-            $msg = JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_REFRESH');
+            $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_REFRESH');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg, 'error');
         }
@@ -84,7 +87,7 @@ class YoutubeGalleryControllerLinksList extends JControllerAdmin
 
         // Redirect to the item screen.
         $this->setRedirect(
-            JRoute::_(
+            Route::_(
                 $redirect, false
             )
         );
@@ -99,7 +102,7 @@ class YoutubeGalleryControllerLinksList extends JControllerAdmin
 
         // Redirect to the item screen.
         $this->setRedirect(
-            JRoute::_(
+            Route::_(
                 $redirect, false
             )
         );

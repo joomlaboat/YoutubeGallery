@@ -16,7 +16,7 @@ class VideoSource_Vimeo
 {
     public static function extractVimeoID($theLink)
     {
-        preg_match('/http:\/\/vimeo.com\/(\d+)$/', $theLink, $matches);
+        preg_match('/https:\/\/vimeo.com\/(\d+)$/', $theLink, $matches);
         if (count($matches) != 0) {
             $vimeo_id = $matches[1];
 

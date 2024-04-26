@@ -8,6 +8,8 @@
 
 // No direct access
 use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Router\Route;
 
 defined('_JEXEC') or die('Restricted access');
 
@@ -19,7 +21,7 @@ $document->addCustomTag('<link rel="stylesheet" href="components/com_youtubegall
 
 ?>
 
-<form id="adminForm" action="<?php echo JRoute::_('index.php?option=com_youtubegallery'); ?>" method="post"
+<form id="adminForm" action="<?php echo Route::_('index.php?option=com_youtubegallery'); ?>" method="post"
       class="form-inline">
     <div class="row-fluid" style="width:100%;">
 
@@ -45,6 +47,6 @@ $document->addCustomTag('<link rel="stylesheet" href="components/com_youtubegall
 
 
             <input type="hidden" name="task" value=""/>
-            <?php echo JHtml::_('form.token'); ?>
+            <?php echo HTMLHelper::_('form.token'); ?>
         </div>
 </form>

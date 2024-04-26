@@ -7,20 +7,18 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
-// import Joomla controller library
-jimport('joomla.application.component.controller');
+use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Controller\BaseController;
 
-
-class YoutubeGalleryController extends JControllerLegacy
+class YoutubeGalleryController extends BaseController
 {
     /**
      * display task
      *
      * @return void
+     * @throws Exception
      */
     function display($cachable = false, $urlparams = null)
     {

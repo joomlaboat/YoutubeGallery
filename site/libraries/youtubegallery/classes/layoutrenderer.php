@@ -12,10 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 use CustomTables\CTMiscHelper;
 use YouTubeGallery\Helper;
 use YouTubeGallery\Pagination;
-
 use Joomla\CMS\Version;
-
-use Joomla\CMS\HTML\HTMLHelper;
 
 class YoutubeGalleryLayoutRenderer
 {

@@ -16,7 +16,6 @@ defined('_JEXEC') or die();
 use Exception;
 use LayoutProcessor;
 use tagProcessor_PHP;
-use CustomTables\ctProHelpers;
 
 class Details
 {

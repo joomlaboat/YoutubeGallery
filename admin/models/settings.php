@@ -7,9 +7,11 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Table\Table;
 
 // import Joomla modelform library
 jimport('joomla.application.component.modeladmin');
@@ -17,11 +19,11 @@ jimport('joomla.application.component.modeladmin');
 /**
  * YoutubeGallery - Settings Model
  */
-class YoutubeGalleryModelSettings extends JModelAdmin
+class YoutubeGalleryModelSettings extends AdminModel
 {
     public function getTable($type = 'Settings', $prefix = 'YoutubeGalleryTable', $config = array())
     {
-        return JTable::getInstance($type, $prefix, $config);
+        return Table::getInstance($type, $prefix, $config);
     }
 
     /**

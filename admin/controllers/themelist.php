@@ -9,9 +9,12 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.application.component.controlleradmin');
+use Joomla\CMS\MVC\Controller\FormController;
+use Joomla\CMS\Router\Route;
 
-class YoutubeGalleryControllerThemeList extends JControllerAdmin
+//jimport('joomla.application.component.controlleradmin');
+
+class YoutubeGalleryControllerThemeList extends FormController//JControllerAdmin
 {
     /**
      * Proxy for getModel.
@@ -34,7 +37,7 @@ class YoutubeGalleryControllerThemeList extends JControllerAdmin
 
         // Redirect to the item screen.
         $this->setRedirect(
-            JRoute::_(
+            Route::_(
                 $redirect, false
             )
         );
@@ -63,7 +66,7 @@ class YoutubeGalleryControllerThemeList extends JControllerAdmin
         //if(!$canViewThemeList)
         //{
         //$link='index.php?option=com_youtubegallery&view=linkslist';
-        //$msg = JText::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
+        //$msg = Text::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
         //$this->setRedirect($link, $msg, 'error');
         //return false;
         //}

@@ -10,15 +10,16 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Table\Table;
 
 // import Joomla modelform library
-jimport('joomla.application.component.modeladmin');
-
+//jimport('joomla.application.component.modeladmin');
 
 /**
  * YoutubeGallery - LinksForm Model
  */
-class YoutubeGalleryModelLinksForm extends JModelAdmin
+class YoutubeGalleryModelLinksForm extends AdminModel
 {
     public $id;
 
@@ -144,7 +145,7 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
     public function getTable($type = 'VideoLists', $prefix = 'YoutubeGalleryTable', $config = array())
     {
-        return JTable::getInstance($type, $prefix, $config);
+        return Table::getInstance($type, $prefix, $config);
     }
 
     function deleteVideoList($cids): bool

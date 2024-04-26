@@ -9,13 +9,16 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\MVC\Controller\FormController;
+use Joomla\CMS\Router\Route;
+
 // import Joomla controlleradmin library
-jimport('joomla.application.component.controlleradmin');
+//jimport('joomla.application.component.controlleradmin');
 
 /**
  * Youtube Gallery - Categories Controller
  */
-class YoutubeGalleryControllerCategories extends JControllerForm
+class YoutubeGalleryControllerCategories extends FormController
 {
     /**
      * Proxy for getModel.
@@ -44,7 +47,7 @@ class YoutubeGalleryControllerCategories extends JControllerForm
 
         // Redirect to the item screen.
         $this->setRedirect(
-            JRoute::_(
+            Route::_(
                 $redirect, false
             )
         );
@@ -69,7 +72,7 @@ class YoutubeGalleryControllerCategories extends JControllerForm
 
         // Redirect to the item screen.
         $this->setRedirect(
-            JRoute::_(
+            Route::_(
                 $redirect, false
             )
         );

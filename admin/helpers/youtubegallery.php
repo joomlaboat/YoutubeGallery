@@ -10,6 +10,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\Utilities\ArrayHelper;
 
 /**
@@ -19,10 +20,10 @@ abstract class YoutubeGalleryHelper
 {
     public static function addSubmenu($submenu): void
     {
-        JSubMenuHelper::addEntry(JText::_('Video Lists'), 'index.php?option=com_youtubegallery&view=linkslist', $submenu === 'linkslist');
-        JSubMenuHelper::addEntry(JText::_('Themes'), 'index.php?option=com_youtubegallery&view=themelist', $submenu === 'themelist');
-        JSubMenuHelper::addEntry(JText::_('Categories'), 'index.php?option=com_youtubegallery&view=categories', $submenu === 'categories');
-        JSubMenuHelper::addEntry(JText::_('Settings'), 'index.php?option=com_youtubegallery&view=settings&layout=edit', $submenu === 'settingst');
+        JSubMenuHelper::addEntry(Text::_('Video Lists'), 'index.php?option=com_youtubegallery&view=linkslist', $submenu === 'linkslist');
+        JSubMenuHelper::addEntry(Text::_('Themes'), 'index.php?option=com_youtubegallery&view=themelist', $submenu === 'themelist');
+        JSubMenuHelper::addEntry(Text::_('Categories'), 'index.php?option=com_youtubegallery&view=categories', $submenu === 'categories');
+        JSubMenuHelper::addEntry(Text::_('Settings'), 'index.php?option=com_youtubegallery&view=settings&layout=edit', $submenu === 'settingst');
     }
 
     public static function deleteRecord($viewLabel, $tableShortName): void
@@ -45,7 +46,7 @@ abstract class YoutubeGalleryHelper
         if (count($cid) == 1)
             $msg .= '_1';
 
-        Factory::getApplication()->enqueueMessage(JText::sprintf($msg, count($cid)), 'success');
+        Factory::getApplication()->enqueueMessage(Text::sprintf($msg, count($cid)), 'success');
     }
 
     protected static function deleteSingleRecord($id, $tableShortName): bool
@@ -141,7 +142,7 @@ abstract class YoutubeGalleryHelper
         if (count($cid) == 1)
             $msg .= '_1';
 
-        Factory::getApplication()->enqueueMessage(JText::sprintf($msg, count($cid)), 'success');
+        Factory::getApplication()->enqueueMessage(Text::sprintf($msg, count($cid)), 'success');
     }
 
     protected static function setPublishStatusSingleRecord($id, $status, $tableShortName): bool

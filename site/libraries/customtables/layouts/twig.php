@@ -15,7 +15,6 @@ defined('_JEXEC') or die();
 
 use CT_FieldTypeTag_imagegallery;
 use Exception;
-use CustomTables\ctProHelpers;
 use Twig\Loader\ArrayLoader;
 use Twig\TwigFunction;
 use CT_FieldTypeTag_image;

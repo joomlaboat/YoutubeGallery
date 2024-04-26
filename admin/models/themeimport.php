@@ -7,18 +7,20 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
-jimport('joomla.application.component.modellist');
-jimport('joomla.filesystem.file');
-jimport('joomla.filesystem.folder');
-jimport('joomla.filesystem.archive');
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Model\ListModel;
+
+//jimport('joomla.application.component.modellist');
+//jimport('joomla.filesystem.file');
+//jimport('joomla.filesystem.folder');
+//jimport('joomla.filesystem.archive');
 
 /**
  * YoutubeGallery - Theme Import Model
  */
-class YoutubeGalleryModelThemeImport extends JModelList
+class YoutubeGalleryModelThemeImport extends ListModel
 {
     function upload_theme(&$msg)
     {

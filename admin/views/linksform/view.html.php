@@ -12,12 +12,16 @@ defined('_JEXEC') or die('Restricted access');
 // import Joomla view library
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Version;
 
 /**
  * Youtube Gallery - Links Form View
  */
-class YoutubeGalleryViewLinksForm extends JViewLegacy
+class YoutubeGalleryViewLinksForm extends HtmlView
 {
     /**
      * display method of Youtube Gallery view
@@ -76,16 +80,16 @@ class YoutubeGalleryViewLinksForm extends JViewLegacy
     /**
      * Setting the toolbar
      */
-    protected function addToolBar()
+    protected function addToolBar(): void
     {
         $jinput = Factory::getApplication()->input;
         $jinput->get->set('hidemainmenu', true);
 
         $isNew = ($this->item->id == 0);
-        JToolBarHelper::title($isNew ? JText::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : JText::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
-        JToolBarHelper::apply('linksform.apply');
-        JToolBarHelper::save('linksform.save');
-        JToolBarHelper::cancel('linksform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
+        ToolbarHelper::title($isNew ? Text::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : Text::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
+        ToolbarHelper::apply('linksform.apply');
+        ToolbarHelper::save('linksform.save');
+        ToolbarHelper::cancel('linksform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
     }
 
     /**
@@ -97,9 +101,8 @@ class YoutubeGalleryViewLinksForm extends JViewLegacy
     {
         if (isset($this->item) and $this->item !== null) {
             $isNew = ($this->item->id < 1);
-            $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : JText::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
-            $document->addScript(JURI::root() . "components/com_youtubegallery/js/submitbutton.js");
-            JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
+            $document->setTitle($isNew ? Text::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : Text::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
+            $document->addScript(Uri::root() . "components/com_youtubegallery/js/submitbutton.js");
         }
     }
 }

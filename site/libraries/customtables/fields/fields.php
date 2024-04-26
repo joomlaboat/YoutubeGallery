@@ -16,7 +16,6 @@ defined('_JEXEC') or die();
 use CustomTablesFileMethods;
 use CustomTablesImageMethods;
 use Exception;
-use CustomTables\ctProHelpers;
 
 class Field
 {

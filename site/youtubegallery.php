@@ -20,11 +20,20 @@ $path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 
 require_once($path . 'loader.php');
 YGLoadClasses();
 
-$controller = JControllerLegacy::getInstance('YoutubeGallery');
+//$controller = JControllerLegacy::getInstance('YoutubeGallery');
+// Require the base controller
+require_once JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery'
+    . DIRECTORY_SEPARATOR . 'controller.php';
 
+// Initialize the controller
+$controller = new YoutubeGalleryController();
+try {
+    $controller->execute(Factory::getApplication()->input->getCmd('task'));
+} catch (Exception $e) {
+}
 
 // Perform the Request task
-$controller->execute(Factory::getApplication()->input->getCmd('task'));
+//$controller->execute(Factory::getApplication()->input->getCmd('task'));
 
 // Redirect if set by the controller
 $controller->redirect();

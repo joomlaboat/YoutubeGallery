@@ -12,6 +12,7 @@
   </component>
   <component name="PhpIncludePathManager">
     <include_path>
+      <path value="/var/www/html/j" />
       <path value="F:/wamp64/www" />
     </include_path>
   </component>

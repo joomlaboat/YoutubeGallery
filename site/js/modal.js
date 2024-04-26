@@ -1,7 +1,7 @@
 /**
  * Youtube Gallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://www.joomlaboat.com
  * @GNU General Public License
  **/
 
@@ -56,6 +56,8 @@
             document.getElementById('yginsertbutton').disabled = videolist === 0;
 
             const videolist_url = ygSiteBase + 'index.php?option=com_youtubegallery&view=linksform&layout=edit&tmpl=component&id=' + videolist;
+
+            alert(videolist_url);
             setTimeout(function () {
                 document.getElementById("YGVideoLinks").src = videolist_url;
             }, 200);

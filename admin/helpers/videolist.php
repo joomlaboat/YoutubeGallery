@@ -7,10 +7,11 @@
  **/
 
 // Check to ensure this file is included in Joomla!
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 
 class JHTMLVideoList
 {
@@ -38,8 +39,7 @@ class JHTMLVideoList
             }
         }
 
-        $videoLists = array_merge(array(array('id' => '', 'es_listname' => '- ' . JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_ADD'))), $videoLists);
-
-        return JHTML::_('select.genericlist', $videoLists, $control_name, 'class="inputbox"' . $attribute, 'id', 'es_listname', $value);
+        $videoLists = array_merge(array(array('id' => '', 'es_listname' => '- ' . Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_ADD'))), $videoLists);
+        return HTMLHelper::_('select.genericlist', $videoLists, $control_name, 'class="inputbox"' . $attribute, 'id', 'es_listname', $value);
     }
 }

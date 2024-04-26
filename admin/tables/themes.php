@@ -9,13 +9,15 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Table\Table;
+
 // import Joomla table library
-jimport('joomla.database.table');
+//jimport('joomla.database.table');
 
 /**
  * Youtube Gallery - Themes Table class
  */
-class YoutubeGalleryTableThemes extends JTable
+class YoutubeGalleryTableThemes extends Table
 {
     var $id = null;
     var $es_themename = null;

@@ -7,17 +7,22 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Version;
+
 // import Joomla view library
-jimport('joomla.application.component.view');
+//jimport('joomla.application.component.view');
 
 /**
  * Youtube Gallery - Links Form View
  */
-class YoutubeGalleryViewLinksForm extends JViewLegacy
+class YoutubeGalleryViewLinksForm extends HtmlView
 {
     /**
      * display method of Youtube Gallery view
@@ -25,6 +30,9 @@ class YoutubeGalleryViewLinksForm extends JViewLegacy
      */
     public function display($tpl = null)
     {
+        $version = new Version;
+        $this->version = (int)$version->getShortVersion();
+
         $form = $this->get('Form');
         $item = $this->get('Item');
 
@@ -47,7 +55,8 @@ class YoutubeGalleryViewLinksForm extends JViewLegacy
         parent::display($tpl);
 
         // Set the document
-        $this->setDocument();//this method must be called after "display" to let validation work properly because the Form must be rendered before validation script
+        $this->document = Factory::getDocument();
+        $this->setDocument($this->document);//this method must be called after "display" to let validation work properly because the Form must be rendered before validation script
     }
 
     /**
@@ -59,24 +68,23 @@ class YoutubeGalleryViewLinksForm extends JViewLegacy
         $jinput->get->set('hidemainmenu', true);
 
         $isNew = ($this->item->id == 0);
-        JToolBarHelper::title($isNew ? JText::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : JText::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
-        JToolBarHelper::apply('linksform.apply');
-        JToolBarHelper::save('linksform.save');
-        JToolBarHelper::cancel('linksform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
+        ToolbarHelper::title($isNew ? Text::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : Text::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
+        ToolbarHelper::apply('linksform.apply');
+        ToolbarHelper::save('linksform.save');
+        ToolbarHelper::cancel('linksform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
     }
 
     /**
      * Method to set up the document properties
      *
+     * @param Document $document
      * @return void
      */
-    protected function setDocument()
+    public function setDocument($document): void
     {
-        $isNew = ($this->item->id < 1);
+        $isNew = empty($this->item->id);
         $document = Factory::getDocument();
-        $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : JText::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
-        $document->addScript(JURI::root() . "/administrator/components/com_youtubegallery/js/submitbutton.js");
-
-        JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
+        $document->setTitle($isNew ? Text::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : Text::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
+        $document->addScript(Uri::root() . "/administrator/components/com_youtubegallery/js/submitbutton.js");
     }
-}//class
+}

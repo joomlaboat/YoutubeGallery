@@ -7,10 +7,10 @@
  **/
 
 // No direct access to this file
+defined('_JEXEC') or die('Restricted access');
+
 use Joomla\CMS\Factory;
 use Joomla\CMS\Installer\InstallerScript;
-
-defined('_JEXEC') or die('Restricted access');
 
 class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 {

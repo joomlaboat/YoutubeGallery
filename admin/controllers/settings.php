@@ -11,14 +11,16 @@ defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\FormController;
 
 // import Joomla controllerform library
-jimport('joomla.application.component.controllerform');
+//jimport('joomla.application.component.controllerform');
 
 /**
  * YoutubeGallery - LinksForm Controller
  */
-class YoutubeGalleryControllerSettings extends JControllerForm
+class YoutubeGalleryControllerSettings extends FormController
 {
     function display($cachable = false, $urlparams = array())
     {
@@ -30,7 +32,7 @@ class YoutubeGalleryControllerSettings extends JControllerForm
 
         if (!$this->canView) {
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
-            $msg = JText::_('JGLOBAL_AUTH_ACCESS_DENIED');
+            $msg = Text::_('JGLOBAL_AUTH_ACCESS_DENIED');
             $this->setRedirect($link, $msg, 'error');
             return true;
         }
@@ -45,7 +47,7 @@ class YoutubeGalleryControllerSettings extends JControllerForm
 
         if (!$this->canView or !$this->canEdit) {
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
-            $msg = JText::_('JGLOBAL_AUTH_ACCESS_DENIED');
+            $msg = Text::_('JGLOBAL_AUTH_ACCESS_DENIED');
             $this->setRedirect($link, $msg, 'error');
             return false;
         }
@@ -58,7 +60,7 @@ class YoutubeGalleryControllerSettings extends JControllerForm
         // attempt to store, update user accordingly
 
         if ($task != 'save' and $task != 'apply' and $task != 'settings.save' and $task != 'settings.apply') {
-            $msg = JText::_('COM_YOUTUBEGALLERY_SETTINGS_WAS_UNABLE_TO_SAVE');
+            $msg = Text::_('COM_YOUTUBEGALLERY_SETTINGS_WAS_UNABLE_TO_SAVE');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg, 'error');
             return false;
@@ -66,12 +68,12 @@ class YoutubeGalleryControllerSettings extends JControllerForm
 
         if ($model->store()) {
             $link = 'index.php?option=com_youtubegallery&view=settings&layout=edit';
-            $msg = JText::_('COM_YOUTUBEGALLERY_SETTINGS_SAVED_SUCCESSFULLY');
+            $msg = Text::_('COM_YOUTUBEGALLERY_SETTINGS_SAVED_SUCCESSFULLY');
 
             $this->setRedirect($link, $msg);
         } else {
             $link = 'index.php?option=com_youtubegallery&view=settings&layout=edit';
-            $msg = JText::_('COM_YOUTUBEGALLERY_SETTINGS_WAS_UNABLE_TO_SAVE');
+            $msg = Text::_('COM_YOUTUBEGALLERY_SETTINGS_WAS_UNABLE_TO_SAVE');
             $this->setRedirect($link, $msg, 'error');
         }
     }

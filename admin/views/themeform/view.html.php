@@ -9,135 +9,137 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
-// import Joomla view library
-use CustomTables\CTMiscHelper;
-use Joomla\CMS\Factory;
+Jouse Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Version;
 
 /**
  * Youtube Gallery Theme Form View
  */
-class YoutubeGalleryViewThemeForm extends JViewLegacy
+class YoutubeGalleryViewThemeForm extends HtmlView
 {
-	/**
-	 * display method of Youtube Gallery view
-	 * @return void
-	 */
-	var $item;
+    /**
+     * display method of Youtube Gallery view
+     * @return void
+     */
+    var $item;
 
-	public function display($tpl = null)
-	{
-		$jinput = Factory::getApplication()->input;
-		$task = $jinput->getCmd('task', '');
-		if ($task == 'gettags')
-			$this->getTags();
+    public function display($tpl = null)
+    {
+        $jinput = Factory::getApplication()->input;
+        $task = $jinput->getCmd('task', '');
+        if ($task == 'gettags')
+            $this->getTags();
 
-		$version = new Version;
-		$this->version = (int)$version->getShortVersion();
+        $version = new Version;
+        $this->version = (int)$version->getShortVersion();
 
-		// Assign the variables
-		$this->form = $this->get('Form');
-		$this->item = $this->get('Item');
-		$this->script = $this->get('Script');
-		$this->state = $this->get('State');
-		// get action permissions
+        // Assign the variables
+        $this->form = $this->get('Form');
+        $this->item = $this->get('Item');
+        $this->script = $this->get('Script');
+        $this->state = $this->get('State');
+        // get action permissions
 
-		$this->canDo = ContentHelper::getActions('com_youtubegallery', 'themelist', $this->item->id);
+        $this->canDo = ContentHelper::getActions('com_youtubegallery', 'themelist', $this->item->id);
 
-		$this->canCreate = $this->canDo->get('themelist.create');
-		$this->canEdit = $this->canDo->get('themelist.edit');
-		$this->canState = $this->canDo->get('themelist.edit.state');
-		$this->canDelete = $this->canDo->get('themelist.delete');
+        $this->canCreate = $this->canDo->get('themelist.create');
+        $this->canEdit = $this->canDo->get('themelist.edit');
+        $this->canState = $this->canDo->get('themelist.edit.state');
+        $this->canDelete = $this->canDo->get('themelist.delete');
 
-		// get input
-		$jinput = Factory::getApplication()->input;
-		$this->ref = Factory::getApplication()->input->get('ref', 0, 'word');
-		$this->refid = Factory::getApplication()->input->get('refid', 0, 'int');
-		$this->referral = '';
-		if ($this->refid) {
-			// return to the item that refered to this item
-			$this->referral = '&ref=' . (string)$this->ref . '&refid=' . (int)$this->refid;
-		} elseif ($this->ref) {
-			// return to the list view that refered to this item
-			$this->referral = '&ref=' . (string)$this->ref;
-		}
+        // get input
+        $jinput = Factory::getApplication()->input;
+        $this->ref = Factory::getApplication()->input->get('ref', 0, 'word');
+        $this->refid = Factory::getApplication()->input->get('refid', 0, 'int');
+        $this->referral = '';
+        if ($this->refid) {
+            // return to the item that refered to this item
+            $this->referral = '&ref=' . (string)$this->ref . '&refid=' . (int)$this->refid;
+        } elseif ($this->ref) {
+            // return to the list view that refered to this item
+            $this->referral = '&ref=' . (string)$this->ref;
+        }
 
-		// Set the toolbar
-		$this->addToolBar();
+        // Set the toolbar
+        $this->addToolBar();
 
-		// Check for errors.
-		if (count($errors = $this->get('Errors'))) {
-			throw new Exception(implode("\n", $errors), 500);
-		}
+        // Check for errors.
+        if (count($errors = $this->get('Errors'))) {
+            throw new Exception(implode("\n", $errors), 500);
+        }
 
-		// Set the document
-		$this->document = Factory::getDocument();
-		$this->setDocument($this->document);
+        // Set the document
+        $this->document = Factory::getDocument();
+        $this->setDocument($this->document);
 
-		// Display the template
-		if ($this->version < 4)
-			parent::display($tpl);
-		else
-			parent::display('quatro');
-	}
+        // Display the template
+        if ($this->version < 4)
+            parent::display($tpl);
+        else
+            parent::display('quatro');
+    }
 
-	function getTags()
-	{
-		$file = JPATH_SITE . DIRECTORY_SEPARATOR . 'administrator' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR . 'tags506.xml';
+    function getTags()
+    {
+        $file = JPATH_SITE . DIRECTORY_SEPARATOR . 'administrator' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR . 'tags506.xml';
 
-		if (!file_exists($file)) {
-			Factory::getApplication()->enqueueMessage(CTMiscHelper::JTextExtended('COM_YOUTUBEGALLERY_FILE_NOT_FOUND'), 'error');
-			return;
-		}
+        if (!file_exists($file)) {
+            Factory::getApplication()->enqueueMessage(Text::_('COM_YOUTUBEGALLERY_FILE_NOT_FOUND'), 'error');
+            return;
+        }
 
-		$content = file_get_contents($file);
+        $content = file_get_contents($file);
 
-		$parts = explode('/', $file);
-		$filename = end($parts);
+        $parts = explode('/', $file);
+        $filename = end($parts);
 
-		if (ob_get_contents()) ob_end_clean();
+        if (ob_get_contents()) ob_end_clean();
 
-		@header('Content-Type: text/xml');
-		@header("Pragma: public");
-		@header("Expires: 0");
-		@header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-		@header("Cache-Control: public");
-		@header("Content-Description: File Transfer");
-		/*header("Content-type: application/octet-stream");*/
-		@header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
-		@header("Content-Transfer-Encoding: binary");
+        @header('Content-Type: text/xml');
+        @header("Pragma: public");
+        @header("Expires: 0");
+        @header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+        @header("Cache-Control: public");
+        @header("Content-Description: File Transfer");
+        /*header("Content-type: application/octet-stream");*/
+        @header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
+        @header("Content-Transfer-Encoding: binary");
 
-		echo $content;
-		die;
-	}
+        echo $content;
+        die;
+    }
 
 
-	protected function addToolBar()
-	{
-		$jinput = Factory::getApplication()->input;
-		$jinput->get->set('hidemainmenu', true);
+    protected function addToolBar()
+    {
+        $jinput = Factory::getApplication()->input;
+        $jinput->get->set('hidemainmenu', true);
 
-		$isNew = ($this->item->id == 0);
-		JToolBarHelper::title($isNew ? JText::_('COM_YOUTUBEGALLERY_THEME_NEW') : JText::_('COM_YOUTUBEGALLERY_THEME_EDIT'));
-		JToolBarHelper::apply('themeform.apply');
-		JToolBarHelper::save('themeform.save');
-		JToolBarHelper::cancel('themeform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
-	}
+        $isNew = ($this->item->id == 0);
+        ToolbarHelper::title($isNew ? Text::_('COM_YOUTUBEGALLERY_THEME_NEW') : Text::_('COM_YOUTUBEGALLERY_THEME_EDIT'));
+        ToolbarHelper::apply('themeform.apply');
+        ToolbarHelper::save('themeform.save');
+        ToolbarHelper::cancel('themeform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
+    }
 
-	/**
-	 * Method to set up the document properties
-	 *
-	 * @return void
-	 */
-	public function setDocument(Joomla\CMS\Document\Document $document): void
-	{
-		if (isset($this->item) and $this->item !== null) {
-			$isNew = ($this->item->id < 1);
-			$document = Factory::getDocument();
-			$document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_THEME_NEW') : JText::_('COM_YOUTUBEGALLERY_THEME_EDIT'));
-			$document->addScript(JURI::root() . "components/com_youtubegallery/js/submitbutton.js");
-			JText::script('COM_YOUTUBEGALLERY_FORMEDIT_ERROR_UNACCEPTABLE');
-		}
-	}
+    /**
+     * Method to set up the document properties
+     *
+     * @param \Joomla\CMS\Document\Document $document
+     * @return void
+     */
+    public function setDocument(Joomla\CMS\Document\Document $document): void
+    {
+        if (isset($this->item) and $this->item !== null) {
+            $isNew = ($this->item->id < 1);
+            $document = Factory::getDocument();
+            $document->setTitle($isNew ? Text::_('COM_YOUTUBEGALLERY_THEME_NEW') : Text::_('COM_YOUTUBEGALLERY_THEME_EDIT'));
+            $document->addScript(Uri::root() . "components/com_youtubegallery/js/submitbutton.js");
+        }
+    }
 }

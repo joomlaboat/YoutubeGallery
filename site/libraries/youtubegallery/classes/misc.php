@@ -10,6 +10,7 @@
 
 namespace YouTubeGallery;
 
+use Exception;
 use Joomla\CMS\Factory;
 use YoutubeGalleryLayoutRenderer;
 
@@ -140,7 +141,6 @@ class Helper
             try {
                 $htmlCode = @curl_exec($ch);
             } catch (\Exception $e) {
-
                 $application = Factory::getApplication();
                 $application->enqueueMessage(curl_error($e->getMessage()), 'error');
                 return '';
@@ -149,14 +149,18 @@ class Helper
             if ($htmlCode === FALSE) {
                 $application = Factory::getApplication();
                 $application->enqueueMessage(curl_error($ch), 'error');
-
                 return '';
             }
 
             curl_close($ch);
             return $htmlCode;
         } elseif (ini_get('allow_url_fopen')) {
-            return file_get_contents($url);
+
+            try {
+                return @file_get_contents($url);
+            } catch (Exception $e) {
+                return '';
+            }
         } else {
             $application = Factory::getApplication();
             $application->enqueueMessage('Cannot load data, enable "allow_url_fopen" or install cURL<br/>'

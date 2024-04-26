@@ -7,22 +7,16 @@
  **/
 
 // No direct access to this file
-\defined('_JEXEC') or die;
+defined('_JEXEC') or die;
 
+use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Version;
-
 use Joomla\CMS\Factory;
-use Joomla\CMS\Helper\ContentHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\View\GenericDataException;
-use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
-use Joomla\CMS\Object\CMSObject;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\Database\DatabaseDriver;
-use Joomla\Component\Content\Administrator\Extension\ContentComponent;
 
-class YoutubeGalleryViewVideoList extends JViewLegacy
+class YoutubeGalleryViewVideoList extends HtmlView
 {
     var $listid;
     /**
@@ -89,8 +83,7 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
         $jinput = Factory::getApplication()->input;
         $jinput->get->set('hidemainmenu', true);
 
-        JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_VIDEO_LIST'));
-
+        JToolBarHelper::title(Text::_('COM_YOUTUBEGALLERY_VIDEO_LIST'));
         JToolBarHelper::cancel('videolist.cancel', 'JTOOLBAR_CLOSE');
     }
 
@@ -104,6 +97,6 @@ class YoutubeGalleryViewVideoList extends JViewLegacy
 
     public function setDocument(Joomla\CMS\Document\Document $document): void
     {
-        $document->setTitle(JText::_('COM_YOUTUBEGALLERY_VIDEO_LIST'));
+        $document->setTitle(Text::_('COM_YOUTUBEGALLERY_VIDEO_LIST'));
     }
 }

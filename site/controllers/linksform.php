@@ -8,6 +8,7 @@
 
 // No direct access to this file
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 
 defined('_JEXEC') or die('Restricted access');
 
@@ -34,7 +35,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
             $cid = $jinput->get('cid', array(), 'ARRAY');
 
             if (!count($cid)) {
-                $this->setRedirect('index.php?option=com_youtubegallery&view=linkslist', JText::_('COM_YOUTUBEGALLERY_NO_VIDEOLISTS_SELECTED'), 'error');
+                $this->setRedirect('index.php?option=com_youtubegallery&view=linkslist', Text::_('COM_YOUTUBEGALLERY_NO_VIDEOLISTS_SELECTED'), 'error');
                 return false;
             }
 
@@ -81,7 +82,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
         // attempt to store, update user accordingly
 
         if ($task != 'save' and $task != 'apply' and $task != 'linksform.save' and $task != 'linksform.apply') {
-            $msg = JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_SAVE');
+            $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_SAVE');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg, 'error');
         }
@@ -99,7 +100,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
                 $link = 'index.php?option=com_youtubegallery&view=linksform&layout=edit&id=' . $model->id;
             }
 
-            $msg = JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_SAVED_SUCCESSFULLY');
+            $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_SAVED_SUCCESSFULLY');
 
             if ($input->getCmd('tmpl') == 'component') {
                 $link .= (!str_contains($link, '?') ? '?' : '&') . 'tmpl=component';
@@ -115,7 +116,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
                 $link .= '&ygrefreshparent=' . ($input->getInt('ygrefreshparent') == 1 ? '1' : '0');
             }
 
-            $msg = JText::_('COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_SAVE');
+            $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_WAS_UNABLE_TO_SAVE');
             $this->setRedirect($link, $msg, 'error');
         }
 

@@ -10,9 +10,8 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Editor\Editor;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
 
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('keepalive')
@@ -35,7 +34,7 @@ $onPageLoads = array();
     }
 </style>
 
-<form id="adminForm" name="adminForm" action="<?php echo JRoute::_('index.php?option=com_youtubegallery'); ?>"
+<form id="adminForm" name="adminForm" action="<?php echo Route::_('index.php?option=com_youtubegallery'); ?>"
       method="post" class="form-validate">
     <?php echo $this->form->getInput('id'); ?>
 
@@ -123,7 +122,7 @@ $onPageLoads = array();
 
     <input type="hidden" name="task" value="themeform.edit"/>
     <?php
-    echo JHtml::_('form.token');
+    echo HTMLHelper::_('form.token');
     echo render_onPageLoads($onPageLoads, 0);
     ?>
 

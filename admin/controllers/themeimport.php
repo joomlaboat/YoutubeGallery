@@ -7,18 +7,19 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
-// import Joomla controllerform library
-jimport('joomla.application.component.controlleradmin');
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\FormController;
 
+// import Joomla controllerform library
+//jimport('joomla.application.component.controlleradmin');
 
 /**
  * YoutubeGallery - themeimport Controller
  */
-class YoutubeGalleryControllerThemeImport extends JControllerAdmin
+class YoutubeGalleryControllerThemeImport extends FormController//JControllerAdmin
 {
     function display($cachable = false, $urlparams = array())
     {
@@ -47,12 +48,12 @@ class YoutubeGalleryControllerThemeImport extends JControllerAdmin
         $model = $this->getModel('themeimport');
         $msg = '';
         if ($model->upload_theme($msg)) {
-            $msg = JText::_('COM_YOUTUBEGALLERY_THEME_IMPORTED_SUCCESSFULLY');
+            $msg = Text::_('COM_YOUTUBEGALLERY_THEME_IMPORTED_SUCCESSFULLY');
             $link = 'index.php?option=com_youtubegallery&view=themelist';
             $this->setRedirect($link, $msg);
         } else {
             if ($msg == '')
-                $msg = JText::_('COM_YOUTUBEGALLERY_THEME_FILE_CORRUPTED_OR_NO_PERMISSION');
+                $msg = Text::_('COM_YOUTUBEGALLERY_THEME_FILE_CORRUPTED_OR_NO_PERMISSION');
 
             $link = 'index.php?option=com_youtubegallery&view=themeimport';
             $this->setRedirect($link, $msg, 'error');

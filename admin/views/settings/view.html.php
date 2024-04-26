@@ -12,12 +12,15 @@ defined('_JEXEC') or die('Restricted access');
 // import Joomla view library
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Version;
 
 /**
  * Youtube Gallery Theme Export View
  */
-class YoutubeGalleryViewSettings extends JViewLegacy
+class YoutubeGalleryViewSettings extends HtmlView
 {
     /**
      * display method of Youtube Gallery view
@@ -71,16 +74,15 @@ class YoutubeGalleryViewSettings extends JViewLegacy
             else
                 parent::display('quatro');
         } else
-            Factory::getApplication()->enqueueMessage(JText::_('JERROR_ALERTNOAUTHOR'), 'error');
-
+            Factory::getApplication()->enqueueMessage(Text::_('JERROR_ALERTNOAUTHOR'), 'error');
     }
 
     protected function addToolBar()
     {
         $jinput = Factory::getApplication()->input;
         $jinput->get->set('hidemainmenu', true);
-        JToolBarHelper::title(JText::_('Settings'));
-        JToolBarHelper::apply('settings.apply');
-        JToolBarHelper::cancel('settings.cancel', 'JTOOLBAR_CLOSE');
+        ToolbarHelper::title(Text::_('Settings'));
+        ToolbarHelper::apply('settings.apply');
+        ToolbarHelper::cancel('settings.cancel', 'JTOOLBAR_CLOSE');
     }
 }

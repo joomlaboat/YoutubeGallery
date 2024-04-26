@@ -8,6 +8,7 @@
 
 // Check to ensure this file is included in Joomla!
 use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
 
 defined('_JEXEC') or die('Restricted access');
 
@@ -25,6 +26,6 @@ class JHTMLTheme
         if ($value == '' and count($themes) > 0)
             $value = $themes[0]['id'];
 
-        return JHTML::_('select.genericlist', $themes, $control_name, 'class="inputbox"' . $attribute, 'id', 'es_themename', $value);
+        return HTMLHelper::_('select.genericlist', $themes, $control_name, 'class="inputbox"' . $attribute, 'id', 'es_themename', $value);
     }
 }

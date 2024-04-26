@@ -7,13 +7,15 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\BaseController;
 
 // Access check.
 if (!Factory::getUser()->authorise('core.manage', 'com_youtubegallery')) {
-    Factory::getApplication()->enqueueMessage(JText::_('JERROR_ALERTNOAUTHOR'), 'error');
+    Factory::getApplication()->enqueueMessage(Text::_('JERROR_ALERTNOAUTHOR'), 'error');
 };
 
 // require helper files
@@ -28,12 +30,19 @@ require_once($path . 'loader.php');
 YGLoadClasses();
 
 // Get an instance of the controller prefixed by Customtables
-$controller = JControllerLegacy::getInstance('YoutubeGallery');
+$controller = BaseController::getInstance('YoutubeGallery');
+//$controller = JControllerLegacy::getInstance('YoutubeGallery');
 
 /// Perform the Request task
 $task = Factory::getApplication()->input->getCmd('task');
+// Perform the Request task
+try {
+    $controller->execute($task);
+} catch (Exception $e) {
+    die($e->getMessage());
+}
 
-$controller->execute($task);
+//$controller->execute($task);
 
 // Redirect if set by the controller
 $controller->redirect();

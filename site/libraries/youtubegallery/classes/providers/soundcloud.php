@@ -15,7 +15,7 @@ class VideoSource_SoundCloud
 {
     public static function extractID($theLink)
     {
-        // http://api.soundcloud.com/tracks/49931.json
+        // https://api.soundcloud.com/tracks/49931.json
 
         $l = explode('/', $theLink);
 

@@ -7,6 +7,8 @@
  **/
 
 // No direct access
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die('Restricted access');
 
 $allowsef = YouTubeGalleryDB::getSettingValue('allowsef');
@@ -16,7 +18,7 @@ if ($allowsef != 1)
 ?>
 <div class="span10 form-horizontal" style="width:100%;">
     <div class="control-group">
-        <div class="control-label"><?php echo JText::_('COM_YOUTUBEGALLERY_ALLOW_SEF'); ?></div>
+        <div class="control-label"><?php echo Text::_('COM_YOUTUBEGALLERY_ALLOW_SEF'); ?></div>
         <div class="controls radio btn-group">
             <fieldset id="jform_allowsef" class="radio inputbox">
                 <input type="radio" id="jform_allowsef1" name="jform[allowsef]"

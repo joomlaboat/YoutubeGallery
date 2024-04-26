@@ -7,19 +7,19 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
-// import Joomla modelform library
-jimport('joomla.application.component.modeladmin');
+use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Table\Table;
 
-//  
+// import Joomla modelform library
+//jimport('joomla.application.component.modeladmin');
 
 /**
  * YoutubeGallery - Category Model
  */
-class YoutubeGalleryModelCategoryForm extends JModelAdmin
+class YoutubeGalleryModelCategoryForm extends AdminModel
 {
     public $id;
 
@@ -88,7 +88,7 @@ class YoutubeGalleryModelCategoryForm extends JModelAdmin
 
     public function getTable($type = 'Categories', $prefix = 'YoutubeGalleryTable', $config = array())
     {
-        return JTable::getInstance($type, $prefix, $config);
+        return Table::getInstance($type, $prefix, $config);
     }
 
     function deleteCategory($cids)

@@ -9,10 +9,7 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
-//use YouTubeGalleryDB;
 use Joomla\CMS\Factory;
-use YouTubeGallery\Helper;
-
 function YouTubeGalleryBuildRoute(&$query)
 {
 

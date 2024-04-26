@@ -12,12 +12,16 @@ defined('_JEXEC') or die('Restricted access');
 // import Joomla view library
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Version;
 
 /**
  * Youtube Category Form
  */
-class YoutubeGalleryViewCategoryForm extends JViewLegacy
+class YoutubeGalleryViewCategoryForm extends HtmlView
 {
     /**
      * display method of Youtube Gallery view
@@ -82,10 +86,10 @@ class YoutubeGalleryViewCategoryForm extends JViewLegacy
         $jinput->get->set('hidemainmenu', true);
 
         $isNew = ($this->item->id == 0);
-        JToolBarHelper::title($isNew ? JText::_('COM_YOUTUBEGALLERY_NEW_CATEGORY') : JText::_('COM_YOUTUBEGALLERY_EDIT_CATEGORY'));
-        JToolBarHelper::apply('categoryform.apply');
-        JToolBarHelper::save('categoryform.save');
-        JToolBarHelper::cancel('categoryform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
+        ToolbarHelper::title($isNew ? Text::_('COM_YOUTUBEGALLERY_NEW_CATEGORY') : Text::_('COM_YOUTUBEGALLERY_EDIT_CATEGORY'));
+        ToolbarHelper::apply('categoryform.apply');
+        ToolbarHelper::save('categoryform.save');
+        ToolbarHelper::cancel('categoryform.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
     }
 
     /**
@@ -97,9 +101,8 @@ class YoutubeGalleryViewCategoryForm extends JViewLegacy
     {
         if (isset($this->item) and $this->item !== null) {
             $isNew = ($this->item->id < 1);
-            $document->setTitle($isNew ? JText::_('COM_YOUTUBEGALLERY_NEW_CATEGORY') : JText::_('COM_YOUTUBEGALLERY_EDIT_CATEGORY'));
-            $document->addScript(JURI::root() . "components/com_youtubegallery/js/submitbutton.js");
-            JText::script('COM_YOUTUBEGALLERY_CATEGORYFORM_ERROR_UNACCEPTABLE');
+            $document->setTitle($isNew ? Text::_('COM_YOUTUBEGALLERY_NEW_CATEGORY') : Text::_('COM_YOUTUBEGALLERY_EDIT_CATEGORY'));
+            $document->addScript(Uri::root() . "components/com_youtubegallery/js/submitbutton.js");
         }
     }
 }

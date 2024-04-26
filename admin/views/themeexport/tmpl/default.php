@@ -7,16 +7,20 @@
  **/
 
 // No direct access
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
+
 defined('_JEXEC') or die('Restricted access');
 
-$WebsiteRoot = JURI::root();
+$WebsiteRoot = Uri::root();
 if ($WebsiteRoot[strlen($WebsiteRoot) - 1] != '/') //Root must have slash / in the end
     $WebsiteRoot .= '/';
 
 ?>
-<form id="adminForm" action="<?php echo JRoute::_('index.php?option=com_youtubegallery'); ?>" method="post"
+<form id="adminForm" action="<?php echo Route::_('index.php?option=com_youtubegallery'); ?>" method="post"
       class="form-inline">
-    <div style="position:absolute;top:0px;left:0;width:100%;">
+    <div style="position:absolute;top:0;left:0;width:100%;">
         <div style="position:relative;width:400px;border:2px solid #cccccc;background-color: #fefefe;margin:0 auto;text-align:center;padding:5px;">
             <p style="font-size:12px;font-weight:bold;">Download Theme File:</p>
             <p style="font-size:17px;font-weight:bold;"><a
@@ -26,5 +30,5 @@ if ($WebsiteRoot[strlen($WebsiteRoot) - 1] != '/') //Root must have slash / in t
 
     </div>
     <input type="hidden" name="task" value="themeexport.edit"/>
-    <?php echo JHtml::_('form.token'); ?>
+    <?php echo HTMLHelper::_('form.token'); ?>
 </form>

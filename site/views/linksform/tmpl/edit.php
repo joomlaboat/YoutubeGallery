@@ -28,6 +28,10 @@ defined('_JEXEC') or die('Restricted access');
     <script src="/media/jui/js/html5.js"></script><![endif]-->
 
 <?php
+$path = JPATH_SITE . DIRECTORY_SEPARATOR . 'administrator' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery'
+    . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'linksform' . DIRECTORY_SEPARATOR . 'tmpl' . DIRECTORY_SEPARATOR;
 
-require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'administrator' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery'
-    . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'linksform' . DIRECTORY_SEPARATOR . 'tmpl' . DIRECTORY_SEPARATOR . '_modal.php');
+if ($this->version < 4)
+    require_once($path . '_modal.php');
+else
+    require_once($path . '_modal_quatro.php');

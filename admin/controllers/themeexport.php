@@ -7,18 +7,19 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Controller\FormController;
+
 // import Joomla controllerform library
-jimport('joomla.application.component.controllerform');
+//jimport('joomla.application.component.controllerform');
 
 
 /**
  * YoutubeGallery - themeexport Controller
  */
-class YoutubeGalleryControllerThemeExport extends JControllerForm
+class YoutubeGalleryControllerThemeExport extends FormController
 {
     function display($cachable = false, $urlparams = array())
     {

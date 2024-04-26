@@ -7,17 +7,16 @@
  **/
 
 // No direct access to this file
-\defined('_JEXEC') or die;
+defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
-use Joomla\Database\ParameterType;
 
 /**
  * ThemeList Model
  */
-class YoutubeGalleryModelThemeList extends JModelList
+class YoutubeGalleryModelThemeList extends ListModel
 {
     /**
      * Method to build an SQL query to load the list data.

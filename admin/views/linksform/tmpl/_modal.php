@@ -7,28 +7,30 @@
  **/
 
 // No direct access
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 
 JHtml::_('behavior.keepalive');
 JHtml::_('behavior.formvalidation');
 
-//JHtml::_('behavior.tooltip');
-
 $document = Factory::getDocument();
-$document->addCustomTag('<link rel="stylesheet" href="' . JURI::root() . 'components/com_youtubegallery/css/wizard.css" type="text/css" />');
-$document->addCustomTag('<script src="' . JURI::root() . 'components/com_youtubegallery/js/wizard.js"></script>');
+$document->addCustomTag('<link rel="stylesheet" href="' . Uri::root() . 'components/com_youtubegallery/css/wizard.css" type="text/css" />');
+$document->addCustomTag('<script src="' . Uri::root() . 'components/com_youtubegallery/js/wizard.js"></script>');
 
 $input = Factory::getApplication()->input;
 
-$link = JRoute::_('index.php?option=com_youtubegallery');
+$link = Route::_('index.php?option=com_youtubegallery');
 $simple_mode = $input->getCmd('tmpl') == 'component';
 
 if ($simple_mode)
     $link .= (!str_contains($link, '?') ? '?' : '&') . 'tmpl=component&ygrefreshparent=1';//this is for modal form - edit article youtube gallery button
 
-$id = (int)$input->getInt('id');
+$id = $input->getInt('id');
 
 echo '
 	<script>
@@ -103,12 +105,12 @@ $textarea_box = $this->form->getInput('es_videolist');
                     <?php else: ?>
                         <ul class="nav nav-tabs">
                             <li class="active"><a href="#videolinks"
-                                                  data-toggle="tab"><?php echo JText::_('COM_YOUTUBEGALLERY_VIDEO_LINKS'); ?></a>
+                                                  data-toggle="tab"><?php echo Text::_('COM_YOUTUBEGALLERY_VIDEO_LINKS'); ?></a>
                             </li>
                             <li><a href="#source"
-                                   data-toggle="tab"><?php echo JText::_('COM_YOUTUBEGALLERY_SOURCE'); ?></a></li>
+                                   data-toggle="tab"><?php echo Text::_('COM_YOUTUBEGALLERY_SOURCE'); ?></a></li>
                             <li><a href="#settings"
-                                   data-toggle="tab"><?php echo JText::_('COM_YOUTUBEGALLERY_SETTINGS'); ?></a></li>
+                                   data-toggle="tab"><?php echo Text::_('COM_YOUTUBEGALLERY_SETTINGS'); ?></a></li>
                         </ul>
 
                         <div class="tab-content">
@@ -142,7 +144,7 @@ $textarea_box = $this->form->getInput('es_videolist');
         </fieldset>
     </div>
     <input type="hidden" name="task" value="linksform.edit"/>
-    <?php echo JHtml::_('form.token'); ?>
+    <?php echo HTMLHelper::_('form.token'); ?>
 
     <input type="hidden" name="jform[id]" value="<?php echo (int)$this->item->id; ?>"/>
 </form>

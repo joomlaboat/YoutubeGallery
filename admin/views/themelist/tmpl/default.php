@@ -7,12 +7,16 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+
 defined('_JEXEC') or die('Restricted Access');
 
 JHtml::_('behavior.tooltip');
 
 ?>
-<form action="<?php echo JRoute::_('index.php?option=com_youtubegallery&view=themelist'); ?>" method="post"
+<form action="<?php echo Route::_('index.php?option=com_youtubegallery&view=themelist'); ?>" method="post"
       name="adminForm" id="adminForm">
 
     <?php if (!empty($this->sidebar)): ?>
@@ -30,7 +34,7 @@ JHtml::_('behavior.tooltip');
             <?php if (empty($this->items)): ?>
                 <?php // echo $this->loadTemplate('toolbar');?>
                 <div class="alert alert-no-items">
-                    <?php echo JText::_('JGLOBAL_NO_MATCHING_RESULTS'); ?>
+                    <?php echo Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?>
                 </div>
             <?php else : ?>
                 <?php //echo $this->loadTemplate('toolbar');?>
@@ -68,7 +72,7 @@ JHtml::_('behavior.tooltip');
             <input type="hidden" id="task" name="task" value=""/>
             <input type="hidden" id="view" name="view" value="themelist"/>
             <input type="hidden" id="boxchecked" name="boxchecked" value="0"/>
-            <?php echo JHtml::_('form.token'); ?>
+            <?php echo HTMLHelper::_('form.token'); ?>
 
 </form>
 

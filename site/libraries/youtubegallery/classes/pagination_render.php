@@ -12,6 +12,7 @@ namespace YouTubeGallery;
 
 defined('_JEXEC') or die('Restricted access');
 
+use JESPagination;
 use \Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use \YGPagination;
@@ -58,8 +59,6 @@ class Pagination
             $AddAnchor = true;
         }
 
-        $thispagination = new YGPagination($num, $limitstart, $limit, '', $AddAnchor);
-
-        return $thispagination;
+        return new JESPagination($num, $limitstart, $limit, '', $AddAnchor);
     }
 }

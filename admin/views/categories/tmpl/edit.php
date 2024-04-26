@@ -7,16 +7,20 @@
  **/
 
 // No direct access
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+
 defined('_JEXEC') or die('Restricted access');
 JHtml::_('behavior.formvalidation');
 JHtml::_('behavior.tooltip');
 ?>
 <p style="text-align:left;">Upgrade to <a href="https://joomlaboat.com/youtube-gallery#pro-version" target="_blank">PRO
         version</a> to get more features</p>
-<form action="<?php echo JRoute::_('index.php?option=com_youtubegallery&layout=edit&id=' . (int)$this->item->id); ?>"
+<form action="<?php echo Route::_('index.php?option=com_youtubegallery&layout=edit&id=' . (int)$this->item->id); ?>"
       method="post" name="adminForm" id="youtubegallery-form" class="form-validate">
     <fieldset class="adminform">
-        <legend><?php echo JText::_('COM_YOUTUBEGALLERY_CATEGORY_FORM_DETAILS'); ?></legend>
+        <legend><?php echo Text::_('COM_YOUTUBEGALLERY_CATEGORY_FORM_DETAILS'); ?></legend>
 
         <ul class="adminformlist">
             <?php foreach ($this->form->getFieldset() as $field): ?>
@@ -27,6 +31,6 @@ JHtml::_('behavior.tooltip');
     </fieldset>
     <div>
         <input type="hidden" name="task" value="categoryform.edit"/>
-        <?php echo JHtml::_('form.token'); ?>
+        <?php echo HTMLHelper::_('form.token'); ?>
     </div>
 </form>

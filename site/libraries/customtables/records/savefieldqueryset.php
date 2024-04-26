@@ -17,7 +17,6 @@ use CustomTablesImageMethods;
 use Exception;
 use CT_FieldTypeTag_image;
 use CT_FieldTypeTag_file;
-use CustomTables\ctProHelpers;
 use LayoutProcessor;
 use tagProcessor_General;
 use tagProcessor_Item;

@@ -9,20 +9,14 @@
 // No direct access to this file access');
 defined('_JEXEC') or die('Restricted access');
 
-use Joomla\CMS\Access\Access;
-use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Layout\LayoutHelper;
-use Joomla\CMS\Plugin\PluginHelper;
-use Joomla\CMS\Router\Route;
-use Joomla\CMS\String\PunycodeHelper;
 
 ?>
 <tr>
     <?php if ($this->canState or $this->canDelete): ?>
         <th class="w-1 text-center">
-            <?php echo JHtml::_('grid.checkall'); ?>
+            <?php echo HTMLHelper::_('grid.checkall'); ?>
         </th>
     <?php endif; ?>
 
@@ -31,15 +25,15 @@ use Joomla\CMS\String\PunycodeHelper;
     </th>
 
     <th scope="col">
-        <?php echo JText::_('COM_YOUTUBEGALLERY_CATEGORY'); ?>
+        <?php echo Text::_('COM_YOUTUBEGALLERY_CATEGORY'); ?>
     </th>
 
     <th scope="col">
-        <?php echo JText::_('COM_YOUTUBEGALLERY_UPDATE'); ?>
+        <?php echo Text::_('COM_YOUTUBEGALLERY_UPDATE'); ?>
     </th>
 
     <th scope="col" style="text-align:center;">
-        <?php echo JText::_('COM_YOUTUBEGALLERY_NUMBER_OF_VIDEOS'); ?>
+        <?php echo Text::_('COM_YOUTUBEGALLERY_NUMBER_OF_VIDEOS'); ?>
     </th>
 
     <th scope="col" class="text-center d-none d-md-table-cell">

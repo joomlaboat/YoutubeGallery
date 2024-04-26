@@ -1,5 +1,7 @@
 <?php
 
+use Joomla\CMS\Component\ComponentHelper;
+
 defined('JPATH_PLATFORM') or die;
 
 function YGLoadClasses(): void
@@ -15,7 +17,10 @@ function YGLoadClasses(): void
     }
 
     require_once($loader_file);
-    CustomTablesLoader(true, false, null, $component_name);
+
+    $params = ComponentHelper::getParams($component_name);
+    $loadTwig = $params->get('loadTwig');
+    CustomTablesLoader($include_utilities = true, false, null, $component_name, $loadTwig);
 
     $path = 'classes' . DIRECTORY_SEPARATOR;
 
@@ -26,7 +31,6 @@ function YGLoadClasses(): void
     require_once($path . 'hotplayer.php');
     require_once($path . 'layoutrenderer.php');
     require_once($path . 'misc.php');
-    require_once($path . 'pagination.php');
     require_once($path . 'pagination_render.php');
     require_once($path . 'players.php');
     require_once($path . 'render.php');
@@ -35,12 +39,14 @@ function YGLoadClasses(): void
     require_once($path . 'socialbuttons.php');
     require_once($path . 'thumbnails.php');
 
-    $path = 'classes' . DIRECTORY_SEPARATOR . 'providers' . DIRECTORY_SEPARATOR;
+    //$paginationPath = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'pagination.php';
+    //if (file_exists($paginationPath))
+    //require_once($paginationPath);
 
-    require_once($path . 'dailymotion.php');
-    require_once($path . 'soundcloud.php');
-    require_once($path . 'ustream.php');
-    require_once($path . 'ustreamlive.php');
-    require_once($path . 'vimeo.php');
-    require_once($path . 'youtube.php');
+    //require_once($path . 'dailymotion.php');
+    //require_once($path . 'soundcloud.php');
+    //require_once($path . 'ustream.php');
+    //require_once($path . 'ustreamlive.php');
+    //require_once($path . 'vimeo.php');
+    require_once($path . 'providers' . DIRECTORY_SEPARATOR . 'youtube.php');
 }

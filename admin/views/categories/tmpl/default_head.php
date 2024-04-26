@@ -7,17 +7,19 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die('Restricted Access');
 ?>
 <tr>
     <th width="5">
-        <?php echo JText::_('COM_YOUTUBEGALLERY_CATEGORY_ID'); ?>
+        <?php echo Text::_('COM_YOUTUBEGALLERY_CATEGORY_ID'); ?>
     </th>
     <th width="20">
         <input type="checkbox" name="checkall-toggle" value="" title="Check All" onclick="Joomla.checkAll(this)"/>
     </th>
     <th align="left" style="text-align:left;">
-        <?php echo JText::_('COM_YOUTUBEGALLERY_CATEGORYNAME'); ?>
+        <?php echo Text::_('COM_YOUTUBEGALLERY_CATEGORYNAME'); ?>
     </th>
 
 </tr>

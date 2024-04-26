@@ -10,12 +10,15 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Table\Table;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
 
 // import Joomla modelform library
-jimport('joomla.application.component.modeladmin');
+//jimport('joomla.application.component.modeladmin');
 
-class YoutubeGalleryModelLinksForm extends JModelAdmin
+class YoutubeGalleryModelLinksForm extends AdminModel
 {
     public $typeAlias = 'com_youtubegallery.linksform';
     protected $text_prefix = 'COM_YOUTUBEGALLERY';
@@ -72,7 +75,7 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
     public function getScript()
     {
-        return JURI::root(true) . '/administrator/components/com_youtubegallery/models/forms/linksform.js';
+        return Uri::root(true) . '/administrator/components/com_youtubegallery/models/forms/linksform.js';
     }
 
     public function save($data)
@@ -114,7 +117,7 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
 
     public function getTable($type = 'Videolists', $prefix = 'YoutubeGalleryTable', $config = array())
     {
-        return JTable::getInstance($type, $prefix, $config);
+        return Table::getInstance($type, $prefix, $config);
     }
 
     function store()
@@ -236,10 +239,10 @@ class YoutubeGalleryModelLinksForm extends JModelAdmin
                 $item->metadata = $registry->toArray();
             }
 
-            if (!empty($item->id)) {
-                $item->tags = new JHelperTags;
-                $item->tags->getTagIds($item->id, 'com_youtubegallery.linksform');
-            }
+            //if (!empty($item->id)) {
+            //$item->tags = new JHelperTags;
+            //$item->tags->getTagIds($item->id, 'com_youtubegallery.linksform');
+            //}
         }
         return $item;
     }

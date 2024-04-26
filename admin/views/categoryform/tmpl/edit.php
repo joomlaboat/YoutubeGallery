@@ -10,9 +10,9 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
 
 if ($this->version < 4) {
     JHtml::_('behavior.formvalidation');
@@ -31,10 +31,10 @@ $link .= '&id=' . $id;
 
 ?>
 
-<form id="adminForm" action="<?php echo JRoute::_($link); ?>" method="post" class="form-validate">
+<form id="adminForm" action="<?php echo Route::_($link); ?>" method="post" class="form-validate">
 
     <fieldset class="adminform">
-        <legend><?php echo JText::_('COM_YOUTUBEGALLERY_CATEGORY_FORM_DETAILS'); ?></legend>
+        <legend><?php echo Text::_('COM_YOUTUBEGALLERY_CATEGORY_FORM_DETAILS'); ?></legend>
 
         <div class="form-horizontal">
             <div class="control-group">
@@ -68,6 +68,6 @@ $link .= '&id=' . $id;
 
     <input type="hidden" name="jform[id]" value="<?php echo (int)$this->item->id; ?>"/>
     <input type="hidden" name="task" value="categoryform.edit"/>
-    <?php echo JHtml::_('form.token'); ?>
+    <?php echo HTMLHelper::_('form.token'); ?>
 
 </form>

@@ -7,14 +7,15 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\View\HtmlView;
 
 // import Joomla view library
 jimport('joomla.application.component.view');
 
-class YoutubegalleryViewListandthemeselection extends JViewLegacy
+class YoutubegalleryViewListandthemeselection extends HtmlView
 {
     /**
      * display method of Youtube Gallery view

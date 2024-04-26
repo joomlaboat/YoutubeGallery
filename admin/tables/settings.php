@@ -9,13 +9,15 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Table\Table;
+
 // import Joomla table library
-jimport('joomla.database.table');
+//jimport('joomla.database.table');
 
 /**
  * Youtube Gallery - Video Lists Table class
  */
-class YoutubeGalleryTableSettings extends JTable
+class YoutubeGalleryTableSettings extends Table
 {
     /**
      * Constructor

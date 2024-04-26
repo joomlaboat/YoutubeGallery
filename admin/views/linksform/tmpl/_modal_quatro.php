@@ -10,21 +10,25 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 
-$wa = $this->document->getWebAssetManager();
+$document = Factory::getDocument();
+
+/** @var \Joomla\CMS\WebAsset\WebAssetManager $wa */
+$wa = $document->getWebAssetManager();
 $wa->useScript('keepalive')
     ->useScript('form.validate');
 
-$document = Factory::getDocument();
-$document->addCustomTag('<link rel="stylesheet" href="' . JURI::root() . 'components/com_youtubegallery/css/wizard.css" type="text/css" />');
-$document->addCustomTag('<script src="' . JURI::root() . 'components/com_youtubegallery/js/wizard.js"></script>');
+
+$document->addCustomTag('<link rel="stylesheet" href="' . Uri::root() . 'components/com_youtubegallery/css/wizard.css" type="text/css" />');
+$document->addCustomTag('<script src="' . Uri::root() . 'components/com_youtubegallery/js/wizard.js"></script>');
 
 $input = Factory::getApplication()->input;
 
-$link = JRoute::_('index.php?option=com_youtubegallery');
+$link = Route::_('index.php?option=com_youtubegallery');
 $simple_mode = $input->getCmd('tmpl') == 'component';
 
 if ($simple_mode)
@@ -133,7 +137,7 @@ $textarea_box = $this->form->getInput('es_videolist');
         </fieldset>
     </div>
     <input type="hidden" name="task" value="linksform.edit"/>
-    <?php echo JHtml::_('form.token'); ?>
+    <?php echo HTMLHelper::_('form.token'); ?>
 
     <input type="hidden" name="jform[id]" value="<?php echo (int)$this->item->id; ?>"/>
 </form>

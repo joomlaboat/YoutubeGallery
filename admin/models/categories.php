@@ -12,12 +12,11 @@
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
-use Joomla\Database\ParameterType;
 
 /**
  * Categories Model
  */
-class YoutubeGalleryModelCategories extends JModelList
+class YoutubeGalleryModelCategories extends ListModel
 {
     /**
      * Method to build an SQL query to load the list data.

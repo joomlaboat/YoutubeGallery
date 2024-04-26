@@ -7,18 +7,19 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Table\Table;
 
 // import Joomla modelform library
-jimport('joomla.application.component.modeladmin');
+//jimport('joomla.application.component.modeladmin');
 
 /**
  * YoutubeGallery - Theme Form Model
  */
-class YoutubeGalleryModelthemeForm extends JModelAdmin
+class YoutubeGalleryModelthemeForm extends AdminModel
 {
     public $id;
 
@@ -44,19 +45,11 @@ class YoutubeGalleryModelthemeForm extends JModelAdmin
 
     function store()
     {
-
-
         $themeform_row = $this->getTable('themes');
-
         $jinput = Factory::getApplication()->input;
         $data = $jinput->get('jform', array(), 'ARRAY');
-
-        $post = array();
-
         $themename = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['themename']));
-
         $data['themename'] = $themename;
-
 
         if (!$themeform_row->bind($data)) {
             echo 'Cannot bind.';
@@ -68,7 +61,6 @@ class YoutubeGalleryModelthemeForm extends JModelAdmin
             echo 'Cannot check.';
             return false;
         }
-
 
         // Store
         if (!$themeform_row->store()) {
@@ -86,7 +78,7 @@ class YoutubeGalleryModelthemeForm extends JModelAdmin
 
     public function getTable($type = 'Themes', $prefix = 'YoutubeGalleryTable', $config = array())
     {
-        return JTable::getInstance($type, $prefix, $config);
+        return Table::getInstance($type, $prefix, $config);
     }
 
     function deleteTheme($cids)

@@ -13,9 +13,6 @@ namespace CustomTables;
 // no direct access
 defined('_JEXEC') or die();
 
-use CustomTables\ProInputBoxTableJoin;
-use CustomTables\ProInputBoxTableJoinList;
-
 class Search_tablejoinlist extends BaseSearch
 {
 	function __construct(CT &$ct, Field $field, string $moduleName, array $attributes, int $index, string $where, string $whereList, string $objectName)

@@ -7,6 +7,8 @@
  **/
 
 // No direct access to this file access');
+use Joomla\CMS\HTML\HTMLHelper;
+
 defined('_JEXEC') or die('Restricted access');
 
 ?>
@@ -25,12 +27,12 @@ defined('_JEXEC') or die('Restricted access');
             <td class="text-center">
                 <?php /* if ($item->checked_out) : ?>
 					<?php if ($canCheckin) : ?>
-						<?php echo JHtml::_('grid.id', $i, $item->id); ?>
+						<?php echo HTMLHelper::_('grid.id', $i, $item->id); ?>
 					<?php else: ?>
 						&#9633;
 					<?php endif; ?>
 				<?php else: */ ?>
-                <?php echo JHtml::_('grid.id', $i, $item->id); ?>
+                <?php echo HTMLHelper::_('grid.id', $i, $item->id); ?>
                 <?php /* endif; */ ?>
             </td>
         <?php endif; ?>
@@ -40,7 +42,7 @@ defined('_JEXEC') or die('Restricted access');
                 <?php if ($this->canEdit): ?>
                     <a href="<?php echo $link2edit; ?>"><?php echo $this->escape($item->es_categoryname); ?></a>
                     <?php /* if ($item->checked_out): ?>
-						<?php echo JHtml::_('jgrid.checkedout', $i, $userChkOut->name, $item->checked_out_time, 'categories.', $canCheckin); ?>
+						<?php echo HTMLHelper::_('jgrid.checkedout', $i, $userChkOut->name, $item->checked_out_time, 'categories.', $canCheckin); ?>
 					<?php endif; */ ?>
                 <?php else: ?>
                     <?php echo $this->escape($item->es_categoryname); ?>
@@ -52,15 +54,15 @@ defined('_JEXEC') or die('Restricted access');
             <?php if ($this->canState) : ?>
                 <?php /* if ($item->checked_out) : ?>
 					<?php if ($canCheckin) : ?>
-						<?php echo JHtml::_('jgrid.published', $item->published, $i, 'categories.', true, 'cb'); ?>
+						<?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'categories.', true, 'cb'); ?>
 					<?php else: ?>
-						<?php echo JHtml::_('jgrid.published', $item->published, $i, 'categories.', false, 'cb'); ?>
+						<?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'categories.', false, 'cb'); ?>
 					<?php endif; ?>
 				<?php else: */ ?>
-                <?php echo JHtml::_('jgrid.published', $item->published, $i, 'categories.', true, 'cb'); ?>
+                <?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'categories.', true, 'cb'); ?>
                 <?php /* endif; */ ?>
             <?php else: ?>
-                <?php echo JHtml::_('jgrid.published', $item->published, $i, 'categories.', false, 'cb'); ?>
+                <?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'categories.', false, 'cb'); ?>
             <?php endif; ?>
 
         </td>

@@ -7,6 +7,9 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Router\Route;
+
 defined('_JEXEC') or die('Restricted Access');
 
 // load tooltip behavior
@@ -15,7 +18,7 @@ JHtml::_('behavior.tooltip');
 <p style="text-align:left;"><a href="https://joomlaboat.com/contact-us" target="_blank" style="margin-left:20px;">Help
         (Contact Tech-Support)</a></p>
 
-<form action="<?php echo JRoute::_('index.php?option=com_youtubegallery&view=categories'); ?>" method="post"
+<form action="<?php echo Route::_('index.php?option=com_youtubegallery&view=categories'); ?>" method="post"
       name="adminForm" id="adminForm">
     <table class="table table-striped" id="articleList">
         <thead><?php echo $this->loadTemplate('head'); ?></thead>
@@ -25,6 +28,6 @@ JHtml::_('behavior.tooltip');
     <div>
         <input type="hidden" name="task" value=""/>
         <input type="hidden" name="boxchecked" value="0"/>
-        <?php echo JHtml::_('form.token'); ?>
+        <?php echo HTMLHelper::_('form.token'); ?>
     </div>
 </form>

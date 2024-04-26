@@ -7,6 +7,8 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die('Restricted Access');
 ?>
 <?php foreach ($this->items as $i => $item):
@@ -46,10 +48,10 @@ defined('_JEXEC') or die('Restricted Access');
                                 <?php
 
                                 if ($item->es_updateperiod >= 1)
-                                    echo JText::sprintf(JText::_('COM_YOUTUBEGALLERY_LASTUPDATE'), $item->es_lastplaylistupdate, $item->es_updateperiod);
+                                    echo sprintf(Text::_('COM_YOUTUBEGALLERY_LASTUPDATE'), $item->es_lastplaylistupdate, $item->es_updateperiod);
                                 else {
                                     $hours = round((24 * $item->es_updateperiod), 0);
-                                    echo JText::sprintf(JText::_('COM_YOUTUBEGALLERY_LASTUPDATE_HOURS'), $item->es_lastplaylistupdate, $hours);
+                                    echo sprintf(Text::_('COM_YOUTUBEGALLERY_LASTUPDATE_HOURS'), $item->es_lastplaylistupdate, $hours);
                                 }
 
                                 ?>

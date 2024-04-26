@@ -9,12 +9,15 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.application.component.controllerform');
+use Joomla\CMS\MVC\Controller\FormController;
+use Joomla\CMS\Router\Route;
+
+//jimport('joomla.application.component.controllerform');
 
 /**
  * YoutubeGallery - LinksForm Controller
  */
-class YoutubeGalleryControllerLinksForm extends JControllerForm
+class YoutubeGalleryControllerLinksForm extends FormController
 {
     /**
      * Current or most recently performed task.
@@ -54,7 +57,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
 
                 // Redirect to the item screen.
                 $this->setRedirect(
-                    JRoute::_(
+                    Route::_(
                         'index.php?option=' . $this->option . $redirect, false
                     )
                 );
@@ -63,7 +66,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
 
                 // Redirect to the list screen.
                 $this->setRedirect(
-                    JRoute::_(
+                    Route::_(
                         'index.php?option=' . $this->option . $redirect, false
                     )
                 );
@@ -71,7 +74,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
         } else {
             // Redirect to the items screen.
             $this->setRedirect(
-                JRoute::_(
+                Route::_(
                     'index.php?option=' . $this->option . '&view=' . $this->view_list, false
                 )
             );
@@ -102,7 +105,7 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
 
         // Redirect to the item screen.
         $this->setRedirect(
-            JRoute::_(
+            Route::_(
                 'index.php?option=com_youtubegallery' . $redirect, false
             )
         );
@@ -164,9 +167,5 @@ class YoutubeGalleryControllerLinksForm extends JControllerForm
         }
 
         return $append;
-    }
-
-    protected function postSaveHook(JModelLegacy $model, $validData = array())
-    {
     }
 }

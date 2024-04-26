@@ -10,6 +10,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Version;
 
 $version_object = new Version;
@@ -18,9 +19,9 @@ $version = (int)$version_object->getShortVersion();
 $theme = 'eclipse';
 $document = Factory::getDocument();
 
-$adminpath = JURI::root(true) . '/administrator/components/com_youtubegallery/';
-$document->addCustomTag('<script src="' . JURI::root() . 'components/com_youtubegallery/js/ajax.js"></script>');
-$document->addCustomTag('<script src="' . JURI::root() . 'components/com_youtubegallery/js/typeparams.js"></script>');
+$adminpath = Uri::root(true) . '/administrator/components/com_youtubegallery/';
+$document->addCustomTag('<script src="' . Uri::root() . 'components/com_youtubegallery/js/ajax.js"></script>');
+$document->addCustomTag('<script src="' . Uri::root() . 'components/com_youtubegallery/js/typeparams.js"></script>');
 
 if ($version < 4)
     $document->addCustomTag('<script src="' . $adminpath . 'js/layouteditor.js"></script>');
@@ -105,7 +106,7 @@ function render_onPageLoads($onPageLoads, $LayoutType)
 
     $result_js = '
 	<script>
-	websiteroot="' . JURI::root(true) . '";
+	websiteroot="' . Uri::root(true) . '";
 
 	define_cmLayoutEditor();
 

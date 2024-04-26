@@ -1,7 +1,7 @@
 /*
  * YoutubeGallery for Joomla!
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://www.joomlaboat.com
  * @GNU General Public License
  */
 
@@ -76,7 +76,7 @@ function YGgetVideoSourceName(link) {
 
     if (link.indexOf('://collegehumor.com') !== -1 || link.indexOf('://www.collegehumor.com') !== -1) return 'collegehumor';
 
-    //http://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x7k9rx
+    //https://www.dailymotion.com/playlist/x1crql_BigCatRescue_funny-action-big-cats/1#video=x7k9rx
     if (link.indexOf('://dailymotion.com/playlist/') !== -1 || link.indexOf('://www.dailymotion.com/playlist/') !== -1) return 'dailymotionplaylist';
 
     if (link.indexOf('://dailymotion.com') !== -1 || link.indexOf('://www.dailymotion.com') !== -1) return 'dailymotion';
@@ -89,7 +89,7 @@ function YGgetVideoSourceName(link) {
 
     if (link.indexOf('://ustream.tv/channel/') !== -1 || link.indexOf('://www.ustream.tv/channel/') !== -1) return 'ustreamlive';
 
-    //http://api.soundcloud.com/tracks/49931.json  - accepts only resolved links
+    //https://api.soundcloud.com/tracks/49931.json  - accepts only resolved links
     if (link.indexOf('://api.soundcloud.com/tracks/') !== -1) return 'soundcloud';
 
     //https://soundcloud.com/newyfreshmusic/katy-perry-dark-horse-ft-juicy
@@ -244,7 +244,7 @@ function YGResolveSoundCloudLink(link) {
 
         var obj = JSON.parse(r);
         if (obj.kind == 'track') {
-            link = 'http://api.soundcloud.com/tracks/' + obj.id + '.json';
+            link = 'https://api.soundcloud.com/tracks/' + obj.id + '.json';
             link_type = YGgetVideoSourceName(link);
             if (link_type !== 'soundcloud') {
                 alert("Something went wrong. Try again.");

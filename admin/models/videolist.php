@@ -7,20 +7,23 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Model\ListModel;
+use Joomla\CMS\Table\Table;
+
 // import the Joomla modellist library
-jimport('joomla.application.component.modellist');
+//jimport('joomla.application.component.modellist');
 
 /**
  * VideoList Model
  */
-class YoutubeGalleryModelVideoList extends JModelList
+class YoutubeGalleryModelVideoList extends ListModel
 {
     public function getTable($type = 'VideoList', $prefix = 'YoutubeGalleryTable', $config = array())
     {
-        return JTable::getInstance($type, $prefix, $config);
+        return Table::getInstance($type, $prefix, $config);
     }
 
     /**

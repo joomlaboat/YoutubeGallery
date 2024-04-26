@@ -7,25 +7,21 @@
  **/
 
 // No direct access to this file
-\defined('_JEXEC') or die;
+defined('_JEXEC') or die;
 
+use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Version;
-
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\View\GenericDataException;
-use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
-use Joomla\CMS\Object\CMSObject;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\Database\DatabaseDriver;
 use Joomla\Component\Content\Administrator\Extension\ContentComponent;
 
 /**
  * YoutubeGallery LinksList View
  */
-class YoutubeGalleryViewLinksList extends JViewLegacy
+class YoutubeGalleryViewLinksList extends HtmlView
 {
     /**
      * YoutubeGallery view display method
@@ -101,7 +97,7 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 
     protected function addToolBar_3()
     {
-        JToolBarHelper::title(JText::_('COM_YOUTUBEGALLERY_LINKSLIST'));
+        JToolBarHelper::title(Text::_('COM_YOUTUBEGALLERY_LINKSLIST'));
 
         if ($this->canCreate)
             JToolBarHelper::addNew('linksform.add');
@@ -156,8 +152,8 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
         }
         */
         if ($this->canEdit) {
-            JToolBarHelper::custom('linkslist.updateItem', 'refresh.png', 'refresh_f2.png', 'Update', true);
-            JToolBarHelper::custom('linkslist.refreshItem', 'refresh.png', 'refresh_f2.png', 'Refresh', true);
+            ToolbarHelper::custom('linkslist.updateItem', 'refresh.png', 'refresh_f2.png', 'Update', true);
+            ToolbarHelper::custom('linkslist.refreshItem', 'refresh.png', 'refresh_f2.png', 'Refresh', true);
         }
 
         if (($this->canState && $this->canDelete)) {
@@ -176,6 +172,6 @@ class YoutubeGalleryViewLinksList extends JViewLegacy
 
     public function setDocument(Joomla\CMS\Document\Document $document): void
     {
-        $document->setTitle(JText::_('COM_YOUTUBEGALLERY_LINKSLIST'));
+        $document->setTitle(Text::_('COM_YOUTUBEGALLERY_LINKSLIST'));
     }
 }

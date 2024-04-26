@@ -10,12 +10,10 @@
 defined('_JEXEC') or die('Restricted access');
 
 use CustomTables\CT;
-use CustomTables\Fields;
 use CustomTables\ImportTables;
 use CustomTables\IntegrityChecks;
-
-//use CustomTables\ImportTables;
 use CustomTables\TableHelper;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 
 
@@ -47,7 +45,11 @@ class com_YoutubeGalleryInstallerScript
 
         // PHP 7.4 + code
         require_once($loader_file);
-        CustomTablesLoader($include_utilities = true, false, null, $component_name);
+
+        $params = ComponentHelper::getParams($component_name);
+        $loadTwig = $params->get('loadTwig');
+        CustomTablesLoader($include_utilities = true, false, null, $component_name, $loadTwig);
+
         $ct = new CT;
 
         //Check Custom Tables, create if necessary

@@ -7,6 +7,9 @@
  **/
 
 // No direct access to this file access');
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die('Restricted access');
 
 ?>
@@ -26,12 +29,12 @@ defined('_JEXEC') or die('Restricted access');
             <td class="text-center">
                 <?php /* if ($item->checked_out) : ?>
 					<?php if ($canCheckin) : ?>
-						<?php echo JHtml::_('grid.id', $i, $item->id); ?>
+						<?php echo HTMLHelper::_('grid.id', $i, $item->id); ?>
 					<?php else: ?>
 						&#9633;
 					<?php endif; ?>
 				<?php else: */ ?>
-                <?php echo JHtml::_('grid.id', $i, $item->id); ?>
+                <?php echo HTMLHelper::_('grid.id', $i, $item->id); ?>
                 <?php /* endif; */ ?>
             </td>
         <?php endif; ?>
@@ -41,7 +44,7 @@ defined('_JEXEC') or die('Restricted access');
                 <?php if ($this->canEdit): ?>
                     <a href="<?php echo $link2edit; ?>"><?php echo $this->escape($item->es_listname); ?></a>
                     <?php /* if ($item->checked_out): ?>
-						<?php echo JHtml::_('jgrid.checkedout', $i, $userChkOut->name, $item->checked_out_time, 'linkslist.', $canCheckin); ?>
+						<?php echo HTMLHelper::_('jgrid.checkedout', $i, $userChkOut->name, $item->checked_out_time, 'linkslist.', $canCheckin); ?>
 					<?php endif; */ ?>
                 <?php else: ?>
                     <?php echo $this->escape($item->es_listname); ?>
@@ -57,10 +60,10 @@ defined('_JEXEC') or die('Restricted access');
             <span>
 				<?php
                 if ($item->es_updateperiod >= 1) {
-                    echo JText::sprintf(JText::_('COM_YOUTUBEGALLERY_LASTUPDATE'), $item->es_lastplaylistupdate, $item->es_updateperiod);
+                    echo sprintf(Text::_('COM_YOUTUBEGALLERY_LASTUPDATE'), $item->es_lastplaylistupdate, $item->es_updateperiod);
                 } else {
                     $hours = round((24 * $item->es_updateperiod), 0);
-                    echo JText::sprintf(JText::_('COM_YOUTUBEGALLERY_LASTUPDATE_HOURS'), $item->es_lastplaylistupdate, $hours);
+                    echo sprintf(Text::_('COM_YOUTUBEGALLERY_LASTUPDATE_HOURS'), $item->es_lastplaylistupdate, $hours);
                 }
                 ?>
 			</span>
@@ -74,15 +77,15 @@ defined('_JEXEC') or die('Restricted access');
             <?php if ($this->canState) : ?>
                 <?php /* if ($item->checked_out) : ?>
 					<?php if ($canCheckin) : ?>
-						<?php echo JHtml::_('jgrid.published', $item->published, $i, 'linkslist.', true, 'cb'); ?>
+						<?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'linkslist.', true, 'cb'); ?>
 					<?php else: ?>
-						<?php echo JHtml::_('jgrid.published', $item->published, $i, 'linkslist.', false, 'cb'); ?>
+						<?php echo JHTMLHelper::_('jgrid.published', $item->published, $i, 'linkslist.', false, 'cb'); ?>
 					<?php endif; ?>
 				<?php else: */ ?>
-                <?php echo JHtml::_('jgrid.published', $item->published, $i, 'linkslist.', true, 'cb'); ?>
+                <?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'linkslist.', true, 'cb'); ?>
                 <?php /* endif; */ ?>
             <?php else: ?>
-                <?php echo JHtml::_('jgrid.published', $item->published, $i, 'linkslist.', false, 'cb'); ?>
+                <?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'linkslist.', false, 'cb'); ?>
             <?php endif; ?>
 
         </td>
