@@ -26,6 +26,6 @@ class JHTMLTheme
         if ($value == '' and count($themes) > 0)
             $value = $themes[0]['id'];
 
-        return HTMLHelper::_('select.genericlist', $themes, $control_name, 'class="inputbox"' . $attribute, 'id', 'es_themename', $value);
+        return HTMLHelper::_('select.genericlist', $themes, $control_name, 'class="form-select"' . $attribute, 'id', 'es_themename', $value);
     }
 }

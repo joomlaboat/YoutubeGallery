@@ -20,10 +20,10 @@ abstract class YoutubeGalleryHelper
 {
     public static function addSubmenu($submenu): void
     {
-        JSubMenuHelper::addEntry(Text::_('Video Lists'), 'index.php?option=com_youtubegallery&view=linkslist', $submenu === 'linkslist');
-        JSubMenuHelper::addEntry(Text::_('Themes'), 'index.php?option=com_youtubegallery&view=themelist', $submenu === 'themelist');
-        JSubMenuHelper::addEntry(Text::_('Categories'), 'index.php?option=com_youtubegallery&view=categories', $submenu === 'categories');
-        JSubMenuHelper::addEntry(Text::_('Settings'), 'index.php?option=com_youtubegallery&view=settings&layout=edit', $submenu === 'settingst');
+        JSubMenuHelper::addEntry(Text::_('COM_YOUTUBEGALLERY_MENU_VIDEOLISTS'), 'index.php?option=com_youtubegallery&view=linkslist', $submenu === 'linkslist');
+        JSubMenuHelper::addEntry(Text::_('COM_YOUTUBEGALLERY_MENU_THEMES'), 'index.php?option=com_youtubegallery&view=themelist', $submenu === 'themelist');
+        JSubMenuHelper::addEntry(Text::_('COM_YOUTUBEGALLERY_MENU_CATEGORIES'), 'index.php?option=com_youtubegallery&view=categories', $submenu === 'categories');
+        JSubMenuHelper::addEntry(Text::_('COM_YOUTUBEGALLERY_MENU_SETTINGS'), 'index.php?option=com_youtubegallery&view=settings&layout=edit', $submenu === 'settingst');
     }
 
     public static function deleteRecord($viewLabel, $tableShortName): void

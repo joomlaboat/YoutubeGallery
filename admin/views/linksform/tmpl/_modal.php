@@ -28,7 +28,7 @@ $link = Route::_('index.php?option=com_youtubegallery');
 $simple_mode = $input->getCmd('tmpl') == 'component';
 
 if ($simple_mode)
-    $link .= (!str_contains($link, '?') ? '?' : '&') . 'tmpl=component&ygrefreshparent=1';//this is for modal form - edit article youtube gallery button
+    $link .= (!str_contains($link, '?') ? '?' : '&') . 'tmpl=component&ygrefreshparent=1';//this is for modal form - edit article YoutubeGallery button
 
 $id = $input->getInt('id');
 
@@ -60,10 +60,11 @@ $textarea_box = $this->form->getInput('es_videolist');
             <?php if ($id == 0): ?>
                 <div style="text-align:center;">
                     <?php echo $this->form->getLabel('es_listname'); ?><br/>
-                    <?php echo $this->form->getInput('es_listname'); ?>
+                    <div style="width:50%;display:inline-block;"><?php echo $this->form->getInput('es_listname'); ?></div>
                     <br/>
-                    <button onclick="submitSimpleForm(false);" class="btn btn-small button-save">
-                        <span class="icon-save" aria-hidden="true"></span>Create Video List
+                    <button onclick="submitSimpleForm(false);" class="btn btn-small btn-primary">
+                        <span class="icon-save"
+                              aria-hidden="true"></span><?php echo Text::_('COM_YOUTUBEGALLERY_CREATE_VIDEO_LIST'); ?>
                     </button>
                 </div>
             <?php endif; ?>
@@ -86,7 +87,7 @@ $textarea_box = $this->form->getInput('es_videolist');
                 <div class="layouteditor_modal-content" id="layouteditor_modalbox">
                     <span class="layouteditor_close">&times;</span>
                     <div id="layouteditor_modal_content_box">
-                        <p>Some text in the Modal..</p>
+                        <p>Some text in the Modal.</p>
                     </div>
                 </div>
 

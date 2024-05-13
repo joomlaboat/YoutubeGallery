@@ -161,7 +161,7 @@ class ygExportTheme
 
         $sys_path = JPATH_SITE . DIRECTORY_SEPARATOR . $dirpath_from;
         if (file_exists($sys_path) === false) {
-            echo '<p>Media Folder "' . $dirpath_from . ' (' . $sys_path . ')" not found.</p>';
+            echo '<p>' . Text::_('COM_YOUTUBEGALLERY_FIELD_MEDIAFOLDER_LABEL') . ' "' . $dirpath_from . ' (' . $sys_path . ')" not found.</p>';
             return $files_to_archive;
         }
 

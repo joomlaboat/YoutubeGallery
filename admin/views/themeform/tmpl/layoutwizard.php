@@ -7,10 +7,12 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die('Restricted access');
 
 ?>
-<h4>General Theme Settings</h4>
+<h4><?php echo Text::_('COM_YOUTUBEGALLERY_GENERAL_THEME_SETTINGS'); ?></h4>
 
 <div class="form-horizontal">
     <div class="control-group">
@@ -32,7 +34,7 @@ defined('_JEXEC') or die('Restricted access');
 </div>
 
 
-<h4>Navigation Bar</h4>
+<h4><?php echo Text::_('COM_YOUTUBEGALLERY_NAVIGATION_BAR'); ?></h4>
 
 <div class="form-horizontal">
     <div class="control-group">
@@ -57,8 +59,7 @@ defined('_JEXEC') or die('Restricted access');
     </div>
 </div>
 
-
-<h4>Layout Settings</h4>
+<h4><?php echo Text::_('COM_YOUTUBEGALLERY_LAYOUT_SETTINGS'); ?></h4>
 
 <div class="form-horizontal">
     <div class="control-group">

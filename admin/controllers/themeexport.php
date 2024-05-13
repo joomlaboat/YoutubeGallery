@@ -12,10 +12,6 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\FormController;
 
-// import Joomla controllerform library
-//jimport('joomla.application.component.controllerform');
-
-
 /**
  * YoutubeGallery - themeexport Controller
  */
@@ -37,10 +33,8 @@ class YoutubeGalleryControllerThemeExport extends FormController
     /**
      * Cancels an edit operation
      */
-    function cancel(?string $key = null)
+    function cancel($key = null)
     {
         $this->setRedirect('index.php?option=com_youtubegallery&view=themelist');
     }
-
-
 }

@@ -139,7 +139,7 @@ const YoutubeGalleryPlayerObject = /*#__PURE__*/function () {
             this.api_player = new Vimeo.Player(playerid, player_options);
             if (this.initial_volume !== -1) this.api_player.setVolume(this.initial_volume / 100); //Vimeo player volume is from 0 to 1
 
-            this.api_player.on('play', function () {//alert('Played the first video');
+            this.api_player.on('play', function () {
             });
             this.api_player.on('ended', function () {
                 setTimeout(eval(func), 500);

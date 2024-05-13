@@ -5,27 +5,28 @@
  * @GNU General Public License
  */
 
-
 let videolist_textarea = '';
 
 const channels_youtube = ['youtubeuseruploads', 'youtubestandard', 'youtubeplaylist', 'youtubeuserfavorites', 'youtubesearch', 'youtubeshow*', 'youtubeshow', 'youtubechannel', 'youtubehandle'];
 const channels_other = ['vimeouservideos', 'vimeochannel', 'vimeoalbum', 'dailymotionplaylist'];
-var channels_vimeo = ['vimeouservideos', 'vimeochannel', 'vimeoalbum'];
-var single_videos = ['youtube', 'vimeo', 'dailymotion', 'ustream', 'ustreamlive', 'soundcloud', 'tiktok'];
+const channels_vimeo = ['vimeouservideos', 'vimeochannel', 'vimeoalbum'];
+const single_videos = ['youtube', 'vimeo', 'dailymotion', 'ustream', 'ustreamlive', 'soundcloud', 'tiktok'];
 
-var channels_youtube_title = ['Youtube User Uploads', 'Youtube Standard Feed', 'Youtube Playlist', 'Youtube User Favorites', 'Youtube Search', 'Youtube Show', 'Youtube Show', 'Youtube Channel', 'Youtube Handle'];
-var channels_other_title = ['Vimeo User Uploads', 'Vimeo Channel', 'Vimeo Album', 'Dailymotion Playlist'];
-var single_videos_title = ['Youtube', 'Vimeo', 'Own3DtvLive', 'Own3dtvVideo', 'Google', 'Yahoo', 'Break', 'CollegeHumor', 'Dailymotion', 'Present.me', 'UStream Recorded', 'UStream Live', 'SoundCloud', '.flv file', 'Tik Tok'];
+const channels_youtube_title = ['Youtube User Uploads', 'Youtube Standard Feed', 'Youtube Playlist', 'Youtube User Favorites', 'Youtube Search', 'Youtube Show', 'Youtube Show', 'Youtube Channel', 'Youtube Handle'];
+const channels_other_title = ['Vimeo User Uploads', 'Vimeo Channel', 'Vimeo Album', 'Dailymotion Playlist'];
+const single_videos_title = ['Youtube', 'Vimeo', 'Own3DtvLive', 'Own3dtvVideo', 'Google', 'Yahoo', 'Break', 'CollegeHumor', 'Dailymotion', 'Present.me', 'UStream Recorded', 'UStream Live', 'SoundCloud', '.flv file', 'Tik Tok'];
 
-var simple_mode = false;
-var ygSiteBase = '';
+let simple_mode = false;
+let ygSiteBase = '';
 
 function submitSimpleForm(force_to_save) {
     if (force_to_save) {
         hideModalAddVideoForm();
+        const obj_source = document.getElementById(videolist_textarea);
         Joomla.submitbutton('linksform.apply');
     } else {
-        var obj = document.getElementById("jform_listname");
+        const obj = document.getElementById("jform_es_listname");
+
         if (obj && obj.value !== '') {
             hideModalAddVideoForm();
             Joomla.submitbutton('linksform.apply');
@@ -101,12 +102,12 @@ function YGgetVideoSourceName(link) {
 }
 
 function YGAddFormatedLink(isSingle, link, editIndex) {
-    var obj_source = document.getElementById(videolist_textarea);
-    var osv = obj_source.value;
+    const obj_source = document.getElementById(videolist_textarea);
+    const osv = obj_source.value;
 
-    if (editIndex != -1) {
-        var lines = obj_source.value.split(/\r\n|\r|\n/g);
-        var newList = '';
+    if (editIndex !== -1) {
+        const lines = obj_source.value.split(/\r\n|\r|\n/g);
+        let newList = '';
 
         for (i = 0; i < lines.length; i++) {
             if (i == editIndex) {
@@ -120,6 +121,7 @@ function YGAddFormatedLink(isSingle, link, editIndex) {
             }
         }
 
+
         obj_source.value = newList;
         YGUpdatelinksTable();
         return true;
@@ -129,9 +131,9 @@ function YGAddFormatedLink(isSingle, link, editIndex) {
             YGUpdatelinksTable();
             return true;
         } else {
-            if (osv.indexOf(link) == -1) {
-                var v = obj_source.value;
-                if (v != '') v += "\r\n";
+            if (osv.indexOf(link) === -1) {
+                let v = obj_source.value;
+                if (v !== '') v += "\r\n";
 
                 obj_source.value = v + link;
 
@@ -327,13 +329,9 @@ function YGAddSaveCloseButtons(link, editIndex, isSingleVideo, link_type) {
 
 function YGbuildForm(width, height, title, FormContent) {
 
-
     var obj = document.getElementById("layouteditor_modal_content_box");
     obj.innerHTML = FormContent;//+'<br/>';
-
     showModal();
-
-
 }
 
 
@@ -443,12 +441,13 @@ function YGgetBasicValues(isSingle, link, SpecialParameters, startendsecond, use
 }
 
 function YGFormatSingleLink(link, editIndex, startendsecond) {
+
     var usergroup = '';
     var ygwatchgroup = document.getElementById("ygwatchgroup");
     if (ygwatchgroup) usergroup = ygwatchgroup.value;
 
     var new_link = YGgetBasicValues(true, link, '', startendsecond, usergroup);
-    YGAddFormatedLink(true, new_link, editIndex);
+    YGAddFormatedLink(true, new_link, parseInt(editIndex));
     //var obj=document.getElementById("YGDialog");
     //obj.innerHTML='';
     //obj.style.display="none";
@@ -903,35 +902,33 @@ function YGGetUserGroups() {
 }
 
 function YGUpdatelinksTable() {
-    var result = '<table class="LinksTable" style=""><tbody><tr>';
+    let result = '<table class="LinksTable" style=""><tbody><tr>';
     result += '<th>Link</th><th class="fullViewType">Type</th><th class="fullView">Custom Title</th><th class="fullView">Custom Description</th><th class="fullView">Custom Thumbnail</th><th class="fullView">Special Parameters</th>';
     result += '</tr>';
 
-    var obj_source = document.getElementById(videolist_textarea);
+    const obj_source = document.getElementById(videolist_textarea);
+    const lines = obj_source.value.split(/\r\n|\r|\n/g);
 
-    var lines = obj_source.value.split(/\r\n|\r|\n/g);
+    let line_count = 0;
 
-    var line_count = 0;
     for (i = 0; i < lines.length; i++) {
-        if (lines[i] != '') {
+        if (lines[i] !== '') {
             line_count++;
             result += '<tr>';
 
             item = CSVtoArray(lines[i]);
             var link_type = YGgetVideoSourceName(item[0]);
             result += '<td style="max-width:400px;word-break:break-all;"><b>' + item[0] + '</b>';
-            if (link_type == 'youtubeshow*') {
+            if (link_type === 'youtubeshow*') {
                 var sp = item[4].split(",");
                 var season = YGGetValue(sp, 'season');
                 var s = season.split(':');
-                if (s.length == 4) result += '<br>Season ' + s[3];
+                if (s.length === 4) result += '<br>Season ' + s[3];
             }
-
 
             result += '</td>';
 
-
-            var link_type_title = YGGetTypeTitle(link_type);
+            const link_type_title = YGGetTypeTitle(link_type);
 
             result += '<td class="fullViewType">' + link_type_title + '</td>';
 
@@ -939,7 +936,7 @@ function YGUpdatelinksTable() {
             if (item.length > 2) result += '<td class="fullView">' + item[2] + '</td>'; else result += '<td></td>';
             if (item.length > 3) result += '<td class="fullView">' + item[3] + '</td>'; else result += '<td></td>';
             if (item.length > 4) {
-                var v = item[4];
+                let v = item[4];
 
                 if (item.length > 5 && item[5] != '') {
                     if (v != '') v += '<br/>';
@@ -968,26 +965,21 @@ function YGUpdatelinksTable() {
 
     result += '</tbody></table>';
 
-    if (line_count == 0) {
-        var o1 = document.getElementById("ygvideolinkstable");
+    if (line_count === 0) {
+        const o1 = document.getElementById("ygvideolinkstable");
         if (o1) o1.innerHTML = "";
 
-        var o2 = document.getElementById("ygvideolinkstablemessage");
+        const o2 = document.getElementById("ygvideolinkstablemessage");
         if (o2) o2.style.display = "none";
     } else {
         document.getElementById("ygvideolinkstable").innerHTML = result;
         document.getElementById("ygvideolinkstablemessage").style.display = "block";
-
     }
-
 }
 
-
 function hideModalAddVideoForm() {
-    var hideModalAddVideoFormMessage = document.getElementById("hideModalAddVideoFormMessage");
+    const hideModalAddVideoFormMessage = document.getElementById("hideModalAddVideoFormMessage");
     hideModalAddVideoFormMessage.innerHTML = "Saving video list...";
-
     hideModalAddVideoFormMessage.style.display = "block";
-
     document.getElementById("hideModalAddVideoForm").style.display = "none";
 }

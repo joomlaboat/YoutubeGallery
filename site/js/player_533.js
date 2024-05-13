@@ -135,7 +135,7 @@ const YoutubeGalleryPlayerObject = class {
 
         this.api_player.on('ended', function () {
 
-            alert("eval147");
+            alert("eval138");
             setTimeout(eval(func), 500);
         });
     }
@@ -337,7 +337,7 @@ const YoutubeGalleryPlayerObject = class {
                 this.vimeo_SetPlayer_(videoid);
 
             } else {
-                alert("eval394");
+                alert("eval340");
                 eval("this.youtubegallery_updateplayer_" + videosource + "(videoid,true)");
             }
         }
@@ -355,7 +355,7 @@ const YoutubeGalleryPlayerObject = class {
             let title = rec.es_title;
             if (title === null)
                 title = "";
-            
+
             tObj.innerHTML = title.replaceAll('_quote_', '&quot;');
 
             setTimeout(function () {

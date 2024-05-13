@@ -7,34 +7,32 @@
  **/
 
 // No direct access
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die('Restricted access');
 
 $options = [];
-$options[] = ["0.00347", "Check for New Videos Every 5 Minutes"];
-$options[] = ["0.01025", "Check for New Videos Every 15 Minutes"];
-$options[] = ["0.0205", "Check for New Videos Every 30 Minutes"];
-$options[] = ["0.041", "Check for New Videos Every Hour"];
-$options[] = ["0.125", "Check for New Videos Every 3 Hours"];
-$options[] = ["0.25", "Check for New Videos Every 6 Hours"];
-$options[] = ["0.33", "Check for New Videos Every 8 Hours"];
-$options[] = ["0.5", "Check for New Videos Every 12 Hours"];
-$options[] = ["1", "Check for New Videos Every Day"];
-$options[] = ["3", "Check for New Videos Every 3 Days"];
-$options[] = ["7", "Check for New Videos Every Week"];
-$options[] = ["10", "Check for New Videos Every 10 Days"];
-$options[] = ["30", "Check for New Videos Every Month"];
-$options[] = ["365", "Check for New Videos Every Year"];
-$options[] = ["-0.041", "Refresh Video List Every Hour"];
-$options[] = ["-0.125", "Refresh Video List Every 3 Hours"];
-$options[] = ["-0.25", "Refresh Video List Every 6 Hours"];
-$options[] = ["-0.33", "Every 8 Hours"];
-$options[] = ["-0.5", "Refresh Video List Every 12 Hours"];
-$options[] = ["-1", "Refresh Video List Every Day"];
-$options[] = ["-3", "Refresh Video List Every 3 Days"];
-$options[] = ["-7", "Refresh Video List Every Week"];
-$options[] = ["-10", "Every 10 Days"];
-$options[] = ["-30", "Refresh Video List Every Month"];
-$options[] = ["-365", "Refresh Video List Every Year"];
+$options[] = ["0.041", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_0041')];
+$options[] = ["0.125", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_0125')];
+$options[] = ["0.25", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_025')];
+$options[] = ["0.33", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_033')];
+$options[] = ["0.5", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_05')];
+$options[] = ["1", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_1')];
+$options[] = ["3", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_3')];
+$options[] = ["7", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_7')];
+$options[] = ["10", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_10')];
+$options[] = ["30", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_30')];
+$options[] = ["365", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_CHECK_365')];
+$options[] = ["-0.041", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_0041')];
+$options[] = ["-0.125", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_0125')];
+$options[] = ["-0.33", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_033')];
+$options[] = ["-0.5", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_05')];
+$options[] = ["-1", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_1')];
+$options[] = ["-3", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_3')];
+$options[] = ["-7", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_7')];
+$options[] = ["-10", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_10')];
+$options[] = ["-30", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_30')];
+$options[] = ["-365", Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESH_365')];
 ?>
 <div class="form-horizontal">
     <div class="control-group">

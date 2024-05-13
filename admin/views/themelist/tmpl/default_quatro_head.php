@@ -10,6 +10,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 
 ?>
 <tr>
@@ -32,10 +33,10 @@ use Joomla\CMS\HTML\HTMLHelper;
     </th>
 
     <th scope="col">
-        Media Folder
+        <?php echo Text::_('COM_YOUTUBEGALLERY_FIELD_MEDIAFOLDER_LABEL'); ?>
     </th>
 
     <th scope="col">
-        Export
+        <?php echo Text::_('COM_YOUTUBEGALLERY_THEME_EXPORT'); ?>
     </th>
 </tr>

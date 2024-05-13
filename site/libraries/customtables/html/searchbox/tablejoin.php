@@ -15,7 +15,10 @@ defined('_JEXEC') or die();
 
 use Exception;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\Registry\Registry;
 use LayoutProcessor;
+
+//use CustomTables\ProInputBoxTableJoin;
 
 class Search_tablejoin extends BaseSearch
 {

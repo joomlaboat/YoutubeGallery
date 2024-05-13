@@ -15,9 +15,6 @@ use Joomla\CMS\Table\Table;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
 
-// import Joomla modelform library
-//jimport('joomla.application.component.modeladmin');
-
 class YoutubeGalleryModelLinksForm extends AdminModel
 {
     public $typeAlias = 'com_youtubegallery.linksform';
@@ -78,18 +75,14 @@ class YoutubeGalleryModelLinksForm extends AdminModel
         return Uri::root(true) . '/administrator/components/com_youtubegallery/models/forms/linksform.js';
     }
 
-    public function save($data)
-    {
-        return $this->saveVideoList();
-    }
-
-    function saveVideoList()
+    function saveVideoList($data): bool
     {
         $linksFormRow = $this->getTable('videolists');
-        $jinput = Factory::getApplication()->input;
-        $data = $jinput->get('jform', array(), 'ARRAY');
-        $listName = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['es_listname']));
-        $data['jform']['es_listname'] = $listName;
+
+        if (isset($data['es_listname'])) {
+            $listName = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['es_listname']));
+            $data['jform']['es_listname'] = $listName;
+        }
 
         if (!$linksFormRow->bind($data)) {
             echo 'Cannot bind.';
@@ -120,12 +113,20 @@ class YoutubeGalleryModelLinksForm extends AdminModel
         return Table::getInstance($type, $prefix, $config);
     }
 
-    function store()
-    {
-        return $this->saveVideoList();
-    }
+    /*
+        function store(): bool
+        {
+            echo 'modal store.<br/>';
+            return $this->saveVideoList();
+        }
 
-    function RefreshPlayist($cids, $update_videolist = true)
+        public function save($data): bool
+        {
+            echo 'modal save.<br/>';
+            return $this->saveVideoList();
+        }
+    */
+    function RefreshPlayist($cids, $update_videolist = true): bool
     {
         $where = array();
 
@@ -177,7 +178,7 @@ class YoutubeGalleryModelLinksForm extends AdminModel
             return false;
     }
 
-    protected function canDelete($record)
+    protected function canDelete($record): bool
     {
         if (!empty($record->id)) {
             $user = Factory::getUser();
@@ -187,7 +188,7 @@ class YoutubeGalleryModelLinksForm extends AdminModel
         return false;
     }
 
-    protected function canEditState($record)
+    protected function canEditState($record): bool
     {
         $user = Factory::getUser();
         $recordId = (!empty($record->id)) ? $record->id : 0;
@@ -205,6 +206,7 @@ class YoutubeGalleryModelLinksForm extends AdminModel
 
     protected function allowEdit($data = array(), $key = 'id')
     {
+        echo 'allowEdit';
         // Check specific edit permission then general edit permission.
 
         return Factory::getUser()->authorise('linkslist.edit', 'com_youtubegallery.linkslist.' . ((int)isset($data[$key]) ? $data[$key] : 0)) or parent::allowEdit($data, $key);

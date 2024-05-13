@@ -7,6 +7,8 @@
  **/
 
 // No direct access to this file
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die('Restricted Access');
 ?>
 <?php foreach ($this->items as $i => $item):
@@ -40,7 +42,7 @@ defined('_JEXEC') or die('Restricted Access');
 
         <td>
             <?php if ($this->canEdit): ?>
-                <a href="<?php echo $link2export; ?>">Export Theme</a>
+                <a href="<?php echo $link2export; ?>"><?php echo Text::_('COM_YOUTUBEGALLERY_THEME_EXPORT'); ?></a>
             <?php endif; ?>
         </td>
     </tr>

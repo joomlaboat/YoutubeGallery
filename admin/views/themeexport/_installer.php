@@ -11,6 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Installer\InstallerScript;
+use Joomla\CMS\Language\Text;
 
 class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 {
@@ -80,7 +81,7 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
 				{
 					//prepare media folder
 					$theme_row->es_mediafolder=$ygmti->prepareFolder($theme_row->es_mediafolder,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR);
-					echo '<p>Media Folder "'.$theme_row->es_mediafolder.'" created.</p>';
+					echo '<p>'.Text::_('COM_YOUTUBEGALLERY_FIELD_MEDIAFOLDER_LABEL').' Folder "'.$theme_row->es_mediafolder.'" created.</p>';
 					//move files
 					$ygmti->moveFiles($path,JPATH_SITE.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR.$theme_row->es_mediafolder);
 				}

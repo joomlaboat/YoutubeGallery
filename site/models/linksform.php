@@ -111,8 +111,8 @@ class YoutubeGalleryModelLinksForm extends AdminModel
         $linksform_row = $this->getTable('videolists');
         $jinput = Factory::getApplication()->input;
         $data = $jinput->get('jform', array(), 'ARRAY');
-        $listname = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['listname']));
-        $data['jform']['listname'] = $listname;
+        $listname = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['es_listname']));
+        $data['jform']['es_listname'] = $listname;
 
         if (!$linksform_row->bind($data)) {
             echo 'Cannot bind.';

@@ -37,7 +37,7 @@ if ($plugin == null) {
 
     $videolist = $input->getInt('videolist');
     if ($input->getCmd('task') == 'preview') {
-        //include('_preview.php');
+        include('_preview.php');
     } else {
         include('_selection.php');
     }

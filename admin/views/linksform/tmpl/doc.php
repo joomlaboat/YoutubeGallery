@@ -8,6 +8,7 @@
 
 // No direct access
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 
 defined('_JEXEC') or die('Restricted access');
 
@@ -27,17 +28,17 @@ $document->addCustomTag('
 <table style="border:none;">
     <tbody>
     <tr>
-        <td style="vertical-align: top;" valign="top">
-            <p style="font-weight:bold;">Source</p>
+        <td style="vertical-align: top;">
+            <p style="font-weight:bold;"><?php echo Text::_('COM_YOUTUBEGALLERY_SOURCE'); ?></p>
 
-            <?php /** @var TYPE_NAME $textarea_box the variable declared in edit.php file */
+            <?php
             echo $textarea_box; ?>
         </td>
-        <td style="vertical-align: bottom;" valign="bottom">
+        <td style="vertical-align: bottom;">
 
-            <div style="border: none;padding-left:10px;margin:0px;">
+            <div style="border: none;padding-left:10px;margin:0;">
 
-                <p><b>Video Link Examples:</b></p>
+                <p><b><?php echo Text::_('COM_YOUTUBEGALLERY_VIDEO_LINK_EXAMPLE'); ?></b></p>
                 <br/>
                 <ul>
                     <li>
@@ -47,32 +48,33 @@ $document->addCustomTag('
                     </li>
 
                     <li>
-                        <b>Youtube Video Playlist, Channel, Standard Feeds, Search Results and Show</b><br/>
+                        <b>YouTube Video Playlist, Channel, Standard Feeds, Search Results and Show</b><br/>
                         https://www.youtube.com/playlist?list=PL5298F5DAD70298FC&feature=mh_lolz<br/>
                         https://www.youtube.com/user/ivankomlev/favorites<br/>
                         https://www.youtube.com/user/ivankomlev<br/>
                         https://www.youtube.com/results?search_query=wins+compilation+2012<br/>
-                        https://www.youtube.com/show/californication <b>(Must be resolved - Use "Add Link"
+                        https://www.youtube.com/show/californication <b>(Must be resolved - Use
+                            "<?php echo Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_ADD_LINK'); ?>"
                             button)</b><br/>
                         youtubestandard:<i>video_feed</i><br/>
                         <a href="https://joomlaboat.com/youtube-gallery/youtube-gallery-standard-feeds" target="_blank">More
                             about Standard Video Feeds</a>
                     </li>
 
-
+                    <!--
                     <li>
                         <b>Vimeo Video</b><br/>
-                        http://vimeo.com/34592862
+                        https://vimeo.com/34592862
                     </li>
 
                     <li>
                         <b>Vimeo User Videos</b><br/>
-                        http://vimeo.com/user2668497
+                        https://vimeo.com/user2668497
                     </li>
 
                     <li>
                         <b>Vimeo Channel</b><br/>
-                        http://vimeo.com/channels/123456
+                        https://vimeo.com/channels/123456
                     </li>
 
                     <li>
@@ -127,7 +129,7 @@ $document->addCustomTag('
 
                     <li>
                         <b>SoundCloud</b><br/>
-                        http://soundcloud.com/official-p-nk/try <b>(Must be resolved - Use "Add Link" button)</b><br/>
+                        http://soundcloud.com/official-p-nk/try <b>(Must be resolved - Use "<?php echo Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_ADD_LINK'); ?>" button)</b><br/>
                         http://api.soundcloud.com/tracks/71591554.json
                     </li>
 
@@ -136,53 +138,52 @@ $document->addCustomTag('
                         <b>Local .FLV files</b><br/>
                         images/videos/test.flv
                     </li>
-
+-->
                     <li>
-                        <b>Video Lists</b><br/>
+                        <b><?php echo Text::_('COM_YOUTUBEGALLERY_MENU_VIDEOLISTS'); ?></b><br/>
                         videolist:3 <i>Will insert all videos from Video List ID:3 to current video list.</i><br/>
                         videolist:all <i>Will insert all videos of all Video Lists.</i><br/>
                         videolist:catid:4<i>Will insert all videos of Video Lists of Category with ID #4.</i><br/>
                         videolist:category:music<i>Will insert all videos of Video Lists of Category "music"</i><br/>
                     </li>
+                </ul>
+                <hr/>
+                <p></p>
+                <b>Also, you may have your own title, description and thumbnail for each video.</b>
+                To do this type comma then "<span style="color:green;">title</span>","<span style="color:green;">description</span>",
+                "<span style="color:green;">imagepath</span>","<span style="color:green;">special_parameters</span>",
+                "<span style="color:green;">startsecond</span>","<span style="color:green;">endsecond</span>"<br/>
+                Should look like: <b>https://www.youtube.com/watch?v=baLkXC_qWJY</b>,"<b>Video Title</b>","<b>Video
+                    description</b>","<b>images/customthumbnail.jpg</b>"<br/>
+                or<br/>
+                <b>https://www.youtube.com/watch?v=baLkXC_qWJY</b>,"<b>Video
+                    Title</b>",,"<b>images/customthumbnail.jpg</b>"
+                <br/>
+                you may pass #1..#6 to imagepath to select specific video thumbnail.
+                <p>
+                    <b><span style="color:green;">Youtube Special parameters:</span></b> max-results=<i>NUMBER</i>,start-index=<i>NUMBER</i>,orderby=<i>FIELD_NAME</i><br/>
+                    <a href="https://joomlaboat.com/youtube-gallery/youtube-gallery-special-parameters"
+                       target="_blank">More about Special Parameters</a>
+                </p>
+                <p>
+                    <b><span style="color:green;">Vimeo Special parameters:</span></b>
+                    per_page=<i>NUMBER</i>,page=<i>NUMBER</i><br/>
+                </p>
 
-                    <hr/>
-                    <p></p>
-                    <b>Also you may have your own title, description and thumbnail for each video.</b>
-                    To do this type comma then "<span style="color:green;">title</span>","<span style="color:green;">description</span>",
-                    "<span style="color:green;">imagepath</span>","<span style="color:green;">special_parameters</span>",
-                    "<span style="color:green;">startsecond</span>","<span style="color:green;">endsecond</span>"<br/>
-                    Should look like: <b>https://www.youtube.com/watch?v=baLkXC_qWJY</b>,"<b>Video Title</b>","<b>Video
-                        description</b>","<b>images/customthumbnail.jpg</b>"<br/>
-                    or<br/>
-                    <b>https://www.youtube.com/watch?v=baLkXC_qWJY</b>,"<b>Video Title</b>",,"<b>images/customthumbnail.jpg</b>"
-                    <br/>
-                    you may pass #1..#6 to imagepath to select specific video thumbnail.
-                    <p>
-                        <b><span style="color:green;">Youtube Special parameters:</span></b> max-results=<i>NUMBER</i>,start-index=<i>NUMBER</i>,orderby=<i>FIELD_NAME</i><br/>
-                        <a href="https://joomlaboat.com/youtube-gallery/youtube-gallery-special-parameters"
-                           target="_blank">More about Special Parameters</a>
-                    </p>
-                    <p>
-                        <b><span style="color:green;">Vimeo Special parameters:</span></b>
-                        per_page=<i>NUMBER</i>,page=<i>NUMBER</i><br/>
-                    </p>
-
-                    <p><b><span style="color:green;">startsecond</span></b> (supported players: AS3, AS2, HTML5)<br/>
-                        Values: A positive integer. This parameter causes the player to begin playing the video at the
-                        given number of seconds from the start of the video. Note that similar to the seekTo function,
-                        the player will look for the closest keyframe to the time you specify. This means sometimes the
-                        play head may seek to just before the requested time, usually no more than ~2 seconds.</p>
+                <p><b><span style="color:green;">startsecond</span></b> (supported players: AS3, AS2, HTML5)<br/>
+                    Values: A positive integer. This parameter causes the player to begin playing the video at the
+                    given number of seconds from the start of the video. Note that similar to the seekTo function,
+                    the player will look for the closest keyframe to the time you specify. This means sometimes the
+                    play head may seek to just before the requested time, usually no more than ~2 seconds.</p>
 
 
-                    <p><b><span style="color:green;">endsecond</span></b> (supported players: AS3)<br/>
-                        Values: A positive integer. This parameter specifies the time, measured in seconds from the
-                        start of the video, when the player should stop playing the video. Note that the time is
-                        measured from the beginning of the video and not from either the value of the start player
-                        parameter or the startSeconds parameter, which is used in YouTube Player API functions for
-                        loading or queueing a video.</p>
-
+                <p><b><span style="color:green;">endsecond</span></b> (supported players: AS3)<br/>
+                    Values: A positive integer. This parameter specifies the time, measured in seconds from the
+                    start of the video, when the player should stop playing the video. Note that the time is
+                    measured from the beginning of the video and not from either the value of the start player
+                    parameter or the startSeconds parameter, which is used in YouTube Player API functions for
+                    loading or queueing a video.</p>
             </div>
-
         </td>
     </tr>
     </tbody>

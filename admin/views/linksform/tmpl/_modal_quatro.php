@@ -12,12 +12,10 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 
 $document = Factory::getDocument();
 
-/** @var \Joomla\CMS\WebAsset\WebAssetManager $wa */
 $wa = $document->getWebAssetManager();
 $wa->useScript('keepalive')
     ->useScript('form.validate');
@@ -28,14 +26,15 @@ $document->addCustomTag('<script src="' . Uri::root() . 'components/com_youtubeg
 
 $input = Factory::getApplication()->input;
 
-$link = Route::_('index.php?option=com_youtubegallery');
+$link = Uri::root() . 'administrator/index.php?option=com_youtubegallery';//Route::_('index.php?option=com_youtubegallery');
 $simple_mode = $input->getCmd('tmpl') == 'component';
 
 if ($simple_mode)
-    $link .= (!str_contains($link, '?') ? '?' : '&') . 'tmpl=component&ygrefreshparent=1';//this is for modal form - edit article youtube gallery button
+    $link .= (!str_contains($link, '?') ? '?' : '&') . 'tmpl=component&ygrefreshparent=1';//this is for modal form - edit article YoutubeGallery button
 
-$id = (int)$input->getInt('id');
-$link .= '&id=' . $id;
+$id = $input->getInt('id');
+if ($id !== null)
+    $link .= '&id=' . $id;
 
 echo '
 	<script>
@@ -44,10 +43,13 @@ echo '
 	</script>
 ';
 
-$textarea_box = $this->form->getInput('es_videolist');
+$textarea_box = '<textarea name="jform[es_videolist]" id="jform_es_videolist" cols="50" rows="28" class="form-control inputbox valid form-control-success" aria-invalid="false">'
+    . $this->item->es_videolist
+    . '</textarea>';
 ?>
 
 <form id="adminForm" name="adminForm" action="<?php echo $link; ?>" method="post" class="form-validate">
+
     <div id="hideModalAddVideoFormMessage" style="display:none;"></div>
     <div id="hideModalAddVideoForm" style="display:block;">
         <fieldset class="adminform">
@@ -62,19 +64,27 @@ $textarea_box = $this->form->getInput('es_videolist');
             <?php endif; ?>
 
             <?php if ($id == 0): ?>
-                <div style="text-align:center;">
-                    <?php echo $this->form->getLabel('es_listname'); ?><br/>
-                    <?php echo $this->form->getInput('es_listname'); ?>
+                <div style="text-align:center;"><label id="jform_es_listname-lbl" for="jform_es_listname"
+                                                       class="required mb-2">
+                        <?php echo Text::_('COM_YOUTUBEGALLERY_SEARCH_IN_LISTNAME'); ?><span class="star"
+                                                                                             aria-hidden="true">&nbsp;*</span></label><br/>
+
+                    <div style="width:50%;display:inline-block;" class="mb-3"><input type="text"
+                                                                                     name="jform[es_listname]"
+                                                                                     id="jform_es_listname"
+                                                                                     value="<?php echo $this->item->es_listname; ?>"
+                                                                                     class="form-control inputbox validate-greeting required form-control-danger invalid"
+                                                                                     size="40" required=""
+                                                                                     aria-invalid="true"></div>
                     <br/>
-                    <button onclick="submitSimpleForm(false);" class="btn btn-small button-save">
-                        <span class="icon-save" aria-hidden="true"></span>Create Video List
+                    <button onclick="submitSimpleForm(false);" class="btn btn-small btn-primary">
+                        <span class="icon-save"
+                              aria-hidden="true"></span><?php echo Text::_('COM_YOUTUBEGALLERY_CREATE_VIDEO_LIST'); ?>
                     </button>
                 </div>
             <?php endif; ?>
 
             <?php else: ?>
-
-
                 <div class="form-horizontal">
                     <div class="control-group">
                         <div class="control-label"><?php echo $this->form->getLabel('es_listname'); ?></div>
@@ -90,7 +100,7 @@ $textarea_box = $this->form->getInput('es_videolist');
                 <div class="layouteditor_modal-content" id="layouteditor_modalbox">
                     <span class="layouteditor_close">&times;</span>
                     <div id="layouteditor_modal_content_box">
-                        <p>Some text in the Modal..</p>
+                        <p>Some text in the Modal.</p>
                     </div>
                 </div>
 

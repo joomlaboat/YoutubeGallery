@@ -11,8 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Router\Route;
-
-//jimport('joomla.application.component.controllerform');
+use Joomla\CMS\Uri\Uri;
 
 /**
  * YoutubeGallery - LinksForm Controller
@@ -82,6 +81,12 @@ class YoutubeGalleryControllerLinksForm extends FormController
         return $cancel;
     }
 
+    public function apply($key = null, $urlVar = null)
+    {
+        echo 'Apply';
+        die;
+    }
+
     /**
      * Method to save a record.
      *
@@ -92,23 +97,31 @@ class YoutubeGalleryControllerLinksForm extends FormController
      *
      * @since   12.2
      */
-    public function save($key = null, $urlVar = null)
+    public function save($key = null, $urlVar = null): bool
     {
         // get the referral details
-        $this->refid = $this->input->get('id', 0, 'int');
-        $saved = parent::save($key, $urlVar);
+        $this->refid = $this->input->getInt('id', 0);
+
+        $model = $this->getModel();
+        $data = $this->input->post->get('jform', array(), 'array');
+        $saved = $model->saveVideoList($data);
 
         if ($this->task == 'apply')
             $redirect = '&view=linksform&layout=edit&id=' . (int)$this->refid;
         else
             $redirect = '&view=linkslist';
 
+        $tmpl = $this->input->getCmd('tmpl');
+        if ($tmpl !== null)
+            $redirect .= '&tmpl=' . $tmpl;
+
+        $ygrefreshparent = $this->input->getInt('ygrefreshparent');
+        if ($ygrefreshparent !== null)
+            $redirect .= '&ygrefreshparent=' . $ygrefreshparent;
+
         // Redirect to the item screen.
-        $this->setRedirect(
-            Route::_(
-                'index.php?option=com_youtubegallery' . $redirect, false
-            )
-        );
+        $url = Uri::root() . 'administrator/index.php?option=com_youtubegallery' . $redirect;
+        $this->setRedirect($url);
         return $saved;
     }
 
@@ -122,7 +135,7 @@ class YoutubeGalleryControllerLinksForm extends FormController
      * @since   1.6
      */
     protected function allowAdd($data = array())
-    {        // In the absense of better information, revert to the component permissions.
+    {        // In the absence of better information, revert to the component permissions.
         return parent::allowAdd($data);
     }
 

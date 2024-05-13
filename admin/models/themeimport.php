@@ -10,6 +10,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\ListModel;
 
 //jimport('joomla.application.component.modellist');
@@ -95,7 +96,7 @@ class YoutubeGalleryModelThemeImport extends ListModel
                 if ($theme_row->es_mediafolder != '') {
                     //prepare media folder
                     $theme_row->es_mediafolder = $this->prepareFolder($theme_row->es_mediafolder, JPATH_SITE . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR);
-                    echo 'Media Folder "' . $theme_row->es_mediafolder . '" created.<br/>';
+                    echo Text::_('COM_YOUTUBEGALLERY_FIELD_MEDIAFOLDER_LABEL') . ' "' . $theme_row->es_mediafolder . '" created.<br/>';
 
                     //move files
                     $this->moveFiles(
@@ -203,7 +204,7 @@ class YoutubeGalleryModelThemeImport extends ListModel
         //$sys_path=JPATH_SITE.DIRECTORY_SEPARATOR.$dirpath_from;
         $sys_path = $dirpath_from;
         if (file_exists($sys_path) === false) {
-            echo '<p>Media Folder "' . $dirpath_from . ' (' . $sys_path . ')" not found.</p>';
+            echo '<p>' . Text::_('COM_YOUTUBEGALLERY_FIELD_MEDIAFOLDER_LABEL') . ' "' . $dirpath_from . ' (' . $sys_path . ')" not found.</p>';
             return $files_to_archive;
         }
 

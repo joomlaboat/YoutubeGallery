@@ -11,18 +11,15 @@ defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Table\Table;
 
-// import Joomla table library
-//jimport('joomla.database.table');
-
 /**
- * Youtube Gallery - Video Lists Table class
+ * YoutubeGallery - Video Lists Table class
  */
-class YoutubeGalleryTableVideolists extends Table
+class YoutubeGalleryTableVideoLists extends Table
 {
     /**
      * Constructor
      *
-     * @param object Database connector object
+     * @var object Database connector object
      */
 
     var $id = null;
@@ -32,8 +29,6 @@ class YoutubeGalleryTableVideolists extends Table
     var $es_updateperiod = null;
     var $es_lastplaylistupdate = null;
     var $es_description = null;
-    /*var $es_author = null;*/
-    var $es_watchusergroup = null;
     var $es_authorurl = null;
     var $es_image = null;
     var $es_note = null;

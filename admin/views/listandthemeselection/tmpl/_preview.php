@@ -10,26 +10,28 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use YoutubeGallery\Plugin\Content\YoutubeGallery\Extension\YoutubeGallery;
 
 //Show preview
-echo 'B';
-$jinput = Factory::getApplication()->input;
-$videolist = $jinput->getInt('videolist');
-$theme = $jinput->getInt('theme');
+$jInput = Factory::getApplication()->input;
+$videolist = $jInput->getInt('videolist');
+$theme = $jInput->getInt('theme');
 
 if ($videolist == 0) {
-    echo 'Video list not selected.';
+    echo Text::_('COM_YOUTUBEGALLERY_VIDEO_LIST_NOT_SELECTED');
 } elseif ($theme == 0) {
-    echo 'Theme not selected.';
+    echo Text::_('COM_YOUTUBEGALLERY_THEME_NOT_SELECTED');
 } else {
-    echo 'a';
-    $htmlresult = '{youtubegalleryid=' . $videolist . ',' . $theme . '}';
+    $htmlResult = '{youtubegalleryid=' . $videolist . ',' . $theme . '}';
 
-    require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . 'content' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR . 'youtubegallery.php');
-    plgContentYoutubeGallery::plgYoutubeGallery($htmlresult, true);
+    require_once(JPATH_SITE . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . 'content' . DIRECTORY_SEPARATOR
+        . 'youtubegallery' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Extension' . DIRECTORY_SEPARATOR . 'youtubegallery.php');
+
+    YoutubeGallery::plgYoutubeGallery($htmlResult, true);
 
     echo '
 		<div style="width:100%;vertical-align:top;transform-origin: center top;
-	padding:0;margin:0;transform: scale(0.5);   -moz-transform: scale(0.5);">';
-    echo $htmlresult . '</div>';
+	padding:0;margin:0;transform: scale(0.5);-moz-transform: scale(0.5);">';
+    echo $htmlResult . '</div>';
 }

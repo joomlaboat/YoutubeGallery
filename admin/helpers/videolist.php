@@ -40,6 +40,6 @@ class JHTMLVideoList
         }
 
         $videoLists = array_merge(array(array('id' => '', 'es_listname' => '- ' . Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_ADD'))), $videoLists);
-        return HTMLHelper::_('select.genericlist', $videoLists, $control_name, 'class="inputbox"' . $attribute, 'id', 'es_listname', $value);
+        return HTMLHelper::_('select.genericlist', $videoLists, $control_name, 'class="form-select"' . $attribute, 'id', 'es_listname', $value);
     }
 }

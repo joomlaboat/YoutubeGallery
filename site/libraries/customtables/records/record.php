@@ -15,6 +15,7 @@ defined('_JEXEC') or die();
 
 use Exception;
 use CustomTables\CustomPHP\CleanExecute;
+use CustomTables\ctProHelpers;
 
 class record
 {

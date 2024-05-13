@@ -24,10 +24,10 @@ defined('_JEXEC') or die('Restricted Access');
     </th>
 
     <th style="text-align:left;">
-        Media Folder
+        <?php echo Text::_('COM_YOUTUBEGALLERY_FIELD_MEDIAFOLDER_LABEL'); ?>
     </th>
 
     <th style="text-align:left;">
-        Export
+        <?php echo Text::_('COM_YOUTUBEGALLERY_THEME_EXPORT'); ?>
     </th>
 </tr>

@@ -6,10 +6,11 @@
  * @GNU General Public License
  **/
 
-// No direct access to this file access');
+// No direct access to this file access
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 
 ?>
 <?php foreach ($this->items as $i => $item): ?>
@@ -37,7 +38,7 @@ use Joomla\CMS\HTML\HTMLHelper;
             </td>
         <?php endif; ?>
 
-        <td scope="row">
+        <td>
             <div class="name">
                 <?php if ($this->canEdit): ?>
                     <a href="<?php echo $link2edit; ?>"><?php echo $this->escape($item->es_themename); ?></a>
@@ -71,13 +72,13 @@ use Joomla\CMS\HTML\HTMLHelper;
             <?php echo $item->id; ?>
         </td>
 
-        <td scope="row">
+        <td>
             <?php echo($item->es_mediafolder != '' ? 'images/' . $item->es_mediafolder : ''); ?>
         </td>
 
-        <td scope="row">
+        <td>
             <?php if ($this->canExport): ?>
-                <a href="<?php echo $link2export; ?>">Export Theme</a>
+                <a href="<?php echo $link2export; ?>"><?php echo Text::_('COM_YOUTUBEGALLERY_THEME_EXPORT'); ?></a>
             <?php endif; ?>
         </td>
 

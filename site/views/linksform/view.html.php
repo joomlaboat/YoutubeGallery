@@ -85,6 +85,6 @@ class YoutubeGalleryViewLinksForm extends HtmlView
         $isNew = empty($this->item->id);
         $document = Factory::getDocument();
         $document->setTitle($isNew ? Text::_('COM_YOUTUBEGALLERY_LINKSFORM_NEW') : Text::_('COM_YOUTUBEGALLERY_LINKSFORM_EDIT'));
-        $document->addScript(Uri::root() . "/administrator/components/com_youtubegallery/js/submitbutton.js");
+        $document->addScript(Uri::root() . "components/com_youtubegallery/js/submitbutton.js");
     }
 }

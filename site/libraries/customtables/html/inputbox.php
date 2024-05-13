@@ -19,6 +19,8 @@ use tagProcessor_Item;
 use tagProcessor_If;
 use tagProcessor_Page;
 use tagProcessor_Value;
+use CustomTables\ProInputBoxTableJoin;
+use CustomTables\ProInputBoxTableJoinList;
 
 class Inputbox
 {
