@@ -19,7 +19,7 @@ function YGLoadClasses(): void
     require_once($loader_file);
 
     $params = ComponentHelper::getParams($component_name);
-    $loadTwig = $params->get('loadTwig');
+    $loadTwig = $params->get('loadTwig') ?? true;
     CustomTablesLoader($include_utilities = true, false, null, $component_name, $loadTwig);
 
     $path = 'classes' . DIRECTORY_SEPARATOR;
