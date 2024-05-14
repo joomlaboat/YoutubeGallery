@@ -82,8 +82,8 @@
         <field
                 name="description"
                 type="textarea"
-                label="COM_YOUTUBEGALLERY_FIELD_DESCRIPTION_LABEL"
-                description="COM_YOUTUBEGALLERY_FIELD_DESCRIPTION_DESC"
+                label="COM_YOUTUBEGALLERY_FIELD_VIDEOLIST_DESCRIPTION_LABEL"
+                description="COM_YOUTUBEGALLERY_FIELD_VIDEOLIST_DESCRIPTION_DESC"
                 class="inputbox"
                 default=""
                 cols="150"
