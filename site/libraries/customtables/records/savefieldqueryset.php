@@ -13,10 +13,7 @@ namespace CustomTables;
 // no direct access
 defined('_JEXEC') or die();
 
-use CustomTablesImageMethods;
 use Exception;
-use CT_FieldTypeTag_image;
-use CT_FieldTypeTag_file;
 use LayoutProcessor;
 use tagProcessor_General;
 use tagProcessor_Item;
@@ -270,7 +267,12 @@ class SaveFieldQuerySet
             case 'article':
 
             case 'usergroup':
-                $value = common::inputPostInt($this->field->comesfieldname, null, 'create-edit-record');
+                if (defined('_JEXEC'))
+                    $value = common::inputPostInt($this->field->comesfieldname);
+                elseif (defined('WPINC'))
+                    $value = common::inputPostCmd($this->field->comesfieldname, null, 'create-edit-record');
+                else
+                    return;
 
                 if (isset($value)) {
                     $this->setNewValue($value);
@@ -279,8 +281,15 @@ class SaveFieldQuerySet
                 break;
 
             case 'usergroups':
-                $value = $this->get_usergroups_type_value();
-                $this->setNewValue($value);
+
+                require_once 'usergroups.php';
+                $usergroups = new Save_usergroups($this->ct, $this->field, $this->row_new);
+                $value = $usergroups->saveFieldSet();
+
+                //This way it will be clear if the value changed or not. If $this->newValue = null means that value not changed.
+                if ($value !== null and is_array($value))
+                    $this->setNewValue($value['value']);
+
                 return;
 
             case 'language':
@@ -299,140 +308,38 @@ class SaveFieldQuerySet
 
             case 'image':
 
-                //A checkbox value 1 delete existing image 0 - not
-                $to_delete = common::inputPostCmd($this->field->comesfieldname . '_delete', null, 'create-edit-record');
+                require_once 'image.php';
+                $image = new Save_image($this->ct, $this->field);
+                $value = $image->saveFieldSet($listing_id);
 
+                //This way it will be clear if the value changed or not. If $this->newValue = null means that value not changed.
+                if ($value !== null and is_array($value))
+                    $this->setNewValue($value['value']);
 
-                //Get new image
-                $tempValue = common::inputPostString($this->field->comesfieldname, null, 'create-edit-record');
-
-                //Set the variable to "false" to do not delete existing image
-                $deleteExistingImage = false;
-
-                if ($tempValue !== null and $tempValue != '') {
-                    //Upload new image
-                    require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'html'
-                        . DIRECTORY_SEPARATOR . 'value.php');
-
-                    require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'html'
-                        . DIRECTORY_SEPARATOR . 'value' . DIRECTORY_SEPARATOR . 'image.php');
-                    
-                    $value = Value_image::get_image_type_value($this->field, $this->ct->Table->realidfieldname, $listing_id);
-
-                    //Set new image value
-                    $this->setNewValue($value);
-                    $deleteExistingImage = true;
-                } elseif ($to_delete == 'true') {
-                    $this->setNewValue(null);
-                    $deleteExistingImage = true;
-                }
-
-                if ($deleteExistingImage) {
-                    //Get existing image
-                    $whereClause = new MySQLWhereClause();
-                    $whereClause->addCondition($this->ct->Table->realidfieldname, $listing_id);
-
-                    $ExistingImageRows = database::loadAssocList($this->field->ct->Table->realtablename, [$this->field->realfieldname],
-                        $whereClause, null, null, 1);
-
-                    if (count($ExistingImageRows) == 0) {
-                        $ExistingImage = null;
-                    } else {
-                        $ExistingImage = $ExistingImageRows[0][$this->field->realfieldname];
-                    }
-
-                    if ($ExistingImage !== null and ($ExistingImage != '' or (is_numeric($ExistingImage) and $ExistingImage > 0))) {
-                        $imageMethods = new CustomTablesImageMethods;
-                        $ImageFolder = CustomTablesImageMethods::getImageFolder($this->field->params);
-                        $fileNameType = $this->field->params[3] ?? '';
-                        $imageMethods->DeleteExistingSingleImage(
-                            $ExistingImage,
-                            JPATH_SITE . DIRECTORY_SEPARATOR . $ImageFolder,
-                            $this->field->params[0] ?? '',
-                            $this->field->ct->Table->realtablename,
-                            $this->field->realfieldname,
-                            $this->field->ct->Table->realidfieldname,
-                            $fileNameType);
-                    }
-                }
                 return;
 
             case 'blob':
 
-                $to_delete = common::inputPostCmd($this->field->comesfieldname . '_delete', null, 'create-edit-record');
-                $value = CT_FieldTypeTag_file::get_blob_value($this->field);
+                require_once 'blob.php';
+                $image = new Save_blob($this->ct, $this->field, $this->row_new);
+                $value = $image->saveFieldSet($listing_id);
 
-                $fileNameField = '';
-                if (isset($this->field->params[2])) {
-                    $fileNameField_String = $this->field->params[2];
-                    $fileNameField_Row = Fields::FieldRowByName($fileNameField_String, $this->ct->Table->fields);
-                    $fileNameField = $fileNameField_Row['realfieldname'];
-                }
+                //This way it will be clear if the value changed or not. If $this->newValue = null means that value not changed.
+                if ($value !== null and is_array($value))
+                    $this->setNewValue($value['value']);
 
-                if ($to_delete == 'true' and $value === null) {
-                    $this->setNewValue(null);
-
-                    if ($fileNameField != '' and !$this->checkIfFieldAlreadyInTheList($fileNameField))
-                        $this->row_new[$fileNameField] = null;
-
-                } elseif ($value !== null) {
-                    $this->setNewValue(strlen($value));
-
-                    if ($fileNameField != '') {
-                        if (!$this->checkIfFieldAlreadyInTheList($fileNameField)) {
-                            $file_id = common::inputPostString($this->field->comesfieldname, '', 'create-edit-record');
-
-                            //Delete temporary file name parts
-                            //Example: ct_1702267688_PseAH3r3Cy91VhQbhhzwbchYW5rK51sD_001_Li-Rongbo_LOI_PE1214762_26032019_c1b1121b122.doc
-                            //Cleaned: 001_Li-Rongbo_LOI_PE1214762_26032019_c1b1121b122.doc
-                            $file_name_parts = explode('_', $file_id);
-                            $file_name = implode('_', array_slice($file_name_parts, 3));
-
-                            $this->row_new[$fileNameField] = $file_name;
-                        }
-                    }
-
-                    $this->row_new[$this->field->realfieldname] = $value;
-                }
                 return;
 
             case 'file':
 
-                $file_type_file = CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'fieldtypes' . DIRECTORY_SEPARATOR . '_type_file.php';
-                require_once($file_type_file);
+                require_once 'file.php';
+                $image = new Save_file($this->ct, $this->field, $this->row_new);
+                $value = $image->saveFieldSet($listing_id);
 
-                $FileFolder = CT_FieldTypeTag_file::getFileFolder($this->field->params[1]);
+                //This way it will be clear if the value changed or not. If $this->newValue = null means that value not changed.
+                if ($value !== null and is_array($value))
+                    $this->setNewValue($value['value']);
 
-                $file_id = common::inputPostString($this->field->comesfieldname, '', 'create-edit-record');
-
-                $filepath = str_replace('/', DIRECTORY_SEPARATOR, $FileFolder);
-                if (substr($filepath, 0, 1) == DIRECTORY_SEPARATOR)
-                    $filepath = JPATH_SITE . $filepath;
-                else
-                    $filepath = JPATH_SITE . DIRECTORY_SEPARATOR . $filepath;
-
-                if ($listing_id == 0) {
-                    $value = CT_FieldTypeTag_file::UploadSingleFile('', $file_id, $this->field, JPATH_SITE . $FileFolder);
-                    $this->setNewValue($value);
-                } else {
-                    $ExistingFile = $this->field->ct->Table->getRecordFieldValue($listing_id, $this->field->realfieldname);
-
-                    $to_delete = common::inputPostCmd($this->field->comesfieldname . '_delete', null, 'create-edit-record');
-
-                    if ($to_delete == 'true') {
-                        $this->setNewValue(null);
-                        if ($ExistingFile != '' and !CT_FieldTypeTag_file::checkIfTheFileBelongsToAnotherRecord($ExistingFile, $this->field)) {
-                            $filename_full = $filepath . DIRECTORY_SEPARATOR . $ExistingFile;
-
-                            if (file_exists($filename_full))
-                                unlink($filename_full);
-                        }
-                    }
-                    $value = CT_FieldTypeTag_file::UploadSingleFile($ExistingFile, $file_id, $this->field, JPATH_SITE . $FileFolder);
-
-                    if ($value)
-                        $this->setNewValue($value);
-                }
                 return;
 
             case 'signature':
@@ -537,16 +444,19 @@ class SaveFieldQuerySet
             case 'id':
                 //get max id
                 if ($this->row_old[$this->ct->Table->realidfieldname] == 0 or $this->row_old[$this->ct->Table->realidfieldname] == '' or $this->isCopy) {
-                    $minid = (($this->field->params !== null and count($this->field->params) > 0) ? (int)$this->field->params[0] : 0);
+                    $min_id = (($this->field->params !== null and count($this->field->params) > 0) ? (int)$this->field->params[0] : 0);
 
                     $whereClause = new MySQLWhereClause();
 
-                    $rows = database::loadObjectList($this->ct->Table->realtablename, [['MAX', $this->ct->Table->realtablename, $this->ct->Table->realidfieldname]], $whereClause, null, null, 1);
+                    $rows = database::loadObjectList($this->ct->Table->realtablename, [['MAX', $this->ct->Table->realtablename, $this->field->realfieldname]], $whereClause, null, null, 1);
+
+                    print_r($rows);
+
                     if (count($rows) != 0) {
                         $value = (int)($rows[0]->vlu) + 1;
-                        if ($value < $minid)
-                            $value = $minid;
-
+                        if ($value < $min_id)
+                            $value = $min_id;
+                        
                         $this->setNewValue($value);
                     }
                 }
@@ -750,33 +660,6 @@ class SaveFieldQuerySet
      * @throws Exception
      * @since 3.0.0
      */
-    protected function get_usergroups_type_value(): ?string
-    {
-        switch (($this->field->params !== null and count($this->field->params) > 0) ? $this->field->params[0] : '') {
-            case 'radio':
-            case 'single';
-                $value = common::inputPostString($this->field->comesfieldname, null, 'create-edit-record');
-                if (isset($value))
-                    return ',' . $value . ',';
-
-                break;
-            case 'multibox':
-            case 'checkbox':
-            case 'multi';
-                $valueArray = common::inputPost($this->field->comesfieldname, null, 'array');
-
-                if (isset($valueArray))
-                    return ',' . implode(',', $valueArray) . ',';
-
-                break;
-        }
-        return null;
-    }
-
-    /**
-     * @throws Exception
-     * @since 3.0.0
-     */
     protected function get_customtables_type_language(): ?string
     {
         $value = common::inputPostCmd($this->field->comesfieldname, null, 'create-edit-record');
@@ -785,11 +668,6 @@ class SaveFieldQuerySet
             return $value;
 
         return null;
-    }
-
-    function checkIfFieldAlreadyInTheList(string $realFieldName): bool
-    {
-        return isset($this->row_new[$realFieldName]);
     }
 
     public static function getUserIP(): string
@@ -816,7 +694,7 @@ class SaveFieldQuerySet
     {
         $this->field = new Field($this->ct, $fieldRow, $this->row_old);
 
-        if (!Fields::isVirtualField($fieldRow) and $this->field->defaultvalue != "" and !isset($this->row_old[$this->field->realfieldname]) and $this->field->type != 'dummie') {
+        if (!Fields::isVirtualField($fieldRow) and $this->field->defaultvalue != "" and !isset($this->row_old[$this->field->realfieldname]) and $this->field->type != 'dummy') {
 
             if ($this->ct->Env->legacySupport) {
                 $LayoutProc = new LayoutProcessor($this->ct);
@@ -869,6 +747,11 @@ class SaveFieldQuerySet
                 $this->setNewValue($value);
             }
         }
+    }
+
+    function checkIfFieldAlreadyInTheList(string $realFieldName): bool
+    {
+        return isset($this->row_new[$realFieldName]);
     }
 
     /**
@@ -1019,12 +902,12 @@ class SaveFieldQuerySet
      * @throws Exception
      * @since 3.2.3
      */
-    function sendEmailNote(string $listing_id, string $emails, array $row): int
+    function sendEmailNote(string $listing_id, string $listOfEmailsString, array $row): int
     {
         $this->ct->Table->loadRecord($listing_id);
 
         //Prepare Email List
-        $emails_raw = CTMiscHelper::csv_explode(',', $emails, '"', true);
+        $emails_raw = CTMiscHelper::csv_explode(',', $listOfEmailsString, '"', true);
 
         $emails = array();
         foreach ($emails_raw as $SendToEmail) {
@@ -1076,7 +959,7 @@ class SaveFieldQuerySet
             foreach ($this->ct->Table->fields as $fieldrow) {
                 if ($fieldrow['type'] == 'file') {
                     $field = new Field($this->ct, $fieldrow, $row);
-                    $FileFolder = CT_FieldTypeTag_file::getFileFolder($field->params[0]);
+                    $FileFolder = FileUtils::getOrCreateDirectoryPath($field->params[0]);
 
                     $filename = $FileFolder . $this->ct->Table->record[$fieldrow['realfieldname']];
                     if (file_exists($filename))

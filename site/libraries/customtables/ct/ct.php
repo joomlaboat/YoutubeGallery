@@ -17,7 +17,6 @@ use CustomTablesImageMethods;
 use Exception;
 use Joomla\CMS\Factory;
 use CustomTablesKeywordSearch;
-use Joomla\CMS\Language\Text;
 use CustomTables\CustomPHP\CleanExecute;
 
 class CT
@@ -390,7 +389,7 @@ class CT
 
                     $imageMethods->DeleteExistingSingleImage(
                         $row[$field->realfieldname],
-                        JPATH_SITE . DIRECTORY_SEPARATOR . $ImageFolder,
+                        CUSTOMTABLES_ABSPATH . $ImageFolder,
                         $field->params[0],
                         $this->Table->realtablename,
                         $field->realfieldname,
@@ -413,7 +412,7 @@ class CT
 
                 foreach ($photoRows as $photoRow) {
                     $imageMethods->DeleteExistingGalleryImage(
-                        JPATH_SITE . DIRECTORY_SEPARATOR . $ImageFolder,
+                        CUSTOMTABLES_ABSPATH . $ImageFolder,
                         $imageGalleryPrefix,
                         $this->Table->tableid,
                         $galleryName,
@@ -691,7 +690,7 @@ class CT
                 }
 
                 if ($parent_join_field_row['type'] != 'sqljoin' and $parent_join_field_row['type'] != 'records') {
-                    $this->errors[] = Text::sprintf("Menu Item - 'UserID Field name' parameter has an error: Wrong join field type '%s'. Accepted types: 'sqljoin' and 'records'.", $parent_join_field_row['type']);
+                    $this->errors[] = sprintf("Menu Item - 'UserID Field name' parameter has an error: Wrong join field type '%s'. Accepted types: 'sqljoin' and 'records'.", $parent_join_field_row['type']);
                     return $whereClause;
                 }
 
@@ -699,12 +698,12 @@ class CT
                 $parent_user_field_row = Fields::FieldRowByName($parent_user_field, $parent_table_fields);
 
                 if (count($parent_user_field_row) == 0) {
-                    $this->errors[] = Text::sprintf("Menu Item - 'UserID Field name' parameter has an error: User field '%s' not found.", $parent_user_field);
+                    $this->errors[] = sprintf("Menu Item - 'UserID Field name' parameter has an error: User field '%s' not found.", $parent_user_field);
                     return $whereClause;
                 }
 
                 if ($parent_user_field_row['type'] != 'userid' and $parent_user_field_row['type'] != 'user') {
-                    $this->errors[] = Text::sprintf("Menu Item - 'UserID Field name' parameter has an error: Wrong user field type '%s'. Accepted types: 'userid' and 'user'.", $parent_join_field_row['type']);
+                    $this->errors[] = sprintf("Menu Item - 'UserID Field name' parameter has an error: Wrong user field type '%s'. Accepted types: 'userid' and 'user'.", $parent_join_field_row['type']);
                     return $whereClause;
                 }
 

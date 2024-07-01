@@ -3,7 +3,7 @@
  * @package Custom Tables
  * @subpackage administrator/components/com_customtables/js/layouteditor.js
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @copyright Copyright (C) 2018-2024. All Rights Reserved
  * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  **/
@@ -28,11 +28,92 @@ let all_tables = [];
 let proversion = false;
 let SQLJoinTableID = null;
 
+let CustomTablesCSSClasses = [];
+let CustomTablesCMS = null;
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    if (window.Joomla instanceof Object) {
+        CustomTablesCMS = 'Joomla';
+        CustomTablesCSSClasses.push({'btn': 'btn'})
+        CustomTablesCSSClasses.push({'btn-small': 'btn-small'})
+        CustomTablesCSSClasses.push({'btn-success': 'btn-success'})
+        CustomTablesCSSClasses.push({'icon-delete': 'icon-delete'})
+        CustomTablesCSSClasses.push({'form-select': 'form-select'})
+        CustomTablesCSSClasses.push({'form-control': 'form-control'})
+    } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
+        CustomTablesCMS = 'WordPress';
+        CustomTablesCSSClasses.push({'btn': 'button'})
+        CustomTablesCSSClasses.push({'btn-small': null})
+        CustomTablesCSSClasses.push({'btn-success': 'button-primary'})
+        CustomTablesCSSClasses.push({'icon-delete': 'dashicons dashicons-dismiss'})
+        CustomTablesCSSClasses.push({'form-select': null})
+    }
+});
+
+function getCSSClassValueByKey(key) {
+    const foundObject = CustomTablesCSSClasses.find(obj => Object.keys(obj).includes(key));
+    return foundObject ? Object.values(foundObject)[0] : null;
+}
+
+function convertClassString(classString) {
+    const classes = classString.split(' ');
+    const newClasses = [];
+
+    for (const cls of classes) {
+        const value = getCSSClassValueByKey(cls);
+        if (value !== null) {
+            newClasses.push(value);
+        }
+    }
+
+    return newClasses.join(' ');
+}
+
 function typeChanged() {
     if (typeparams_obj != null)
         typeparams_obj.value = "";
 
     updateParameters();
+}
+
+function renderInput_Article(id, param, value, onchange) {
+    const options = getParamOptions(param, 'option');
+
+    let selectOptions = [];
+
+
+    for (let o = 0; o < options.length; o++) {
+        const opt = options[o]["@attributes"];
+
+        if (window.Joomla instanceof Object || (typeof (opt.wordpress) !== "undefined" && opt.wordpress === "true"))
+            selectOptions.push([opt.value, opt.label]);
+    }
+
+    if (window.Joomla instanceof Object) {
+        for (let i = 0; i < custom_fields.length; i++) {
+            if (custom_fields[i][0] === 'com_content.article')
+                selectOptions.push([custom_fields[i][2], custom_fields[i][1]]);
+        }
+    }
+
+    // Sort the array by the first column
+    selectOptions.sort(function (a, b) {
+        return a[1].localeCompare(b[1]); // Sort by first column, assumed to be strings
+    });
+
+    let result = '<select id="' + id + '" class="' + convertClassString('form-select') + '" data-type="list" ' + onchange + '>';
+
+    for (let i = 0; i < selectOptions.length; i++) {
+        if (selectOptions[i][0] === value)
+            result += '<option value="' + selectOptions[i][0] + '" selected="selected">' + selectOptions[i][1] + '</option>';
+        else
+            result += '<option value="' + selectOptions[i][0] + '" >' + selectOptions[i][1] + '</option>'
+    }
+
+    result += '</select>';
+
+    return result;
 }
 
 function renderInputBox(id, param, vlu, attributes, fieldTypeParametersList) {
@@ -55,7 +136,7 @@ function renderInputBox(id, param, vlu, attributes, fieldTypeParametersList) {
             if (param_att.min !== null)
                 extra += ' step="' + param_att.step + '"';
 
-            return '<input data-type="' + param_att.type + '" type="number" id="' + id + '" value="' + vlu + '" ' + extra + ' ' + attributes + '>';
+            return '<input data-type="' + param_att.type + '" class="' + convertClassString('form-control') + '" type="number" id="' + id + '" value="' + vlu + '" ' + extra + ' ' + attributes + '>';
         } else if (param_att.type === "list") {
 
             if (vlu === '') {
@@ -64,6 +145,25 @@ function renderInputBox(id, param, vlu, attributes, fieldTypeParametersList) {
             }
 
             return renderInput_List(id, param, vlu, attributes);
+
+        } else if (param_att.type === "user") {
+
+            if (vlu === '') {
+                if (typeof (param_att.default) !== "undefined")
+                    vlu = param_att.default;
+            }
+
+            return renderInput_User(id, param, vlu, attributes);
+
+        } else if (param_att.type === "article") {
+
+            if (vlu === '') {
+                if (typeof (param_att.default) !== "undefined")
+                    vlu = param_att.default;
+            }
+
+            return renderInput_Article(id, param, vlu, attributes);
+
         } else if (param_att.type === "language") {
             return renderInput_Language(id, param, vlu, attributes);
         } else if (param_att.type === "table") {
@@ -87,7 +187,7 @@ function renderInputBox(id, param, vlu, attributes, fieldTypeParametersList) {
 
             if (vlu.indexOf(':') !== -1) {
                 //if the default is a layout name then show input box but not select box
-                result += '<input data-type="field" type="text" id="' + id + '" value="' + vlu + '" ' + attributes + '>';
+                return '<input data-type="field" type="text" class="' + convertClassString('form-control') + '" id="' + id + '" value="' + vlu + '" ' + attributes + '>';
             } else {
                 if (SQLJoinTableID === null || (typeof (param_att.currenttable) != "undefined" && param_att.currenttable === "1")) {
 
@@ -135,7 +235,7 @@ function renderInputBox(id, param, vlu, attributes, fieldTypeParametersList) {
         } else if (param_att.type === "radio") {
             return renderInput_Radio(id, param, vlu, attributes);
         } else if (param_att.type === "array") {
-            if (vlu == '')
+            if (vlu === '')
                 vlu = '[]';
         } else if (param_att.type === "fieldlayout") {
             if (vlu === '') {
@@ -155,7 +255,7 @@ function renderInputBox(id, param, vlu, attributes, fieldTypeParametersList) {
             vlu = vlu.replaceAll('****apos****', "&apos;");
         }
     }
-    return '<input data-type="' + param_att.type + '" type="text" id="' + id + '" value="' + vlu + '" ' + attributes + '>';
+    return '<input data-type="' + param_att.type + '" class="' + convertClassString('form-control') + '" type="text" id="' + id + '" value="' + vlu + '" ' + attributes + '>';
 }
 
 function updateTypeParams(type_id, typeparams_id_, typeparams_box_id_) {
@@ -278,8 +378,9 @@ function inputBoxPreRender(proVersion, param, param_count, i, vlu, att, typepara
         if (typeof (param_att) !== "undefined" && typeof (param_att.description) !== "undefined")
             description = param_att.description;
 
-        result += '<label id="fieldtype_param_' + i + '-lbl" for="fieldtype_param_' + i + '" class="hasPopover" title="" data-content="' + description + '"';
+        result += '<label id="fieldtype_param_' + i + '-lbl" for="fieldtype_param_' + i + '" class="hasPopover" data-content="' + description + '"';
         result += ' data-original-title="' + label + '"';
+        result += ' title="' + description + '"';
         result += ' >';
         result += label;
 
@@ -476,7 +577,7 @@ function renderInput_Multiselect(id, param, values, onchange) {
     const values_array = values.split(",");
     let result = "";
 
-    result += '<select id="' + id + '" data-type="multiselect" ' + onchange + ' multiple="multiple">';
+    result += '<select id="' + id + '" class="' + convertClassString('form-select') + '" data-type="multiselect" ' + onchange + ' multiple="multiple">';
 
     for (let o = 0; o < options.length; o++) {
         const opt = options[o]["@attributes"];
@@ -508,7 +609,7 @@ function renderInput_ImageSizeList(id, param, value, attributes) {
     temp_imagesize_updateparent = temp_imagesize_updateparent.replace(/[']/g, "");
     temp_imagesize_updateparent = temp_imagesize_updateparent.split(",");
 
-    result += '<input type="text" id="' + id + '" data-type="imagesizelist" value="' + value + '" style="display:none;width:100%;" ' + attributes + '>';// '+onchange+'>';
+    result += '<input type="text" id="' + id + '" class="' + convertClassString('form-control') + '" data-type="imagesizelist" value="' + value + '" style="display:none;width:100%;" ' + attributes + '>';// '+onchange+'>';
     return result;
 }
 
@@ -518,25 +619,31 @@ function renderInput_ImageSizeSelector(id, param, value, attributes, fieldTypePa
 
     temp_imagesizeparams = getParamOptions(param, 'sizeparam');
 
-    let result = '<select id="' + id + '" data-type="imagesizeselector" ' + attributes + '>';
+    let result = '<select id="' + id + '" class="' + convertClassString('form-select') + '" data-type="imagesizeselector" ' + attributes + '>';
 
-    if (value === "" || value === "_thumb" || value === "_thumbnail")
-        result += '<option value="" selected="selected">- Thumbnail (100x100)</option>';
-    else
-        result += '<option value="" >- Thumbnail (100x100)</option>';
+    if ("_thumb" || value === "_thumbnail")
+        value = '';
 
-    if (value === "_original")
-        result += '<option value="_original" selected="selected">- Original Image</option>';
-    else
-        result += '<option value="_original" >- Original Image</option>';
+    let pairs = [
+        ['link:', '- Link to Thumbnail (100x100)'],
+        ['', '- IMG Tag: Thumbnail (100x100)'],
+        ['link:_original', '- Link to Original Image'],
+        ['_original', '- IMG Tag: Original Image'],
+    ];
 
     for (let i = 0; i < imageSizes.length; i++) {
         let pair = parseQuote(imageSizes[i], ',', true);
+        pairs.push(['link:' + pair[0], 'Link to image size: ' + pair[0]]);
+        pairs.push([pair[0], 'IMG tag: ' + pair[0]]);
+    }
 
-        if (pair[0] === value)
-            result += '<option value="' + pair[0] + '" selected="selected">' + pair[0] + '</option>';
+    pairs.push(['_count', '- Count (Number of images)']);
+
+    for (let i = 0; i < pairs.length; i++) {
+        if (pairs[i][0] === value)
+            result += '<option value="' + pairs[i][0] + '" selected="selected">' + pairs[i][1] + '</option>';
         else
-            result += '<option value="' + pair[0] + '">' + pair[0] + '</option>';
+            result += '<option value="' + pairs[i][0] + '">' + pairs[i][1] + '</option>';
     }
 
     result += '</select>';
@@ -604,14 +711,14 @@ function BuildImageSizeTable() {
                 result += '<td style="padding-right:5px;">' + renderInputBox(id, param, vlu, attributes, fieldTypeParametersList) + '</td>';
 
             }
-            result += '<td><div class="btn-wrapper" id="toolbar-delete"><button onclick="deleteImageSize(' + r + ');" type="button" class="btn btn-small"><span class="icon-delete"></span></button></div></td>';
+            result += '<td><div class="btn-wrapper" id="toolbar-delete"><button onclick="deleteImageSize(' + r + ');" type="button" class="' + convertClassString('btn btn-small') + '"><span class="' + convertClassString('icon-delete') + '"></span></button></div></td>';
             result += '</tr>';
         }
         result += '</tbody>';
         result += '</table>';
     }
 
-    result += '<button onclick=\'addImageSize("' + blank_value.join(",") + '")\' class="btn btn-small btn-success" type="button" style="margin-top:5px;">';
+    result += '<button onclick=\'addImageSize("' + blank_value.join(",") + '")\' class="' + convertClassString('btn btn-small btn-success') + '" type="button" style="margin-top:5px;">';
     result += '<span class="icon-new icon-white"></span><span style="margin-left:10px;">Add Image Size</span></button>';//<hr/>
 
     return result;
@@ -677,12 +784,12 @@ function renderInput_List(id, param, value, onchange) {
     const options = getParamOptions(param, 'option');
     let result = "";
 
-    result += '<select id="' + id + '" data-type="list" ' + onchange + '>';
+    result += '<select id="' + id + '" class="' + convertClassString('form-select') + '" data-type="list" ' + onchange + '>';
 
     for (let o = 0; o < options.length; o++) {
         const opt = options[o]["@attributes"];
 
-        if (window.Joomla instanceof Object || (typeof (opt.wordpress) !== "undefined" & opt.wordpress === "true")) {
+        if (window.Joomla instanceof Object || (typeof (opt.wordpress) !== "undefined" && opt.wordpress === "true")) {
             if (opt.value === value)
                 result += '<option value="' + opt.value + '" selected="selected">' + opt.label + '</option>';
             else
@@ -695,8 +802,48 @@ function renderInput_List(id, param, value, onchange) {
     return result;
 }
 
+function renderInput_User(id, param, value, onchange) {
+    const options = getParamOptions(param, 'option');
+
+    let selectOptions = [];
+
+
+    for (let o = 0; o < options.length; o++) {
+        const opt = options[o]["@attributes"];
+
+        if (window.Joomla instanceof Object || (typeof (opt.wordpress) !== "undefined" && opt.wordpress === "true"))
+            selectOptions.push([opt.value, opt.label]);
+    }
+
+    if (window.Joomla instanceof Object) {
+        for (let i = 0; i < custom_fields.length; i++) {
+            if (custom_fields[i][0] === 'com_users.user')
+                selectOptions.push([custom_fields[i][2], custom_fields[i][1]]);
+        }
+    }
+
+    // Sort the array by the first column
+    selectOptions.sort(function (a, b) {
+        return a[1].localeCompare(b[1]); // Sort by first column, assumed to be strings
+    });
+
+    let result = '<select id="' + id + '" class="' + convertClassString('form-select') + '" data-type="list" ' + onchange + '>';
+
+    for (let i = 0; i < selectOptions.length; i++) {
+        if (selectOptions[i][0] === value)
+            result += '<option value="' + selectOptions[i][0] + '" selected="selected">' + selectOptions[i][1] + '</option>';
+        else
+            result += '<option value="' + selectOptions[i][0] + '" >' + selectOptions[i][1] + '</option>'
+    }
+
+    result += '</select>';
+
+    return result;
+}
+
+
 function renderInput_Language(id, param, value, onchange) {
-    let result = '<select id="' + id + '" ' + onchange + '>';
+    let result = '<select id="' + id + '" class="' + convertClassString('form-select') + '" ' + onchange + '>';
 
     if (value === "")
         result += '<option value="" selected="selected">- Default Language</option>';
@@ -768,7 +915,7 @@ function renderInput_Table(id, param, value, onchange, fieldchild) {
         onchange = onchange.replace('onchange="', 'onchange="updateFieldSelectOptions(\'' + id + '\',\'' + fieldchild + '\',this.selectedIndex);');
     }
 
-    result += '<select id="' + id + '" data-type="table" ' + onchange + '>';
+    result += '<select id="' + id + '" class="' + convertClassString('form-select') + '" data-type="table" ' + onchange + '>';
 
     if (value === "")
         result += '<option value="" selected="selected">- Select Table</option>';
@@ -793,7 +940,7 @@ function renderInput_Field_do(id, value, onchange, SQLJoinTableID) {
 
     let result = "";
 
-    result += '<select id="' + id + '" data-type="field" ' + onchange + '>';
+    result += '<select id="' + id + '" class="' + convertClassString('form-select') + '" data-type="field" ' + onchange + '>';
 
     if (SQLJoinTableID !== null && SQLJoinTableID !== "") {
 
@@ -841,6 +988,7 @@ function renderInput_Field_readSelectBoxes(id) {
     let onchange_function = "";
 
     while (1) {
+
         const obj = document.getElementById(id + '_' + i);
         if (!obj)
             break;
@@ -875,9 +1023,20 @@ function renderInput_Field_readSelectBoxes(id) {
 
     if (allHaveSelections) {
         //add new select box
+
         const selectBoxes = document.getElementById(id + '_selectboxes');
 
-        let tableObject = document.getElementById('jform_tableid');
+        let tableObjectId = '';
+        if (window.Joomla instanceof Object) {
+            tableObjectId = 'jform_tableid';
+        } else if (document.body.classList.contains('wp-admin') || document.querySelector('#wpadminbar')) {
+            tableObjectId = 'table';
+        } else {
+            console.log('Error: renderInput_Layout not supported in this type of CMS');
+            return;
+        }
+
+        let tableObject = document.getElementById(tableObjectId);
         if (!tableObject)
             return;
 
@@ -945,7 +1104,7 @@ function renderInput_Field_readTextBoxes(id) {
         const selectBoxes = document.getElementById(id + '_selectboxes');
 
         const o2 = 'onchange=\'renderInput_Field_readTextBoxes("' + id + '");' + onchange_function + '\';';
-        selectBoxes.innerHTML = selectBoxes.innerHTML + '<input type="text" id="' + id + "_" + i + '" value="" ' + o2 + '>';
+        selectBoxes.innerHTML = selectBoxes.innerHTML + '<input type="text" class="' + convertClassString('form-control') + '" id="' + id + "_" + i + '" value="" ' + o2 + '>';
 
         //update values
         for (let n = 0; n < i; n++) {
@@ -986,7 +1145,7 @@ function renderInput_Field(id, param, value, onchange, SQLJoinTableID) {
 
         result += renderInput_Field_do(id + "_" + i, '', o, SQLJoinTableID);
 
-        return '<input type="hidden" data-type="field" id="' + id + '" ' + onchange + ' value=\'' + value + '\' /><div id="' + id + '_selectboxes">' + result + '</div>';
+        return '<input type="hidden" data-type="field" class="' + convertClassString('form-control') + '" id="' + id + '" ' + onchange + ' value=\'' + value + '\' /><div id="' + id + '_selectboxes">' + result + '</div>';
     } else
         return renderInput_Field_do(id, value, onchange, SQLJoinTableID);
 }
@@ -1034,7 +1193,7 @@ function renderInput_Layout(id, param, value, onchange) {
     let selectedLayoutName = '';
     let selectedLayoutID = '';
     onchange = onchange.replace('onchange="', 'onchange="renderInput_LayoutLinkUpdate(\'' + id + '\', this);');
-    let result = '<select id="' + id + '" data-type="layout" ' + onchange + ' class="ct_improved_selectbox">';
+    let result = '<select id="' + id + '" class="' + convertClassString('ct_improved_selectbox form-select') + '" data-type="layout" ' + onchange + '>';
 
     result += '<option value="" ' + (value === "" ? 'selected="selected"' : '') + '>- Select Layout</option>';
 
@@ -1076,11 +1235,11 @@ function renderInput_LayoutLinkUpdate(id, t) {
 function renderInput_Folder(id, value, onchange) {
 
     const folders = document.getElementById("ct_fieldtypeeditor_box").innerHTML.split(',');
-    let result = '<select id="' + id + '" style="width:90%" ' + onchange + '>';
+    let result = '<select id="' + id + '" class="' + convertClassString('form-select') + '" style="width:90%" ' + onchange + '>';
 
-    result += '<option value="" ' + (value == "" ? ' selected="selected"' : '') + '>- Images Root</option>';
+    result += '<option value="" ' + (value === "" ? ' selected="selected"' : '') + '>- Images Root</option>';
     for (let i = 0; i < folders.length; i++)
-        result += '<option value="' + folders[i] + '"' + (value == folders[i] ? ' selected="selected"' : '') + '>' + folders[i] + '</option>';
+        result += '<option value="' + folders[i] + '"' + (value === folders[i] ? ' selected="selected"' : '') + '>' + folders[i] + '</option>';
 
     return result + '</select>';
 }

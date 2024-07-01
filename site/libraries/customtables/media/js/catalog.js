@@ -1,15 +1,24 @@
+/**
+ * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * @package Custom Tables
+ * @author Ivan Komlev <support@joomlaboat.com>
+ * @link https://joomlaboat.com
+ * @copyright Copyright (C) 2018-2024. All Rights Reserved
+ * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
+ **/
+
 let es_LinkLoading = false;
 
 function ctCreateUser(msg, listing_id, toolbarBoxId, ModuleId) {
     if (confirm(msg)) {
         document.getElementById(toolbarBoxId).innerHTML = '';
 
-        let returnto = btoa(window.location.href);
+        let returnTo = btoa(window.location.href);
 
         //ctWebsiteRoot is the global variable same like ctItemId
         let link = ctWebsiteRoot + 'index.php?option=com_customtables&view=catalog&Itemid=' + ctItemId;
 
-        if (ModuleId !== 0) link = esPrepareLink(['task', "listing_id", 'returnto', 'ids', 'option', 'view'], ['task=createuser', 'option=com_customtables', 'view=catalog', 'listing_id=' + listing_id, 'returnto=' + returnto, 'ModuleId=' + ModuleId], link); else link = esPrepareLink(['task', "listing_id", 'returnto', 'ids'], ['task=createuser', 'listing_id=' + listing_id, 'returnto=' + returnto], link);
+        if (ModuleId !== 0) link = esPrepareLink(['task', "listing_id", 'returnto', 'ids', 'option', 'view'], ['task=createuser', 'option=com_customtables', 'view=catalog', 'listing_id=' + listing_id, 'returnto=' + returnTo, 'ModuleId=' + ModuleId], link); else link = esPrepareLink(['task', "listing_id", 'returnto', 'ids'], ['task=createuser', 'listing_id=' + listing_id, 'returnto=' + returnTo], link);
 
         window.location.href = link;
     }

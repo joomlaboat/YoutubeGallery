@@ -1,9 +1,8 @@
 /**
  * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
  * @package Custom Tables
- * @subpackage administrator/components/com_customtables/js/layouteditor.js
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @copyright Copyright (C) 2018-2024. All Rights Reserved
  * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  **/
@@ -1051,9 +1050,7 @@ function addExtraEvent(index) {
 }
 
 function doExtraCodeMirrorEvent(ch, lineString, lineNumber, mousePos) {
-    console.log(lineString);
     let positions = findTagInLine(ch, lineString);
-    console.log(positions);
 
     if (positions != null) {
         let startChar = lineString.substring(positions[0], positions[0] + 1); //+1 to have 1 character
@@ -1079,9 +1076,6 @@ function doExtraCodeMirrorEvent(ch, lineString, lineNumber, mousePos) {
 
         let postfix = ''; //todo
 
-        console.log("startChar:" + startChar);
-        console.log("line2:" + lineString);
-        console.log("endChar:" + endChar);
         showModalForm(startChar, postfix, endChar, tag, mousePos.top, mousePos.left, lineNumber, positions, 0);
     } else {
         let cm = getActiveEditor();
@@ -1145,8 +1139,6 @@ function convertOldSimpleCatalogToNew(cm, positionsRange) {
 
     // set the text back to the editor
     cm.setValue(text);
-
-    //alert(JSON.stringify(tag));
 }
 
 function splitQuoteSafe(str, delimiter, quote, preserveQuotes) {

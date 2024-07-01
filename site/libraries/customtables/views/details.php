@@ -53,7 +53,7 @@ class Details
                 $Layouts = new Layouts($this->ct);
                 $this->layoutDetailsContent = $Layouts->getLayout($this->ct->Params->detailsLayout);
                 $this->pageLayoutNameString = $this->ct->Params->detailsLayout;
-                $this->pageLayoutLink = Uri::root(true) . '/administrator/index.php?option=com_customtables&view=listoflayouts&task=layouts.edit&id=' . $Layouts->layoutId;
+                $this->pageLayoutLink = common::UriRoot(true) . '/administrator/index.php?option=com_customtables&view=listoflayouts&task=layouts.edit&id=' . $Layouts->layoutId;
 
                 if ($Layouts->layoutType === null) {
                     $this->ct->errors[] = 'Layout "' . $this->ct->Params->detailsLayout . '" not found or the type is not set.';
@@ -118,7 +118,6 @@ class Details
             if ($this->ct->Params->alias == '') {
                 //Parse using layout
                 if ($this->ct->Env->legacySupport) {
-
                     require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'layout.php');
                     $LayoutProc = new LayoutProcessor($this->ct);
                     $LayoutProc->layout = $filter;
@@ -256,7 +255,7 @@ class Details
      * @throws Exception
      * @since 3.2.2
      */
-    protected function SaveViewLogForRecord($rec): void
+    public function SaveViewLogForRecord($rec): void
     {
         $updateFields = [];
 
@@ -295,7 +294,6 @@ class Details
         $layoutDetailsContent = $this->layoutDetailsContent;
 
         if ($this->ct->Env->legacySupport) {
-
             require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'layout.php');
 
             $LayoutProc = new LayoutProcessor($this->ct);

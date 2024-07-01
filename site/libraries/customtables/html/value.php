@@ -17,21 +17,13 @@ use CustomTablesImageMethods;
 use Exception;
 use InvalidArgumentException;
 use Joomla\CMS\HTML\HTMLHelper;
-
-use CT_FieldTypeTag_file;
-use CT_FieldTypeTag_imagegallery;
-use CT_FieldTypeTag_log;
-
 use Joomla\CMS\Factory;
 use Joomla\CMS\Uri\Uri;
 
 $types_path = CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'fieldtypes' . DIRECTORY_SEPARATOR;
 
-if (file_exists($types_path . '_type_file.php')) {
-    require_once($types_path . '_type_file.php');
-    require_once($types_path . '_type_gallery.php');
+if (file_exists($types_path . '_type_log.php'))
     require_once($types_path . '_type_log.php');
-}
 
 class Value
 {
@@ -48,9 +40,9 @@ class Value
      * @throws Exception
      * @since 3.2.2
      */
-    function renderValue(array $fieldrow, ?array $row, array $option_list, bool $parseParams = true)
+    function renderValue(array $fieldRow, ?array $row, array $option_list, bool $parseParams = true)
     {
-        $this->field = new Field($this->ct, $fieldrow, $row, $parseParams);
+        $this->field = new Field($this->ct, $fieldRow, $row, $parseParams);
         $rfn = $this->field->realfieldname;
         $this->row = $row;
         $rowValue = $row[$rfn] ?? null;
@@ -152,25 +144,20 @@ class Value
 
             case 'text':
             case 'string':
-                return $this->TextFunctions($rowValue, $option_list);
-
-            case 'blob':
-
-                if (defined('WPINC'))
-                    return 'CustomTables for WordPress: "blob" field type is not available yet.';
-
-                return $this->blobProcess($rowValue, $option_list);
+                return BaseValue::TextFunctions($rowValue, $option_list);
 
             case 'color':
                 return $this->colorProcess($rowValue, $option_list);
 
+            case 'blob':
             case 'file':
-
-                if (defined('WPINC'))
-                    return 'CustomTables for WordPress: "file" field type is not available yet.';
-
-                return CT_FieldTypeTag_file::process($rowValue, $this->field, $option_list, $row[$this->ct->Table->realidfieldname], false);
-
+            case 'imagegallery':
+            case 'records':
+            case 'user':
+            case 'userid':
+            case 'sqljoin':
+            case 'log':
+            case 'article':
             case 'image':
                 return $ValueRenderer->render();
 
@@ -179,10 +166,8 @@ class Value
                 if (defined('WPINC'))
                     return 'CustomTables for WordPress: "signature" field type is not available yet.';
 
-                //$image = (object)Value_image::getImageSRCLayoutView($option_list, $rowValue, $this->field->params);
-
                 $conf = Factory::getConfig();
-                $sitename = $conf->get('config.sitename');
+                $siteName = $conf->get('config.sitename');
 
                 $ImageFolder_ = CustomTablesImageMethods::getImageFolder($this->field->params);
 
@@ -197,7 +182,7 @@ class Value
                 $imageFileWeb = URI::root() . $ImageFolderWeb . '/' . $rowValue . '.' . $format;
                 $imageFile = $ImageFolder . DIRECTORY_SEPARATOR . $rowValue . '.' . $format;
 
-                if (file_exists(JPATH_SITE . DIRECTORY_SEPARATOR . $imageFile)) {
+                if (file_exists(CUSTOMTABLES_ABSPATH . $imageFile)) {
                     $width = (($this->field->params !== null and count($this->field->params) > 0 and $this->field->params[0] != '') ? $this->field->params[0] ?? '300px' : '300px');
                     if (((string)intval($width)) == $width)
                         $width .= 'px';
@@ -206,30 +191,9 @@ class Value
                     if (((string)intval($height)) == $height)
                         $height .= 'px';
 
-                    return '<img src="' . $imageFileWeb . '" alt="' . $sitename . '" title="' . $sitename . '" style="width:' . $width . ';height:' . $height . ';" />';
+                    return '<img src="' . $imageFileWeb . '" alt="' . $siteName . '" title="' . $siteName . '" style="width:' . $width . ';height:' . $height . ';" />';
                 }
                 return null;
-
-            case 'article':
-
-                if (defined('WPINC'))
-                    return 'CustomTables for WordPress: "article" field type is not available.';
-
-                return $this->articleProcess($rowValue, $option_list);
-
-            case 'imagegallery':
-
-                if (defined('WPINC'))
-                    return 'CustomTables for WordPress: "imagegallery" field type is not available yet.';
-
-                $getGalleryRows = CT_FieldTypeTag_imagegallery::getGalleryRows($this->ct->Table->tablename, $this->field->fieldname, $this->row[$this->ct->Table->realidfieldname]);
-
-                if ($option_list[0] ?? '' == '_count')
-                    return count($getGalleryRows);
-
-                $imageSRCList = CT_FieldTypeTag_imagegallery::getImageGallerySRC($getGalleryRows, $option_list[0] ?? '', $this->field->fieldname, $this->field->params, $this->ct->Table->tableid, true);
-                $imageTagList = CT_FieldTypeTag_imagegallery::getImageGalleryTagList($imageSRCList);
-                return implode('', $imageTagList);
 
             case 'filebox':
 
@@ -246,22 +210,23 @@ class Value
 
                 return InputBox_filebox::process($FileBoxRows, $this->field, $this->row[$this->ct->Table->realidfieldname], $option_list);
 
-            case 'sqljoin':
-            case 'userid':
-            case 'user':
-            case 'records':
-                return $ValueRenderer->render();
-
             case 'usergroup':
-                return CTUser::showUserGroup((int)$rowValue);
+                if (defined('_JEXEC'))
+                    return CTUser::showUserGroup_Joomla((int)$rowValue);
+                elseif (defined('WPINC'))
+                    return $this->ct->Env->user->showUserGroup_WordPress((int)$rowValue);
+                else
+                    return null;
 
             case 'usergroups':
-                return CTUser::showUserGroups($rowValue);
+                return $this->ct->Env->user->showUserGroups($rowValue);
 
             case 'filelink':
-                $processor_file = CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'fieldtypes' . DIRECTORY_SEPARATOR . '_type_file.php';
+                $processor_file = CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'html'
+                    . DIRECTORY_SEPARATOR . 'value' . DIRECTORY_SEPARATOR . 'file.php';
                 require_once($processor_file);
-                return CT_FieldTypeTag_file::process($rowValue, $this->field, $option_list, $this->row[$this->ct->Table->realidfieldname], 0);
+
+                return Value_file::process($rowValue, $this->field, $option_list, $this->row[$this->ct->Table->realidfieldname], 0);
 
             case 'language':
                 $lang = new Languages();
@@ -271,9 +236,6 @@ class Value
                 }
                 return '';
 
-            case 'log':
-                return CT_FieldTypeTag_log::getLogVersionLinks($this->ct, $rowValue, $this->row);
-
             case 'checkbox':
                 if ((int)$rowValue)
                     return common::translate('COM_CUSTOMTABLES_YES');
@@ -281,7 +243,7 @@ class Value
                     return common::translate('COM_CUSTOMTABLES_NO');
 
             case 'date':
-            case 'lastviewtime':
+
                 return $this->dataProcess($rowValue, $option_list);
 
             case 'time':
@@ -294,6 +256,7 @@ class Value
 
             case 'changetime':
             case 'creationtime':
+            case 'lastviewtime':
                 return $this->timeProcess($rowValue, $option_list);
             case 'virtual':
                 return $this->virtualProcess();
@@ -324,9 +287,9 @@ class Value
         $edit_userGroup = (int)$this->ct->Params->editUserGroups;
         $isEditable = CTUser::checkIfRecordBelongsToUser($this->ct, $edit_userGroup);
 
-        $orderby_pair = explode(' ', $this->ct->Ordering->orderby ?? '');
+        $orderByPair = explode(' ', $this->ct->Ordering->orderby ?? '');
 
-        if ($orderby_pair[0] == $this->field->realfieldname and $isEditable)
+        if ($orderByPair[0] == $this->field->realfieldname and $isEditable)
             $iconClass = '';
         else
             $iconClass = ' inactive tip-top hasTooltip" title="' . HTMLHelper::_('tooltipText', 'COM_CUSTOMTABLES_FIELD_ORDERING_DISABLED');
@@ -336,7 +299,7 @@ class Value
         else
             $result = '<span class="sortable-handler' . $iconClass . '"><span class="icon-ellipsis-v" aria-hidden="true"></span></span>';
 
-        if ($orderby_pair[0] == $this->field->realfieldname) {
+        if ($orderByPair[0] == $this->field->realfieldname) {
 
             if ($this->ct->Env->version < 4)
                 $result .= '<input type="text" style="display:none" name="order[]" size="5" value="' . htmlspecialchars($value ?? '') . '" class="width-20 text-area-order " />';
@@ -372,62 +335,9 @@ class Value
         $fieldname = $this->field->realfieldname . $postfix;
         $rowValue = $this->row[$fieldname] ?? null;
 
-        return $this->TextFunctions($rowValue, $option_list);
+        return BaseValue::TextFunctions($rowValue, $option_list);
     }
 
-    public function TextFunctions($content, $parameters)
-    {
-        if (count($parameters) == 0)
-            return $content;
-
-        switch ($parameters[0]) {
-            case "chars" :
-            case "words" :
-
-                if (isset($parameters[1]))
-                    $count = (int)$parameters[1];
-                else
-                    $count = -1;
-
-                if (isset($parameters[2]) and $parameters[2] == 'true')
-                    $cleanBraces = true;
-                else
-                    $cleanBraces = false;
-
-                if (isset($parameters[3]) and $parameters[3] == 'true')
-                    $cleanQuotes = true;
-                else
-                    $cleanQuotes = false;
-
-                if ($parameters[0] == "chars")
-                    return CTMiscHelper::charsTrimText($content, $count, $cleanBraces, $cleanQuotes);
-                else
-                    return CTMiscHelper::wordsTrimText($content, $count, $cleanBraces, $cleanQuotes);
-
-            case "firstimage" :
-                return CTMiscHelper::getFirstImage($content);
-
-            default:
-                return $content;
-        }
-    }
-
-    /**
-     * @throws Exception
-     * @since 3.2.2
-     */
-    protected function blobProcess(?string $value, array $option_list): ?string
-    {
-        if ((int)$value == 0)
-            return null;
-
-        if ($this->field->type != 'blob' and $this->field->type != 'tinyblob' and $this->field->type != 'mediumblob' and $this->field->type != 'longblob')
-            return self::TextFunctions($value, $option_list);
-
-        $filename = CT_FieldTypeTag_file::getBlobFileName($this->field, $value, $this->row, $this->ct->Table->fields);
-
-        return CT_FieldTypeTag_file::process($filename, $this->field, $option_list, $this->row[$this->ct->Table->realidfieldname], false, intval($value));
-    }
 
     protected function colorProcess($value, array $option_list): string
     {
@@ -438,45 +348,6 @@ class Value
             return CTMiscHelper::colorStringValueToCSSRGB($value);
         } else
             return "#" . $value;
-    }
-
-    /**
-     * @throws Exception
-     * @since 3.2.2
-     */
-    protected function articleProcess($rowValue, array $option_list)
-    {
-        if (isset($option_list[0]) and $option_list[0] != '')
-            $article_field = $option_list[0];
-        else
-            $article_field = 'title';
-
-        $article = $this->getArticle((int)$rowValue, $article_field);
-
-        if (isset($option_list[1])) {
-            $opts = str_replace(':', ',', $option_list[1]);
-            return $this->TextFunctions($article, explode(',', $opts));
-        } else
-            return $article;
-    }
-
-    /**
-     * @throws Exception
-     * @since 3.2.2
-     */
-    protected function getArticle($articleId, $field)
-    {
-        //$query = 'SELECT ' . $field . ' FROM #__content WHERE id=' . (int)$articleId . ' LIMIT 1';
-
-        $whereClause = new MySQLWhereClause();
-        $whereClause->addCondition('id', (int)$articleId);
-
-        $rows = database::loadAssocList('#__content', [$field], $whereClause, null, null, 1);
-
-        if (count($rows) != 1)
-            return ""; //return nothing if article not found
-
-        return $rows[0][$field];
     }
 
     protected function dataProcess($rowValue, array $option_list): string
@@ -558,5 +429,45 @@ abstract class BaseValue
         $this->field = $field;
         $this->rowValue = $rowValue;
         $this->option_list = $option_list;
+    }
+
+    public static function TextFunctions(?string $content, array $parameters): ?string
+    {
+        if ($content === null)
+            return null;
+
+        if (count($parameters) == 0)
+            return $content;
+
+        switch ($parameters[0]) {
+            case "chars" :
+            case "words" :
+
+                if (isset($parameters[1]))
+                    $count = (int)$parameters[1];
+                else
+                    $count = -1;
+
+                if (isset($parameters[2]) and $parameters[2] == 'true')
+                    $cleanBraces = true;
+                else
+                    $cleanBraces = false;
+
+                if (isset($parameters[3]) and $parameters[3] == 'true')
+                    $cleanQuotes = true;
+                else
+                    $cleanQuotes = false;
+
+                if ($parameters[0] == "chars")
+                    return CTMiscHelper::charsTrimText($content, $count, $cleanBraces, $cleanQuotes);
+                else
+                    return CTMiscHelper::wordsTrimText($content, $count, $cleanBraces, $cleanQuotes);
+
+            case "firstimage" :
+                return CTMiscHelper::getFirstImage($content);
+
+            default:
+                return $content;
+        }
     }
 }

@@ -3,7 +3,7 @@
  * @package Custom Tables
  * @subpackage administrator/components/com_customtables/js/layoutwizard.js
  * @author Ivan Komlev <support@joomlaboat.com>
- * @link http://www.joomlaboat.com
+ * @link https://joomlaboat.com
  * @copyright Copyright (C) 2018-2024. All Rights Reserved
  * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  **/
@@ -16,6 +16,7 @@ let wizardFields = [];
 let wizardLayouts = [];
 let joomlaVersion = 3;
 let languages = [];
+let custom_fields = [];
 
 //Used in layouteditor.php
 function loadLayout(version) {
@@ -517,7 +518,8 @@ function showModalFieldTagForm(tagStartChar, postfix, tagEndChar, tag, top, left
         return;
     }
 
-    let fieldTypeParametersList = parseQuote(field.typeparams, ",", true);
+    let fieldTypeParamsClean = field.typeparams.replaceAll('"', '').replaceAll('****quote****', '"');
+    let fieldTypeParametersList = parseQuote(fieldTypeParamsClean, ",", true);
 
     const param_array = getParamOptions(group_params_object.params, 'param');
     const countParams = param_array.length;

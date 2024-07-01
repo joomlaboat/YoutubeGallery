@@ -13,6 +13,22 @@ defined('_JEXEC') or die();
 
 use Joomla\CMS\Uri\Uri;
 
+// Define str_starts_with if it doesn't exist
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool
+    {
+        return substr($haystack, 0, strlen($needle)) === $needle;
+    }
+}
+
+// Define str_contains if it doesn't exist
+if (!function_exists('str_contains')) {
+    function str_contains(string $haystack, string $needle): bool
+    {
+        return $needle === '' || strpos($haystack, $needle) !== false;
+    }
+}
+
 function CustomTablesLoader($include_utilities = false, $include_html = false, $PLUGIN_NAME_DIR = null, $componentName = 'com_customtables', bool $loadTwig = true): void
 {
     if (defined('CUSTOMTABLES_MEDIA_WEBPATH'))
@@ -25,10 +41,27 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
         else
             $libraryPath = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . $componentName . DIRECTORY_SEPARATOR . 'libraries';
 
+        if (!defined('CUSTOMTABLES_ABSPATH'))
+            define('CUSTOMTABLES_ABSPATH', JPATH_SITE . DIRECTORY_SEPARATOR);
+
         if (!defined('CUSTOMTABLES_IMAGES_PATH'))
             define('CUSTOMTABLES_IMAGES_PATH', JPATH_SITE . DIRECTORY_SEPARATOR . 'images');
-    } else
+
+        if (!defined('CUSTOMTABLES_PRO_PATH'))
+            define('CUSTOMTABLES_PRO_PATH', JPATH_SITE . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . 'content' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR);
+
+    } elseif (defined('WPINC')) {
         $libraryPath = $PLUGIN_NAME_DIR . 'libraries';
+
+        if (!defined('CUSTOMTABLES_ABSPATH'))
+            define('CUSTOMTABLES_ABSPATH', ABSPATH);
+
+        if (!defined('CUSTOMTABLES_IMAGES_PATH'))
+            define('CUSTOMTABLES_IMAGES_PATH', ABSPATH . 'wp-content' . DIRECTORY_SEPARATOR . 'uploads');
+
+        if (!defined('CUSTOMTABLES_PRO_PATH'))
+            define('CUSTOMTABLES_PRO_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'customtablespro' . DIRECTORY_SEPARATOR);
+    }
 
     if (!defined('CUSTOMTABLES_LIBRARIES_PATH'))
         define('CUSTOMTABLES_LIBRARIES_PATH', $libraryPath);
@@ -111,8 +144,8 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
     require_once($pathDataTypes . 'general_tags.php');
     require_once($pathDataTypes . 'record_tags.php');
     require_once($pathDataTypes . 'html_tags.php');
-
-
+    require_once($pathDataTypes . 'Twig_User_Tags.php');
+    
     $pathDataTypes = $path . 'logs' . DIRECTORY_SEPARATOR;
     require_once($pathDataTypes . 'logs.php');
 

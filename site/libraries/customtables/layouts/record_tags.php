@@ -72,38 +72,57 @@ class Twig_Record_Tags
             }
         }
 
-        if ($view_link == '')
-            $view_link = 'index.php?option=com_customtables&amp;view=details';
+        $listing_id = $this->ct->Table->record[$this->ct->Table->realidfieldname];
 
-        if (!is_null($this->ct->Params->ModuleId))
-            $view_link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
+        if (defined('_JEXEC')) {
+            if ($view_link == '')
+                $view_link = 'index.php?option=com_customtables&amp;view=details';
 
-        if ($this->ct->Table->alias_fieldname != '') {
-            $alias = $this->ct->Table->record[$this->ct->Env->field_prefix . $this->ct->Table->alias_fieldname] ?? '';
-            if ($alias != '')
-                $view_link .= '&amp;alias=' . $alias;
-            else
-                $view_link .= '&amp;listing_id=' . $this->ct->Table->record[$this->ct->Table->realidfieldname];
-        } else
-            $view_link .= '&amp;listing_id=' . $this->ct->Table->record[$this->ct->Table->realidfieldname];
+            if (!is_null($this->ct->Params->ModuleId))
+                $view_link .= '&amp;ModuleId=' . $this->ct->Params->ModuleId;
 
-        $view_link .= '&amp;Itemid=' . ($menu_item_id == 0 ? $this->ct->Params->ItemId : $menu_item_id);
-        $view_link .= (is_null($this->ct->Params->ModuleId) ? '' : '&amp;ModuleId=' . $this->ct->Params->ModuleId);
-        $view_link = CTMiscHelper::deleteURLQueryOption($view_link, 'returnto');
+            if ($this->ct->Table->alias_fieldname != '') {
+                $alias = $this->ct->Table->record[$this->ct->Env->field_prefix . $this->ct->Table->alias_fieldname] ?? '';
+                if ($alias != '') {
+                    $view_link .= '&amp;alias=' . $alias;
+                } else {
+                    $view_link = CTMiscHelper::deleteURLQueryOption($view_link, 'listing_id');
+                    $view_link .= '&amp;listing_id=' . $listing_id;
+                }
 
-        if ($add_returnto) {
-            if ($custom_not_base64_returnto)
-                $returnToEncoded = common::makeReturnToURL($custom_not_base64_returnto);
-            else
-                $returnToEncoded = common::makeReturnToURL($this->ct->Env->current_url . '#a' . $this->ct->Table->record[$this->ct->Table->realidfieldname]);
+            } else {
+                $view_link = CTMiscHelper::deleteURLQueryOption($view_link, 'listing_id');
+                $view_link .= '&amp;listing_id=' . $listing_id;
+            }
 
-            $view_link .= ($returnToEncoded != '' ? '&amp;returnto=' . $returnToEncoded : '');
-        }
+            $view_link .= '&amp;Itemid=' . ($menu_item_id == 0 ? $this->ct->Params->ItemId : $menu_item_id);
+            $view_link .= (is_null($this->ct->Params->ModuleId) ? '' : '&amp;ModuleId=' . $this->ct->Params->ModuleId);
 
-        if (defined('_JEXEC'))
+
+            $view_link = CTMiscHelper::deleteURLQueryOption($view_link, 'returnto');
+
+            if ($add_returnto) {
+                if ($custom_not_base64_returnto)
+                    $returnToEncoded = common::makeReturnToURL($custom_not_base64_returnto);
+                else
+                    $returnToEncoded = common::makeReturnToURL($this->ct->Env->current_url . '#a' . $listing_id);
+
+                $view_link .= ($returnToEncoded != '' ? '&amp;returnto=' . $returnToEncoded : '');
+            }
+
             return Route::_($view_link);
-        else
-            return $view_link;
+        } else {
+            $link = common::curPageURL();
+            $link = CTMiscHelper::deleteURLQueryOption($link, 'view' . $this->ct->Table->tableid);
+            $link = CTMiscHelper::deleteURLQueryOption($link, 'listing_id');
+
+            $link .= (str_contains($link, '?') ? '&amp;' : '?') . 'view' . $this->ct->Table->tableid . '=details';
+            $link .= '&amp;listing_id=' . $listing_id;
+            if (!empty($this->ct->Env->encoded_current_url))
+                $link .= '&amp;returnto=' . $this->ct->Env->encoded_current_url;
+
+            return $link;
+        }
     }
 
     function published(string $type = '', string $customTextPositive = "Published", string $customTextNegative = "Unpublished")
@@ -173,7 +192,7 @@ class Twig_Record_Tags
 
         foreach ($join_table_fields as $join_table_field) {
             if ($join_table_field['type'] == 'sqljoin') {
-                $typeParams = CTMiscHelper::csv_explode(',', $join_table_field['typeparams'], '"', false);
+                $typeParams = CTMiscHelper::csv_explode(',', $join_table_field['typeparams']);
                 $join_table_join_to_table = $typeParams[0];
                 if ($join_table_join_to_table == $this->ct->Table->tablename)
                     return intval($this->advancedJoin('count', $join_table, '_id', $join_table_field['fieldname'], '_id', $filter));
@@ -223,7 +242,6 @@ class Twig_Record_Tags
         } else
             $order_by_option_realName = '';
 
-        $rows = null;
         try {
             $rows = $this->join_buildQuery($sj_function, $tableRow, $field1_findWhat_realName, $field1_type, $field2_lookWhere_realName,
                 $field2_type, $field3_readValue_realName, $f->whereClause, $order_by_option_realName);
@@ -397,7 +415,7 @@ class Twig_Record_Tags
 
         foreach ($join_table_fields as $join_table_field) {
             if ($join_table_field['type'] == 'sqljoin') {
-                $typeParams = CTMiscHelper::csv_explode(',', $join_table_field['typeparams'], '"', false);
+                $typeParams = CTMiscHelper::csv_explode(',', $join_table_field['typeparams']);
                 $join_table_join_to_table = $typeParams[0];
                 if ($join_table_join_to_table == $this->ct->Table->tablename)
                     return $this->advancedJoin($function, $join_table, '_id', $join_table_field['fieldname'], $value_field, $filter);
@@ -473,7 +491,7 @@ class Twig_Record_Tags
 
         foreach ($join_table_fields as $join_table_field) {
             if ($join_table_field['type'] == 'sqljoin') {
-                $typeParams = CTMiscHelper::csv_explode(',', $join_table_field['typeparams'], '"', false);
+                $typeParams = CTMiscHelper::csv_explode(',', $join_table_field['typeparams']);
                 $join_table_join_to_table = $typeParams[0];
                 if ($join_table_join_to_table == $this->ct->Table->tablename) {
                     $complete_filter = $join_table_field['fieldname'] . '=' . $this->ct->Table->record[$this->ct->Table->realidfieldname];

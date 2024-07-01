@@ -16,8 +16,10 @@ namespace CustomTables;
 defined('_JEXEC') or die();
 
 use Exception;
-use Joomla\CMS\Uri\Uri;
 use LayoutProcessor;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class Layouts
 {
@@ -47,10 +49,10 @@ class Layouts
      * @throws Exception
      * @since 3.2.2
      */
-    function processLayoutTag(string &$htmlresult): bool
+    function processLayoutTag(string &$htmlResult): bool
     {
         $options = array();
-        $fList = CTMiscHelper::getListToReplace('layout', $options, $htmlresult, '{}');
+        $fList = CTMiscHelper::getListToReplace('layout', $options, $htmlResult, '{}');
 
         if (count($fList) == 0)
             return false;
@@ -69,7 +71,7 @@ class Layouts
             if ($ProcessContentPlugins)
                 CTMiscHelper::applyContentPlugins($layout);
 
-            $htmlresult = str_replace($fItem, $layout, $htmlresult);
+            $htmlResult = str_replace($fItem, $layout, $htmlResult);
             $i++;
         }
 
@@ -80,7 +82,7 @@ class Layouts
      * @throws Exception
      * @since 3.2.2
      */
-    function getLayout(string|int $layoutNameOrId, bool $processLayoutTag = true, bool $checkLayoutFile = true, bool $addHeaderCode = true): string
+    function getLayout($layoutNameOrId, bool $processLayoutTag = true, bool $checkLayoutFile = true, bool $addHeaderCode = true): string
     {
         $whereClause = new MySQLWhereClause();
 
@@ -148,7 +150,7 @@ class Layouts
             $this->addCSSandJSIfNeeded($row, $checkLayoutFile);
 
         $this->pageLayoutNameString = $row['layoutname'];
-        $this->pageLayoutLink = Uri::root(true) . '/administrator/index.php?option=com_customtables&view=listoflayouts&task=layouts.edit&id=' . $row['id'];
+        $this->pageLayoutLink = common::UriRoot(true) . '/administrator/index.php?option=com_customtables&view=listoflayouts&task=layouts.edit&id=' . $row['id'];
         $this->layoutCode = $layoutCode;
         return $layoutCode;
     }
@@ -363,6 +365,13 @@ class Layouts
         );
     }
 
+    /**
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     * @throws Exception
+     * @since 3.0.0
+     */
     function parseRawLayoutContent(string $content, bool $applyContentPlugins = true): string
     {
         if ($this->ct->Env->legacySupport) {
@@ -392,11 +401,13 @@ class Layouts
      */
     function renderMixedLayout(int $layoutId, int $layoutType = null): array
     {
+        if ($this->ct->Table->fields === null)
+            return ['html' => 'CustomTable: Table not selected'];
+
         if ($layoutId !== 0) {
             $this->getLayout($layoutId);
             if ($this->layoutType === null)
                 return ['html' => 'CustomTable: Layout "' . $layoutId . '" not found'];
-
 
         } else {
             if ($layoutType == 1 or $layoutType == 5)
@@ -519,13 +530,13 @@ class Layouts
 
         $result .= PHP_EOL;
 
-        $fieldtypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy'];
+        $fieldTypes_to_skip = ['log', 'imagegallery', 'filebox', 'dummy'];
         $fieldTypesWithSearch = ['email', 'string', 'multilangstring', 'text', 'multilangtext', 'sqljoin', 'records', 'user', 'userid', 'int', 'checkbox', 'radio'];
-        $fieldtypes_allowed_to_orderby = ['string', 'email', 'url', 'sqljoin', 'phponadd', 'phponchange', 'int', 'float', 'ordering', 'changetime', 'creationtime', 'date', 'multilangstring', 'userid', 'user', 'virtual'];
+        $fieldTypes_allowed_to_orderBy = ['string', 'email', 'url', 'sqljoin', 'phponadd', 'phponchange', 'int', 'float', 'ordering', 'changetime', 'creationtime', 'date', 'multilangstring', 'userid', 'user', 'virtual'];
 
         $result .= PHP_EOL . '<table>' . PHP_EOL;
 
-        $result .= self::renderTableHead($fields, $addToolbar, $fieldtypes_to_skip, $fieldTypesWithSearch, $fieldtypes_allowed_to_orderby);
+        $result .= self::renderTableHead($fields, $addToolbar, $fieldTypes_to_skip, $fieldTypesWithSearch, $fieldTypes_allowed_to_orderBy);
 
         $result .= PHP_EOL . '<tbody>';
         $result .= PHP_EOL . '{% block record %}';
@@ -545,16 +556,16 @@ class Layouts
 
         $result .= '<td style="text-align:center;"><a href="{{ record.link(true) }}">{{ record.id }}</a></td>' . PHP_EOL;
 
-        $imagegalleryFound = false;
-        $fileboxFound = false;
+        $imageGalleryFound = false;
+        $fileBoxFound = false;
 
         foreach ($fields as $field) {
 
             if ($field['type'] == 'imagegallery') {
-                $imagegalleryFound = true;
+                $imageGalleryFound = true;
             } elseif ($field['type'] == 'filebox') {
-                $fileboxFound = true;
-            } elseif ($field['type'] != 'ordering' && !in_array($field['type'], $fieldtypes_to_skip)) {
+                $fileBoxFound = true;
+            } elseif ($field['type'] != 'ordering' && !in_array($field['type'], $fieldTypes_to_skip)) {
 
                 if ($field['type'] == 'url')
                     $fieldValue = '<a href="{{ ' . $field['fieldname'] . ' }}" target="_blank">{{ ' . $field['fieldname'] . ' }}</a>';
@@ -569,10 +580,10 @@ class Layouts
 
             $toolbarButtons = ['edit', 'publish', 'refresh', 'delete'];
 
-            if ($imagegalleryFound)
+            if ($imageGalleryFound)
                 $toolbarButtons [] = 'gallery';
 
-            if ($fileboxFound)
+            if ($fileBoxFound)
                 $toolbarButtons [] = 'filebox';
 
             $result .= '<td>{{ html.toolbar("' . implode('","', $toolbarButtons) . '") }}</td>' . PHP_EOL;
@@ -688,7 +699,10 @@ class Layouts
     function createDefaultLayout_Edit_WP(array $fields, bool $addToolbar = true): string
     {
         $this->layoutType = 2;
-        $result = '<table class="form-table" role="presentation">';
+
+        $result = '<legend>{{ table.title }}</legend>{{ html.goback() }}';
+
+        $result .= '<table class="form-table" role="presentation">';
 
         $fieldTypes_to_skip = ['log', 'phponview', 'phponchange', 'phponadd', 'md5', 'id', 'server', 'userid', 'viewcount', 'lastviewtime', 'changetime', 'creationtime', 'imagegallery', 'filebox', 'dummy', 'virtual'];
 
@@ -734,7 +748,13 @@ class Layouts
         foreach ($fields as $field) {
             if (!in_array($field['type'], $fieldTypes_to_skip)) {
                 $result .= '<div class="control-group">';
-                $result .= '<div class="control-label">{{ ' . $field['fieldname'] . '.title }}</div><div class="controls">{{ ' . $field['fieldname'] . ' }}</div>';
+
+                //if ($field['type'] == 'creationtime' or $field['type'] == 'changetime' or $field['type'] == 'lastviewtime')
+                $fieldTag = '{{ ' . $field['fieldname'] . ' }}';
+
+                $result .= '<div class="control-label">{{ ' . $field['fieldname'] . '.title }}</div><div class="controls"> ' . $fieldTag . ' </div>';
+
+
                 $result .= '</div>';
             }
         }
@@ -926,20 +946,49 @@ class Layouts
      */
     protected function renderDetails(): string
     {
+
+        if ($this->ct->Table->tablename !== null) {
+            $listing_id = common::inputGetCmd('listing_id');
+
+            if ($listing_id !== null) {
+                $row = $this->ct->Table->loadRecord($listing_id);
+            } else
+                return 'Record not loaded (listing_id parameter not specified)';
+        } else
+            return 'Table not selected';
+
+
         if ($this->ct->Table->record === null) {
             return 'Record not loaded';
         }
 
+
         $details = new Details($this->ct);
+        $details->layoutDetailsContent = $this->layoutCode;
+        $details->pageLayoutNameString = $this->pageLayoutNameString;
+        $details->pageLayoutLink = $this->pageLayoutLink;
 
+        if (isset($row)) {
+            if ($this->ct->Env->advancedTagProcessor and class_exists('CustomTables\ctProHelpers'))
+                $row = ctProHelpers::getSpecificVersionIfSet($this->ct, $row);
+        }
+
+        $details->row = $row;
+
+        /*
         if ($details->load()) {
-
             if ($details->layoutType == 8)
                 $this->ct->Env->frmt = 'xml';
             elseif ($details->layoutType == 9)
                 $this->ct->Env->frmt = 'csv';
             elseif ($details->layoutType == 10)
                 $this->ct->Env->frmt = 'json';
+        }*/
+
+        if (!is_null($row)) {
+            //Save view log
+            $details->SaveViewLogForRecord($row);
+            //$this->UpdatePHPOnView();
         }
 
         return $details->render();

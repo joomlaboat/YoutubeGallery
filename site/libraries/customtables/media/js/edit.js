@@ -1,3 +1,11 @@
+/**
+ * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * @package Custom Tables
+ * @author Ivan Komlev <support@joomlaboat.com>
+ * @link https://joomlaboat.com
+ * @copyright Copyright (C) 2018-2024. All Rights Reserved
+ * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
+ **/
 class CustomTablesEdit {
 
     constructor() {
@@ -621,7 +629,17 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
         filters = JSON.parse(decodedFilterString);
     }
 
-    let onchange = Base64.decode(wrapper.dataset.onchange).replace(/[^ -~]+/g, "");
+    let attributesStringDataSet = Base64.decode(wrapper.dataset.data - attributes);
+
+    //The code searches the string for any characters that are not in the printable ASCII range (from space to tilde).
+    //It replaces any such characters with an empty string, effectively removing them from the string.
+    let attributesStringClean = attributesStringDataSet.replace(/[^ -~]+/g, "");
+    let attributes = JSON.parse(attributesStringClean);
+    alert(JSON.stringify(attributes));
+        
+    //let onchange = Base64.decode(wrapper.dataset.onchange).replace(/[^ -~]+/g, "");
+
+
     let next_index = index;
     let next_sub_index = sub_index;
     let val;

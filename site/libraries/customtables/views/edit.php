@@ -15,9 +15,11 @@ defined('_JEXEC') or die();
 
 use Exception;
 use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Uri\Uri;
 use LayoutProcessor;
 use tagProcessor_Edit;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class Edit
 {
@@ -38,20 +40,30 @@ class Edit
         $this->pageLayoutLink = null;
     }
 
+    /**
+     * @throws Exception
+     * @since 3.2.2
+     */
     function load(): bool
     {
         if ($this->ct->Params->editLayout != '') {
             $Layouts = new Layouts($this->ct);
-            $this->layoutContent = $Layouts->getLayout($this->ct->Params->editLayout);
-            $this->layoutType = $Layouts->layoutType;
-            $this->pageLayoutNameString = $this->ct->Params->editLayout;
 
-            if (!isset($Layouts->layoutId)) {
-                $this->ct->errors[] = $this->ct->Params->editLayout . '" not found.';
+            if (empty($this->ct->Params->editLayout)) {
+                $this->ct->errors[] = 'Edit Layout not selected.';
                 return false;
             }
 
-            $this->pageLayoutLink = Uri::root(true) . '/administrator/index.php?option=com_customtables&view=listoflayouts&task=layouts.edit&id=' . $Layouts->layoutId;
+            $this->layoutContent = $Layouts->getLayout($this->ct->Params->editLayout);
+            if (isset($Layouts->layoutId)) {
+                $this->layoutType = $Layouts->layoutType;
+                $this->pageLayoutNameString = $this->ct->Params->editLayout;
+            } else {
+                $this->ct->errors[] = 'Layout "' . $this->ct->Params->editLayout . '" not found.';
+                return false;
+            }
+
+            $this->pageLayoutLink = common::UriRoot(true) . '/administrator/index.php?option=com_customtables&view=listoflayouts&task=layouts.edit&id=' . $Layouts->layoutId;
 
             if ($Layouts->layoutType === null) {
                 $this->ct->errors[] = 'Layout "' . $this->ct->Params->editLayout . '" not found or the type is not set.';
@@ -60,7 +72,7 @@ class Edit
 
         } else {
             $Layouts = new Layouts($this->ct);
-            $this->layoutContent = $Layouts->createDefaultLayout_Edit($this->ct->Table->fields, true);
+            $this->layoutContent = $Layouts->createDefaultLayout_Edit($this->ct->Table->fields);
             $this->pageLayoutNameString = 'Default Edit Layout';
             $this->pageLayoutLink = null;
         }
@@ -68,6 +80,13 @@ class Edit
         return true;
     }
 
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     * @throws Exception
+     * @since 3.2.2
+     */
     public function processLayout(?array $row = null): string
     {
         if ($row !== null)
@@ -92,6 +111,10 @@ class Edit
         return $result;
     }
 
+    /**
+     * @throws Exception
+     * @since 3.2.2
+     */
     function render(?array $row, string $formLink, string $formName, bool $addFormTag = true): string
     {
         $result = '';
@@ -129,9 +152,15 @@ class Edit
         $listing_id = $this->row[$this->ct->Table->realidfieldname] ?? 0;
 
         if ($addFormTag) {
+
+            if (defined('_JEXEC'))
+                $additionalParameter = '';
+            else
+                $additionalParameter = ' enctype="multipart/form-data"';
+
             $result .= '<form action="' . $formLink . '" method="post" name="' . $formName . '" id="' . $formName . '" class="form-validate form-horizontal well" '
                 . 'data-tableid="' . $this->ct->Table->tableid . '" data-recordid="' . $listing_id . '" '
-                . 'data-version=' . $this->ct->Env->version . '>';
+                . 'data-version=' . $this->ct->Env->version . $additionalParameter . '>';
         }
 
         if (defined('_JEXEC'))
@@ -196,7 +225,7 @@ class Edit
             $result .= HTMLHelper::_('form.token');
 
         } elseif (defined('WPINC')) {
-            //$result .= wp_nonce_field('create-record', '_wpnonce_create-record'); Plugin calls it
+            $result .= '<!-- token -->';
         }
 
         if (defined('_JEXEC'))

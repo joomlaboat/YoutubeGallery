@@ -25,41 +25,6 @@ class Value_image extends BaseValue
         parent::__construct($ct, $field, $rowValue, $option_list);
     }
 
-    /**
-     * @throws Exception
-     * @since 3.2.2
-     */
-    static public function get_image_type_value(Field $field, string $realidfieldname, ?string $listing_id): ?string
-    {
-        $imageMethods = new CustomTablesImageMethods;
-        $ImageFolder = CustomTablesImageMethods::getImageFolder($field->params);
-        $fileId = common::inputPostString($field->comesfieldname, null, 'create-edit-record');
-
-        if ($listing_id == null or $listing_id == '' or (is_numeric($listing_id) and intval($listing_id) < 0)) {
-            $value = $imageMethods->UploadSingleImage('', $fileId, $field->realfieldname, JPATH_SITE . DIRECTORY_SEPARATOR
-                . $ImageFolder, $field->params, $field->ct->Table->realtablename, $field->ct->Table->realidfieldname);
-        } else {
-            $whereClause = new MySQLWhereClause();
-            $whereClause->addCondition($realidfieldname, $listing_id);
-
-            $ExistingImageRows = database::loadObjectList($field->ct->Table->realtablename, [$field->realfieldname], $whereClause, null, null, 1);
-            if (count($ExistingImageRows) == 0)
-                $ExistingImage = null;
-            else
-                $ExistingImage = $ExistingImageRows[$field->realfieldname] ?? null;
-
-            $value = $imageMethods->UploadSingleImage($ExistingImage, $fileId, $field->realfieldname,
-                JPATH_SITE . DIRECTORY_SEPARATOR . $ImageFolder, $field->params, $field->ct->Table->realtablename, $field->ct->Table->realidfieldname);
-        }
-
-        if ($value == "-1" or $value == "2") {
-            // -1 if file extension not supported
-            // 2 if file already exists
-            common::enqueueMessage('Could not upload image file.');
-            $value = null;
-        }
-        return $value;
-    }
 
     public static function getImageSRC(?array $row, string $realFieldName, string $ImageFolder, bool $addPath = true): ?array
     {
@@ -89,19 +54,22 @@ class Value_image extends BaseValue
             $imageSrc_ = '';
         }
 
-        if (file_exists(JPATH_SITE . DIRECTORY_SEPARATOR . $imageFile_ . '.jpg')) {
+        if (file_exists(CUSTOMTABLES_ABSPATH . $imageFile_ . '.jpg')) {
             $imageFile = $imageFile_ . '.jpg';
             $imageSrc = $imageSrc_ . '.jpg';
-        } elseif (file_exists(JPATH_SITE . DIRECTORY_SEPARATOR . $imageFile_ . '.png')) {
+        } elseif (file_exists(CUSTOMTABLES_ABSPATH . $imageFile_ . '.png')) {
             $imageFile = $imageFile_ . '.png';
             $imageSrc = $imageSrc_ . '.png';
-        } elseif (file_exists(JPATH_SITE . DIRECTORY_SEPARATOR . $imageFile_ . '.webp')) {
+        } elseif (file_exists(CUSTOMTABLES_ABSPATH . $imageFile_ . '.webp')) {
             $imageFile = $imageFile_ . '.webp';
             $imageSrc = $imageSrc_ . '.webp';
         } else {
             $imageFile = '';
             $imageSrc = '';
         }
+
+        if ($imageSrc == '')
+            return null;
 
         return ['src' => $imageSrc, 'shortcut' => $isShortcut];
     }
@@ -127,8 +95,8 @@ class Value_image extends BaseValue
      */
     function render(): ?string
     {
-        if (defined('WPINC'))
-            return 'CustomTables for WordPress: "image" field type is not available yet.';
+        //if (defined('WPINC'))
+        //return 'CustomTables for WordPress: "image" field type is not available yet.';
 
         $image = self::getImageSRCLayoutView($this->option_list, $this->rowValue, $this->field->params);
         if ($image === null)
@@ -142,8 +110,13 @@ class Value_image extends BaseValue
         if ($rowValue !== null and $rowValue !== '' and is_numeric($rowValue) and intval($rowValue) < 0)
             $rowValue = -intval($rowValue);
 
-        $conf = Factory::getConfig();
-        $siteName = $conf->get('config.sitename');
+        $siteName = '';
+        if (defined('_JEXEC')) {
+            $conf = Factory::getConfig();
+            $siteName = $conf->get('config.sitename');
+        } elseif (defined('WPINC')) {
+            $siteName = '';
+        }
 
         $option = $option_list[0] ?? '';
         $ImageFolder_ = CustomTablesImageMethods::getImageFolder($params);
@@ -156,9 +129,9 @@ class Value_image extends BaseValue
             $imageFileExtension = 'jpg';
 
             $imageFile = $ImageFolder . DIRECTORY_SEPARATOR . $prefix . $rowValue . '.' . $imageFileExtension;
-            if (file_exists(JPATH_SITE . DIRECTORY_SEPARATOR . $imageFile)) {
+            if (file_exists(CUSTOMTABLES_ABSPATH . $imageFile)) {
                 $imageSrc = $ImageFolderWeb . '/' . $prefix . $rowValue . '.' . $imageFileExtension;
-                $imageTag = '<img src="' . Uri::root() . $imageSrc . '" style="width:150px;height:150px;" alt="' . $siteName . '" title="' . $siteName . '" />';
+                $imageTag = '<img src="' . common::UriRoot() . $imageSrc . '" style="width:150px;height:150px;" alt="' . $siteName . '" title="' . $siteName . '" />';
                 return ['src' => $imageSrc, 'tag' => $imageTag];
             }
             return null;
@@ -174,11 +147,11 @@ class Value_image extends BaseValue
             }
 
             $imgMethods = new CustomTablesImageMethods;
-            $imageFileExtension = $imgMethods->getImageExtension(JPATH_SITE . DIRECTORY_SEPARATOR . $imageName);
+            $imageFileExtension = $imgMethods->getImageExtension(CUSTOMTABLES_ABSPATH . $imageName);
 
             if ($imageFileExtension != '') {
                 $imageSrc = $ImageFolderWeb . '/' . $prefix . $rowValue . '.' . $imageFileExtension;
-                $imageTag = '<img src="' . Uri::root() . $imageSrc . '" alt="' . $siteName . '" title="' . $siteName . '" />';
+                $imageTag = '<img src="' . common::UriRoot() . $imageSrc . '" alt="' . $siteName . '" title="' . $siteName . '" />';
                 return ['src' => $imageSrc, 'tag' => $imageTag];
             }
             return null;
@@ -196,7 +169,7 @@ class Value_image extends BaseValue
 
                 $prefix = $option;
                 $imageName = $ImageFolder . DIRECTORY_SEPARATOR . $prefix . '_' . $rowValue;
-                $imageFileExtension = $imgMethods->getImageExtension(JPATH_SITE . DIRECTORY_SEPARATOR . $imageName);
+                $imageFileExtension = $imgMethods->getImageExtension(CUSTOMTABLES_ABSPATH . $imageName);
                 $imageFile = $imageName . '.' . $imageFileExtension;
                 $imageSrc = $ImageFolderWeb . '/' . $prefix . '_' . $rowValue . '.' . $imageFileExtension;
 
@@ -208,7 +181,7 @@ class Value_image extends BaseValue
                     if ($img[2] > 0)
                         $styles[] = 'height:' . $img[2] . 'px;';
 
-                    $imageTag = '<img src="' . Uri::root() . $imageSrc . '" alt="' . $siteName . '" title="' . $siteName . '"'
+                    $imageTag = '<img src="' . common::UriRoot() . $imageSrc . '" alt="' . $siteName . '" title="' . $siteName . '"'
                         . (count($styles) > 0 ? ' style="' . implode(";", $styles) . '"' : '') . ' />';
 
                     $imageSrc = $imageFile;
