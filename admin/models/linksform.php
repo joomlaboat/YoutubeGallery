@@ -44,7 +44,7 @@ class YoutubeGalleryModelLinksForm extends AdminModel
         // Check for existing item.
         // Modify the form based on Edit State access controls.
         if ($id != 0 && (!$user->authorise('core.edit.state', 'com_youtubegallery.linksform.' . (int)$id))
-            || ($id == 0 && !$user->authorise('core.edit.state', 'com_youtubegallery'))) {
+            or ($id == 0 && !$user->authorise('core.edit.state', 'com_youtubegallery'))) {
             // Disable fields for display.
             $form->setFieldAttribute('published', 'disabled', 'true');
             // Disable fields while saving.

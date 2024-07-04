@@ -182,7 +182,7 @@ class MySQLWhereClause
 
         foreach ($conditions as $condition) {
             if ($condition['value'] === null) {
-                $where [] = $condition['field'];
+                $where [] = $condition['field'] . ' IS NULL';
             } elseif ($condition['operator'] == 'NULL') {
                 $where [] = $condition['field'] . ' IS NULL';
             } elseif ($condition['operator'] == 'NOT NULL') {
@@ -315,7 +315,7 @@ class database
      * @param string $tableName The name of the table to insert data into.
      * @param array $data An associative array of data to insert. Keys represent column names, values represent values to be inserted.
      *
-     * @return int|null The ID of the last inserted record, or null if the insert operation failed.
+     * @return int or null The ID of the last inserted record, or null if the insert operation failed.
      * @throws Exception If an error occurs during the insert operation.
      *
      * @since 3.1.8
@@ -426,7 +426,7 @@ class database
             $query->setLimit(20000, $limitStart);
         if ($limitStart === null and $limit !== null)
             $query->setLimit($limit);
-
+        
         try {
             $db->setQuery($query);
         } catch (Exception $e) {
@@ -454,6 +454,7 @@ class database
                 $selectTable_safe = preg_replace('/[^a-zA-Z0-9_#]/', '', $select[1]);//Joomla way
                 $selectField = preg_replace('/[^a-zA-Z0-9_]/', '', $select[2]);
                 $asValue = preg_replace('/[^a-zA-Z0-9_]/', '', $select[3] ?? 'vlu');
+                $variable = preg_replace('/[^a-zA-Z0-9_]/', '', $select[4] ?? '');
 
                 if ($select[0] == 'COUNT')
                     $selects[] = 'COUNT(`' . $selectTable_safe . '`.`' . $selectField . '`) AS ' . $asValue;
@@ -471,6 +472,8 @@ class database
                     $selects[] = 'OCTET_LENGTH(`' . $selectTable_safe . '`.`' . $selectField . '`) AS ' . $asValue;
                 elseif ($select[0] == 'SUBSTRING_255')
                     $selects[] = 'SUBSTRING(`' . $selectTable_safe . '`.`' . $selectField . '`,1,255) AS ' . $asValue;
+                elseif ($select[0] == 'CUSTOM_FIELD')
+                    $selects[] = '(SELECT value FROM #__fields_values WHERE #__fields_values.field_id=#__fields.id AND #__fields_values.item_id=' . $variable . ') AS ' . $asValue;
 
             } elseif ($select == '*') {
                 $selects[] = '*';
@@ -526,7 +529,6 @@ class database
                 $selects[] = '1 AS published_field_found';
 
             } else {
-
 
                 $parts = explode('.', $select);
                 if (count($parts) == 2) {
@@ -820,7 +822,6 @@ class database
 
         if (self::getServerType() == 'postgresql') {
 
-
             $db->setQuery('CREATE SEQUENCE IF NOT EXISTS ' . $realTableName . '_seq');
             $db->execute();
 
@@ -943,6 +944,7 @@ class database
                 . (($PureFieldType['default'] ?? '') != "" ? ' DEFAULT ' . (is_numeric($PureFieldType['default']) ? $PureFieldType['default'] : $db->quote($PureFieldType['default'])) : '')
                 . (($PureFieldType['autoincrement'] ?? false) ? ' AUTO_INCREMENT' : '')
                 . ' COMMENT ' . $db->quote($comment));
+
             $db->execute();
         }
     }
