@@ -271,14 +271,13 @@ function renderFieldsBox() {
 
     current_table_id = parseInt(current_table_id);
     if (isNaN(current_table_id) || current_table_id === 0) {
-        //field_box_obj.innerHTML='<p>Table not selected. Select Table.</p>';
-        return;
+        return '<div class="FieldTagWizard"><p>Table not selected.</p></div>';
     }
 
     const l = wizardFields.length;
+
     if (l === 0) {
-        //field_box_obj.innerHTML='<div class="FieldTagWizard"><p>There are no Fields in selected table.</p></div>';
-        return;
+        return '<div class="FieldTagWizard"><p>There are no Fields in selected table.</p></div>';
     } else {
         replaceOldFieldTitleTagsWithTwigStyle();
     }
@@ -330,6 +329,7 @@ function renderFieldsBox() {
             'content': '<p>Dynamic Field Tags that produce Field Values (if the record is alredy created ID!=0):</p>' + renderFieldTags('{{ ', '', ' }}', ['dummy'], 'valueparams')
         });
     }
+
 
     if (tabs.length > 0)
         return renderTabs('layouteditor_fields', tabs);
@@ -424,6 +424,7 @@ function showModalDependenciesList(e) {
 }
 
 function showModalFieldTagsList(e) {
+
     document.getElementById("layouteditor_modal_content_box").innerHTML = '<div class="dynamic_values">' + renderFieldsBox() + '</div>';
     showModal();
 }
@@ -675,7 +676,10 @@ function getLayout_Page() {
     result += '<div style="float:right;">{{ html.recordcount }}</div>\r\n';
     result += '<div style="float:left;">{{ html.add }}</div>\r\n';
     result += '\r\n';
-    result += '<div style="text-align:center;">{{ html.print }}</div>\r\n';
+
+    if (window.Joomla instanceof Object)
+        result += '<div style="text-align:center;">{{ html.print }}</div>\r\n';
+
     result += '<div class="datagrid">\r\n';
     result += '<div>{{ html.batch("edit","publish","unpublish","refresh","delete") }}</div>\r\n\r\n';
 

@@ -82,8 +82,7 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
         define('CUSTOMTABLES_MEDIA_HOME_URL', home_url());
     }
 
-    //or Factory::getApplication()->getName() == 'administrator'
-    if (!defined('_JEXEC') or ($loadTwig === null or $loadTwig) and !class_exists('Twig')) {
+    if ((!defined('_JEXEC') or ($loadTwig === null or $loadTwig)) and !class_exists('Twig')) {
 
         if ($componentName == 'com_customtables' or $componentName == 'com_extensiontranslator') {
             $twig_file = CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'twig' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
@@ -145,7 +144,8 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
     require_once($pathDataTypes . 'record_tags.php');
     require_once($pathDataTypes . 'html_tags.php');
     require_once($pathDataTypes . 'Twig_User_Tags.php');
-    
+    require_once($pathDataTypes . 'Twig_Document_Tags.php');
+
     $pathDataTypes = $path . 'logs' . DIRECTORY_SEPARATOR;
     require_once($pathDataTypes . 'logs.php');
 
@@ -160,9 +160,6 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
     $pathDataTypes = $path . 'records' . DIRECTORY_SEPARATOR;
     require_once($pathDataTypes . 'savefieldqueryset.php');
     require_once($pathDataTypes . 'record.php');
-
-    //$path_datatypes = $path . 'customphp' . DIRECTORY_SEPARATOR;
-    //require_once($path_datatypes.'customphp.php');
 
     $pathDataTypes = $path . 'table' . DIRECTORY_SEPARATOR;
     require_once($pathDataTypes . 'table.php');

@@ -20,7 +20,7 @@ use tagProcessor_Item;
 use tagProcessor_If;
 use tagProcessor_Page;
 use tagProcessor_Value;
-use CustomTables\CustomPHP\CleanExecute;
+use CustomTables\CustomPHP;
 
 class SaveFieldQuerySet
 {
@@ -445,18 +445,14 @@ class SaveFieldQuerySet
                 //get max id
                 if ($this->row_old[$this->ct->Table->realidfieldname] == 0 or $this->row_old[$this->ct->Table->realidfieldname] == '' or $this->isCopy) {
                     $min_id = (($this->field->params !== null and count($this->field->params) > 0) ? (int)$this->field->params[0] : 0);
-
                     $whereClause = new MySQLWhereClause();
-
                     $rows = database::loadObjectList($this->ct->Table->realtablename, [['MAX', $this->ct->Table->realtablename, $this->field->realfieldname]], $whereClause, null, null, 1);
-
-                    print_r($rows);
 
                     if (count($rows) != 0) {
                         $value = (int)($rows[0]->vlu) + 1;
                         if ($value < $min_id)
                             $value = $min_id;
-                        
+
                         $this->setNewValue($value);
                     }
                 }
@@ -547,7 +543,7 @@ class SaveFieldQuerySet
     {
         //Original value but modified during the process
         $this->row_old[$this->field->realfieldname] = $value;
-        //$this->row_new is empty at the beginning and if record needs to be updated new item with the key is added.
+        //row_new is empty at the beginning and if record needs to be updated new item with the key is added.
         $this->row_new[$this->field->realfieldname] = $value;
     }
 
@@ -857,7 +853,7 @@ class SaveFieldQuerySet
 
         $error = '';
         if ($this->ct->Env->advancedTagProcessor)
-            $value = CleanExecute::execute($parsed_condition, $error);
+            $value = CustomPHP::execute($parsed_condition, $error);
         else
             $value = $parsed_condition;
 

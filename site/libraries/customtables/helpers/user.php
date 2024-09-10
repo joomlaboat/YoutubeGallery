@@ -133,11 +133,7 @@ class CTUser
             $user_name = $userRow['username'];
             $user_email = $userRow['email'];
         } else {
-
             return false;
-            //$user_full_name = 'user: '.$realUserId.' not found.';
-            //$user_name = 'user: '.$realUserId.' not found.';
-            //$user_email = 'user: '.$realUserId.' not found.';
         }
         $subject = 'Your {SITENAME} password reset request';
 
@@ -189,8 +185,6 @@ class CTUser
         $whereClauseUpdate = new MySQLWhereClause();
         $whereClauseUpdate->addCondition('id', $userid);
         database::update('#__users', $data, $whereClauseUpdate);
-
-        //$query = 'UPDATE #__users SET password=md5("' . $password . '"), requireReset=0 WHERE id=' . $userid;
         return $userid;
     }
 
@@ -351,16 +345,13 @@ class CTUser
                 $version = (int)$version_object->getShortVersion();
 
                 if ($version < 4)
-                    $msg = common::translate('COM_USERS_REGISTRATION_BIND_FAILED') . ': ' . $user->getError() ?? '';
+                    $msg = common::translate('COM_CUSTOMTABLES_USERS_REGISTRATION_BIND_FAILED') . ': ' . $user->getError() ?? '';
                 else
-                    $msg = common::translate('COM_USERS_REGISTRATION_BIND_FAILED') . ': ' . implode(',', $user->getErrors());
+                    $msg = common::translate('COM_CUSTOMTABLES_USERS_REGISTRATION_BIND_FAILED') . ': ' . implode(',', $user->getErrors());
             }
 
             return null;
         }
-
-        // Load the users' plugin group.
-        //JPluginHelper::importPlugin('user');
 
         // Store the data.
         if (!$user->save()) {
@@ -369,19 +360,16 @@ class CTUser
             $version = (int)$version_object->getShortVersion();
 
             if ($version < 4)
-                $msg = common::translate('COM_USERS_REGISTRATION_SAVE_FAILED') . ': ' . $user->getError() ?? '';
+                $msg = common::translate('COM_CUSTOMTABLES_USERS_REGISTRATION_SAVE_FAILED') . ': ' . $user->getError() ?? '';
             else
-                $msg = common::translate('COM_USERS_REGISTRATION_SAVE_FAILED') . ': ' . implode(',', $user->getErrors());
+                $msg = common::translate('COM_CUSTOMTABLES_USERS_REGISTRATION_SAVE_FAILED') . ': ' . implode(',', $user->getErrors());
 
             return null;
         }
 
         //Apply group
-
-        foreach ($group_ids as $group_id) {
-            //$query = 'INSERT #__user_usergroup_map SET user_id=' . $user->id . ', group_id=' . $group_id;
+        foreach ($group_ids as $group_id)
             database::insert('#__user_usergroup_map', ['user_id' => $user->id, 'group_id' => $group_id]);
-        }
 
         // Compile the notification mail values.
         $data = $user->getProperties();

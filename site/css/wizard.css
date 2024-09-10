@@ -140,6 +140,13 @@
     max-width: 800px;
 }
 
+@media (prefers-color-scheme: dark) {
+    /* Styles for dark mode */
+    .layouteditor_modal-content {
+        background-color: var(--body-bg);
+    }
+}
+
 /* The Close Button */
 .layouteditor_close {
     color: #aaaaaa;

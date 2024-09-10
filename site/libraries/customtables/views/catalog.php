@@ -14,7 +14,6 @@ namespace CustomTables;
 defined('_JEXEC') or die();
 
 use Exception;
-use Joomla\CMS\Uri\Uri;
 use LayoutProcessor;
 use tagProcessor_Catalog;
 use tagProcessor_CatalogTableView;
@@ -84,16 +83,12 @@ class Catalog
             if (isset($cookieValue)) {
                 if ($cookieValue == '') {
                     $this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], 0);
-                    //$this->ct->Filter->where[] = $this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'] . '=0';
                 } else {
                     $items = explode(';', $cookieValue);
-
                     $whereClauseTemp = new MySQLWhereClause();
-                    //$arr = array();
                     foreach ($items as $item) {
                         $pair = explode(',', $item);
                         $whereClauseTemp->addOrCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], (int)$pair[0]);
-                        //$arr[] = $this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'] . '=' . (int)$pair[0];//id must be a number
                     }
                     $this->ct->Filter->whereClause->addNestedCondition($whereClauseTemp);
                 }

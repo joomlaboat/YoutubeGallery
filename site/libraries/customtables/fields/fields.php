@@ -283,7 +283,6 @@ class Fields
 
         //Delete field from the list
         database::deleteRecord('#__customtables_fields', 'id', $fieldid);
-        //$query = 'DELETEFROM #__customtables_fields WHERE id=' . $fieldid;
         return true;
     }
 
@@ -554,12 +553,7 @@ class Fields
                 $msg = 'Caught exception fixMYSQLField 2: ' . $e->getMessage();
             }
         } else {
-            //try {
             database::changeColumn($realtablename, $fieldname, $fieldname, $PureFieldType, $title);
-            //} catch (Exception $e) {
-            //$msg = 'Caught exception fixMYSQLField 3: ' . $e->getMessage();
-            //return false;
-            //}
         }
 
         $msg = '';
@@ -587,8 +581,6 @@ class Fields
     {
         if ($fieldid == 0)
             $fieldid = common::inputGetInt('fieldid', 0);
-
-        //$query = 'SELECT fieldname FROM #__customtables_fields AS s WHERE s.published=1 AND s.id=' . $fieldid . ' LIMIT 1';
 
         $whereClause = new MySQLWhereClause();
         $whereClause->addCondition('id', $fieldid);
@@ -748,11 +740,11 @@ class Fields
 
         // Process field name
         if (function_exists("transliterator_transliterate"))
-            $newFieldName = transliterator_transliterate("Any-Latin; Latin-ASCII; Lower()", $data['fieldname']);
+            $newFieldName = transliterator_transliterate("Any-Latin; Latin-ASCII;", $data['fieldname']);
         else
             $newFieldName = $data['fieldname'];
 
-        $newFieldName = strtolower(trim(preg_replace("/\W/", "", $newFieldName)));
+        $newFieldName = trim(preg_replace("/\W/", "", $newFieldName));
 
         //Shorten the Field Name
         if (strlen($newFieldName) > 40)
@@ -764,8 +756,6 @@ class Fields
             //Checkout
             try {
                 $update_data = ['checked_out' => 0, 'checked_out_time' => null];
-                //$where = ['id' => $fieldId];
-
                 $whereClauseUpdate = new MySQLWhereClause();
                 $whereClauseUpdate->addCondition('id', $fieldId);
 
@@ -816,7 +806,6 @@ class Fields
 
         if ($fieldId !== null) {
 
-            //$where = ['id' => $fieldId];
             try {
 
                 $whereClauseUpdate = new MySQLWhereClause();
@@ -1453,12 +1442,9 @@ class Fields
             //Indexes not yet supported
         } else {
             $rows = database::getTableIndex($realtablename, $realfieldname);
-            //$query = 'SHOW INDEX FROM ' . $realtablename . ' WHERE Key_name = "' . $realfieldname . '"';
 
-            if (count($rows) == 0) {
+            if (count($rows) == 0)
                 database::addIndex($realtablename, $realfieldname);
-                //$query = 'ALTERTABLE ' . $realtablename . ' ADD INDEX(' . $realfieldname . ');';
-            }
         }
     }
 

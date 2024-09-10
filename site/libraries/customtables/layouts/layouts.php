@@ -508,6 +508,9 @@ class Layouts
         } else
             $output['html'] = 'CustomTable: Unknown Layout Type';
 
+        $output['scripts'] = $this->ct->LayoutVariables['scripts'] ?? null;
+        $output['styles'] = $this->ct->LayoutVariables['styles'] ?? null;
+        $output['jslibrary'] = $this->ct->LayoutVariables['jslibrary'] ?? null;
         return $output;
     }
 
@@ -520,7 +523,9 @@ class Layouts
 
         if ($addToolbar) {
             $result .= '<div style="float:left;">{{ html.add }}</div>' . PHP_EOL;
-            $result .= '<div style="text-align:center;">{{ html.print }}</div>' . PHP_EOL;
+
+            if (defined('_JEXEC'))
+                $result .= '<div style="text-align:center;">{{ html.print }}</div>' . PHP_EOL;
         }
 
         $result .= '<div class="datagrid">' . PHP_EOL;
@@ -696,11 +701,17 @@ class Layouts
         return $result;
     }
 
-    function createDefaultLayout_Edit_WP(array $fields, bool $addToolbar = true): string
+    function createDefaultLayout_Edit_WP(array $fields, bool $addToolbar = true, bool $addLegend = true, bool $addGoBack = true): string
     {
         $this->layoutType = 2;
 
-        $result = '<legend>{{ table.title }}</legend>{{ html.goback() }}';
+        $result = '';
+
+        if ($addLegend)
+            $result .= '<legend>{{ table.title }}</legend>';
+
+        if ($addGoBack)
+            $result .= '{{ html.goback() }}';
 
         $result .= '<table class="form-table" role="presentation">';
 
@@ -858,7 +869,7 @@ class Layouts
                     $this->ct->Filter->whereClause->addCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], 0);
                 } else {
                     $items = explode(';', $cookieValue);
-                    //$arr = array();
+
                     foreach ($items as $item) {
                         $pair = explode(',', $item);
                         $this->ct->Filter->whereClause->addOrCondition($this->ct->Table->realtablename . '.' . $this->ct->Table->tablerow['realidfieldname'], (int)$pair[0]);

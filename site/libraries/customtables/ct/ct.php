@@ -17,7 +17,7 @@ use CustomTablesImageMethods;
 use Exception;
 use Joomla\CMS\Factory;
 use CustomTablesKeywordSearch;
-use CustomTables\CustomPHP\CleanExecute;
+use CustomTables\CustomPHP;
 
 class CT
 {
@@ -175,9 +175,6 @@ class CT
      */
     function getRecords(bool $all = false, int $limit = 0): bool
     {
-        //$where = count($this->Filter->where) > 0 ? ' WHERE ' . implode(' AND ', $this->Filter->where) : '';
-        //$where = str_replace('\\', '', $where); //Just to make sure that there is nothing weird in the query
-
         $count = $this->getNumberOfRecords($this->Filter->whereClause);
 
         if ($count === null)
@@ -432,8 +429,10 @@ class CT
         $new_row = array();
 
         if (defined('_JEXEC')) {
-            if ($this->Env->advancedTagProcessor)
-                CleanExecute::executeCustomPHPfile($this->Table->tablerow['customphp'], $new_row, $row);
+            if ($this->Env->advancedTagProcessor and $this->Table->tablerow['customphp'] !== null) {
+                $customPHP = new CustomPHP($this, 'delete');
+                $customPHP->executeCustomPHPFile($this->Table->tablerow['customphp'], $new_row, $row);
+            }
         }
 
         return 1;
@@ -460,7 +459,7 @@ class CT
         else
             $this->Table->saveLog($listing_id, 4);
 
-        $this->RefreshSingleRecord($listing_id, 0);
+        $this->RefreshSingleRecord($listing_id, 0, ($status == 1 ? 'publish' : 'unpublish'));
         return 1;
     }
 
@@ -468,7 +467,7 @@ class CT
      * @throws Exception
      * @since 3.2.2
      */
-    public function RefreshSingleRecord($listing_id, $save_log): int
+    public function RefreshSingleRecord($listing_id, $save_log, string $action = 'refresh'): int
     {
         $whereClause = new MySQLWhereClause();
         $whereClause->addCondition($this->Table->realidfieldname, $listing_id);
@@ -499,7 +498,7 @@ class CT
         common::inputSet("listing_id", $listing_id);
 
         if ($this->Env->advancedTagProcessor)
-            CleanExecute::doPHPonChange($this, $row);
+            CustomPHP::doPHPonChange($this, $row);
 
         //update MD5s
         $this->updateMD5($listing_id);
@@ -510,8 +509,10 @@ class CT
         //TODO use $saveField->saveField
         //$this->updateDefaultValues($row);
 
-        if ($this->Env->advancedTagProcessor)
-            CleanExecute::executeCustomPHPfile($this->Table->tablerow['customphp'], $row, $row);
+        if ($this->Env->advancedTagProcessor) {
+            $customPHP = new CustomPHP($this, $action);
+            $customPHP->executeCustomPHPFile($this->Table->tablerow['customphp'], $row, $row);
+        }
 
         //Send email note if applicable
         if ($this->Params->onRecordAddSendEmail == 3 and !empty($this->Params->onRecordSaveSendEmailTo)) {
@@ -640,12 +641,8 @@ class CT
     public function UserIDField_BuildWheres(string $userIdField, string $listing_id): MySQLWhereClause
     {
         $whereClause = new MySQLWhereClause();
-        //$wheres = [];
-
         $statement_items = common::ExplodeSmartParams($userIdField); //"and" and "or" as separators
-
         $whereClauseOwner = new MySQLWhereClause();
-        //$wheres_owner = array();
 
         foreach ($statement_items as $item) {
             $field = $item[1];
@@ -654,7 +651,6 @@ class CT
                 //check if the record belong to the current user
                 $user_field_row = Fields::FieldRowByName($field, $this->Table->fields);
                 $whereClauseOwner->addCondition($user_field_row['realfieldname'], $this->Env->user->id);
-                //$wheres_owner[] = [$item[0], $user_field_row['realfieldname'] . '=' . $this->Env->user->id];
             } else {
                 //example: parents(children).user
                 $statement_parts = explode('.', $field);
@@ -728,25 +724,9 @@ class CT
         }
 
         $whereClause->addNestedCondition($whereClauseOwner);
-        /*
-        $wheres_owner_str = '';
-        $index = 0;
-        foreach ($wheres_owner as $field) {
-            if ($index == 0) {
-                $whereClause->addNestedCondition($whereClauseOwner);
-                $wheres_owner_str .= $field[1];
-            }
-            else
-                $wheres_owner_str .= ' ' . strtoupper($field[0]) . ' ' . $field[1];
 
-            $index += 1;
-        }
-*/
         if ($listing_id != '' and $listing_id != 0)
             $whereClause->addCondition($this->Table->realidfieldname, $listing_id);
-
-        //if ($wheres_owner_str != '')
-        //$wheres[] = '(' . $wheres_owner_str . ')';
 
         return $whereClause;
     }

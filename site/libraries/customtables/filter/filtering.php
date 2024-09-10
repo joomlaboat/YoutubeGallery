@@ -14,7 +14,6 @@ defined('_JEXEC') or die();
 
 use DateTime;
 use Exception;
-use Joomla\CMS\Language\Text;
 use LayoutProcessor;
 
 class Filtering
@@ -34,32 +33,24 @@ class Filtering
         if ($this->ct->Table->published_field_found) {
 
             //TODO: Fix this mess by replacing the state with a text code like 'published','unpublished','everything','any','trash'
-            //$showPublished = 0 - show published
-            //$showPublished = 1 - show unpublished
-            //$showPublished = 2 - show everything
-            //$showPublished = -1 - show published and unpublished
-            //$showPublished = -2 - show trashed
+            //showPublished = 0 - show published
+            //showPublished = 1 - show unpublished
+            //showPublished = 2 - show everything
+            //showPublished = -1 - show published and unpublished
+            //showPublished = -2 - show trashed
 
             if ($this->showPublished == 0) {
                 $this->whereClause->addCondition($this->ct->Table->realtablename . '.published', 1);
-                //$this->where[] = $this->ct->Table->realtablename . '.published=1';
-                //$this->whereData[$this->ct->Table->realtablename . '.published'] = 1;
             }
             if ($this->showPublished == 1) {
                 $this->whereClause->addCondition($this->ct->Table->realtablename . '.published', 0);
-                //$this->where[] = $this->ct->Table->realtablename . '.published=0';
-                //$this->whereData[$this->ct->Table->realtablename . '.published'] = 0;
             }
             if ($this->showPublished == -1) {
                 $this->whereClause->addOrCondition($this->ct->Table->realtablename . '.published', 0);
                 $this->whereClause->addOrCondition($this->ct->Table->realtablename . '.published', 1);
-                //$this->where[] = '(' . $this->ct->Table->realtablename . '.published=0 OR ' . $this->ct->Table->realtablename . '.published=1)';
-                //$this->whereData[$this->ct->Table->realtablename . '.published'] = [0, 1];
             }
             if ($this->showPublished == -2) {
                 $this->whereClause->addCondition($this->ct->Table->realtablename . '.published', -2);
-                //$this->where[] = $this->ct->Table->realtablename . '.published=-2';
-                //$this->whereData[$this->ct->Table->realtablename . '.published'] = -2;
             }
         }
     }
@@ -72,8 +63,6 @@ class Filtering
     {
         if (common::inputGetBase64('where')) {
             $decodedURL = common::inputGetString('where', '');
-            //$decodedURL = urldecode($decodedURL);
-            //$decodedURL = str_replace(' ', '+', $decodedURL);
             $filter_string = $this->sanitizeAndParseFilter(urldecode($decodedURL));//base64_decode
 
             if ($filter_string != '')
@@ -133,7 +122,6 @@ class Filtering
             $comparison_operator_str = $item[1];
             $comparison_operator = '';
             $whereClauseTemp = new MySQLWhereClause();
-            //$multi_field_where = [];
 
             if ($logic_operator == 'or' or $logic_operator == 'and') {
                 if (!(!str_contains($comparison_operator_str, '<=')))
@@ -692,23 +680,15 @@ class Filtering
         $vList = explode(',', $v);
         $whereClause = new MySQLWhereClause();
 
-        //$cArr = array();
         foreach ($vList as $vL) {
             if ($vL != '') {
                 $whereClause->addOrCondition($this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'], (int)$vL, $comparison_operator);
-                //$cArr[] = $this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'] . $comparison_operator . (int)$vL;
                 $filterTitle = CTUser::showUserGroup((int)$vL);
                 $this->PathValue[] = $fieldrow['fieldtitle' . $this->ct->Languages->Postfix] . ' ' . $comparison_operator . ' ' . $filterTitle;
             }
         }
 
         return $whereClause;
-        //if (count($cArr) == 0)
-        //	return '';
-        //elseif (count($cArr) == 1)
-        //	return $cArr[0];
-        //else
-        //	return '(' . implode(' AND ', $cArr) . ')';
     }
 
     function Search_Number($value, array $fieldrow, string $comparison_operator, bool $isFloat = false): MySQLWhereClause
@@ -769,8 +749,6 @@ class Filtering
             return $whereClause;
 
         $valueTitle = '';
-        //$rangeWhere = '';
-
         $from_field = '';
         $to_field = '';
         if (isset($range[0])) {
@@ -795,7 +773,6 @@ class Filtering
         if ($valueArr[0] != '' and $valueArr[1] != '') {
             $whereClause->addCondition('es_' . $from_field, $v_min, '>=');
             $whereClause->addCondition('es_' . $from_field, $v_max, '<=');
-            //$rangeWhere = '(es_' . $from_field . '>=' . $v_min . ' AND es_' . $to_field . '<=' . $v_max . ')';
         } elseif ($valueArr[0] != '' and $valueArr[1] == '')
             $whereClause->addCondition('es_' . $from_field, $v_min, '>=');
         elseif ($valueArr[1] != '' and $valueArr[0] == '')
@@ -898,7 +875,6 @@ class Filtering
         $vList = explode(',', $v);
         $whereClause = new MySQLWhereClause();
 
-        //$cArr = array();
         foreach ($vList as $vL) {
             if ($vL == "null" and $comparison_operator == '=') {
                 $whereClause->addOrCondition($this->ct->Table->realtablename . '.' . $fieldrow['realfieldname'], '', $comparison_operator);
@@ -950,9 +926,8 @@ class Filtering
             } else {
                 // Invalid date format, handle the error or set a default value
                 $fieldrowStart = Fields::FieldRowByName($valueStart, $this->ct->Table->fields);
-                //$answer = $valueStart;//$this->processDateSearchTags($valueStart, $fieldrowStart, $this->ct->Table->realtablename);
-                $valueStart = $valueStart;//$answer['query'];
-                $titleStart = $fieldrowStart['fieldtitle' . $this->ct->Languages->Postfix];//$answer['caption'];
+                $valueStart = $valueStart;
+                $titleStart = $fieldrowStart['fieldtitle' . $this->ct->Languages->Postfix];
             }
         }
 
@@ -965,9 +940,8 @@ class Filtering
             } else {
                 // Invalid date format, handle the error or set a default value
                 $fieldrowEnd = Fields::FieldRowByName($valueEnd, $this->ct->Table->fields);
-                //$answer = $valueEnd;//$this->processDateSearchTags($valueEnd, $fieldrowEnd, $this->ct->Table->realtablename);
-                $valueEnd = $valueEnd;//$answer['query'];
-                $titleEnd = $fieldrowEnd['fieldtitle' . $this->ct->Languages->Postfix];//$answer['caption'];
+                $valueEnd = $valueEnd;
+                $titleEnd = $fieldrowEnd['fieldtitle' . $this->ct->Languages->Postfix];
             }
         }
 
@@ -979,19 +953,16 @@ class Filtering
 
             $whereClause->addCondition($fieldrow1['realfieldname'], $valueStart, '>=');
             $whereClause->addCondition($fieldrow1['realfieldname'], $valueEnd, '<=');
-            //return '(' . $fieldrow1['realfieldname'] . '>=' . $valueStart . ' AND ' . $fieldrow1['realfieldname'] . '<=' . $valueEnd . ')';
         } elseif ($valueStart and $valueEnd === null) {
             $this->PathValue[] = $title1 . ' '
                 . common::translate('COM_CUSTOMTABLES_FROM') . ' ' . $titleStart;
 
             $whereClause->addCondition($fieldrow1['realfieldname'], $valueStart, '>=');
-            //return $fieldrow1['realfieldname'] . '>=' . $valueStart;
         } elseif ($valueStart === null and $valueEnd) {
             $this->PathValue[] = $title1 . ' '
                 . common::translate('COM_CUSTOMTABLES_TO') . ' ' . $valueEnd;
 
             $whereClause->addCondition($fieldrow1['realfieldname'], $valueEnd, '<=');
-            //return $fieldrow1['realfieldname'] . '<=' . $valueEnd;
         }
         return $whereClause;
     }
@@ -1003,9 +974,8 @@ class Filtering
         //field 1
         $fieldrow1 = Fields::FieldRowByName($fieldname, $this->ct->Table->fields);
         if ($fieldrow1 !== null) {
-            //$answer = $this->processDateSearchTags($fieldname, $fieldrow1, $this->ct->Table->realtablename);
-            $value1 = $fieldrow1['realfieldname'];//$answer['query'];
-            $title1 = $fieldrow1['fieldtitle' . $this->ct->Languages->Postfix];//$answer['caption'];
+            $value1 = $fieldrow1['realfieldname'];
+            $title1 = $fieldrow1['fieldtitle' . $this->ct->Languages->Postfix];
         } else {
             $value1 = $fieldname;
             $title1 = $fieldname;
@@ -1029,9 +999,8 @@ class Filtering
 
         $fieldrow2 = Fields::FieldRowByName($value, $this->ct->Table->fields);
         if ($fieldrow2 !== null) {
-            //$answer = $this->processDateSearchTags($value, $fieldrow2, $this->ct->Table->realtablename);
             $value2 = $value;
-            $title2 = $fieldrow2['fieldtitle' . $this->ct->Languages->Postfix];//$answer['caption'];$answer['caption'];
+            $title2 = $fieldrow2['fieldtitle' . $this->ct->Languages->Postfix];
         } else {
             $value2 = $value;
             $title2 = $value;
@@ -1043,13 +1012,10 @@ class Filtering
         //Query condition
         if ($value2 == 'NULL' and $comparison_operator == '=')
             $whereClause->addCondition($value1, null, 'NULL');
-        //$query = $value1 . ' IS NULL';
         elseif ($value2 == 'NULL' and $comparison_operator == '!=')
             $whereClause->addCondition($value1, null, 'NOT NULL');
-        //$query = $value1 . ' IS NOT NULL';
         else
             $whereClause->addCondition($value1, $value2, $comparison_operator);
-        //$query = $value1 . ' ' . $comparison_operator . ' ' . $value2;
         return $whereClause;
     }
 
@@ -1186,10 +1152,8 @@ class LinkJoinFilters
 
         $selects = [];
         $selects[] = $tableRow['realtablename'] . '.' . $tableRow['realidfieldname'];
-
         $whereClause = new MySQLWhereClause();
 
-        //$where = '';
         if ($tableRow['published_field_found']) {
             $selects[] = 'LISTING_PUBLISHED';
             $whereClause->addCondition($tableRow['realtablename'] . '.published', 1);
