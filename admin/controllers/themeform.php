@@ -13,9 +13,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 
-// import Joomla controllerform library
-//jimport('joomla.application.component.controllerform');
-
 /**
  * YoutubeGallery - themeform Controller
  */

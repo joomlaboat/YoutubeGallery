@@ -13,9 +13,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 
-// import Joomla controllerform library
-//jimport('joomla.application.component.controlleradmin');
-
 /**
  * YoutubeGallery - themeimport Controller
  */
@@ -24,16 +21,12 @@ class YoutubeGalleryControllerThemeImport extends FormController//JControllerAdm
     function display($cachable = false, $urlparams = array())
     {
         switch (Factory::getApplication()->input->getVar('task')) {
+            case 'upload':
             case 'themeimport.upload':
                 $this->upload();
                 break;
-            case 'upload':
-                $this->upload();
-                break;
-            case 'themeimport.cancel':
-                $this->cancel();
-                break;
             case 'cancel':
+            case 'themeimport.cancel':
                 $this->cancel();
                 break;
             default:

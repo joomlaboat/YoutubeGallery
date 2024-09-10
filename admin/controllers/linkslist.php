@@ -14,11 +14,8 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Router\Route;
 
-// import Joomla controlleradmin library
-//jimport('joomla.application.component.controlleradmin');
-
 /**
- * Youtube Gallery - LinksList Controller
+ * YouTube Gallery - LinksList Controller
  */
 class YoutubeGalleryControllerLinksList extends FormController
 {
@@ -51,9 +48,7 @@ class YoutubeGalleryControllerLinksList extends FormController
 
     public function getModel($name = 'LinksForm', $prefix = 'YoutubeGalleryModel', $config = array())
     {
-        $model = parent::getModel($name, $prefix, array('ignore_request' => true));
-
-        return $model;
+        return parent::getModel($name, $prefix, array('ignore_request' => true));
     }
 
     public function refreshItem()
@@ -78,7 +73,12 @@ class YoutubeGalleryControllerLinksList extends FormController
         }
     }
 
-    public function publish()
+    public function unpublish()
+    {
+        $this->update_status();
+    }
+
+    public function update_status(): void
     {
         YoutubeGalleryHelper::setRecordStatus($this->task, 'LINKSLIST', 'youtubegalleryvideolists');
 
@@ -91,6 +91,16 @@ class YoutubeGalleryControllerLinksList extends FormController
                 $redirect, false
             )
         );
+    }
+
+    public function trash()
+    {
+        $this->update_status();
+    }
+
+    public function publish()
+    {
+        $this->update_status();
     }
 
     public function delete()

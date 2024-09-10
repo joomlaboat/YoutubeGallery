@@ -18,6 +18,12 @@ use Joomla\Utilities\ArrayHelper;
  */
 abstract class YoutubeGalleryHelper
 {
+    function __construct()
+    {
+        echo '$this->task:' . $this->task;
+        die;
+    }
+
     public static function addSubmenu($submenu): void
     {
         JSubMenuHelper::addEntry(Text::_('COM_YOUTUBEGALLERY_MENU_VIDEOLISTS'), 'index.php?option=com_youtubegallery&view=linkslist', $submenu === 'linkslist');
@@ -105,6 +111,9 @@ abstract class YoutubeGalleryHelper
         return false;
     }
 
+    /**
+     * @throws Exception
+     */
     public static function setRecordStatus($task, $viewLabel, $tableShortName): void
     {
         if ($task == 'publish')
@@ -119,15 +128,17 @@ abstract class YoutubeGalleryHelper
         $cid = Factory::getApplication()->input->post->get('cid', array(), 'array');
         $cid = ArrayHelper::toInteger($cid);
 
-        $ok = true;
+        print_r($cid);
+
 
         foreach ($cid as $id) {
-            if ((int)$id != 0) {
-                $id = (int)$id;
-                $isok = YoutubeGalleryHelper::setPublishStatusSingleRecord($id, $status, $tableShortName);
-                if (!$isok) {
-                    $ok = false;
-                    break;
+            $id = (int)$id;
+
+            if ($id != 0) {
+
+                if (!YoutubeGalleryHelper::setPublishStatusSingleRecord($id, $status, $tableShortName)) {
+                    Factory::getApplication()->enqueueMessage('Error: Could not update Vide List #' . $id, 'error');
+                    return;
                 }
             }
         }
@@ -150,7 +161,6 @@ abstract class YoutubeGalleryHelper
         $db = Factory::getDBO();
 
         $query = 'UPDATE #__customtables_table_' . $tableShortName . ' SET published=' . (int)$status . ' WHERE id=' . (int)$id;
-
         $db->setQuery($query);
         $db->execute();
 
