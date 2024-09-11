@@ -7,11 +7,13 @@
  **/
 
 // No direct access to this file
-\defined('_JEXEC') or die;
+defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
+use Joomla\Database\DatabaseQuery;
+use Joomla\Database\QueryInterface;
 
 /**
  * Categories Model
@@ -21,7 +23,8 @@ class YoutubeGalleryModelCategories extends ListModel
     /**
      * Method to build an SQL query to load the list data.
      *
-     * @return string  An SQL query
+     * @return void  An SQL query
+     * @throws Exception
      */
 
     public function __construct($config = array())
@@ -29,7 +32,7 @@ class YoutubeGalleryModelCategories extends ListModel
         if (empty($config['filter_fields'])) {
             $config['filter_fields'] = array(
                 'published', 'a.published',
-                'es_categoryname', 'a.es_categorytname'
+                'es_categoryname', 'a.es_categoryname'
             );
         }
 
@@ -41,21 +44,20 @@ class YoutubeGalleryModelCategories extends ListModel
      *
      * @return  mixed  An array of data items on success, false on failure.
      */
-    public function getItems()
+    public function getItems(): mixed
     {
         // load parent items
-        $items = parent::getItems();
-
-        // return items
-        return $items;
+        return parent::getItems();
     }
 
     /**
-     * Method to auto-populate the model state.
+     * Method to autopopulate the model state.
      *
+     * @param string $ordering
+     * @param string $direction
      * @return  void
      */
-    protected function populateState($ordering = 'a.id', $direction = 'asc')
+    protected function populateState($ordering = 'a.id', $direction = 'asc'): void
     {
         // Load the parameters.
         $this->setState('params', ComponentHelper::getParams('com_youtubegallery'));
@@ -67,12 +69,10 @@ class YoutubeGalleryModelCategories extends ListModel
     /**
      * Method to build an SQL query to load the list data.
      *
-     * @return    string    An SQL query
+     * @return    DatabaseQuery|QueryInterface    An SQL query
      */
     protected function getListQuery()
     {
-        // Get the user object.
-        $user = Factory::getUser();
         // Create a new query object.
         $db = Factory::getDBO();
         $query = $db->getQuery(true);
@@ -109,9 +109,9 @@ class YoutubeGalleryModelCategories extends ListModel
 
         // Add the list ordering clause.
         $orderCol = $this->state->get('list.ordering', 'a.id');
-        $orderDirn = $this->state->get('list.direction', 'asc');
+        $orderDirection = $this->state->get('list.direction', 'asc');
         if ($orderCol != '') {
-            $query->order($db->escape($orderCol . ' ' . $orderDirn));
+            $query->order($db->escape($orderCol . ' ' . $orderDirection));
         }
 
         return $query;
@@ -124,7 +124,7 @@ class YoutubeGalleryModelCategories extends ListModel
      *
      */
 
-    protected function getStoreId($id = '')
+    protected function getStoreId($id = ''): string
     {
         // Compile the store id.
         $id .= ':' . $this->getState('filter.search');

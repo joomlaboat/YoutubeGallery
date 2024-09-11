@@ -11,9 +11,6 @@ defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\MVC\Model\AdminModel;
 
-// import Joomla modelform library
-jimport('joomla.application.component.modeladmin');
-
 /**
  * YoutubeGallery - Theme Form Model
  */

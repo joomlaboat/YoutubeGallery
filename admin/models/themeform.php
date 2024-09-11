@@ -13,9 +13,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Table\Table;
 
-// import Joomla modelform library
-//jimport('joomla.application.component.modeladmin');
-
 /**
  * YoutubeGallery - Theme Form Model
  */

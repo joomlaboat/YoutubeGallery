@@ -13,9 +13,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Table\Table;
 
-// import Joomla modelform library
-//jimport('joomla.application.component.modeladmin');
-
 /**
  * YoutubeGallery - Category Model
  */
@@ -28,7 +25,7 @@ class YoutubeGalleryModelCategoryForm extends AdminModel
      *
      * @param array $data Data for the form.
      * @param boolean $loadData True if the form is to load its own data (default case), false if not.
-     * @return      mixed   A JForm object on success, false on failure
+     * @throws Exception
      */
     public function getForm($data = array(), $loadData = true)
     {
@@ -46,69 +43,60 @@ class YoutubeGalleryModelCategoryForm extends AdminModel
      *
      * @return string       Script files
      */
-    public function getScript()
+    public function getScript(): string
     {
         return 'administrator/components/com_youtubegallery/models/forms/categoryform.js';
     }
 
-    function store()
+    /**
+     * @throws Exception
+     */
+    function store(): bool
     {
         $category_row = $this->getTable('categories');
 
-        $jinput = Factory::getApplication()->input;
-        $data = $jinput->get('jform', array(), 'ARRAY');
-
+        $jInput = Factory::getApplication()->input;
+        $data = $jInput->get('jform', array(), 'ARRAY');
         $categoryname = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['jform']['categoryname']));
-
         $data['jform']['categoryname'] = $categoryname;
 
-
         if (!$category_row->bind($data)) {
-
             return false;
         }
 
         // Make sure the  record is valid
         if (!$category_row->check()) {
-
             return false;
         }
 
         // Store
         if (!$category_row->store()) {
-
             return false;
         }
 
         $this->id = $category_row->id;
-
-
         return true;
     }
 
-    public function getTable($type = 'Categories', $prefix = 'YoutubeGalleryTable', $config = array())
+    public function getTable($name = 'Categories', $prefix = 'YoutubeGalleryTable', $config = array())
     {
-        return Table::getInstance($type, $prefix, $config);
+        return Table::getInstance($name, $prefix, $config);
     }
 
-    function deleteCategory($cids)
+    /**
+     * @throws Exception
+     */
+    function deleteCategory(array $cids): bool
     {
-
         $category_row = $this->getTable('categories');
-
-        $db = Factory::getDBO();
 
         if (count($cids)) {
             foreach ($cids as $cid) {
-
-
                 if (!$category_row->delete($cid)) {
                     return false;
                 }
             }
         }
-
-
         return true;
     }
 
@@ -116,8 +104,9 @@ class YoutubeGalleryModelCategoryForm extends AdminModel
      * Method to get the data that should be injected in the form.
      *
      * @return      mixed   The data for the form.
+     * @throws Exception
      */
-    protected function loadFormData()
+    protected function loadFormData(): mixed
     {
         // Check the session for previously entered form data.
         $data = Factory::getApplication()->getUserState('com_youtubegallery.edit.categoryform.data', array());

@@ -13,22 +13,19 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Table\Table;
 
-// import Joomla modelform library
-//jimport('joomla.application.component.modeladmin');
-
 /**
  * YoutubeGallery - LinksForm Model
  */
 class YoutubeGalleryModelLinksForm extends AdminModel
 {
-    public $id;
+    public int $id;
 
     /**
      * Method to get the record form.
      *
      * @param array $data Data for the form.
      * @param boolean $loadData True if the form is to load its own data (default case), false if not.
-     * @return      mixed   A JForm object on success, false on failure
+     * @throws Exception
      */
     public function getForm($data = array(), $loadData = true)
     {
@@ -47,12 +44,12 @@ class YoutubeGalleryModelLinksForm extends AdminModel
      *
      * @return string       Script files
      */
-    public function getScript()
+    public function getScript(): string
     {
         return 'administrator/components/com_youtubegallery/models/forms/linksform.js';
     }
 
-    function RefreshPlayist($cids, $update_videolist = true)
+    function RefreshPlayList($cids, $update_videolist = true): bool
     {
         $where = array();
 
@@ -65,7 +62,7 @@ class YoutubeGalleryModelLinksForm extends AdminModel
         $query = $db->getQuery(true);
         // Select some fields
         $query->select(array('*'));
-        // From the Youtube Gallery table
+        // From the YouTube Gallery table
         $query->from('#__youtubegallery_videolists');
 
         if (count($where) > 0)
@@ -106,11 +103,11 @@ class YoutubeGalleryModelLinksForm extends AdminModel
             return false;
     }
 
-    function store()
+    function store(): bool
     {
         $linksform_row = $this->getTable('videolists');
-        $jinput = Factory::getApplication()->input;
-        $data = $jinput->get('jform', array(), 'ARRAY');
+        $jInput = Factory::getApplication()->input;
+        $data = $jInput->get('jform', array(), 'ARRAY');
         $listname = trim(preg_replace("/[^a-zA-Z0-9_]/", "", $data['es_listname']));
         $data['jform']['es_listname'] = $listname;
 
@@ -143,11 +140,14 @@ class YoutubeGalleryModelLinksForm extends AdminModel
         return true;
     }
 
-    public function getTable($type = 'VideoLists', $prefix = 'YoutubeGalleryTable', $config = array())
+    public function getTable($name = 'VideoLists', $prefix = 'YoutubeGalleryTable', $options = array())
     {
-        return Table::getInstance($type, $prefix, $config);
+        return Table::getInstance($name, $prefix, $options);
     }
 
+    /**
+     * @throws Exception
+     */
     function deleteVideoList($cids): bool
     {
         $linksform_row = $this->getTable('videolists');
@@ -171,8 +171,9 @@ class YoutubeGalleryModelLinksForm extends AdminModel
      * Method to get the data that should be injected in the form.
      *
      * @return      mixed   The data for the form.
+     * @throws Exception
      */
-    protected function loadFormData()
+    protected function loadFormData(): mixed
     {
         // Check the session for previously entered form data.
         $data = Factory::getApplication()->getUserState('com_youtubegallery.edit.linksform.data', array());

@@ -38,7 +38,7 @@ class YoutubeGalleryControllerLinksList extends FormController
             return false;
         }
 
-        if ($model->RefreshPlayist($cid)) {
+        if ($model->RefreshPlayList($cid)) {
             $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_UPDATED_SUCCESSFULLY');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg);
@@ -69,7 +69,7 @@ class YoutubeGalleryControllerLinksList extends FormController
             return false;
         }
 
-        if ($model->RefreshPlayist($cid, false)) {
+        if ($model->RefreshPlayList($cid, false)) {
             $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_REFRESHED_SUCCESSFULLY');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg);

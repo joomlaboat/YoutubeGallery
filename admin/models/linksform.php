@@ -29,8 +29,6 @@ class YoutubeGalleryModelLinksForm extends AdminModel
             return false;
         }
 
-        $jinput = Factory::getApplication()->input;
-
         // The front end calls this model and uses a_id to avoid id clashes so we need to check for that first.
         if (Factory::getApplication()->input->get('a_id')) {
             $id = Factory::getApplication()->input->get('a_id', 0, 'INT');
@@ -49,10 +47,6 @@ class YoutubeGalleryModelLinksForm extends AdminModel
             $form->setFieldAttribute('published', 'disabled', 'true');
             // Disable fields while saving.
             $form->setFieldAttribute('published', 'filter', 'unset');
-        }
-        // If this is a new item insure the greated by is set.
-        if (0 == $id) {
-            // Set the created_by to this user
         }
 
         // Only load these values if no id is found
@@ -126,7 +120,10 @@ class YoutubeGalleryModelLinksForm extends AdminModel
             return $this->saveVideoList();
         }
     */
-    function RefreshPlayist($cids, $update_videolist = true): bool
+    /**
+     * @throws Exception
+     */
+    function RefreshPlayList($cids, $update_videolist = true): bool
     {
         $where = array();
 
@@ -139,7 +136,7 @@ class YoutubeGalleryModelLinksForm extends AdminModel
         $query = $db->getQuery(true);
         // Select some fields
         $query->select(array('*'));
-        // From the Youtube Gallery table
+        // From the YouTube Gallery table
         $query->from('#__customtables_table_youtubegalleryvideolists');
 
         if (count($where) > 0)
@@ -212,6 +209,9 @@ class YoutubeGalleryModelLinksForm extends AdminModel
         return Factory::getUser()->authorise('linkslist.edit', 'com_youtubegallery.linkslist.' . ((int)isset($data[$key]) ? $data[$key] : 0)) or parent::allowEdit($data, $key);
     }
 
+    /**
+     * @throws Exception
+     */
     protected function loadFormData()
     {
         // Check the session for previously entered form data.
