@@ -1,16 +1,13 @@
-var ExtensionName = "com_youtubegallery";
-var codemirror_editors = [];
-var codemirror_active_index = 0;
-var temp_params_tag = "";
-var websiteroot = '';
-
-var layout_tags = [];
-var layout_tags_loaded = false;
-
-
-var tagsets = [];
-
-var current_layout_type = 0;
+let ExtensionName = "com_youtubegallery";
+let codemirror_editors = [];
+let codemirror_active_index = 0;
+let codemirror_theme = 'eclipse';
+let temp_params_tag = "";
+let websiteroot = '';
+let layout_tags = [];
+let layout_tags_loaded = false;
+let tagsets = [];
+let current_layout_type = 0;
 
 function updateTagsParameters() {
     for (var i = 0; i < text_areas.length; i++) {
