@@ -1,6 +1,6 @@
 <?php
 /**
- * YoutubeGallery Joomla! 3.0 Native Component
+ * YouTubeGallery Joomla! 3.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
@@ -19,7 +19,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Version;
 
 /**
- * Youtube Gallery - Links Form View
+ * YouTube Gallery - Links Form View
  */
 class YoutubeGalleryViewLinksForm extends HtmlView
 {

@@ -1,6 +1,6 @@
 <?php
 /**
- * YoutubeGallery Joomla! Native Component
+ * YouTubeGallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
@@ -12,7 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Table\Table;
 
 /**
- * YoutubeGallery - Video Lists Table class
+ * YouTubeGallery - Video Lists Table class
  */
 class YoutubeGalleryTableVideoLists extends Table
 {

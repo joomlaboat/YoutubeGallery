@@ -1,6 +1,6 @@
 <?php
 /**
- * YoutubeGallery Joomla! 3.0 Native Component
+ * YouTubeGallery Joomla! 3.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
@@ -18,7 +18,7 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 //jimport('joomla.application.component.view');
 
 /**
- * Youtube Gallery Theme Export View
+ * YouTube Gallery Theme Export View
  */
 class YoutubeGalleryViewThemeImport extends HtmlView
 {

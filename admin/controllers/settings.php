@@ -1,6 +1,6 @@
 <?php
 /**
- * YoutubeGallery Joomla! Native Component
+ * YouTubeGallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
@@ -15,7 +15,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 
 /**
- * YoutubeGallery - LinksForm Controller
+ * YouTubeGallery - LinksForm Controller
  */
 class YoutubeGalleryControllerSettings extends FormController
 {

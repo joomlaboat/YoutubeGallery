@@ -1,6 +1,6 @@
 <?php
 /**
- * Youtube Gallery Joomla! 3.0 Native Component
+ * YouTube Gallery Joomla! 3.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License

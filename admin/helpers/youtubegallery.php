@@ -1,6 +1,6 @@
 <?php
 /**
- * Youtube Gallery Joomla! Native Component
+ * YouTube Gallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
@@ -14,7 +14,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\Utilities\ArrayHelper;
 
 /**
- * YoutubeGallery component helper.
+ * YouTubeGallery component helper.
  */
 abstract class YoutubeGalleryHelper
 {

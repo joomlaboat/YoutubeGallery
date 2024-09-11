@@ -1,6 +1,6 @@
 <?php
 /**
- * YoutubeGallery Joomla! Native Component
+ * YouTubeGallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
@@ -15,7 +15,7 @@ use Joomla\CMS\Table\Table;
 //jimport('joomla.database.table');
 
 /**
- * Youtube Gallery - Categories Table class
+ * YouTube Gallery - Categories Table class
  */
 class YoutubeGalleryTableCategories extends Table
 {

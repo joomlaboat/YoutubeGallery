@@ -1,7 +1,7 @@
 <?php namespace Vimeo\Exceptions;
 
 /**
- * YoutubeGallery Joomla! Plugin
+ * YouTubeGallery Joomla! Plugin
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License

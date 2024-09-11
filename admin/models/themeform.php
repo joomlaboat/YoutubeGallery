@@ -1,6 +1,6 @@
 <?php
 /**
- * YoutubeGallery Joomla! 3.0 Native Component
+ * YouTubeGallery Joomla! 3.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
@@ -14,7 +14,7 @@ use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Table\Table;
 
 /**
- * YoutubeGallery - Theme Form Model
+ * YouTubeGallery - Theme Form Model
  */
 class YoutubeGalleryModelthemeForm extends AdminModel
 {

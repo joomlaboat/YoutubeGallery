@@ -1,5 +1,5 @@
 /*
- * YoutubeGallery for Joomla!
+ * YouTubeGallery for Joomla!
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://www.joomlaboat.com
  * @GNU General Public License

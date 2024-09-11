@@ -1,6 +1,6 @@
 <?php
 /**
- * YoutubeGallery Joomla! Native Component
+ * YouTubeGallery Joomla! Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
@@ -24,7 +24,7 @@ if ($version < 4) {
     JFormHelper::loadFieldClass('list');
 
     /**
-     * YoutubeGallery Form Field class for the Youtube Gallery component
+     * YouTubeGallery Form Field class for the Youtube Gallery component
      */
     class JFormFieldThemesOptional extends JFormFieldList
     {

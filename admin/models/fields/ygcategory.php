@@ -1,6 +1,6 @@
 <?php
 /**
- * YoutubeGallery Joomla! 3.0 Native Component
+ * YouTubeGallery Joomla! 3.0 Native Component
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
@@ -16,7 +16,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Version;
 
 /**
- * YoutubeGallery Form Field class for the Youtube Gallery component
+ * YouTubeGallery Form Field class for the Youtube Gallery component
  */
 
 $versionObject = new Version;

@@ -2,7 +2,7 @@
 //use Vimeo\Vimeo;
 
 /**
- * YoutubeGallery API
+ * YouTubeGallery API
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
  * @GNU General Public License
