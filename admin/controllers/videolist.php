@@ -12,29 +12,25 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\FormController;
 
-// import Joomla controllerform library
-//jimport('joomla.application.component.controlleradmin');
-
 /**
  * YoutubeGallery - VideoList Controller
  */
 class YoutubeGalleryControllerVideoList extends FormController//JControllerAdmin
 {
-    function display($cachable = false, $urlparams = array())
+    function display($cachable = false, $urlparams = array()): void
     {
-        switch (Factory::getApplication()->input->getVar('task')) {
+        switch (Factory::getApplication()->input->getCmd('task')) {
             case 'cancel':
                 $this->cancel();
                 break;
             default:
-                Factory::getApplication()->input->setVar('view', 'videoylist');
+                Factory::getApplication()->input->set('view', 'videoylist');
                 parent::display();
                 break;
         }
-
     }
 
-    function cancel()
+    function cancel($key = null): void
     {
         $this->setRedirect('index.php?option=com_youtubegallery');
     }

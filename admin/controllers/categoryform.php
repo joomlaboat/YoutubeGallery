@@ -13,58 +13,45 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 
-// import Joomla controllerform library
-//jimport('joomla.application.component.controllerform');
-
 /**
  * YoutubeGallery - CategoryForm Controller
  */
 class YoutubeGalleryControllerCategoryForm extends FormController
 {
-
-    function display($cachable = false, $urlparams = array())
+    function display($cachable = false, $urlparams = array()): void
     {
-
-        $jinput = Factory::getApplication()->input;
-        $task = $jinput->post->get('task', '');
+        $jInput = Factory::getApplication()->input;
+        $task = $jInput->post->get('task', '');
 
         if ($task == 'categoryform.add' or $task == 'add') {
             $this->setRedirect('index.php?option=com_youtubegallery&view=categoryform&layout=edit');
-            return true;
+            return;
         }
 
         if ($task == 'categoryform.edit' or $task == 'edit') {
-            $cid = $jinput->get('cid', array(), 'ARRAY');
+            $cid = $jInput->get('cid', array(), 'ARRAY');
 
             if (!count($cid)) {
                 $this->setRedirect('index.php?option=com_youtubegallery&view=categories', Text::_('COM_YOUTUBEGALLERY_NO_CATEGORIES_SELECTED'), 'error');
-                return false;
+                return;
             }
 
             $this->setRedirect('index.php?option=com_youtubegallery&view=categoryform&layout=edit&id=' . $cid[0]);
-            return true;
+            return;
         }
 
-        Factory::getApplication()->input->setVar('view', 'categoryform');
-        Factory::getApplication()->input->setVar('layout', 'edit');
+        Factory::getApplication()->input->set('view', 'categoryform');
+        Factory::getApplication()->input->set('layout', 'edit');
 
-        switch (Factory::getApplication()->input->getVar('task')) {
+        switch (Factory::getApplication()->input->get('task')) {
+            case 'save':
+            case 'categoryform.apply':
+            case 'categoryform.save':
             case 'apply':
                 $this->save();
                 break;
-            case 'save':
-                $this->save();
-                break;
-            case 'cancel':
-                $this->cancel();
-                break;
-            case 'categoryform.apply':
-                $this->save();
-                break;
-            case 'categoryform.save':
-                $this->save();
-                break;
             case 'categoryform.cancel':
+            case 'cancel':
                 $this->cancel();
                 break;
         }
@@ -72,14 +59,18 @@ class YoutubeGalleryControllerCategoryForm extends FormController
         parent::display();
     }
 
-    function save($key = null, $urlVar = null)
+    /**
+     * @throws Exception
+     */
+    function save($key = null, $urlVar = null): void
     {
-        $task = Factory::getApplication()->input->getVar('task');
+        $task = Factory::getApplication()->input->get('task');
 
         // get our model
         $model = $this->getModel('categoryform');
-        // attempt to store, update user accordingly
+        $link = '';
 
+        // attempt to store, update user accordingly
         if ($task != 'save' and $task != 'apply' and $task != 'categoryform.save' and $task != 'categoryform.apply') {
             $msg = Text::_('COM_YOUTUBEGALLERY_CATEGORY_WAS_UNABLE_TO_SAVE');
 
@@ -100,7 +91,6 @@ class YoutubeGalleryControllerCategoryForm extends FormController
 
             $this->setRedirect($link, $msg);
         } else {
-
             $msg = Text::_('COM_YOUTUBEGALLERY_CATEGORY_WAS_UNABLE_TO_SAVE');
             $this->setRedirect($link, $msg, 'error');
         }
@@ -110,9 +100,8 @@ class YoutubeGalleryControllerCategoryForm extends FormController
     /**
      * Cancels an edit operation
      */
-    function cancel($key = null)
+    function cancel($key = null): void
     {
         $this->setRedirect('index.php?option=com_youtubegallery&view=categories');
     }
-
 }

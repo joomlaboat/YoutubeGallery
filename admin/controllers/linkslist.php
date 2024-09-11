@@ -25,7 +25,10 @@ class YoutubeGalleryControllerLinksList extends FormController
 
     protected $text_prefix = 'COM_YOUTUBEGALLERY_LINKSLIST';
 
-    public function updateItem()
+    /**
+     * @throws Exception
+     */
+    public function updateItem(): bool
     {
         $model = $this->getModel('linksform');
         $cid = Factory::getApplication()->input->post->get('cid', array(), 'array');
@@ -35,7 +38,7 @@ class YoutubeGalleryControllerLinksList extends FormController
             return false;
         }
 
-        if ($model->RefreshPlayist($cid, true)) {
+        if ($model->RefreshPlayist($cid)) {
             $msg = Text::_('COM_YOUTUBEGALLERY_VIDEOLIST_UPDATED_SUCCESSFULLY');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg);
@@ -44,6 +47,7 @@ class YoutubeGalleryControllerLinksList extends FormController
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg, 'error');
         }
+        return true;
     }
 
     public function getModel($name = 'LinksForm', $prefix = 'YoutubeGalleryModel', $config = array())
@@ -51,7 +55,10 @@ class YoutubeGalleryControllerLinksList extends FormController
         return parent::getModel($name, $prefix, array('ignore_request' => true));
     }
 
-    public function refreshItem()
+    /**
+     * @throws Exception
+     */
+    public function refreshItem(): bool
     {
         $model = $this->getModel('linksform');
         $cid = Factory::getApplication()->input->post->get('cid', array(), 'array');
@@ -71,13 +78,20 @@ class YoutubeGalleryControllerLinksList extends FormController
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg, 'error');
         }
+        return true;
     }
 
-    public function unpublish()
+    /**
+     * @throws Exception
+     */
+    public function unpublish(): void
     {
         $this->update_status();
     }
 
+    /**
+     * @throws Exception
+     */
     public function update_status(): void
     {
         YoutubeGalleryHelper::setRecordStatus($this->task, 'LINKSLIST', 'youtubegalleryvideolists');
@@ -93,17 +107,23 @@ class YoutubeGalleryControllerLinksList extends FormController
         );
     }
 
-    public function trash()
+    /**
+     * @throws Exception
+     */
+    public function trash(): void
     {
         $this->update_status();
     }
 
-    public function publish()
+    /**
+     * @throws Exception
+     */
+    public function publish(): void
     {
         $this->update_status();
     }
 
-    public function delete()
+    public function delete(): void
     {
         YoutubeGalleryHelper::deleteRecord('LINKSLIST', 'youtubegalleryvideolists');
 

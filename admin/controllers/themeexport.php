@@ -17,14 +17,14 @@ use Joomla\CMS\MVC\Controller\FormController;
  */
 class YoutubeGalleryControllerThemeExport extends FormController
 {
-    function display($cachable = false, $urlparams = array())
+    function display($cachable = false, $urlparams = array()): void
     {
-        switch (Factory::getApplication()->input->getVar('task')) {
+        switch (Factory::getApplication()->input->getCmd('task')) {
             case 'cancel':
                 $this->cancel();
                 break;
             default:
-                Factory::getApplication()->input->setVar('view', 'themeexport');
+                Factory::getApplication()->input->set('view', 'themeexport');
                 parent::display();
                 break;
         }
@@ -33,7 +33,7 @@ class YoutubeGalleryControllerThemeExport extends FormController
     /**
      * Cancels an edit operation
      */
-    function cancel($key = null)
+    function cancel($key = null): void
     {
         $this->setRedirect('index.php?option=com_youtubegallery&view=themelist');
     }

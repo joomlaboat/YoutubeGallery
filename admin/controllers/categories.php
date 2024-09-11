@@ -12,11 +12,8 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Router\Route;
 
-// import Joomla controlleradmin library
-//jimport('joomla.application.component.controlleradmin');
-
 /**
- * Youtube Gallery - Categories Controller
+ * YouTube Gallery - Categories Controller
  */
 class YoutubeGalleryControllerCategories extends FormController
 {
@@ -28,17 +25,21 @@ class YoutubeGalleryControllerCategories extends FormController
 
     public function getModel($name = 'CategoryForm', $prefix = 'YoutubeGalleryModel', $config = array())
     {
-        $model = parent::getModel($name, $prefix, array('ignore_request' => true));
-
-        return $model;
+        return parent::getModel($name, $prefix, array('ignore_request' => true));
     }
 
-    public function unpublish()
+    /**
+     * @throws Exception
+     */
+    public function unpublish(): void
     {
         $this->setStatus($this->task);
     }
 
-    protected function setStatus($task)
+    /**
+     * @throws Exception
+     */
+    protected function setStatus($task): void
     {
         YoutubeGalleryHelper::setRecordStatus($task, 'CATEGORIES', 'youtubegallerycategories');
 
@@ -53,17 +54,23 @@ class YoutubeGalleryControllerCategories extends FormController
         );
     }
 
-    public function publish()
+    /**
+     * @throws Exception
+     */
+    public function publish(): void
     {
         $this->setStatus($this->task);
     }
 
-    public function trash()
+    /**
+     * @throws Exception
+     */
+    public function trash(): void
     {
         $this->setStatus($this->task);
     }
 
-    public function delete()
+    public function delete(): void
     {
         YoutubeGalleryHelper::deleteRecord('CATEGORIES', 'youtubegallerycategories');
 

@@ -18,6 +18,9 @@ use Joomla\CMS\Uri\Uri;
  */
 class YoutubeGalleryControllerLinksForm extends FormController
 {
+    var string $ref;
+    var int $refId;
+
     /**
      * Current or most recently performed task.
      *
@@ -27,6 +30,9 @@ class YoutubeGalleryControllerLinksForm extends FormController
      */
     protected $task;
 
+    /**
+     * @throws Exception
+     */
     public function __construct($config = array())
     {
         $this->view_list = 'linkslist'; // safeguard for setting the return view listing to the main view.
@@ -42,17 +48,17 @@ class YoutubeGalleryControllerLinksForm extends FormController
      *
      * @since   12.2
      */
-    public function cancel($key = null)
+    public function cancel($key = null): bool
     {
         // get the referral details
         $this->ref = $this->input->get('ref', 0, 'word');
-        $this->refid = $this->input->get('refid', 0, 'int');
+        $this->refId = $this->input->get('refid', 0, 'int');
 
         $cancel = parent::cancel($key);
 
         if ($cancel) {
-            if ($this->refid) {
-                $redirect = '&view=' . (string)$this->ref . '&layout=edit&id=' . (int)$this->refid;
+            if ($this->refId) {
+                $redirect = '&view=' . $this->ref . '&layout=edit&id=' . (int)$this->refId;
 
                 // Redirect to the item screen.
                 $this->setRedirect(
@@ -61,7 +67,7 @@ class YoutubeGalleryControllerLinksForm extends FormController
                     )
                 );
             } elseif ($this->ref) {
-                $redirect = '&view=' . (string)$this->ref;
+                $redirect = '&view=' . $this->ref;
 
                 // Redirect to the list screen.
                 $this->setRedirect(
@@ -81,12 +87,6 @@ class YoutubeGalleryControllerLinksForm extends FormController
         return $cancel;
     }
 
-    public function apply($key = null, $urlVar = null)
-    {
-        echo 'Apply';
-        die;
-    }
-
     /**
      * Method to save a record.
      *
@@ -100,14 +100,14 @@ class YoutubeGalleryControllerLinksForm extends FormController
     public function save($key = null, $urlVar = null): bool
     {
         // get the referral details
-        $this->refid = $this->input->getInt('id', 0);
+        $this->refId = $this->input->getInt('id', 0);
 
         $model = $this->getModel();
         $data = $this->input->post->get('jform', array(), 'array');
         $saved = $model->saveVideoList($data);
 
         if ($this->task == 'apply')
-            $redirect = '&view=linksform&layout=edit&id=' . (int)$this->refid;
+            $redirect = '&view=linksform&layout=edit&id=' . $this->refId;
         else
             $redirect = '&view=linkslist';
 
@@ -115,9 +115,9 @@ class YoutubeGalleryControllerLinksForm extends FormController
         if ($tmpl !== null)
             $redirect .= '&tmpl=' . $tmpl;
 
-        $ygrefreshparent = $this->input->getInt('ygrefreshparent');
-        if ($ygrefreshparent !== null)
-            $redirect .= '&ygrefreshparent=' . $ygrefreshparent;
+        $ygRefreshParent = $this->input->getInt('ygrefreshparent');
+        if ($ygRefreshParent !== null)
+            $redirect .= '&ygrefreshparent=' . $ygRefreshParent;
 
         // Redirect to the item screen.
         $url = Uri::root() . 'administrator/index.php?option=com_youtubegallery' . $redirect;
@@ -134,8 +134,9 @@ class YoutubeGalleryControllerLinksForm extends FormController
      *
      * @since   1.6
      */
-    protected function allowAdd($data = array())
-    {        // In the absence of better information, revert to the component permissions.
+    protected function allowAdd($data = array()): bool
+    {
+        // In the absence of better information, revert to the component permissions.
         return parent::allowAdd($data);
     }
 
@@ -149,7 +150,7 @@ class YoutubeGalleryControllerLinksForm extends FormController
      *
      * @since   12.2
      */
-    protected function getRedirectToItemAppend($recordId = null, $urlVar = 'id')
+    protected function getRedirectToItemAppend($recordId = null, $urlVar = 'id'): string
     {
         $tmpl = $this->input->get('tmpl');
         $layout = $this->input->get('layout', 'edit', 'string');
@@ -162,9 +163,9 @@ class YoutubeGalleryControllerLinksForm extends FormController
         $append = '';
 
         if ($refid) {
-            $append .= '&ref=' . (string)$ref . '&refid=' . (int)$refid;
+            $append .= '&ref=' . $ref . '&refid=' . (int)$refid;
         } elseif ($ref) {
-            $append .= '&ref=' . (string)$ref;
+            $append .= '&ref=' . $ref;
         }
 
         if ($tmpl) {

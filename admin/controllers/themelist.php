@@ -12,9 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Router\Route;
 
-//jimport('joomla.application.component.controlleradmin');
-
-class YoutubeGalleryControllerThemeList extends FormController//JControllerAdmin
+class YoutubeGalleryControllerThemeList extends FormController
 {
     /**
      * Proxy for getModel.
@@ -23,12 +21,21 @@ class YoutubeGalleryControllerThemeList extends FormController//JControllerAdmin
 
     public function getModel($name = 'LinksForm', $prefix = 'YoutubeGalleryModel', $config = array())
     {
-        $model = parent::getModel($name, $prefix, array('ignore_request' => true));
-
-        return $model;
+        return parent::getModel($name, $prefix, array('ignore_request' => true));
     }
 
-    public function publish()
+    /**
+     * @throws Exception
+     */
+    public function publish(): void
+    {
+        $this->update_status();
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function update_status(): void
     {
         YoutubeGalleryHelper::setRecordStatus($this->task, 'THEMELIST', 'youtubegallerythemes');
 
@@ -43,7 +50,23 @@ class YoutubeGalleryControllerThemeList extends FormController//JControllerAdmin
         );
     }
 
-    public function delete()
+    /**
+     * @throws Exception
+     */
+    public function unpublish(): void
+    {
+        $this->update_status();
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function trash(): void
+    {
+        $this->update_status();
+    }
+
+    public function delete(): void
     {
         YoutubeGalleryHelper::deleteRecord('THEMELIST', 'youtubegallerythemes');
 
@@ -58,19 +81,8 @@ class YoutubeGalleryControllerThemeList extends FormController//JControllerAdmin
         );
     }
 
-    public function uploadItem()
+    public function uploadItem(): void
     {
-        //$canDoThemeList = YoutubeGalleryHelper::getActions('themelist');
-        //$canViewThemeList = $canDoThemeList->get('themelist.view');
-
-        //if(!$canViewThemeList)
-        //{
-        //$link='index.php?option=com_youtubegallery&view=linkslist';
-        //$msg = Text::_( 'JGLOBAL_AUTH_ACCESS_DENIED');
-        //$this->setRedirect($link, $msg, 'error');
-        //return false;
-        //}
-
         $link = 'index.php?option=com_youtubegallery&view=themeimport';
         $this->setRedirect($link, '');
     }

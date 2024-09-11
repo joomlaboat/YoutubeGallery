@@ -19,50 +19,42 @@ use Joomla\CMS\MVC\Controller\FormController;
 class YoutubeGalleryControllerThemeForm extends FormController
 {
 
-    function display($cachable = false, $urlparams = array())
+    function display($cachable = false, $urlparams = array()): void
     {
-        $jinput = Factory::getApplication()->input;
-        $task = $jinput->post->get('task', '');
+        $jInput = Factory::getApplication()->input;
+        $task = $jInput->post->get('task', '');
 
         if ($task == 'themeform.add' or $task == 'add') {
             $this->setRedirect('index.php?option=com_youtubegallery&view=themeform&layout=edit');
-            return true;
+            return;
         }
 
         if ($task == 'themeform.edit' or $task == 'edit') {
-            $cid = Factory::getApplication()->input->getVar('cid', array(), 'post', 'array');
+            $cid = Factory::getApplication()->input->post->get('cid', array(), 'array');
 
             if (!count($cid)) {
                 $this->setRedirect('index.php?option=com_youtubegallery&view=themelist', Text::_('COM_YOUTUBEGALLERY_NO_THEME_SELECTED'), 'error');
-                return false;
+                return;
             }
 
             $this->setRedirect('index.php?option=com_youtubegallery&view=themeform&layout=edit&id=' . $cid[0]);
-            return true;
+            return;
         }
 
-        $jinput->set('hidemainmenu', true);
+        $jInput->set('hidemainmenu', true);
 
-        Factory::getApplication()->input->setVar('view', 'themeform');
-        Factory::getApplication()->input->setVar('layout', 'edit');
+        Factory::getApplication()->input->set('view', 'themeform');
+        Factory::getApplication()->input->set('layout', 'edit');
 
         switch ($task) {
+            case 'themeform.apply':
+            case 'save':
+            case 'themeform.save':
             case 'apply':
                 $this->save();
                 break;
-            case 'themeform.apply':
-                $this->save();
-                break;
-            case 'save':
-                $this->save();
-                break;
-            case 'themeform.save':
-                $this->save();
-                break;
-            case 'cancel':
-                $this->cancel();
-                break;
             case 'themeform.cancel':
+            case 'cancel':
                 $this->cancel();
                 break;
         }
@@ -70,20 +62,24 @@ class YoutubeGalleryControllerThemeForm extends FormController
         parent::display();
     }
 
-    function save($key = NULL, $urlVar = NULL)
+    /**
+     * @throws Exception
+     */
+    function save($key = NULL, $urlVar = NULL): void
     {
         $task = Factory::getApplication()->input->getVar('task');
 
         // get our model
         $model = $this->getModel('themeform');
-        // attempt to store, update user accordingly
 
+        $link = '';
+
+        // attempt to store, update user accordingly
         if ($task != 'save' and $task != 'apply' and $task != 'themeform.save' and $task != 'themeform.apply') {
             $msg = Text::_('COM_YOUTUBEGALLERY_THEME_WAS_UNABLE_TO_SAVE');
             $link = 'index.php?option=com_youtubegallery&view=linkslist';
             $this->setRedirect($link, $msg, 'error');
         }
-
 
         if ($model->store()) {
 
@@ -111,7 +107,7 @@ class YoutubeGalleryControllerThemeForm extends FormController
     /**
      * Cancels an edit operation
      */
-    function cancel($key = NULL)
+    function cancel($key = NULL): void
     {
         $this->setRedirect('index.php?option=com_youtubegallery&view=themelist');
     }
@@ -119,17 +115,9 @@ class YoutubeGalleryControllerThemeForm extends FormController
     /**
      * Cancels an edit operation
      */
-    function cancelItem()
+    function cancelItem(): void
     {
-
-
         $model = $this->getModel('item');
         $model->checkin();
-
-
     }
-
-    /**
-     * Form for copying item(s) to a specific option
-     */
 }

@@ -16,11 +16,11 @@ use Joomla\CMS\MVC\Controller\FormController;
 /**
  * YoutubeGallery - themeimport Controller
  */
-class YoutubeGalleryControllerThemeImport extends FormController//JControllerAdmin
+class YoutubeGalleryControllerThemeImport extends FormController
 {
-    function display($cachable = false, $urlparams = array())
+    function display($cachable = false, $urlparams = array()): void
     {
-        switch (Factory::getApplication()->input->getVar('task')) {
+        switch (Factory::getApplication()->input->getCmd('task')) {
             case 'upload':
             case 'themeimport.upload':
                 $this->upload();
@@ -30,13 +30,13 @@ class YoutubeGalleryControllerThemeImport extends FormController//JControllerAdm
                 $this->cancel();
                 break;
             default:
-                Factory::getApplication()->input->setVar('view', 'themeimport');
+                Factory::getApplication()->input->set('view', 'themeimport');
                 parent::display();
                 break;
         }
     }
 
-    function upload()
+    function upload(): void
     {
         $model = $this->getModel('themeimport');
         $msg = '';
@@ -53,7 +53,7 @@ class YoutubeGalleryControllerThemeImport extends FormController//JControllerAdm
         }
     }
 
-    function cancel()
+    function cancel($key = null): void
     {
         $this->setRedirect('index.php?option=com_youtubegallery&view=themelist');
     }
