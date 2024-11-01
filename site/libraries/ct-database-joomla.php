@@ -399,7 +399,6 @@ class database
                                           bool    $returnQueryString = false)
     {
         $db = self::getDB();
-
         $query = $db->getQuery(true);
 
         //Select columns sanitation
@@ -426,7 +425,7 @@ class database
             $query->setLimit(20000, $limitStart);
         if ($limitStart === null and $limit !== null)
             $query->setLimit($limit);
-        
+
         try {
             $db->setQuery($query);
         } catch (Exception $e) {
@@ -450,7 +449,16 @@ class database
 
         foreach ($selectsRaw as $select) {
 
-            if (is_array($select) and count($select) >= 3) {
+            if (is_array($select) and count($select) == 2 and $select[0] == 'REAL_FIELD_NAME') {
+                $fieldPrefix = preg_replace('/[^a-zA-Z0-9_#]/', '', $select[1]);
+
+                if ($serverType == 'postgresql') {
+                    $selects[] = 'CONCAT("' . $fieldPrefix . '",fieldname) END AS realfieldname';
+                } else {
+                    $selects[] = 'CONCAT("' . $fieldPrefix . '",fieldname) AS realfieldname';
+                }
+
+            } elseif (is_array($select) and count($select) >= 3) {
                 $selectTable_safe = preg_replace('/[^a-zA-Z0-9_#]/', '', $select[1]);//Joomla way
                 $selectField = preg_replace('/[^a-zA-Z0-9_]/', '', $select[2]);
                 $asValue = preg_replace('/[^a-zA-Z0-9_]/', '', $select[3] ?? 'vlu');
@@ -506,11 +514,6 @@ class database
                     $selects [] = 'CASE WHEN modified IS NULL THEN extract(epoch FROM created) ELSE extract(epoch FROM modified) AS modified_timestamp';
                 else
                     $selects [] = 'IF(modified IS NULL,UNIX_TIMESTAMP(created),UNIX_TIMESTAMP(modified)) AS modified_timestamp';
-            } elseif ($select == 'REAL_FIELD_NAME') {
-                if ($serverType == 'postgresql')
-                    $selects[] = 'CASE WHEN customfieldname!="" THEN customfieldname ELSE CONCAT("es_",fieldname) END AS realfieldname';
-                else
-                    $selects[] = 'IF(customfieldname!="", customfieldname, CONCAT("es_",fieldname)) AS realfieldname';
             } elseif ($select == 'REAL_TABLE_NAME') {
                 if ($serverType == 'postgresql') {
                     $selects[] = 'CASE WHEN customtablename!="" THEN customtablename ELSE CONCAT("#__customtables_table_", tablename) END AS realtablename';
@@ -723,7 +726,7 @@ class database
         elseif ($type == 'filebox')
             $realTableName = '#__customtables_filebox_' . $tablename;
         else
-            $realTableName = '#__customtables_' . $tablename;
+            $realTableName = '#__customtables_table_' . $tablename;
 
         $serverType = self::getServerType();
 
@@ -749,7 +752,7 @@ class database
         $db->setQuery('SET foreign_key_checks = 0');
         $db->execute();
 
-        $db->setQuery('ALTER TABLE `' . $realTableName . '` DROP COLUMN `' . $columnName . '`');
+        $db->setQuery('ALTER TABLE ' . $db->quoteName($realTableName) . ' DROP COLUMN ' . $db->quoteName($columnName));
         $db->execute();
 
         $db->setQuery('SET foreign_key_checks = 1');
@@ -759,8 +762,8 @@ class database
     public static function addForeignKey(string $realTableName, string $columnName, string $join_with_table_name, string $join_with_table_field): void
     {
         $db = self::getDB();
-        $db->setQuery('ALTER TABLE ' . $db->quoteName($realTableName) . ' ADD FOREIGN KEY (' . $columnName . ') REFERENCES '
-            . $db->quoteName(self::getDataBaseName() . '.' . $join_with_table_name) . ' (' . $join_with_table_field . ') ON DELETE RESTRICT ON UPDATE RESTRICT');
+        $db->setQuery('ALTER TABLE ' . $db->quoteName($realTableName) . ' ADD FOREIGN KEY (' . $db->quoteName($columnName) . ') REFERENCES '
+            . $db->quoteName(self::getDataBaseName() . '.' . $join_with_table_name) . ' (' . $db->quoteName($join_with_table_field) . ') ON DELETE RESTRICT ON UPDATE RESTRICT');
         $db->execute();
     }
 
@@ -777,14 +780,14 @@ class database
         $db->setQuery('SET foreign_key_checks = 0');
         $db->execute();
 
-        $db->setQuery('ALTER TABLE ' . $realTableName . ' DROP FOREIGN KEY ' . $constrance);
+        $db->setQuery('ALTER TABLE ' . $db->quoteName($realTableName) . ' DROP FOREIGN KEY ' . $constrance);
         $db->execute();
 
         $db->setQuery('SET foreign_key_checks = 1');
         $db->execute();
     }
 
-    public static function setTableInnoDBEngine(string $realTableName, string $comment): void
+    public static function setTableInnoDBEngine(string $realTableName): void
     {
         $db = self::getDB();
         $db->setQuery('ALTER TABLE ' . $realTableName . ' ENGINE = InnoDB');
@@ -801,22 +804,24 @@ class database
     public static function addIndex(string $realTableName, string $columnName): void
     {
         $db = self::getDB();
-        $db->setQuery('ALTER TABLE ' . $realTableName . ' ADD INDEX (' . $columnName . ')');
+        $db->setQuery('ALTER TABLE ' . $db->quoteName($realTableName) . ' ADD INDEX (' . $db->quoteName($columnName) . ')');
         $db->execute();
     }
 
-    public static function addColumn(string $realTableName, string $columnName, string $type, ?bool $nullable, ?string $extra = null, ?string $comment = null): void
+    public static function addColumn(string  $realTableName, string $columnName, string $type, ?bool $nullable = null, ?string $extra = null,
+                                     ?string $comment = null): void
     {
         $db = self::getDB();
 
-        $db->setQuery('ALTER TABLE ' . $realTableName . ' ADD COLUMN ' . $columnName . ' ' . $type
+        $db->setQuery('ALTER TABLE ' . $db->quoteName($realTableName) . ' ADD COLUMN ' . $db->quoteName($columnName) . ' ' . $type
             . ($nullable !== null ? ($nullable ? ' NULL' : ' NOT NULL') : '')
             . ($extra !== null ? ' ' . $extra : '')
             . ($comment !== null ? ' COMMENT ' . database::quote($comment) : ''));
         $db->execute();
     }
 
-    public static function createTable(string $realTableName, string $privateKey, array $columns, string $comment, ?array $keys = null, string $primaryKeyType = 'int'): void
+    public static function createTable(string $realTableName, string $privateKey, array $columns, string $comment,
+                                       ?array $keys = null, string $primaryKeyType = 'int UNSIGNED NOT NULL AUTO_INCREMENT'): void
     {
         $db = self::getDB();
 
@@ -825,7 +830,9 @@ class database
             $db->setQuery('CREATE SEQUENCE IF NOT EXISTS ' . $realTableName . '_seq');
             $db->execute();
 
-            $allColumns = array_merge([$privateKey . ' ' . $primaryKeyType . ' NOT NULL DEFAULT nextval (\'' . $realTableName . '_seq\')'], $columns);
+            $primaryKeyTypeString = str_replace('AUTO_INCREMENT', 'DEFAULT nextval (\'' . $realTableName . '_seq\')', $primaryKeyType);
+
+            $allColumns = array_merge([$privateKey . ' ' . $primaryKeyTypeString], $columns);
 
             $query = 'CREATE TABLE IF NOT EXISTS ' . $realTableName . '(' . implode(',', $allColumns) . ')';
             $db->setQuery($query);
@@ -836,11 +843,7 @@ class database
 
         } else {
 
-            $primaryKeyTypeString = 'INT UNSIGNED';//(11)
-            if ($primaryKeyType !== 'int')
-                $primaryKeyTypeString = $primaryKeyType;
-
-            $allColumns = array_merge(['`' . $privateKey . '` ' . $primaryKeyTypeString . ' NOT NULL AUTO_INCREMENT'], $columns, ['PRIMARY KEY (`' . $privateKey . '`)']);
+            $allColumns = array_merge(['`' . $privateKey . '` ' . $primaryKeyType], $columns, ['PRIMARY KEY (`' . $privateKey . '`)']);
 
             if ($keys !== null)
                 $allColumns = array_merge($allColumns, $keys);

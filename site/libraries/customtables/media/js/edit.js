@@ -9,7 +9,152 @@
 class CustomTablesEdit {
 
     constructor() {
+        this.GoogleDriveTokenClient = [];
+        this.GoogleDriveAccessToken = null;
+    }
 
+    GoogleDriveInitClient(fieldName, GoogleDriveAPIKey, GoogleDriveClientId) {
+        this.GoogleDriveTokenClient[fieldName] = google.accounts.oauth2.initTokenClient({
+            client_id: GoogleDriveClientId,
+            scope: "https://www.googleapis.com/auth/drive.readonly",
+            callback: (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    this.GoogleDriveAccessToken = tokenResponse.access_token;
+                    CTEditHelper.GoogleDriveLoadPicker(fieldName, GoogleDriveAPIKey, tokenResponse.access_token);
+                }
+            },
+        });
+    }
+
+    GoogleDriveLoadPicker(fieldName, GoogleDriveAPIKey, access_token) {
+        gapi.load("picker", {
+            callback: function () {
+                CTEditHelper.GoogleDriveCreatePicker(fieldName, GoogleDriveAPIKey, access_token);
+            }
+        });
+    }
+
+    GoogleDriveCreatePicker(fieldName, GoogleDriveAPIKey, access_token) {
+        if (access_token) {
+            const pickerBuilder = new google.picker.PickerBuilder()
+                .addView(google.picker.ViewId.DOCS)
+                .addView(google.picker.ViewId.FOLDERS)
+                .addView(new google.picker.DocsView(google.picker.ViewId.DOCS)
+                    .setIncludeFolders(true)
+                    .setOwnedByMe(false)
+                    .setLabel("Shared with me"))
+                .setOAuthToken(access_token)
+                .setDeveloperKey(GoogleDriveAPIKey)
+                .setCallback(function (data) {
+                    CTEditHelper.GoogleDrivePickerCallback(fieldName, data, access_token)
+                });
+
+            if (google.picker.ViewId.SHARED_DRIVES) {
+                pickerBuilder.addView(google.picker.ViewId.SHARED_DRIVES);
+            }
+
+            const picker = pickerBuilder.build();
+            picker.setVisible(true);
+        }
+    }
+
+    GoogleDrivePickerCallback(fieldName, data, access_token) {
+
+        if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
+            if (data[google.picker.Response.DOCUMENTS] && data[google.picker.Response.DOCUMENTS].length > 0) {
+                const file = data[google.picker.Response.DOCUMENTS][0];
+                CTEditHelper.GoogleDriveGetFileMetadata(fieldName, file.id, access_token);
+            } else {
+                console.log("No file was selected or the response format has changed.");
+                document.getElementById("ct_eventsmessage_" + fieldName).innerHTML = "No file was selected.";
+            }
+        } else if (data[google.picker.Response.ACTION] === google.picker.Action.CANCEL) {
+            console.log("User closed the Picker or canceled selection.");
+            document.getElementById("ct_eventsmessage_" + fieldName).innerHTML = "File selection was canceled.";
+        }
+    }
+
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    emptyContainers(boxId, className) {
+        const parentElement = document.getElementById(boxId);
+
+        if (parentElement) {
+            const containers = parentElement.getElementsByClassName(className);
+
+            Array.from(containers).forEach(container => {
+                container.innerHTML = '';
+            });
+        }
+    }
+
+    GoogleDriveGetFileMetadata(fieldName, fileId, access_token) {
+
+        gapi.client.load("drive", "v3", () => {
+            gapi.client.drive.files.get({
+                fileId: fileId,
+                fields: "id, name, mimeType, webContentLink, size"
+            }).then(function (response) {
+
+                CTEditHelper.emptyContainers("ct_uploadfile_box_" + fieldName, "ajax-file-upload-error");
+                CTEditHelper.emptyContainers("ct_uploadfile_box_" + fieldName, "ajax-file-upload-container");
+
+                let buttonId = "CustomTablesGoogleDrivePick_" + fieldName;
+                const file = response.result;
+                let prefix;
+                const button = document.getElementById(buttonId);
+                if (button) {
+                    const acceptValue = button.dataset.accept;
+                    if (acceptValue) {
+                        let parts = file.name.toLowerCase().split(".");
+                        let fileExtension = parts[parts.length - 1];
+                        let acceptTypes = acceptValue.split(' ');
+                        if (acceptTypes.indexOf(fileExtension) === -1) {
+                            let content = '<div class="ajax-file-upload-error"><b>' + file.name + '</b> is not allowed. Allowed extensions: ' + acceptValue + '</div>';
+                            document.getElementById("ct_eventsmessage_" + fieldName).innerHTML = content;
+                            return;
+                        }
+                    } else {
+                        console.error('Accept file extensions not found.', error);
+                        return;
+                    }
+
+                    prefix = button.dataset.prefix;
+                    if (!prefix) {
+                        console.error('Prefix not found.', error);
+                        return;
+                    }
+                } else {
+                    console.error('Button "' + buttonId + '" not found.', error);
+                    return;
+                }
+
+                let fileSize = CTEditHelper.formatFileSize(file.size);
+                let content = '<div class="ajax-file-upload-statusbar" style="width: 400px;"><div class="ajax-file-upload-filename">1). ' + file.name + ' (' + fileSize + ')</div></div>';
+                document.getElementById("ct_eventsmessage_" + fieldName).innerHTML = content;
+                document.getElementById(prefix + fieldName + '_filename').value = file.name;
+
+                let data = JSON.stringify({
+                    fileId: file.id,
+                    fileName: file.name,
+                    //mimeType: file.mimeType,
+                    //size: file.size,
+                    //downloadUrl: file.webContentLink,
+                    accessToken: access_token
+                })
+                document.getElementById(prefix + fieldName + '_data').value = data;
+            }, function (error) {
+                console.error("Error getting file metadata:", error);
+                document.getElementById("ct_eventsmessage_" + fieldName).innerHTML = "Error getting file metadata.";
+            });
+        });
     }
 
     //A method to create or update table records using JavaScript. CustomTables handles data sanitization and validation.
@@ -48,7 +193,6 @@ class CustomTablesEdit {
                 if (!response.ok) {
                     // If the HTTP status code is not successful, throw an error object that includes the response
                     throw {status: 'error', message: 'HTTP status code: ' + response.status, response: response};
-                    return null;
                 }
                 return response.json();
             })
@@ -120,7 +264,6 @@ class CustomTablesEdit {
                 if (!response.ok) {
                     // If the HTTP status code is not successful, throw an error object that includes the response
                     throw {status: 'error', message: 'HTTP status code: ' + response.status, response: response};
-                    return null;
                 }
                 return response.json();
             })
@@ -173,7 +316,11 @@ class CustomTablesEdit {
             }
         });
     }
+
+
 }
+
+const CTEditHelper = new CustomTablesEdit();
 
 //---------------------------------
 
@@ -231,10 +378,11 @@ function stripInvalidCharacters(str) {
 
 function submitModalForm(url, elements, tableid, recordId, hideModelOnSave, modalFormParentField, returnLinkEncoded) {
 
+    let fieldsProcessed = [];
     let params = "";
     let opt;
     for (let i = 0; i < elements.length; i++) {
-        if (elements[i].name && elements[i].name !== '' && elements[i].name !== 'returnto') {
+        if (elements[i].name && elements[i].name !== '' && elements[i].name !== 'returnto' && fieldsProcessed.indexOf(elements[i].name) === -1) {
 
             if (elements[i].type === "select-multiple") {
 
@@ -246,8 +394,30 @@ function submitModalForm(url, elements, tableid, recordId, hideModelOnSave, moda
                         params += "&" + elements[i].name + "=" + opt.value;
                 }
 
-            } else
+            } else if (elements[i].type === "checkbox") {
+                // Handle checkboxes: add "true" if checked, "false" if unchecked
+                params += "&" + elements[i].name + "=" + (elements[i].checked ? "true" : "false");
+            } else if (elements[i].type === "radio") {
+                // Handle radio buttons: Check if any radio button with the same name is selected
+                const radios = document.getElementsByName(elements[i].name);
+                let radioChecked = false;
+
+                for (let r = 0; r < radios.length; r++) {
+                    if (radios[r].checked) {
+                        params += "&" + radios[r].name + "=" + radios[r].value;
+                        radioChecked = true;
+                        break;  // No need to check further once one is selected
+                    }
+                }
+
+                // If no radio button is selected, set a default value (if desired)
+                if (!radioChecked) {
+                    params += "&" + elements[i].name + "=none";  // You can set "none" or another default value
+                }
+            } else {
                 params += "&" + elements[i].name + "=" + elements[i].value;
+            }
+            fieldsProcessed.push(elements[i].name);
         }
     }
 

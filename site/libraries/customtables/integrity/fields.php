@@ -15,6 +15,7 @@ defined('_JEXEC') or die();
 
 use CustomTables\common;
 use CustomTables\CT;
+use CustomTables\CTMiscHelper;
 use CustomTables\database;
 use CustomTables\TableHelper;
 use CustomTables\Fields;
@@ -49,10 +50,10 @@ class IntegrityFields extends IntegrityChecks
             $result .= '<p>Table "<span style="color:green;">' . $ct->Table->tabletitle . '</span>" <span style="color:green;">added.</span></p>';
 
         $ExistingFields = database::getExistingFields($ct->Table->realtablename, false);
-        $projected_fields = Fields::getFields($ct->Table->tableid, false, false);
+        $projected_fields = $ct->Table->fields;
 
         //Delete unnecessary fields:
-        $projected_fields[] = ['realfieldname' => 'id', 'type' => '_id', 'typeparams' => '', 'isrequired' => 1];
+        $projected_fields[] = ['realfieldname' => $ct->Table->realidfieldname, 'type' => '_id', 'typeparams' => '', 'isrequired' => 1];
         $projected_fields[] = ['realfieldname' => 'published', 'type' => '_published', 'typeparams' => '', 'isrequired' => 1];
 
         $task = common::inputGetCmd('task');
@@ -75,11 +76,16 @@ class IntegrityFields extends IntegrityChecks
 
                 $found_field = '';
 
-                if ($projected_field['realfieldname'] == 'id' and $existingFieldName == 'id') {
+                if ($projected_field['realfieldname'] == $ct->Table->realidfieldname and $existingFieldName == $ct->Table->realidfieldname) {
                     $found = true;
                     $found_field = '_id';
                     $projected_field['fieldtitle'] = 'Primary Key';
-                    $projected_data_type = Fields::getProjectedFieldType('_id', null);
+
+                    if ($ct->Table->tablerow['customidfieldtype'] !== null and $ct->Table->tablerow['customidfieldtype'] != '') {
+                        $projected_data_type = Fields::parseFieldTypeFromString($ct->Table->tablerow['customidfieldtype']);
+                    } else {
+                        $projected_data_type = Fields::getProjectedFieldType('_id', null);
+                    }
 
                     break;
                 } elseif ($projected_field['realfieldname'] == 'published' and $existingFieldName == 'published') {
@@ -104,46 +110,46 @@ class IntegrityFields extends IntegrityChecks
                         }
                         $moreThanOneLang = true;
                     }
-                } elseif ($projected_field['type'] == 'imagegallery') {
-                    if ($existingFieldName == $projected_field['realfieldname']) {
-                        IntegrityFieldType_Gallery::checkGallery($ct, $projected_field['fieldname']);
-                        $projected_data_type = Fields::getProjectedFieldType($projected_field['type'], $projected_field['typeparams']);
-                        $found_field = $projected_field['realfieldname'];
-                        $found = true;
-                    }
-
-                } elseif ($projected_field['type'] == 'filebox') {
-                    if ($existingFieldName == $projected_field['realfieldname']) {
-                        IntegrityFieldType_FileBox::checkFileBox($ct, $projected_field['fieldname']);
-                        $projected_data_type = Fields::getProjectedFieldType($projected_field['type'], $projected_field['typeparams']);
-                        $found_field = $projected_field['realfieldname'];
-                        $found = true;
-                        break;
-                    }
-                } elseif ($projected_field['type'] == 'dummy') {
-                    if ($existingFieldName == $projected_field['realfieldname']) {
+                } elseif ($projected_field['type'] == 'imagegallery' and $existingFieldName == $projected_field['realfieldname']) {
+                    IntegrityFieldType_Gallery::checkGallery($ct, $projected_field['fieldname']);
+                    $projected_data_type = Fields::getProjectedFieldType($projected_field['type'], $projected_field['typeparams']);
+                    $found_field = $projected_field['realfieldname'];
+                    $found = true;
+                } elseif ($projected_field['type'] == 'filebox' and $existingFieldName == $projected_field['realfieldname']) {
+                    IntegrityFieldType_FileBox::checkFileBox($ct, $projected_field['fieldname']);
+                    $projected_data_type = Fields::getProjectedFieldType($projected_field['type'], $projected_field['typeparams']);
+                    $found_field = $projected_field['realfieldname'];
+                    $found = true;
+                    break;
+                } elseif ($projected_field['type'] == 'dummy' and $existingFieldName == $projected_field['realfieldname']) {
+                    $found = false;
+                    break;
+                } elseif ($projected_field['type'] == 'virtual' and $existingFieldName == $projected_field['realfieldname']) {
+                    if (fields::isVirtualField($projected_field)) {
                         $found = false;
-                        break;
-                    }
-                } elseif ($projected_field['type'] == 'virtual') {
-
-                    if ($existingFieldName == $projected_field['realfieldname']) {
-                        if (fields::isVirtualField($projected_field)) {
-                            $found = false;
-                        } else {
-                            $projected_data_type = Fields::getProjectedFieldType($projected_field['type'], $projected_field['typeparams']);
-                            $found_field = $projected_field['realfieldname'];
-                            $found = true;
-                        }
-                        break;
-                    }
-                } else {
-                    if ($existingFieldName == $projected_field['realfieldname']) {
+                    } else {
                         $projected_data_type = Fields::getProjectedFieldType($projected_field['type'], $projected_field['typeparams']);
                         $found_field = $projected_field['realfieldname'];
                         $found = true;
-                        break;
                     }
+                    break;
+                } elseif ($projected_field['type'] == 'sqljoin' and $existingFieldName == $projected_field['realfieldname']) {
+                    $tempParams = CTMiscHelper::csv_explode(',', $projected_field['typeparams']);
+                    $tempTable = $tempParams[0];
+
+                    if (!empty($tempTable)) {
+                        $tempTableRow = TableHelper::getTableRowByNameAssoc($tempTable);
+                        if (!empty($tempTableRow['customidfieldtype'])) {
+                            $projected_data_type = Fields::parseFieldTypeFromString($tempTableRow['customidfieldtype']);
+                        } else
+                            $projected_data_type = Fields::getProjectedFieldType($projected_field['type'], $projected_field['typeparams']);
+                    }
+                    break;
+                } elseif ($existingFieldName == $projected_field['realfieldname']) {
+                    $projected_data_type = Fields::getProjectedFieldType($projected_field['type'], $projected_field['typeparams']);
+                    $found_field = $projected_field['realfieldname'];
+                    $found = true;
+                    break;
                 }
             }
 
@@ -173,7 +179,7 @@ class IntegrityFields extends IntegrityChecks
                     elseif ($found_field == '_published')
                         $nice_field_name = $ct->Table->realtablename . '.published';
                     else {
-                        $nice_field_name = str_replace($ct->Env->field_prefix, '', $found_field)
+                        $nice_field_name = str_replace($ct->Table->fieldPrefix, '', $found_field)
                             . ($projected_field['typeparams'] != '' ? ' (' . $projected_field['typeparams'] . ')' : '');
                     }
 

@@ -16,7 +16,9 @@ defined('_JEXEC') or die();
 use CustomTablesFileMethods;
 use CustomTablesImageMethods;
 use Exception;
-use CustomTables\ctProHelpers;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class Field
 {
@@ -105,7 +107,7 @@ class Field
             $this->comesfieldname = $this->prefix . $this->fieldname;
 
             if (isset($fieldRow['typeparams']))
-                $this->params = CTMiscHelper::csv_explode(',', $fieldRow['typeparams'], '"', false);
+                $this->params = CTMiscHelper::csv_explode(',', $fieldRow['typeparams']);
             else
                 $this->params = null;
 
@@ -115,6 +117,13 @@ class Field
             $this->type = null;
     }
 
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     * @throws Exception
+     * @since 3.0.0
+     */
     function parseParams(?array $row, string $type): void
     {
         $new_params = [];
@@ -209,12 +218,12 @@ class Fields
 
         $ImageFolder = CUSTOMTABLES_IMAGES_PATH;
 
-        $fieldrow = Fields::getFieldRow($fieldid, true);
+        $fieldRow = Fields::getFieldRow($ct->Table->fieldPrefix, $fieldid, true);
 
-        if (is_null($fieldrow))
+        if (is_null($fieldRow))
             return false;
 
-        $field = new Field($ct, $fieldrow);
+        $field = new Field($ct, $fieldRow);
         $tableRow = $ct->Table->tablerow;
 
         if ($field->type !== null) {
@@ -275,7 +284,7 @@ class Fields
         }
 
         foreach ($realFieldNames as $realfieldname) {
-            if ($field->type != 'dummy' and !Fields::isVirtualField($fieldrow)) {
+            if ($field->type != 'dummy' and !Fields::isVirtualField($fieldRow)) {
                 $msg = '';
                 Fields::deleteMYSQLField($tableRow['realtablename'], $realfieldname, $msg);
             }
@@ -290,7 +299,7 @@ class Fields
      * @throws Exception
      * @since 3.2.2
      */
-    public static function getFieldRow(int $fieldid = 0, bool $assocList = false)
+    public static function getFieldRow(string $fieldPrefix, int $fieldid = 0, bool $assocList = false)
     {
         if ($fieldid == 0)
             $fieldid = common::inputGetInt('fieldid', 0);
@@ -298,7 +307,7 @@ class Fields
         $whereClause = new MySQLWhereClause();
         $whereClause->addCondition('id', $fieldid);
 
-        $rows = database::loadObjectList('#__customtables_fields', Fields::getFieldRowSelectArray(),
+        $rows = database::loadObjectList('#__customtables_fields', Fields::getFieldRowSelectArray($fieldPrefix),
             $whereClause, 1, null, null, null, ($assocList ? 'ARRAY_A' : 'OBJECT'));
 
         if (count($rows) != 1)
@@ -307,9 +316,9 @@ class Fields
         return $rows[0];
     }
 
-    protected static function getFieldRowSelectArray(): array
+    public static function getFieldRowSelectArray(string $fieldPrefix): array
     {
-        return ['*', 'REAL_FIELD_NAME'];
+        return ['*', ['REAL_FIELD_NAME', $fieldPrefix]];
     }
 
     /**
@@ -318,8 +327,15 @@ class Fields
      */
     public static function checkIfFieldExists($realtablename, $realfieldname): bool
     {
+        // Get the list of existing fields
         $realFieldNames = Fields::getListOfExistingFields($realtablename, false);
-        return in_array($realfieldname, $realFieldNames);
+
+        // Convert all field names to lowercase
+        $realFieldNamesLower = array_map('strtolower', $realFieldNames);
+
+        // Check if the lowercase field name exists in the lowercase array
+        return in_array(strtolower($realfieldname), $realFieldNamesLower);
+        //TODO:  case sensitive field names renaming doesnt work, fix it.
     }
 
     /**
@@ -394,7 +410,7 @@ class Fields
         $isrequired = (int)$fieldRow['isrequired'];
 
         if ($fieldRow['type'] == 'virtual') {
-            $paramsList = CTMiscHelper::csv_explode(',', $fieldRow['typeparams'], '"', false);
+            $paramsList = CTMiscHelper::csv_explode(',', $fieldRow['typeparams']);
             return ($paramsList[1] ?? 'virtual') == 'virtual' or '';
         } else
             return $isrequired == 2 or $isrequired == 3;
@@ -596,31 +612,18 @@ class Fields
      * @throws Exception
      * @since 3.2.2
      */
-    public static function getFieldRowByName(string $fieldName, ?int $tableId = null, string $tableName = '', bool $assocList = false)
+    public static function getFieldRowByName(string $fieldName, Table $table): ?array
     {
         if ($fieldName == '')
-            return array();
+            return null;
 
         $whereClause = new MySQLWhereClause();
         $whereClause->addCondition('s.published', 1);
-
-        if (!empty($tableId))
-            $whereClause->addCondition('s.tableid', $tableId);
-        elseif (!empty($tableName))
-            $whereClause->addCondition('t.tablename', $tableName);
-        else
-            return null;
-
+        $whereClause->addCondition('s.tableid', $table->tableid);
         $whereClause->addCondition('s.fieldname', trim($fieldName));
 
         $from = '#__customtables_fields AS s';
-        if ($tableName != '')
-            $from .= ' INNER JOIN #__customtables_tables AS t ON t.id=s.tableid';
-
-        if ($assocList)
-            $rows = database::loadAssocList($from, self::getFieldRowSelectArray(), $whereClause, null, null, 1);
-        else
-            $rows = database::loadObjectList($from, self::getFieldRowSelectArray(), $whereClause, null, null, 1);
+        $rows = database::loadAssocList($from, self::getFieldRowSelectArray($table->fieldPrefix), $whereClause, null, null, 1);
 
         if (count($rows) != 1)
             return null;
@@ -659,7 +662,7 @@ class Fields
         return $field_objects;
     }
 
-    public static function shortFieldObject($fieldRow, $value, $options): array
+    public static function shortFieldObject(array $fieldRow, $value, $options): array
     {
         $field = [];
         $field['fieldname'] = $fieldRow['fieldname'];
@@ -670,7 +673,7 @@ class Fields
         $field['isdisabled'] = $fieldRow['isdisabled'];
         $field['type'] = $fieldRow['type'];
 
-        $typeParams = CTMiscHelper::csv_explode(',', $fieldRow['typeparams'], '"', false);
+        $typeParams = CTMiscHelper::csv_explode(',', $fieldRow['typeparams']);
         $field['typeparams'] = $typeParams;
         $field['valuerule'] = $fieldRow['valuerule'];
         $field['valuerulecaption'] = $fieldRow['valuerulecaption'];
@@ -698,8 +701,8 @@ class Fields
         require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'utilities' . DIRECTORY_SEPARATOR . 'importtables.php');
 
         $ct = new CT;
-        $table_row = TableHelper::getTableRowByID($tableId);
-        if (!is_object($table_row)) {
+        $ct->getTable($tableId);
+        if ($ct->Table === null) {
             common::enqueueMessage('Table not found');
             return null;
         }
@@ -798,11 +801,11 @@ class Fields
             $moreThanOneLang = true; //More than one language installed
         }
 
-        if ($table_row->customtablename == $table_row->tablename) {
-            //do not create fields to third-party tables
-            //Third-party table but managed by the Custom Tables
-            $data['customfieldname'] = $newFieldName;
-        }
+        //if ($table_row['customtablename'] == $table_row['tablename']) {
+        //do not create fields to third-party tables
+        //Third-party table but managed by the Custom Tables
+        //$data['customfieldname'] = $newFieldName;
+        //}
 
         if ($fieldId !== null) {
 
@@ -825,7 +828,7 @@ class Fields
             }
         }
 
-        if (!self::update_physical_field($ct, $table_row, $fieldId, $data)) {
+        if (!self::update_physical_field($ct, $fieldId, $data)) {
             //Cannot create
             return null;
         }
@@ -833,7 +836,7 @@ class Fields
         self::findAndFixFieldOrdering();
 
         if ($data['type'] == 'ordering')
-            self::findAndFixOrderingFieldRecords($table_row, (($data['customfieldname'] ?? '') != '' ? $data['customfieldname'] : 'es_' . $data['fieldname']));
+            self::findAndFixOrderingFieldRecords($ct, $data['realfieldname']);
 
         return $fieldId;
     }
@@ -861,7 +864,7 @@ class Fields
      * @throws Exception
      * @since 3.2.2
      */
-    public static function addLanguageField($tablename, $original_fieldname, $new_fieldname, ?string $AdditionOptions = ''): bool
+    public static function addLanguageField($tablename, $original_fieldname, $new_fieldname): bool
     {
         $fields = database::getExistingFields($tablename, false);
         foreach ($fields as $field) {
@@ -921,13 +924,12 @@ class Fields
      * @throws Exception
      * @since 3.2.2
      */
-    protected static function update_physical_field(CT $ct, object $table_row, int $fieldid, array $data): bool
+    protected static function update_physical_field(CT $ct, int $fieldid, array $data): bool
     {
-        $realtablename = $table_row->realtablename;
-        $realtablename = database::realTableName($realtablename);
+        $realtablename = $ct->Table->realtablename;
 
         if ($fieldid != 0) {
-            $fieldRow = Fields::getFieldRow($fieldid);
+            $fieldRow = Fields::getFieldRow($ct->Table->fieldPrefix, $fieldid);
             $ex_type = $fieldRow->type;
             $ex_typeparams = $fieldRow->typeparams;
             $realfieldname = $fieldRow->realfieldname;
@@ -936,9 +938,9 @@ class Fields
             $ex_typeparams = '';
             $realfieldname = '';
 
-            if ($table_row->customtablename === null or $table_row->customtablename == '')//Just to be safe
-                $realfieldname = 'es_' . $data['fieldname'];
-            elseif ($table_row->customtablename == $table_row->tablename)
+            if (empty($ct->Table->tablerow['customtablename']))//Just to be safe
+                $realfieldname = $ct->Table->fieldPrefix . $data['fieldname'];
+            elseif ($ct->Table->tablerow['customtablename'] == $ct->Table->tablerow['tablename'])
                 $realfieldname = $data['fieldname'];
         }
 
@@ -1367,13 +1369,13 @@ class Fields
             //get CT table name if possible
 
             $tableName = str_replace(database::getDBPrefix() . 'customtables_table', '', $realtablename);
-            $fieldName = str_replace($ct->Env->field_prefix, '', $realfieldname);
+            $fieldName = str_replace($ct->Table->fieldPrefix, '', $realfieldname);
             Fields::CreateImageGalleryTable($tableName, $fieldName);
         } elseif ($PureFieldType['data_type'] == 'filebox') {
             //Create table
             //get CT table name if possible
             $tableName = str_replace(database::getDBPrefix() . 'customtables_table', '', $realtablename);
-            $fieldName = str_replace($ct->Env->field_prefix, '', $realfieldname);
+            $fieldName = str_replace($ct->Table->fieldPrefix, '', $realfieldname);
             Fields::CreateFileBoxTable($tableName, $fieldName);
         }
     }
@@ -1407,7 +1409,7 @@ class Fields
         ];
 
         database::createTable('#__customtables_gallery_' . $tablename . '_' . $fieldname, 'photoid',
-            $columns, 'Image Gallery', null, 'BIGINT UNSIGNED');
+            $columns, 'Image Gallery', null, 'BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
 
         return true;
     }
@@ -1425,7 +1427,7 @@ class Fields
             'title varchar(100) null'
         ];
         database::createTable('#__customtables_filebox_' . $tablename . '_' . $fieldname, 'fileid', $columns,
-            'File Box', null, 'BIGINT UNSIGNED');
+            'File Box', null, 'BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
 
         return true;
     }
@@ -1551,12 +1553,8 @@ class Fields
      * @throws Exception
      * @since 3.2.3
      */
-    protected static function findAndFixOrderingFieldRecords(object $table_row, string $realFieldName): void
+    protected static function findAndFixOrderingFieldRecords(CT $ct, string $realFieldName): void
     {
-        $ct = new CT;
-        $table_row_array = (array)$table_row;
-        $ct->setTable($table_row_array);
-
         $data = [$realFieldName => [$ct->Table->realidfieldname, 'sanitized']];
         $whereClauseUpdate = new MySQLWhereClause();
         $whereClauseUpdate->addOrCondition($realFieldName, null, 'NULL');
@@ -1567,80 +1565,6 @@ class Fields
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
-    }
-
-    /**
-     * @throws Exception
-     * @since 3.2.2
-     */
-    public static function addFieldPrefixToExpression(int $tableId, string $expression): string
-    {
-        //This function adds 'es_' prefix to field name in the expression. Example:
-        //concat(namelat," ",namerus)
-        //concat(es_namelat," ",es_namerus)
-        $prefix = 'es_';
-
-        $fields = self::getFields($tableId);
-
-        foreach ($fields as $field) {
-            $fieldName = $field['fieldname'];
-            $pos = 0;
-            while (1) {
-                $pos1 = strpos($expression, $fieldName, $pos);
-
-                if ($pos1) {
-
-                    $word = true;
-                    if ($pos1 > 0) {
-                        if (ctype_alnum($expression[$pos1 - 1]))
-                            $word = false;
-                    }
-
-                    if ($pos1 + strlen($fieldName) < strlen($expression)) {
-                        if (ctype_alnum($expression[$pos1 + strlen($fieldName)]))
-                            $word = false;
-                    }
-
-                    if ($word) {
-                        $pos2 = strpos($expression, $prefix . $fieldName, $pos);
-
-                        if ($pos1 - 3 != $pos2) {
-                            $expression1 = substr($expression, 0, $pos1);
-                            $expression2 = substr($expression, $pos1 + strlen($fieldName), strlen($expression) - strlen($fieldName));
-                            $expression = $expression1 . $prefix . $fieldName . $expression2;
-                        } else {
-                            $pos = $pos1 + strlen($fieldName);
-                        }
-                    } else {
-                        $pos = $pos1 + strlen($fieldName);
-                    }
-                } else {
-                    break;
-                }
-            }
-        }
-        return $expression;
-    }
-
-    /**
-     * @throws Exception
-     * @since 3.2.2
-     */
-    public static function getFields($tableid_or_name, $as_object = false, $order_fields = true)
-    {
-        $whereClause = new MySQLWhereClause();
-        $whereClause->addCondition('f.published', 1);
-
-        if ((int)$tableid_or_name > 0) {
-            $whereClause->addCondition('f.tableid', (int)$tableid_or_name);
-        } else {
-            $w1 = '(SELECT t.id FROM #__customtables_tables AS t WHERE t.tablename=' . database::quote($tableid_or_name) . ' LIMIT 1)';
-            $whereClause->addCondition('f.tableid', $w1, '=', true);
-        }
-
-        $output_type = $as_object ? 'OBJECT' : 'ARRAY_A';
-        return database::loadObjectList('#__customtables_fields AS f', self::getFieldRowSelectArray(), $whereClause,
-            ($order_fields ? 'f.ordering, f.fieldname' : null), null, null, null, $output_type);
     }
 
     public static function convertRawFieldType(array $rawDataType): array
@@ -1674,19 +1598,60 @@ class Fields
         return '';
     }
 
+    public static function parseFieldTypeFromString(string $fieldType): array
+    {
+        $newData = [];
+
+        // Convert to uppercase for consistent comparison
+        $upperFieldType = strtoupper($fieldType);
+
+        // Extract base data type
+        preg_match('/^\s*([A-Za-z]+)/', $fieldType, $matches);
+        $newData['data_type'] = strtolower($matches[1] ?? '');
+
+        // Extract length/precision for supported types
+        if (in_array($newData['data_type'], ['varchar', 'char', 'decimal', 'int'])) {
+            preg_match('/\(([^)]+)\)/', $fieldType, $matches);
+            $newData['length'] = $matches[1] ?? null;
+        }
+
+        // Check if unsigned
+        $newData['is_unsigned'] = str_contains($upperFieldType, 'UNSIGNED');
+
+        // Check if nullable
+        $newData['is_nullable'] = !str_contains($upperFieldType, 'NOT NULL');
+
+        // Check if auto increment
+        $newData['autoincrement'] = str_contains($upperFieldType, 'AUTO_INCREMENT');
+
+        // Default value (if specified)
+        preg_match('/DEFAULT\s+(\S+)/i', $fieldType, $matches);
+        $newData['default'] = $matches[1] ?? null;
+
+        // Clean up default value if it's NULL
+        if ($newData['default'] !== null) {
+            if (strtoupper($newData['default']) === 'NULL') {
+                $newData['default'] = null;
+            } else {
+                // Remove quotes if present
+                $newData['default'] = trim($newData['default'], "'\"");
+            }
+        }
+
+        return $newData;
+    }
+
     /**
      * @throws Exception
      * @since 3.2.2
      */
+    /*
     public static function FixCustomTablesRecords($realtablename, $realfieldname, $optionname, $maxlenght): void
     {
         //CustomTables field type
         $serverType = database::getServerType();
         if ($serverType == 'postgresql')
             return;
-
-        $fixCount = 0;
-        //$fixQuery = 'SELECT id, ' . $realfieldname . ' AS fldvalue FROM ' . $realtablename;
 
         $whereClause = new MySQLWhereClause();
 
@@ -1696,20 +1661,18 @@ class Fields
             $newRow = Fields::FixCustomTablesRecord($fixRow->fldvalue, $optionname, $maxlenght);
 
             if ($fixRow->fldvalue != $newRow) {
-                $fixCount++;
-
                 $data = [
                     $realfieldname => $newRow
                 ];
                 $whereClauseUpdate = new MySQLWhereClause();
                 $whereClauseUpdate->addCondition('id', $fixRow->id);
                 database::update($realtablename, $data, $whereClauseUpdate);
-
-                //$fixitQuery = 'UPDATE ' . $realtablename . ' SET ' . $realfieldname . '="' . $newRow . '" WHERE id=' . $fixRow->id;
             }
         }
     }
+    */
 
+    /*
     public static function FixCustomTablesRecord($record, $optionname, $maxlen): string
     {
         $l = 2;
@@ -1744,16 +1707,20 @@ class Fields
 
         return $newRow;
     }
+*/
 
+    /*
     protected static function getFieldRowSelects(): string
     {
         return implode(',', self::getFieldRowSelectArray());
     }
+    */
 
     /**
      * @throws Exception
      * @since 3.2.2
      */
+    /*
     protected static function checkFieldName($tableId, $fieldName): string
     {
         $new_fieldname = $fieldName;
@@ -1769,5 +1736,6 @@ class Fields
 
         return $new_fieldname;
     }
+    */
 }
 

@@ -83,6 +83,10 @@ class Params
 
     var bool $blockExternalVars;
 
+    /**
+     * @throws Exception
+     * @since 3.0.0
+     */
     function __construct(?array $menu_params = null, $blockExternalVars = false, ?string $ModuleId = null)
     {
         $this->ModuleId = null;
@@ -96,6 +100,10 @@ class Params
             $this->constructWPParams();
     }
 
+    /**
+     * @throws Exception
+     * @since 3.2
+     */
     protected function constructJoomlaParams(?array $menu_paramsArray = null, $blockExternalVars = true, ?string $ModuleId = null): void
     {
         $this->app = Factory::getApplication();
@@ -154,7 +162,6 @@ class Params
         $menu_params['esitemlayout'] = $menu_params_registry->get('esitemlayout');
         $menu_params['ct_itemlayout'] = $menu_params_registry->get('ct_itemlayout');
         $menu_params['esdetailslayout'] = $menu_params_registry->get('esdetailslayout');
-        $menu_params['esdetailslayout'] = $menu_params_registry->get('esdetailslayout');
         $menu_params['eseditlayout'] = $menu_params_registry->get('eseditlayout');
         $menu_params['onrecordaddsendemaillayout'] = $menu_params_registry->get('onrecordaddsendemaillayout');
         $menu_params['allowcontentplugins'] = $menu_params_registry->get('allowcontentplugins');
@@ -185,6 +192,10 @@ class Params
         return $menu_params;
     }
 
+    /**
+     * @throws Exception
+     * @since 3.0.0
+     */
     function setParams(?array $menu_params = null, $blockExternalVars = true, ?string $ModuleId = null): void
     {
         if (defined('_JEXEC'))
@@ -195,6 +206,10 @@ class Params
         }
     }
 
+    /**
+     * @throws Exception
+     * @since 3.0.0
+     */
     function setJoomlaParams(?array $menu_params = null, $blockExternalVars = true, ?string $ModuleId = null): void
     {
         $this->blockExternalVars = $blockExternalVars;
@@ -214,9 +229,8 @@ class Params
                 $this->setDefault();
                 return;
             }
-        }
-
-        $this->getForceItemId($menu_params);
+        } else
+            $menu_params = $this->getForceItemId($menu_params);
 
         if (!$blockExternalVars and common::inputGetString('alias', ''))
             $this->alias = CTMiscHelper::slugify(common::inputGetString('alias'));
@@ -225,9 +239,7 @@ class Params
 
         $this->pageTitle = $menu_params['page_title'] ?? null;
         $this->showPageHeading = $menu_params['show_page_heading'] ?? false;
-
-        if (isset($menu_params['pageclass_sfx']))
-            $this->pageClassSFX = common::ctStripTags($menu_params['pageclass_sfx'] ?? '');
+        $this->pageClassSFX = common::ctStripTags($menu_params['pageclass_sfx'] ?? '');
 
         if (!$blockExternalVars and common::inputGetCmd('listing_id') !== null)
             $this->listing_id = common::inputGetCmd('listing_id');
@@ -244,7 +256,7 @@ class Params
 
         if ($this->tableName === null) {
             $this->tableName = $menu_params['establename'] ?? null; //Table name or id not sanitized
-            if ($this->tableName === null or $this->tableName === null)
+            if ($this->tableName === null)
                 $this->tableName = $menu_params['tableid']; //Used in the back-end
         }
 
@@ -270,7 +282,7 @@ class Params
         //Sorting
         if (!$blockExternalVars and !is_null(common::inputGetCmd('sortby')))
             $this->sortBy = strtolower(common::inputGetCmd('sortby'));
-        elseif (isset($menu_params['sortby']) and !is_null($menu_params['sortby']))
+        elseif (isset($menu_params['sortby']))
             $this->sortBy = strtolower($menu_params['sortby']);
 
         $this->forceSortBy = $menu_params['forcesortby'] ?? null;
@@ -407,8 +419,11 @@ class Params
         $this->recordsField = null;
     }
 
-    //Used by Joomla version of teh Custom Tables
-    protected function getForceItemId(array $menu_params): void
+    /**
+     * @throws Exception
+     * @since 3.0.0
+     */
+    protected function getForceItemId(array $menu_params): ?array
     {
         $forceItemId = $menu_params['forceitemid'] ?? null;
         if (is_null($forceItemId))
@@ -419,19 +434,153 @@ class Params
             if ((is_numeric($forceItemId))) {
                 if ((int)$forceItemId != 0) {
                     $this->ItemId = (int)$forceItemId;
-                    return;
+                    return CTMiscHelper::getMenuParams($this->ItemId);
                 }
             } elseif ($forceItemId != '') {
-                $this->ItemId = (int)CTMiscHelper::FindItemidbyAlias($forceItemId);//Accepts menu Itemid and alias
-                return;
+                $alias = $forceItemId;
+
+                $menu_Row = CTMiscHelper::FindMenuItemRowByAlias($alias);
+                if ($menu_Row === null)
+                    return null;
+
+                $this->ItemId = (int)$menu_Row['id'];
+                return (array)json_decode($menu_Row['params']);
             }
         }
         $this->ItemId = common::inputGetInt('Itemid', 0);
+        return $menu_params;
     }
+
+    //Used by Joomla version of the Custom Tables
 
     function setWPParams(array $menu_params = null, $blockExternalVars = true, ?string $ModuleId = null): void
     {
+        $this->blockExternalVars = $blockExternalVars;
+        $this->ModuleId = $ModuleId;
 
+        if (!$blockExternalVars and common::inputGetCmd('listing_id') !== null)
+            $this->listing_id = common::inputGetCmd('listing_id');
+        else
+            $this->listing_id = $menu_params['listingid'] ?? null;
+
+        if ($this->listing_id == '' or $this->listing_id == '0')
+            $this->listing_id = null;
+
+        $this->tableName = null;
+
+        if (common::inputGetInt("ctmodalform", 0) == 1)
+            $this->tableName = common::inputGetInt("tableid");//Used in Save Modal form content.
+
+        if ($this->tableName === null) {
+            $this->tableName = $menu_params['establename'] ?? null; //Table name or id not sanitized
+            if ($this->tableName === null)
+                $this->tableName = $menu_params['tableid']; //Used in the back-end
+        }
+
+        //Filter
+        $this->userIdField = $menu_params['useridfield'] ?? null;
+
+        if (!$blockExternalVars and common::inputGetString('filter')) {
+
+            $filter = common::inputGetString('filter', '');
+            if (is_array($filter)) {
+                $this->filter = $filter['search'];
+            } else
+                $this->filter = $filter;
+        } else {
+            $this->filter = $menu_params['filter'] ?? null;
+        }
+
+        $this->showPublished = (int)($menu_params['showpublished'] ?? 1);
+
+        //Group BY
+        $this->groupBy = $menu_params['groupby'] ?? null;
+
+        //Sorting
+        if (!$blockExternalVars and !is_null(common::inputGetCmd('sortby')))
+            $this->sortBy = strtolower(common::inputGetCmd('sortby'));
+        elseif (isset($menu_params['sortby']))
+            $this->sortBy = strtolower($menu_params['sortby']);
+
+        $this->forceSortBy = $menu_params['forcesortby'] ?? null;
+
+        //Limit
+        $this->limit = common::inputGetInt('limit', (int)($menu_params['limit'] ?? 20));
+
+        //Layouts
+        $this->pageLayout = $menu_params['escataloglayout'] ?? null;
+        if (is_null($this->pageLayout))
+            $this->pageLayout = $menu_params['ct_pagelayout'] ?? null;
+
+        $this->itemLayout = $menu_params['esitemlayout'] ?? null;
+        if (is_null($this->itemLayout))
+            $this->itemLayout = $menu_params['ct_itemlayout'] ?? null;
+
+        $this->detailsLayout = $menu_params['esdetailslayout'] ?? null;
+        $this->editLayout = $menu_params['eseditlayout'] ?? null;
+        $this->onRecordAddSendEmailLayout = $menu_params['onrecordaddsendemaillayout'] ?? null;
+        $this->allowContentPlugins = false;
+
+        //Shopping Cart
+
+        if (isset($menu_params['showcartitemsonly']) and $menu_params['showcartitemsonly'] != '')
+            $this->showCartItemsOnly = (bool)(int)$menu_params['showcartitemsonly'];
+        else
+            $this->showCartItemsOnly = false;
+
+        $this->showCartItemsPrefix = 'customtables_';
+        if (isset($menu_params['showcartitemsprefix']) and $menu_params['showcartitemsprefix'] != '')
+            $this->showCartItemsPrefix = $menu_params['showcartitemsprefix'];
+
+        $this->cartReturnTo = $menu_params['cart_returnto'] ?? null;
+        $this->cartMsgItemAdded = $menu_params['cart_msgitemadded'] ?? null;
+        $this->cartMsgItemDeleted = $menu_params['cart_msgitemdeleted'] ?? null;
+        $this->cartMsgItemUpdated = $menu_params['cart_msgitemupdated'] ?? null;
+
+        //Permissions
+        $this->editUserGroups = $menu_params['editusergroups'] ?? null;
+        $this->addUserGroups = $menu_params['addusergroups'] ?? 0;
+        if ($this->addUserGroups == 0)
+            $this->addUserGroups = $this->editUserGroups;
+
+        $this->publishUserGroups = $menu_params['publishusergroups'] ?? 0;
+        if ($this->publishUserGroups == 0)
+            $this->publishUserGroups = $this->editUserGroups;
+
+        $this->deleteUserGroups = $menu_params['deleteusergroups'] ?? 0;
+        if ($this->deleteUserGroups == 0)
+            $this->deleteUserGroups = $this->editUserGroups;
+
+        $this->guestCanAddNew = $menu_params['guestcanaddnew'] ?? null;
+        $this->publishStatus = $menu_params['publishstatus'] ?? null;
+
+        if ($this->publishStatus === null) {
+            if (!$blockExternalVars)
+                $this->publishStatus = common::inputGetInt('published');
+            else
+                $this->publishStatus = 1;
+        } else
+            $this->publishStatus = (int)$this->publishStatus;
+
+        //Emails
+        $this->onRecordAddSendEmail = (int)($menu_params['onrecordaddsendemail'] ?? null);
+        $this->sendEmailCondition = $menu_params['sendemailcondition'] ?? null;
+        $this->onRecordAddSendEmailTo = $menu_params['onrecordaddsendemailto'] ?? null;
+        $this->onRecordSaveSendEmailTo = $menu_params['onrecordsavesendemailto'] ?? null;
+        $this->emailSentStatusField = $menu_params['emailsentstatusfield'] ?? null;
+
+        //Form Saved
+        if (!$blockExternalVars and common::inputGetCmd('returnto'))
+            $this->returnTo = common::getReturnToURL();
+        else {
+            $this->returnTo = $menu_params['returnto'] ?? null;
+        }
+        $this->requiredLabel = $menu_params['requiredlabel'] ?? null;
+        $this->msgItemIsSaved = $menu_params['msgitemissaved'] ?? null;
+
+        $this->recordsTable = $menu_params['recordstable'] ?? null;
+        $this->recordsUserIdField = $menu_params['recordsuseridfield'] ?? null;
+        $this->recordsField = $menu_params['recordsfield'] ?? null;
     }
 
     protected function constructWPParams(): void
@@ -440,5 +589,31 @@ class Params
 
         $this->returnTo = common::curPageURL();
         $this->returnTo = CTMiscHelper::deleteURLQueryOption($this->returnTo, 'listing_id');
+    }
+
+    /**
+     * @throws Exception
+     * @since 3.4.3
+     */
+    function loadParameterUsingMenuAlias(string $Alias_or_ItemId): bool
+    {
+        if ($Alias_or_ItemId == '')
+            return false;
+
+        if (defined('_JEXEC')) {
+
+            if (is_numeric($Alias_or_ItemId) and (int)$Alias_or_ItemId > 0)
+                $params = CTMiscHelper::getMenuParams($Alias_or_ItemId);
+            else
+                $params = CTMiscHelper::getMenuParamsByAlias($Alias_or_ItemId);
+
+            if ($params === null)
+                return false;
+
+            $this->constructJoomlaParams($params);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

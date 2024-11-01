@@ -26,7 +26,7 @@ class CT
     var ?Params $Params;
     var ?Table $Table;
     var ?array $Records;
-    var string $GroupBy;
+    var ?string $GroupBy; // real field name
     var ?Ordering $Ordering;
     var ?Filtering $Filter;
     var ?string $alias_fieldname;
@@ -53,8 +53,16 @@ class CT
         $this->messages = [];
 
         if (defined('_JEXEC')) {
+
             $this->app = Factory::getApplication();
-            $this->document = $this->app->getDocument();
+
+            if (!($this->app instanceof \Joomla\CMS\Application\ConsoleApplication)) {
+                try {
+                    $this->document = $this->app->getDocument();
+                } catch (Exception $e) {
+                    // Handle error if needed
+                }
+            }
         }
 
         $this->Languages = new Languages;
@@ -62,7 +70,7 @@ class CT
         $this->Env = new Environment($enablePlugin);
         $this->Params = new Params($menuParams, $blockExternalVars, $ModuleId);
 
-        $this->GroupBy = '';
+        $this->GroupBy = null;
         $this->isEditForm = false;
         $this->LayoutVariables = [];
         $this->editFields = [];
@@ -105,6 +113,11 @@ class CT
         return false;
     }
 
+    /**
+     * @throws Exception
+     *
+     * @since 3.0.0
+     */
     function setParams(array $menuParams = null, $blockExternalVars = true, ?string $ModuleId = null): void
     {
         $this->Params->setParams($menuParams, $blockExternalVars, $ModuleId);
@@ -122,6 +135,7 @@ class CT
             $this->Ordering = new Ordering($this->Table, $this->Params);
             $this->prepareSEFLinkBase();
         } else {
+            $this->Table = null;
             $this->Ordering = null;
         }
     }
@@ -130,6 +144,7 @@ class CT
      * @throws Exception
      * @since 3.2.3
      */
+    /*
     public function setTable(array $tableRow, $userIdFieldName = null): void
     {
         $this->Table = new Table($this->Languages, $this->Env, 0);
@@ -138,6 +153,7 @@ class CT
         $this->Ordering = new Ordering($this->Table, $this->Params);
         $this->prepareSEFLinkBase();
     }
+    */
 
     protected function prepareSEFLinkBase(): void
     {
@@ -160,21 +176,13 @@ class CT
 
     /**
      * @throws Exception
-     * @since 3.2.3
-     */
-    function setFilter(?string $filter_string = null, int $showpublished = 0): void
-    {
-        $this->Filter = new Filtering($this, $showpublished);
-        if ($filter_string != '')
-            $this->Filter->addWhereExpression($filter_string);
-    }
-
-    /**
-     * @throws Exception
      * @since 3.2.2
      */
     function getRecords(bool $all = false, int $limit = 0): bool
     {
+        //if ($this->Filter === null)
+        //$this->setFilter();
+
         $count = $this->getNumberOfRecords($this->Filter->whereClause);
 
         if ($count === null)
@@ -198,18 +206,14 @@ class CT
 
             if ($limit > 0) {
                 $this->Records = database::loadAssocList($this->Table->realtablename, $selects, $this->Filter->whereClause,
-                    (count($ordering) > 0 ? implode(',', $ordering) : null), null, $limit);
+                    (count($ordering) > 0 ? implode(',', $ordering) : null), null, $limit, null, $this->GroupBy);
                 $this->Limit = $limit;
             } else {
                 $the_limit = $this->Limit;
 
                 if ($all) {
-                    if ($the_limit > 0)
-                        $this->Records = database::loadAssocList($this->Table->realtablename, $selects, $this->Filter->whereClause,
-                            (count($ordering) > 0 ? implode(',', $ordering) : null), null, 20000, 0);
-                    else
-                        $this->Records = database::loadAssocList($this->Table->realtablename, $selects, $this->Filter->whereClause,
-                            (count($ordering) > 0 ? implode(',', $ordering) : null));
+                    $this->Records = database::loadAssocList($this->Table->realtablename, $selects, $this->Filter->whereClause,
+                        (count($ordering) > 0 ? implode(',', $ordering) : null), null, 20000, null, $this->GroupBy);
                 } else {
                     if ($the_limit > 20000)
                         $the_limit = 20000;
@@ -222,7 +226,7 @@ class CT
 
                     try {
                         $this->Records = database::loadAssocList($this->Table->realtablename, $selects, $this->Filter->whereClause,
-                            (count($ordering) > 0 ? implode(',', $ordering) : null), null, $the_limit, $this->LimitStart);
+                            (count($ordering) > 0 ? implode(',', $ordering) : null), null, $the_limit, $this->LimitStart, $this->GroupBy);
                     } catch (Exception $e) {
                         $this->errors[] = $e->getMessage();
                         return false;
@@ -256,6 +260,17 @@ class CT
             $this->Table->recordcount = intval($rows[0]->record_count);
 
         return $this->Table->recordcount;
+    }
+
+    /**
+     * @throws Exception
+     * @since 3.2.3
+     */
+    function setFilter(?string $filter_string = null, int $showpublished = 0): void
+    {
+        $this->Filter = new Filtering($this, $showpublished);
+        if ($filter_string != '')
+            $this->Filter->addWhereExpression($filter_string);
     }
 
     /**
@@ -325,7 +340,7 @@ class CT
         if ($this->Params->groupBy != '')
             $this->GroupBy = Fields::getRealFieldName($this->Params->groupBy, $this->Table->fields);
         else
-            $this->GroupBy = '';
+            $this->GroupBy = null;
 
         if ($this->Params->blockExternalVars) {
             if ((int)$this->Params->limit > 0) {
@@ -428,11 +443,9 @@ class CT
 
         $new_row = array();
 
-        if (defined('_JEXEC')) {
-            if ($this->Env->advancedTagProcessor and $this->Table->tablerow['customphp'] !== null) {
-                $customPHP = new CustomPHP($this, 'delete');
-                $customPHP->executeCustomPHPFile($this->Table->tablerow['customphp'], $new_row, $row);
-            }
+        if ($this->Env->advancedTagProcessor and $this->Table->tablerow['customphp'] !== null) {
+            $customPHP = new CustomPHP($this, 'delete');
+            $customPHP->executeCustomPHPFile($this->Table->tablerow['customphp'], $new_row, $row);
         }
 
         return 1;
@@ -533,23 +546,23 @@ class CT
     protected function updateMD5(string $listing_id): void
     {
         //TODO: Use savefield
-        foreach ($this->Table->fields as $fieldrow) {
-            if ($fieldrow['type'] == 'md5') {
-                $fieldsToCount = explode(',', str_replace('"', '', $fieldrow['typeparams']));//only field names, nothing else
+        foreach ($this->Table->fields as $fieldRow) {
+            if ($fieldRow['type'] == 'md5') {
+                $fieldsToCount = explode(',', str_replace('"', '', $fieldRow['typeparams']));//only field names, nothing else
 
                 $fields = array();
                 foreach ($fieldsToCount as $f) {
                     //to make sure that field exists
-                    foreach ($this->Table->fields as $fieldrow2) {
-                        if ($fieldrow2['fieldname'] == $f and $fieldrow['fieldname'] != $f)
-                            $fields[] = 'COALESCE(' . $fieldrow2['realfieldname'] . ')';
+                    foreach ($this->Table->fields as $fieldRow2) {
+                        if ($fieldRow2['fieldname'] == $f and $fieldRow['fieldname'] != $f)
+                            $fields[] = 'COALESCE(' . $fieldRow2['realfieldname'] . ')';
                     }
                 }
 
                 if (count($fields) > 1) {
 
                     $data = [
-                        $fieldrow['realfieldname'] => ['MD5(CONCAT_WS(' . implode(',', $fields) . '))', 'sanitized']
+                        $fieldRow['realfieldname'] => ['MD5(CONCAT_WS(' . implode(',', $fields) . '))', 'sanitized']
                     ];
                     $whereClauseUpdate = new MySQLWhereClause();
                     $whereClauseUpdate->addCondition($this->Table->realidfieldname, $listing_id);
@@ -641,19 +654,19 @@ class CT
     public function UserIDField_BuildWheres(string $userIdField, string $listing_id): MySQLWhereClause
     {
         $whereClause = new MySQLWhereClause();
-        $statement_items = common::ExplodeSmartParams($userIdField); //"and" and "or" as separators
+        $statement_items = CTMiscHelper::ExplodeSmartParamsArray($userIdField); //"and" and "or" as separators
         $whereClauseOwner = new MySQLWhereClause();
 
         foreach ($statement_items as $item) {
-            $field = $item[1];
-            if (!str_contains($field, '.')) {
+
+            if (!str_contains($item['equation'], '.')) {
                 //example: user
                 //check if the record belong to the current user
-                $user_field_row = Fields::FieldRowByName($field, $this->Table->fields);
+                $user_field_row = Fields::FieldRowByName($item['equation'], $this->Table->fields);
                 $whereClauseOwner->addCondition($user_field_row['realfieldname'], $this->Env->user->id);
             } else {
                 //example: parents(children).user
-                $statement_parts = explode('.', $field);
+                $statement_parts = explode('.', $item['equation']);
                 if (count($statement_parts) != 2) {
                     $this->errors[] = common::translate('COM_CUSTOMTABLES_MENUITEM_USERID_FIELD_ERROR');
                     return $whereClause;
@@ -676,7 +689,8 @@ class CT
                     return $whereClause;
                 }
 
-                $parent_table_fields = Fields::getFields($parent_table_row->id);
+                $tempTable = new Table($this->Languages, $this->Env, $parent_table_row->id);
+                $parent_table_fields = $tempTable->fields;
 
                 $parent_join_field_row = Fields::FieldRowByName($parent_join_field, $parent_table_fields);
 

@@ -211,7 +211,8 @@
         </tag>
 
         <tag name="captcha" label="Captcha" startchar="{" endchar="}" twigclass="html"
-             description="Provides the use of a captcha plugin (if enabled)." proversion="1" wordpress="true">
+             description="Provides the use of a captcha widget." proversion="1" wordpress="true"
+             example="{{ html.captcha(SITE_KEY, SECRET_KEY) }}">
             <params>
 
                 <param name="public_key" label="Site Key" type="string" required="true"
@@ -681,7 +682,7 @@
              twigclass="tables" proversion="1" wordpress="true">
             <params>
                 <param type="layout" name="layout" label="Catalog Layout" table=""
-                       layouttype="catalogpage,simplecatalog"
+                       layouttype="catalogitem,details"
                        example="CountriesPage"/>
                 <param type="string" name="recordidorfilter" label="Record ID or filter"
                        description="Example 1: 65, example 2: population>1000000" example="62"/>
@@ -695,14 +696,18 @@
              twigclass="tables" proversion="1" wordpress="true">
             <params>
                 <param type="layout" name="layout" label="Catalog Layout" table=""
-                       layouttype="catalogpage,simplecatalog"
+                       layouttype="catalogpage,simplecatalog,xml,csv,json"
                        example="CountriesPage"/>
                 <param type="string" name="filter" label="Filter" description="Example: price>100"
                        example="population>1000000"/>
                 <param type="string" name="orderby" label="Order By Field" description="Example: name desc"
                        example="name"/>
-                <param type="string" name="limit" label="Limit" description="Max number of records to load. Example: 20"
+                <param type="string" name="limit" label="Limit"
+                       description="Max number of records to load. Example: 20. 0 is default and means No Limit."
                        example="20"/>
+                <param type="field" name="field" label="Group by Field"
+                       description="Group records that have the same values into summary records, like `find the number of customers in each country`."
+                       repetitive="0"/>
             </params>
         </tag>
     </tagset>
@@ -1234,6 +1239,28 @@
              twigreplacement="document.setmetakeywords" layouttypes="1,2,4,5,6"/>
         <tag name="metadescription" label="Set Meta Description" startchar="{" endchar="}" deprecated="1"
              twigreplacement="document.setmetadescription" layouttypes="1,2,4,5,6"/>
+
+        <tag name="set" label="Set Variable Value" startchar="{" endchar="}" twigclass="document"
+             description="Sets a global variable value that can be accessed in included layouts."
+             proversion="1" wordpress="true">
+            <params>
+                <param name="variable" label="Variable" type="string"
+                       example="{{ document.set('speed', 65) }}"
+                       description="The variable 'speed' is now available in included layouts. For example, you can display it like this: The speed is {{ document.get('speed') }}."/>
+                <param name="value" label="Value" type="string"
+                       description="The value to assign to the specified variable."/>
+            </params>
+        </tag>
+
+        <tag name="get" label="Get Variable Value" startchar="{" endchar="}" twigclass="document"
+             description="Retrieves a global variable value that can be accessed in included layouts."
+             proversion="1" wordpress="true">
+            <params>
+                <param name="variable" label="Variable" type="string"
+                       example="{{ document.get('speed') }}"
+                       description="Retrieves the value of the 'speed' variable, which can be set in the parent layout with {{ document.set('speed', 65) }}."/>
+            </params>
+        </tag>
 
     </tagset>
 

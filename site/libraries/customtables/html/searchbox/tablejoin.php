@@ -103,15 +103,21 @@ class Search_tablejoin extends BaseSearch
 
         if (count($typeParams) < 1) {
             common::enqueueMessage(common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_SPECIFIED'));
-            return '';
+            return common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_SPECIFIED');
         }
 
         if (count($typeParams) < 2) {
             common::enqueueMessage(common::translate('COM_CUSTOMTABLES_ERROR_UNKNOWN_FIELD_LAYOUT'));
-            return '';
+            return common::translate('COM_CUSTOMTABLES_ERROR_UNKNOWN_FIELD_LAYOUT');
         }
 
         $tableName = $typeParams[0];
+
+        if (empty($tableName)) {
+            common::enqueueMessage('Table not set.');
+            return 'Table not set.';
+        }
+
         $value_field = $typeParams[1] ?? '';
         $filter = $typeParams[2] ?? '';
         $dynamic_filter = $typeParams[3] ?? '';
@@ -124,7 +130,7 @@ class Search_tablejoin extends BaseSearch
 
         if (TableHelper::getTableID($tableName) == '') {
             common::enqueueMessage(common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND'));
-            return '';
+            return common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND');
         }
 
         if ($order_by_field == '')
@@ -138,12 +144,16 @@ class Search_tablejoin extends BaseSearch
         //Process records depending on field type and layout
         $list_values = $this->get_List_Values($ct, $value_field, $dynamic_filter);
 
-        $htmlresult = self::renderDynamicFilter($ct, $value, $tableName, $dynamic_filter, $control_name);
-        $htmlresult .= self::renderDropdownSelector_Box($list_values, $value, $control_name, $dynamic_filter, $addNoValue);
+        $htmlResult = self::renderDynamicFilter($ct, $value, $dynamic_filter, $control_name);
+        $htmlResult .= self::renderDropdownSelector_Box($list_values, $value, $control_name, $dynamic_filter, $addNoValue);
 
-        return $htmlresult;
+        return $htmlResult;
     }
 
+    /**
+     * @throws Exception
+     * @since 3.2.0
+     */
     static protected function getSearchResult(CT $ct, $filter, $tableName, $order_by_field, $allowUnpublished): bool
     {
         $paramsArray = array();
@@ -155,9 +165,7 @@ class Search_tablejoin extends BaseSearch
         else
             $paramsArray['showpublished'] = 0;//0 - published only; 1 - hidden only; 2 - Any
 
-        $paramsArray['showpagination'] = 0;
         $paramsArray['groupby'] = '';
-        $paramsArray['shownavigation'] = 0;
 
         if (!str_contains($order_by_field, ':')) //cannot sort by layout only by field name
             $paramsArray['forcesortby'] = $order_by_field;
@@ -170,11 +178,11 @@ class Search_tablejoin extends BaseSearch
         $ct->setParams($paramsArray);
 
         // -------------------- Table
-
         $ct->getTable($ct->Params->tableName);
 
         if ($ct->Table->tablename === null) {
-            $ct->errors[] = 'Catalog View: Table not selected.';
+            $ct->errors[] = 'Catalog View: Table "' . $ct->Params->tableName . '" not found.';
+            echo 'Catalog View: Table "' . $ct->Params->tableName . '" not found.';
             return false;
         }
 
@@ -242,7 +250,7 @@ class Search_tablejoin extends BaseSearch
             }
 
             if ($dynamic_filter != '')
-                $d = $row[$ct->Env->field_prefix . $dynamic_filter];
+                $d = $row[$ct->Table->fieldPrefix . $dynamic_filter];
             else
                 $d = '';
 
@@ -252,21 +260,26 @@ class Search_tablejoin extends BaseSearch
         return $list_values;
     }
 
-    static protected function renderDynamicFilter(CT $ct, $value, $tableName, $dynamic_filter, $control_name): string
+    /**
+     * @throws Exception
+     *
+     * @since 3.0.0
+     */
+    static protected function renderDynamicFilter(CT $ct, $value, $dynamic_filter, $control_name): string
     {
-        $htmlresult = '';
+        $htmlResult = '';
 
         if ($dynamic_filter != '') {
             $filterValue = '';
             foreach ($ct->Records as $row) {
                 if ($row[$ct->Table->realidfieldname] == $value) {
-                    $filterValue = $row[$ct->Env->field_prefix . $dynamic_filter];
+                    $filterValue = $row[$ct->Table->fieldPrefix . $dynamic_filter];
                     break;
                 }
             }
-            $htmlresult .= LinkJoinFilters::getFilterBox($tableName, $dynamic_filter, $control_name, $filterValue);
+            $htmlResult .= LinkJoinFilters::getFilterBox($ct, $dynamic_filter, $control_name, $filterValue);
         }
-        return $htmlresult;
+        return $htmlResult;
     }
 
     protected function renderDropdownSelector_Box($list_values, $current_value, $control_name, $dynamic_filter, $addNoValue = false): string

@@ -244,6 +244,10 @@ class CTMiscHelper
             return 'rgb(' . implode(',', $colors) . ')';
     }
 
+    /**
+     * @throws Exception
+     * @since 3.0.0
+     */
     public static function getListToReplace(string $par, array &$options, string $text, string $qtype, string $separator = ':', string $quote_char = '"'): array
     {
         $fList = array();
@@ -421,7 +425,7 @@ class CTMiscHelper
      * @throws Exception
      * @since 3.2.2
      */
-    public static function getMenuParams(int $Itemid, string $rawParams = '')
+    public static function getMenuParams(int $Itemid, string $rawParams = ''): ?array
     {
         if ($rawParams == '') {
             $whereClause = new MySQLWhereClause();
@@ -430,24 +434,45 @@ class CTMiscHelper
             $rows = database::loadObjectList('#__menu', ['params'], $whereClause, null, null, 1);
 
             if (count($rows) == 0)
-                return '';
+                return null;
 
             $row = $rows[0];
             $rawParams = $row->params;
         }
-        return json_decode($rawParams);
+        return (array)json_decode($rawParams);
     }
-
 
     /**
      * @throws Exception
      * @since 3.2.2
      */
-    public static function getGroupIdByTitle($grouptitle): string
+    public static function getMenuParamsByAlias(string $alias): ?array
+    {
+        if ($alias === '')
+            return null;
+
+        $whereClause = new MySQLWhereClause();
+        $whereClause->addCondition('alias', $alias);
+
+        $rows = database::loadObjectList('#__menu', ['params'], $whereClause, null, null, 1);
+
+        if (count($rows) == 0)
+            return null;
+
+        $row = $rows[0];
+        $rawParams = $row->params;
+        return (array)json_decode($rawParams);
+    }
+
+    /**
+     * @throws Exception
+     * @since 3.2.2
+     */
+    public static function getGroupIdByTitle($groupTitle): string
     {
         // Execute the query and load the rules from the result.
         $whereClause = new MySQLWhereClause();
-        $whereClause->addCondition('title', trim($grouptitle));
+        $whereClause->addCondition('title', trim($groupTitle));
         $rows = database::loadObjectList('#__usergroups', ['id'], $whereClause, null, null, 1);
 
         if (count($rows) < 1)
@@ -581,20 +606,20 @@ class CTMiscHelper
      * @throws Exception
      * @since 3.2.2
      */
-    public static function FindMenuItemRowByAlias($alias)
+    public static function FindMenuItemRowByAlias($alias): ?int
     {
         $whereClause = new MySQLWhereClause();
         $whereClause->addCondition('published', 1);
         $whereClause->addCondition('alias', $alias);
 
         $rows = database::loadAssocList('#__menu', ['*'], $whereClause);
-        if (!$rows) return 0;
-        if (count($rows) < 1) return 0;
+        if (!$rows) return null;
+        if (count($rows) < 1) return null;
 
         return $rows[0];
     }
 
-    public static function applyContentPlugins(string &$htmlresult): string
+    public static function applyContentPlugins(string &$htmlResult): string
     {
         $version_object = new Version;
         $version = (int)$version_object->getShortVersion();
@@ -608,10 +633,10 @@ class CTMiscHelper
             $content_params = $mainframe->getParams('com_content');
 
             if ($version >= 4) {
-                $htmlresult = \Joomla\CMS\HTML\Helpers\Content::prepare($htmlresult, $content_params);
+                $htmlResult = \Joomla\CMS\HTML\Helpers\Content::prepare($htmlResult, $content_params);
             } else {
                 $o = new stdClass();
-                $o->text = $htmlresult;
+                $o->text = $htmlResult;
                 $o->created_by_alias = 0;
 
                 JPluginHelper::importPlugin('content');
@@ -619,19 +644,23 @@ class CTMiscHelper
                 $dispatcher = \JDispatcher::getInstance();
                 $dispatcher->trigger('onContentPrepare', array('com_content.article', &$o, &$content_params, 0));
 
-                $htmlresult = $o->text;
+                $htmlResult = $o->text;
             }
 
             if (defined('_JEXEC'))
                 $myDoc->setTitle(common::translate($pageTitle)); //because content plugins may overwrite the title
 
         }
-        return $htmlresult;
+        return $htmlResult;
     }
 
     public static function suggest_TempFileName(&$webFileLink, ?string $fileExtension = null): ?string
     {
-        $output_dir = CUSTOMTABLES_ABSPATH . 'tmp' . DIRECTORY_SEPARATOR;
+        if (defined('_JEXEC'))
+            $output_dir = CUSTOMTABLES_ABSPATH . 'tmp' . DIRECTORY_SEPARATOR;
+        elseif (defined('WPINC'))
+            $output_dir = CUSTOMTABLES_IMAGES_PATH . DIRECTORY_SEPARATOR;
+
         $webDir = common::UriRoot(true) . 'tmp/';
         $random_name = common::generateRandomString();
 
@@ -951,5 +980,71 @@ class CTMiscHelper
             return null;
 
         return ['value' => $values[0]->value];
+    }
+
+    public static function ExplodeSmartParamsArray(string $param): array
+    {
+        $items = self::ExplodeSmartParams($param);
+
+        $new_items = array();
+
+        foreach ($items as $item) {
+            $logic_operator = $item[0];
+            $comparison_operator_str = $item[1];
+            $comparison_operator = '';
+
+            if ($logic_operator == 'or' or $logic_operator == 'and') {
+                if (!(!str_contains($comparison_operator_str, '<=')))
+                    $comparison_operator = '<=';
+                elseif (!(!str_contains($comparison_operator_str, '>=')))
+                    $comparison_operator = '>=';
+                elseif (str_contains($comparison_operator_str, '!=='))
+                    $comparison_operator = '!==';
+                elseif (!(!str_contains($comparison_operator_str, '!=')))
+                    $comparison_operator = '!=';
+                elseif (str_contains($comparison_operator_str, '=='))
+                    $comparison_operator = '==';
+                elseif (str_contains($comparison_operator_str, '='))
+                    $comparison_operator = '=';
+                elseif (!(!str_contains($comparison_operator_str, '<')))
+                    $comparison_operator = '<';
+                elseif (!(!str_contains($comparison_operator_str, '>')))
+                    $comparison_operator = '>';
+
+                if ($comparison_operator != '') {
+                    $whr = CTMiscHelper::csv_explode($comparison_operator, $comparison_operator_str, '"', false);
+
+                    if (count($whr) == 2) {
+                        $fieldNamesString = trim(preg_replace("/[^a-zA-Z\d,:\-_;]/", "", trim($whr[0])));
+                        $new_items[] = ['logic' => $logic_operator, 'comparison' => $comparison_operator, 'field' => $fieldNamesString, 'value' => trim($whr[1])];
+                    }
+                } else {
+                    //this to process boolean values.
+                    //example "a and b" is equal to "a!=0 and b!=0"
+                    $fieldNamesString = trim(preg_replace("/[^a-zA-Z\d,:\-_;]/", "", trim($comparison_operator_str)));
+                    $new_items[] = ['logic' => $logic_operator, 'comparison' => '!=', 'field' => $fieldNamesString, 'value' => 0, 'equation' => $comparison_operator_str];
+                }
+            }
+        }
+
+        return $new_items;
+    }
+
+    private static function ExplodeSmartParams(string $param): array
+    {
+        $items = array();
+
+        $a = CTMiscHelper::csv_explode(' and ', $param, '"', true);
+        foreach ($a as $b) {
+            $c = CTMiscHelper::csv_explode(' or ', $b, '"', true);
+
+            if (count($c) == 1)
+                $items[] = array('and', $b);
+            else {
+                foreach ($c as $d)
+                    $items[] = array('or', $d);
+            }
+        }
+        return $items;
     }
 }

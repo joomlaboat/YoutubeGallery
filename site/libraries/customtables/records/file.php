@@ -35,29 +35,40 @@ class Save_file
     function saveFieldSet(?string $listing_id): ?array
     {
         $newValue = null;
-
         $to_delete = common::inputPostCmd($this->field->comesfieldname . '_delete', null, 'create-edit-record');
 
         //Get new file
         $CompletePathToFile = null;
         $fileName = null;
 
-        if (defined('_JEXEC')) {
-            $temporaryFile = common::inputPostString($this->field->comesfieldname, null, 'create-edit-record');
-            if (empty($temporaryFile))
+        $fileData = common::inputPostString($this->field->comesfieldname . '_data', null, 'create-edit-record');
+        if (!empty($fileData) and $fileData[0] == '{') {
+
+            if (defined('_JEXEC'))
+                $CompletePathToFile = $this->downloadGoogleDriveFile($fileData, CUSTOMTABLES_ABSPATH . 'tmp');
+            elseif (defined('WPINC'))
+                $CompletePathToFile = $this->downloadGoogleDriveFile(stripslashes($fileData), CUSTOMTABLES_IMAGES_PATH);
+
+            if ($CompletePathToFile === null)
                 return null;
 
-            $CompletePathToFile = CUSTOMTABLES_ABSPATH . 'tmp' . DIRECTORY_SEPARATOR . $temporaryFile;
-
             $fileName = common::inputPostString('com' . $this->field->realfieldname . '_filename', '', 'create-edit-record');
-        } elseif (defined('WPINC')) {
-            //Get new image
-            if (isset($_FILES[$this->field->comesfieldname])) {
-                $CompletePathToFile = $_FILES[$this->field->comesfieldname]['tmp_name'];
-                $fileName = $_FILES[$this->field->comesfieldname]['name'];
-            }
-        } else
-            return null;
+        } else {
+            if (defined('_JEXEC')) {
+                $temporaryFile = common::inputPostString($this->field->comesfieldname, null, 'create-edit-record');
+                if (!empty($temporaryFile))
+                    $CompletePathToFile = CUSTOMTABLES_ABSPATH . 'tmp' . DIRECTORY_SEPARATOR . $temporaryFile;
+
+                $fileName = common::inputPostString('com' . $this->field->realfieldname . '_filename', '', 'create-edit-record');
+            } elseif (defined('WPINC')) {
+                //Get new image
+                if (isset($_FILES[$this->field->comesfieldname])) {
+                    $CompletePathToFile = $_FILES[$this->field->comesfieldname]['tmp_name'];
+                    $fileName = $_FILES[$this->field->comesfieldname]['name'];
+                }
+            } else
+                return null;
+        }
 
         //Set the variable to "false" to do not delete existing file
         $FileFolder = FileUtils::getOrCreateDirectoryPath($this->field->params[1]);
@@ -75,8 +86,12 @@ class Save_file
             if ($ExistingFile != '' and !self::checkIfTheFileBelongsToAnotherRecord($ExistingFile)) {
                 $filename_full = $filepath . DIRECTORY_SEPARATOR . $ExistingFile;
 
-                if (file_exists($filename_full))
+                if (file_exists($filename_full)) {
+
+                    echo 'filename exists : ' . $filename_full . '<br/>';
+
                     unlink($filename_full);
+                }
             }
         }
 
@@ -100,8 +115,88 @@ class Save_file
         } elseif ($to_delete == 'true') {
             $newValue = ['value' => null];//This way it will be clear if the value changed or not. If $this->newValue = null means that value not changed.
         }
-
         return $newValue;
+    }
+
+    /**
+     * @throws Exception
+     * @since 3.4.1
+     */
+
+    private function downloadGoogleDriveFile(string $temporaryFile, string $path): ?string
+    {
+        try {
+            $data = json_decode($temporaryFile, true);
+            if (!$data) {
+                throw new Exception('Invalid JSON data');
+            }
+        } catch (Exception $e) {
+            error_log('Error decoding JSON: ' . $e->getMessage());
+            return null;
+        }
+
+        // Extract the file information
+        $fileId = $data['fileId'] ?? null;
+        $fileName = $data['fileName'] ?? null;
+        $accessToken = $data['accessToken'] ?? null;
+
+        if (!$fileId || !$fileName || !$accessToken) {
+            error_log('Missing required file information');
+            return null;
+        }
+
+        $parts = explode('.', $fileName);
+        $fileExtension = end($parts);
+        $uniqueFileName = common::generateRandomString() . '.' . $fileExtension;
+        $completePathToFile = $path . DIRECTORY_SEPARATOR . $uniqueFileName;
+
+        // Set up the cURL request to download the file from Google Drive
+        $url = 'https://www.googleapis.com/drive/v3/files/' . $fileId . '?alt=media';
+        $ch = curl_init($url);
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => false,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTPHEADER => ["Authorization: Bearer " . $accessToken],
+            CURLOPT_BUFFERSIZE => 128 * 1024, // 128 KB
+            CURLOPT_NOPROGRESS => false,
+            CURLOPT_PROGRESSFUNCTION => function ($downloadSize, $downloaded, $uploadSize, $uploaded) {
+                // You can implement progress reporting here if needed
+            },
+        ]);
+
+        $fileHandle = fopen($completePathToFile, 'wb');
+        if ($fileHandle === false) {
+            error_log('Unable to open file for writing: ' . $completePathToFile);
+            return null;
+        }
+
+        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($ch, $data) use ($fileHandle) {
+            return fwrite($fileHandle, $data);
+        });
+
+        $success = curl_exec($ch);
+        fclose($fileHandle);
+
+        if ($success === false) {
+            $error = curl_error($ch);
+            error_log('Error downloading file from Google Drive: ' . $error);
+            common::enqueueMessage('Error downloading file from Google Drive: ' . $error);
+            curl_close($ch);
+            return null;
+        }
+
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            error_log('HTTP Error: ' . $httpCode);
+            common::enqueueMessage('Error downloading file from Google Drive. HTTP Code: ' . $httpCode);
+            return null;
+        }
+
+        return $completePathToFile;
     }
 
     /**

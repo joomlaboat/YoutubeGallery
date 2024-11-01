@@ -30,7 +30,7 @@ class Filtering
         $this->whereClause = new MySQLWhereClause();
         $this->showPublished = $showPublished;
 
-        if ($this->ct->Table->published_field_found) {
+        if ($this->ct->Table !== null and $this->ct->Table->published_field_found) {
 
             //TODO: Fix this mess by replacing the state with a text code like 'published','unpublished','everything','any','trash'
             //showPublished = 0 - show published
@@ -114,108 +114,75 @@ class Filtering
             return;
 
         $param = $this->sanitizeAndParseFilter($param, true);
-        $items = common::ExplodeSmartParams($param);
-        $logic_operator = '';
+        $items = CTMiscHelper::ExplodeSmartParamsArray($param);
 
         foreach ($items as $item) {
-            $logic_operator = $item[0];
-            $comparison_operator_str = $item[1];
-            $comparison_operator = '';
+
             $whereClauseTemp = new MySQLWhereClause();
 
-            if ($logic_operator == 'or' or $logic_operator == 'and') {
-                if (!(!str_contains($comparison_operator_str, '<=')))
-                    $comparison_operator = '<=';
-                elseif (!(!str_contains($comparison_operator_str, '>=')))
-                    $comparison_operator = '>=';
-                elseif (str_contains($comparison_operator_str, '!=='))
-                    $comparison_operator = '!==';
-                elseif (!(!str_contains($comparison_operator_str, '!=')))
-                    $comparison_operator = '!=';
-                elseif (str_contains($comparison_operator_str, '=='))
-                    $comparison_operator = '==';
-                elseif (str_contains($comparison_operator_str, '='))
-                    $comparison_operator = '=';
-                elseif (!(!str_contains($comparison_operator_str, '<')))
-                    $comparison_operator = '<';
-                elseif (!(!str_contains($comparison_operator_str, '>')))
-                    $comparison_operator = '>';
+            $fieldNames = explode(';', $item['field']);
+            $value = $item['value'];
 
-                if ($comparison_operator != '') {
-                    $whr = CTMiscHelper::csv_explode($comparison_operator, $comparison_operator_str, '"', false);
+            if ($this->ct->Env->legacySupport) {
+                require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'layout.php');
+                $LayoutProc = new LayoutProcessor($this->ct);
+                $LayoutProc->layout = $value;
+                $value = $LayoutProc->fillLayout();
+            }
 
-                    if (count($whr) == 2) {
-                        $fieldNamesString = trim(preg_replace("/[^a-zA-Z\d,:\-_;]/", "", trim($whr[0])));
+            $twig = new TwigProcessor($this->ct, $value);
+            $value = $twig->process();
 
-                        $fieldNames = explode(';', $fieldNamesString);
-                        $value = trim($whr[1]);
+            if ($twig->errorMessage !== null) {
+                $this->ct->errors[] = $twig->errorMessage;
+                return;
+            }
 
-                        if ($this->ct->Env->legacySupport) {
-                            require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'layout.php');
-                            $LayoutProc = new LayoutProcessor($this->ct);
-                            $LayoutProc->layout = $value;
-                            $value = $LayoutProc->fillLayout();
-                        }
+            foreach ($fieldNames as $fieldname_) {
+                $fieldname_parts = explode(':', $fieldname_);
+                $fieldname = $fieldname_parts[0];
+                $field_extra_param = '';
+                if (isset($fieldname_parts[1]))
+                    $field_extra_param = $fieldname_parts[1];
 
-                        $twig = new TwigProcessor($this->ct, $value);
-                        $value = $twig->process();
+                if ($fieldname == '_id') {
+                    $fieldRow = array(
+                        'id' => 0,
+                        'fieldname' => '_id',
+                        'type' => '_id',
+                        'typeparams' => '',
+                        'realfieldname' => $this->ct->Table->realidfieldname,
+                    );
+                } elseif ($fieldname == '_published') {
+                    $fieldRow = array(
+                        'id' => 0,
+                        'fieldname' => '_published',
+                        'type' => '_published',
+                        'typeparams' => '',
+                        'realfieldname' => 'listing_published'
+                    );
+                } else {
+                    //Check if it's a range filter
+                    $fieldNameParts = explode('_r_', $fieldname);
+                    $fieldRow = Fields::FieldRowByName($fieldNameParts[0], $this->ct->Table->fields);
+                }
 
-                        if ($twig->errorMessage !== null) {
-                            $this->ct->errors[] = $twig->errorMessage;
-                            return;
-                        }
+                if (!is_null($fieldRow) and array_key_exists('type', $fieldRow)) {
 
-                        foreach ($fieldNames as $fieldname_) {
-                            $fieldname_parts = explode(':', $fieldname_);
-                            $fieldname = $fieldname_parts[0];
-                            $field_extra_param = '';
-                            if (isset($fieldname_parts[1]))
-                                $field_extra_param = $fieldname_parts[1];
+                    $w = $this->processSingleFieldWhereSyntax($fieldRow, $item['comparison'], $fieldname, $value, $field_extra_param, count($fieldNames) > 1);
 
-                            if ($fieldname == '_id') {
-                                $fieldrow = array(
-                                    'id' => 0,
-                                    'fieldname' => '_id',
-                                    'type' => '_id',
-                                    'typeparams' => '',
-                                    'realfieldname' => $this->ct->Table->realidfieldname,
-                                );
-                            } elseif ($fieldname == '_published') {
-                                $fieldrow = array(
-                                    'id' => 0,
-                                    'fieldname' => '_published',
-                                    'type' => '_published',
-                                    'typeparams' => '',
-                                    'realfieldname' => 'listing_published'
-                                );
-                            } else {
-                                //Check if it's a range filter
-                                $fieldNameParts = explode('_r_', $fieldname);
-                                $fieldrow = Fields::FieldRowByName($fieldNameParts[0], $this->ct->Table->fields);
-                            }
-
-                            if (!is_null($fieldrow) and array_key_exists('type', $fieldrow)) {
-
-                                $w = $this->processSingleFieldWhereSyntax($fieldrow, $comparison_operator, $fieldname, $value, $field_extra_param, count($fieldNames) > 1);
-
-                                if ($w->hasConditions())
-                                    $whereClauseTemp->addNestedOrCondition($w);
-                            }
-                        }
-                    }
+                    if ($w->hasConditions())
+                        $whereClauseTemp->addNestedOrCondition($w);
                 }
             }
 
             if ($whereClauseTemp->hasConditions()) {
-                if ($logic_operator == 'or')
-                    $this->whereClause->addNestedOrCondition($whereClauseTemp);//'(' . implode(' ' . $logic_operator . ' ', $wheres) . ')';
+                if ($item['logic'] == 'or')
+                    $this->whereClause->addNestedOrCondition($whereClauseTemp);
                 else
-                    $this->whereClause->addNestedCondition($whereClauseTemp);//'(' . implode(' ' . $logic_operator . ' ', $wheres) . ')';
+                    $this->whereClause->addNestedCondition($whereClauseTemp);
             }
         }
-
-        if ($logic_operator == '')
-            $this->ct->errors[] = sprintf("Search parameter '%s' is incorrect", $param);
     }
 
     /**
@@ -376,13 +343,11 @@ class Filtering
 
                     if ($valueNew !== '') {
                         if ($asString) {
-                            $tempCT = new CT();
+                            $tempCT = new CT;
                             if ($typeParamsArray[0] != '') {
-                                $tempTableRow = TableHelper::getTableRowByNameAssoc($typeParamsArray[0]);// getTableRowByIDAssoc($this->tableid);
-                                if (!is_array($tempTableRow)) {
+                                $tempCT->getTable($typeParamsArray[0]);
+                                if ($tempCT->Table === null) {
                                     throw new Exception('processSingleFieldWhereSyntax: Table not found.');
-                                } else {
-                                    $tempCT->setTable($tempTableRow, null, false);
                                 }
                             } else {
                                 throw new Exception('processSingleFieldWhereSyntax: Table not set.');
@@ -771,12 +736,12 @@ class Filtering
         }
 
         if ($valueArr[0] != '' and $valueArr[1] != '') {
-            $whereClause->addCondition('es_' . $from_field, $v_min, '>=');
-            $whereClause->addCondition('es_' . $from_field, $v_max, '<=');
+            $whereClause->addCondition($this->ct->Table->fieldPrefix . $from_field, $v_min, '>=');
+            $whereClause->addCondition($this->ct->Table->fieldPrefix . $from_field, $v_max, '<=');
         } elseif ($valueArr[0] != '' and $valueArr[1] == '')
-            $whereClause->addCondition('es_' . $from_field, $v_min, '>=');
+            $whereClause->addCondition($this->ct->Table->fieldPrefix . $from_field, $v_min, '>=');
         elseif ($valueArr[1] != '' and $valueArr[0] == '')
-            $whereClause->addCondition('es_' . $from_field, $v_max, '<=');
+            $whereClause->addCondition($this->ct->Table->fieldPrefix . $from_field, $v_max, '<=');
 
         if (!$whereClause->hasConditions())
             return $whereClause;
@@ -1114,15 +1079,15 @@ class LinkJoinFilters
      * @throws Exception
      * @since 3.2.2
      */
-    static public function getFilterBox($tableName, $dynamicFilterFieldName, $control_name, $filterValue, $control_name_postfix = ''): string
+    static public function getFilterBox(CT $ct, $dynamicFilterFieldName, $control_name, $filterValue, $control_name_postfix = ''): string
     {
-        $fieldRow = Fields::getFieldRowByName($dynamicFilterFieldName, null, $tableName);
+        $fieldRow = Fields::getFieldRowByName($dynamicFilterFieldName, $ct->Table);
 
         if ($fieldRow === null)
             return '';
 
-        if ($fieldRow->type == 'sqljoin' or $fieldRow->type == 'records')
-            return LinkJoinFilters::getFilterElement_SqlJoin($fieldRow->typeparams, $control_name, $filterValue, $control_name_postfix);
+        if ($fieldRow['type'] == 'sqljoin' or $fieldRow['type'] == 'records')
+            return LinkJoinFilters::getFilterElement_SqlJoin($fieldRow['typeparams'], $control_name, $filterValue, $control_name_postfix);
 
         return '';
     }
@@ -1142,28 +1107,30 @@ class LinkJoinFilters
         else
             return '<p style="color:white;background-color:red;">sqljoin: field not set</p>';
 
-        $tableRow = TableHelper::getTableRowByNameAssoc($tablename);
-        if (!is_array($tableRow))
+        $ct = new CT;
+        $ct->getTable($tablename);
+
+        if ($ct->Table === null)
             return '<p style="color:white;background-color:red;">sqljoin: table "' . $tablename . '" not found</p>';
 
-        $fieldrow = Fields::getFieldRowByName($field, $tableRow['id']);
-        if (!is_object($fieldrow))
+        $fieldRow = Fields::getFieldRowByName($field, $ct->Table);
+        if (!is_array($fieldRow))
             return '<p style="color:white;background-color:red;">sqljoin: field "' . $field . '" not found</p>';
 
         $selects = [];
-        $selects[] = $tableRow['realtablename'] . '.' . $tableRow['realidfieldname'];
+        $selects[] = $ct->Table->realtablename . '.' . $ct->Table->realidfieldname;
         $whereClause = new MySQLWhereClause();
 
-        if ($tableRow['published_field_found']) {
+        if ($ct->Table->published_field_found) {
             $selects[] = 'LISTING_PUBLISHED';
-            $whereClause->addCondition($tableRow['realtablename'] . '.published', 1);
+            $whereClause->addCondition($ct->Table->realtablename . '.published', 1);
         } else {
             $selects[] = 'LISTING_PUBLISHED_1';
         }
 
-        $selects[] = $tableRow['realtablename'] . '.' . $fieldrow->realfieldname;
+        $selects[] = $ct->Table->realtablename . '.' . $fieldRow['realfieldname'];
 
-        $rows = database::loadAssocList($tableRow['realtablename'], $selects, $whereClause, $fieldrow->realfieldname);
+        $rows = database::loadAssocList($ct->Table->realtablename, $selects, $whereClause, $fieldRow['realfieldname']);
 
         $result .= '
 		<script>
@@ -1176,10 +1143,10 @@ class LinkJoinFilters
         $result .= '<option value="">- ' . common::translate('COM_CUSTOMTABLES_SELECT') . '</option>';
 
         foreach ($rows as $row) {
-            if ($row[$tableRow['realidfieldname']] == $filterValue or str_contains($filterValue, ',' . $row[$tableRow['realidfieldname']] . ','))
-                $result .= '<option value="' . $row[$tableRow['realidfieldname']] . '" selected>' . htmlspecialchars($row[$fieldrow->realfieldname] ?? '') . '</option>';
+            if ($row[$ct->Table->realidfieldname] == $filterValue or str_contains($filterValue, ',' . $row[$ct->Table->realidfieldname] . ','))
+                $result .= '<option value="' . $row[$ct->Table->realidfieldname] . '" selected>' . htmlspecialchars($row[$fieldRow['realfieldname']] ?? '') . '</option>';
             else
-                $result .= '<option value="' . $row[$tableRow['realidfieldname']] . '">' . htmlspecialchars($row[$fieldrow->realfieldname] ?? '') . '</option>';
+                $result .= '<option value="' . $row[$ct->Table->realidfieldname] . '">' . htmlspecialchars($row[$fieldRow['realfieldname']] ?? '') . '</option>';
         }
         $result .= '</select>
 ';

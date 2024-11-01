@@ -443,8 +443,8 @@ class Layouts
 
         $output = ['style' => $this->layoutCodeCSS, 'script' => $this->layoutCodeJS];
 
-        if ($this->layoutType == 1 or $this->layoutType == 5) {
-
+        if (in_array($this->layoutType, [1, 5, 8, 9, 10])) {
+            //Simple Catalog or Catalog Page
             if ($task == 'delete') {
 
                 $listing_id = common::inputGetCmd('listing_id', 0);
@@ -460,12 +460,24 @@ class Layouts
             $output['html'] = $this->renderCatalog();
 
         } elseif ($this->layoutType == 2) {
-
+            //Edit Form
             if ($task == 'saveandcontinue' or $task == 'save') {
                 $record = new record($this->ct);
                 $record->editForm->layoutContent = $this->layoutCode;
                 $listing_id = common::inputGetCmd('id');
                 if ($record->save($listing_id, false)) {
+
+                    if ($this->ct->Env->advancedTagProcessor and !empty($this->ct->Table->tablerow['customphp'])) {
+
+                        try {
+                            $action = $record->isItNewRecord ? 'create' : 'update';
+                            $customPHP = new CustomPHP($this->ct, $action);
+                            $customPHP->executeCustomPHPFile($this->ct->Table->tablerow['customphp'], $record->row_new, $record->row_old);
+                        } catch (Exception $e) {
+                            $this->ct->errors[] = 'Custom PHP file: ' . $this->ct->Table->tablerow['customphp'] . ' (' . $e->getMessage() . ')';
+                        }
+                    }
+
                     common::enqueueMessage(common::translate('COM_CUSTOMTABLES_RECORD_SAVED'), 'notice');
                 } else {
                     common::enqueueMessage(common::translate('COM_CUSTOMTABLES_RECORD_NOT_SAVED'));
@@ -503,7 +515,13 @@ class Layouts
 
             $output['fieldtypes'] = $this->ct->editFieldTypes;
 
-        } elseif ($this->layoutType == 4) {
+        } elseif ($this->layoutType == 4 or $this->layoutType == 6) {
+            //Details or Catalog Item
+            if ($this->ct->Table->record === null) {
+                $listing_id = common::inputGetCmd('listing_id');
+                if ($listing_id !== null)
+                    $this->ct->Table->loadRecord($listing_id);
+            }
             $output['html'] = $this->renderDetails();
         } else
             $output['html'] = 'CustomTable: Unknown Layout Type';
@@ -603,8 +621,10 @@ class Layouts
         $result .= PHP_EOL;
         $result .= '</div>' . PHP_EOL;
 
-        if ($addToolbar)
-            $result .= '<br/><div style="text-align:center;">{{ html.pagination }}</div>' . PHP_EOL;
+        if (defined('_JEXEC')) {
+            if ($addToolbar)
+                $result .= '<br/><div style="text-align:center;">{{ html.pagination }}</div>' . PHP_EOL;
+        }
 
         return $result;
     }
@@ -725,7 +745,7 @@ class Layouts
                 $label = '<th scope="row">
                             <label ' . $attribute . '>'
                     . '{{ ' . $field['fieldname'] . '.title }}'
-                    . ((int)$field['isrequired'] == 1 ? '<span class="description">(' . __('required', 'customtables') . ')</span>' : '')
+                    . ((int)$field['isrequired'] == 1 ? '<span class="description">(' . __('required', 'customtables') . ')</span>' : '')//WP version
                     . '</label>
                         </th>';
 
@@ -968,11 +988,9 @@ class Layouts
         } else
             return 'Table not selected';
 
-
         if ($this->ct->Table->record === null) {
-            return 'Record not loaded';
+            return 'Record not loaded!';
         }
-
 
         $details = new Details($this->ct);
         $details->layoutDetailsContent = $this->layoutCode;

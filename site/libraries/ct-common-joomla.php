@@ -256,27 +256,6 @@ class common
         return Factory::getApplication()->input->server->get($parameter, $default, $filter);
     }
 
-    public static function ExplodeSmartParams(string $param): array
-    {
-        $items = array();
-
-        if ($param === null)
-            return $items;
-
-        $a = CTMiscHelper::csv_explode(' and ', $param, '"', true);
-        foreach ($a as $b) {
-            $c = CTMiscHelper::csv_explode(' or ', $b, '"', true);
-
-            if (count($c) == 1)
-                $items[] = array('and', $b);
-            else {
-                foreach ($c as $d)
-                    $items[] = array('or', $d);
-            }
-        }
-        return $items;
-    }
-
     public static function folderList(string $directory): ?array
     {
         $folders = [];
@@ -444,14 +423,22 @@ class common
 
     public static function getServerParam(string $param)
     {
-        return $_SERVER[$param];
+        return $_SERVER[$param] ?? null;
     }
 
-    public static function UriRoot(bool $pathOnly = false): string
+    public static function UriRoot(bool $pathOnly = false, bool $addTrailingSlash = false): string
     {
-        //Uri::root() returns the string http://www.mydomain.org/mysite/ (or https if you're using SSL, etc).
-        //common::UriRoot(true) returns the string /mysite.
-        return Uri::root($pathOnly);
+        //Uri::root() returns the string http://www.mydomain.org/mysite (or https if you're using SSL, etc).
+        //common::UriRoot(true) returns the string /mysite
+
+        $url = Uri::root($pathOnly);
+        if (strlen($url) > 0 and $url[strlen($url) - 1] == '/')
+            $url = substr($url, 0, strlen($url) - 1);
+
+        if ($addTrailingSlash and ($url == "" or $url[strlen($url) - 1] != '/'))
+            $url .= '/';
+
+        return $url;
     }
 
     public static function ctParseUrl($argument)
@@ -700,7 +687,6 @@ class common
             return (string)$date->getTimestamp();
 
         $date->setTimezone($timezone);
-
         return $date->format($format, true);
     }
 
@@ -720,5 +706,23 @@ class common
         //returns true when called from the back-end / administrator
         $app = Factory::getApplication();
         return $app->isClient('administrator');
+    }
+
+    /**
+     * @throws Exception
+     * @since 3.6.7
+     */
+    public static function setUserState(string $key, $value)
+    {
+        Factory::getApplication()->setUserState($key, $value);
+    }
+
+    /**
+     * @throws Exception
+     * @since 3.6.7
+     */
+    public static function getUserState(string $key, $default = null)
+    {
+        return Factory::getApplication()->getUserState($key) ?? $default;
     }
 }

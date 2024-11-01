@@ -39,6 +39,7 @@ class Environment
 
     var string $field_prefix;
     var string $field_input_prefix;
+    var string $field_input_preprefix;
 
     var bool $loadTwig;
     var string $toolbarIcons;
@@ -61,11 +62,7 @@ class Environment
                     $this->CustomPHPEnabled = (int)($pluginParamsArray->phpPlugin ?? 0) == 1;
                 }
             }
-            $this->field_prefix = 'es_';
-        } else
-            $this->field_prefix = 'es_'; //$this->field_prefix = 'ct_'; ct is in future
-
-        $this->field_input_prefix = 'com' . $this->field_prefix;
+        }
 
         if (defined('_JEXEC')) {
             $version_object = new Version;
@@ -105,8 +102,20 @@ class Environment
         }
 
         if (defined('_JEXEC')) {
-            $mainframe = Factory::getApplication();
-            if ($mainframe->getCfg('sef')) {
+
+            if ($this->version < 4) {
+                $mainframe = Factory::getApplication();
+                $sef = $mainframe->getCfg('sef');
+            } else {
+                try {
+                    $sef = Factory::getApplication()->get('sef');
+                } catch (Exception $e) {
+                    // Handle error if needed
+                    $sef = false;
+                }
+            }
+
+            if ($sef) {
                 $this->WebsiteRoot = CUSTOMTABLES_MEDIA_HOME_URL;
                 if ($this->WebsiteRoot == '' or $this->WebsiteRoot[strlen($this->WebsiteRoot) - 1] != '/') //Root must have the slash character "/" in the end
                     $this->WebsiteRoot .= '/';
@@ -142,13 +151,16 @@ class Environment
             if (file_exists($path . 'servertags.php'))
                 require_once($path . 'servertags.php');
         } elseif (defined('WPINC') and defined('CustomTablesWPPro\CTWPPRO')) {
-            $path = CUSTOMTABLES_PRO_PATH . 'helpers.php';
+            $path = CUSTOMTABLES_PRO_PATH;
             $path = str_replace('/', DIRECTORY_SEPARATOR, $path);
             $path = str_replace('\\', DIRECTORY_SEPARATOR, $path);
 
-            if (file_exists($path)) {
+            if (file_exists($path . 'helpers.php')) {
                 $this->advancedTagProcessor = true;
-                require_once($path);
+                require_once($path . 'helpers.php');
+                if (file_exists($path . 'CustomPHP.php')) {
+                    require_once($path . 'CustomPHP.php');
+                }
             }
         }
 
@@ -156,6 +168,9 @@ class Environment
 
         if (defined('_JEXEC')) {
             $params = ComponentHelper::getParams('com_customtables');
+            $this->field_prefix = $params->get('fieldPrefix') ?? 'ct_';
+            if ($this->field_prefix == 'NO-PREFIX')
+                $this->field_prefix = '';
 
             $this->loadTwig = $params->get('loadTwig') == '1';
             $this->toolbarIcons = strval($params->get('toolbaricons'));
@@ -174,7 +189,7 @@ class Environment
             }
 
         } else {
-
+            $this->field_prefix = 'ct_';
             $this->loadTwig = true;
             $this->toolbarIcons = '';
             $this->legacySupport = false;
@@ -197,6 +212,10 @@ class Environment
             The exact location and structure of these settings can vary depending on how the plugin developer chose to implement them. It's important to note that well-developed plugins should handle settings securely and follow WordPress coding standards.
             */
         }
+
+        $this->field_input_preprefix = 'com';
+        $this->field_input_prefix = $this->field_input_preprefix . $this->field_prefix;
+
         $this->isPlugin = false;
     }
 
