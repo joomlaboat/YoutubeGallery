@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2024. Ivan Komlev
+ * @copyright (C) 2018-2025. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -16,121 +16,119 @@ use Exception;
 
 class ExportTables
 {
-    //this function creates json(.txt) file that will include instruction to create selected tables and depended on menu items and layouts.
-    //Records can be exported too, if it set in table parameters
-    //file is created in /tmp folder or as set in $path parameter
+	//this function creates json(.txt) file that will include instruction to create selected tables and depended on menu items and layouts.
+	//Records can be exported too, if it set in table parameters
+	//file is created in /tmp folder or as set in $path parameter
 
-    /**
-     * @throws Exception
-     * @since 3.2.2
-     */
-    public static function export($table_ids, $path = 'tmp'): ?array
-    {
-        $tables = array();
-        $output = array();
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function export($table_ids, ?string $tmp_path = null): ?array
+	{
+		if ($tmp_path === null)
+			$tmp_path = CUSTOMTABLES_TEMP_PATH;
 
-        foreach ($table_ids as $table_id) {
-            $whereClause = new MySQLWhereClause();
-            $whereClause->addCondition('published', 1);
-            $whereClause->addCondition('id', (int)$table_id);
+		$tables = array();
+		$output = array();
 
-            if (defined('_JEXEC'))
-                $table_rows = database::loadAssocList('#__customtables_tables', ['*', 'CATEGORY_NAME'], $whereClause, null, null, 1);
-            else
-                $table_rows = database::loadAssocList('#__customtables_tables', ['*'], $whereClause, null, null, 1);
+		foreach ($table_ids as $table_id) {
+			$whereClause = new MySQLWhereClause();
+			$whereClause->addCondition('published', 1);
+			$whereClause->addCondition('id', (int)$table_id);
 
-            //Add the table with dependencies to export array
-            if (count($table_rows) == 1) {
-                $tables[] = $table_rows[0]['tablename'];
-                $output[] = ExportTables::processTable($table_rows[0]);
-            }
-        }
+			if (defined('_JEXEC'))
+				$table_rows = database::loadAssocList('#__customtables_tables', ['*', 'CATEGORY_NAME'], $whereClause, null, null, 1);
+			else
+				$table_rows = database::loadAssocList('#__customtables_tables', ['*'], $whereClause, null, null, 1);
 
-        //Save the array to file
-        if (count($output) > 0) {
-            //Prepare output string with data
-            $output_str = '<customtablestableexport>' . common::ctJsonEncode($output);
+			//Add the table with dependencies to export array
+			if (count($table_rows) == 1) {
+				$tables[] = $table_rows[0]['tablename'];
+				$output[] = ExportTables::processTable($table_rows[0]);
+			}
+		}
 
-            $tmp_path = CUSTOMTABLES_ABSPATH . $path . DIRECTORY_SEPARATOR;
-            $filename = substr(implode('_', $tables), 0, 128);
+		//Save the array to file
+		if (count($output) > 0) {
+			//Prepare output string with data
+			$output_str = '<customtablestableexport>' . common::ctJsonEncode($output);
+			$filename = substr(implode('_', $tables), 0, 128);
 
-            $a = '';
-            $i = 0;
-            while (1) {
-                if (!file_exists($tmp_path . $filename . $a . '.txt')) {
-                    $filename_available = $filename . $a . '.txt';
-                    break;
-                }
-                $i++;
-                $a = $i . '';
-            }
+			$a = '';
+			$i = 0;
+			while (1) {
+				if (!file_exists($tmp_path . $filename . $a . '.txt')) {
+					$filename_available = $filename . $a . '.txt';
+					break;
+				}
+				$i++;
+				$a = $i . '';
+			}
 
-            if ($path[0] == '/')
-                $pathLink = substr($path, 1);
-            else
-                $pathLink = $path;
+			//Save file
+			$webLink = str_replace(CUSTOMTABLES_ABSPATH, '', $tmp_path);
+			$webLink = str_replace(DIRECTORY_SEPARATOR, '/', $webLink);
 
-            //Save file
-            $link = common::UriRoot(false, true);
-            $link .= $pathLink . '/' . $filename_available;
+			$link = common::UriRoot(false, true) . $webLink . $filename_available;
+			$msg = common::saveString2File($tmp_path . $filename_available, $output_str);
 
-            $msg = common::saveString2File($tmp_path . $filename_available, $output_str);
-            if ($msg !== null) {
-                common::enqueueMessage($tmp_path . $filename_available . ': ' . $msg);
-                return null;
-            }
-            return ['link' => $link, 'filename' => $filename_available];
-        }
-        return null;
-    }
+			if ($msg !== null) {
+				common::enqueueMessage($tmp_path . $filename_available . ': ' . $msg);
+				return null;
+			}
+			return ['link' => $link, 'filename' => $filename_available];
+		}
+		return null;
+	}
 
-    /**
-     * @throws Exception
-     * @since 3.2.2
-     */
-    protected static function processTable($table): array
-    {
-        //get fields
-        $whereClause = new MySQLWhereClause();
-        $whereClause->addCondition('published', 1);
-        $whereClause->addCondition('tableid', (int)$table['id']);
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	protected static function processTable($table): array
+	{
+		//get fields
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('published', 1);
+		$whereClause->addCondition('tableid', (int)$table['id']);
 
-        $fields = database::loadAssocList('#__customtables_fields', ['*'], $whereClause);
+		$fields = database::loadAssocList('#__customtables_fields', ['*'], $whereClause);
 
-        //get layouts
-        $whereClause = new MySQLWhereClause();
-        $whereClause->addCondition('published', 1);
-        $whereClause->addCondition('tableid', (int)$table['id']);
+		//get layouts
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('published', 1);
+		$whereClause->addCondition('tableid', (int)$table['id']);
 
-        $layouts = database::loadAssocList('#__customtables_layouts', ['*'], $whereClause);
+		$layouts = database::loadAssocList('#__customtables_layouts', ['*'], $whereClause);
 
-        //Get depended menu items
-        $whereClause = new MySQLWhereClause();
-        $whereClause->addCondition('published', 1);
+		//Get depended menu items
+		$whereClause = new MySQLWhereClause();
+		$whereClause->addCondition('published', 1);
 
-        $serverType = database::getServerType();
-        if ($serverType == 'postgresql') {
-            $whereClause->addCondition('POSITION("index.php?option=com_customtables&view=" IN link)', 0, '>');
-            $whereClause->addCondition('POSITION("establename":"' . $table['tablename'] . '" IN params)', 0, '>');
-        } else {
-            $whereClause->addCondition('link', 'index.php?option=com_customtables&view=', 'INSTR');
-            $whereClause->addCondition('params', '"establename":"' . $table['tablename'] . '"', 'INSTR');
-        }
+		$serverType = database::getServerType();
+		if ($serverType == 'postgresql') {
+			$whereClause->addCondition('POSITION("index.php?option=com_customtables&view=" IN link)', 0, '>');
+			$whereClause->addCondition('POSITION("establename":"' . $table['tablename'] . '" IN params)', 0, '>');
+		} else {
+			$whereClause->addCondition('link', 'index.php?option=com_customtables&view=', 'INSTR');
+			$whereClause->addCondition('params', '"establename":"' . $table['tablename'] . '"', 'INSTR');
+		}
 
-        if (defined('_JEXEC'))
-            $menu = database::loadAssocList('#__menu', ['*'], $whereClause);
-        else
-            $menu = null;
+		if (defined('_JEXEC'))
+			$menu = database::loadAssocList('#__menu', ['*'], $whereClause);
+		else
+			$menu = null;
 
-        //Get depended on records
-        if (intval($table['allowimportcontent']) == 1) {
-            $whereClause = new MySQLWhereClause();
-            $whereClause->addCondition('published', 1);
+		//Get depended on records
+		if (intval($table['allowimportcontent']) == 1) {
+			$whereClause = new MySQLWhereClause();
+			$whereClause->addCondition('published', 1);
 
-            $records = database::loadAssocList('#__customtables_table_' . $table['tablename'], ['*'], $whereClause);
-        } else
-            $records = null;
+			$records = database::loadAssocList('#__customtables_table_' . $table['tablename'], ['*'], $whereClause);
+		} else
+			$records = null;
 
-        return ['table' => $table, 'fields' => $fields, 'layouts' => $layouts, 'records' => $records, 'menu' => $menu];
-    }
+		return ['table' => $table, 'fields' => $fields, 'layouts' => $layouts, 'records' => $records, 'menu' => $menu];
+	}
 }

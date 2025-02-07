@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2024. Ivan Komlev
+ * @copyright (C) 2018-2025. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -54,18 +54,28 @@ class Value_tablejoin extends BaseValue
 	//Value_tablejoin::renderTableJoinValue
 	public static function renderTableJoinValue(Field $field, string $layoutcode, $listing_id): string
 	{
-		$ct = new CT;
+		if (empty($field->params[0]))
+			return 'Table not selected.';
+
+		$ct = new CT([], true);
 		$ct->getTable($field->params[0]);
 
 		//TODO: add selector to the output box
 		//$selector = $field->params[6] ?? 'dropdown';
 
-		$row = $ct->Table->loadRecord($listing_id);
+		if ($ct->Table === null)
+			return 'Table not found.';
+
+		if (!empty($listing_id)) {
+			$ct->Params->listing_id = $listing_id;
+			$ct->getRecord();
+		}
+
 		$twig = new TwigProcessor($ct, $layoutcode);
-		$value = $twig->process($row);
+		$value = $twig->process($ct->Table->record);
 
 		if ($twig->errorMessage !== null)
-			$ct->errors[] = $twig->errorMessage;
+			return 'renderTableJoinValue: ' . $twig->errorMessage;
 
 		return $value;
 	}

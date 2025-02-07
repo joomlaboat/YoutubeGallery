@@ -4,224 +4,355 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2024. Ivan Komlev
+ * @copyright (C) 2018-2025. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
 namespace CustomTables;
 
 // no direct access
-use Exception;
-use Joomla\CMS\HTML\HTMLHelper;
-use LayoutProcessor;
-
 defined('_JEXEC') or die();
+
+use Exception;
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\HTML\HTMLHelper;
 
 class Twig_Document_Tags
 {
-    var CT $ct;
+	var CT $ct;
 
-    function __construct(CT &$ct)
-    {
-        $this->ct = &$ct;
-    }
+	function __construct(CT &$ct)
+	{
+		$this->ct = &$ct;
+	}
 
-    function setmetakeywords($metakeywords): void
-    {
-        $this->ct->document->setMetaData('keywords', $metakeywords);
-    }
+	function setmetakeywords($metakeywords): void
+	{
+		$this->ct->document->setMetaData('keywords', $metakeywords);
+	}
 
-    function setmetadescription($metadescription): void
-    {
-        $this->ct->document->setMetaData('description', $metadescription);
-    }
+	function setmetadescription($metadescription): void
+	{
+		$this->ct->document->setMetaData('description', $metadescription);
+	}
 
-    /**
-     * @throws Exception
-     * @since 3.2.9
-     */
-    function setpagetitle($pageTitle): void
-    {
-        if (defined('_JEXEC')) {
-            $this->ct->document->setTitle(common::translate($pageTitle));
-        } elseif (defined('WPINC')) {
-            common::enqueueMessage('Warning: The {{ document.setpagetitle }} tag is not supported in the current version of the Custom Tables for WordPress.');
-        } else
-            common::enqueueMessage('Warning: The {{ document.setpagetitle }} tag is not supported in the current version of the Custom Tables.');
-    }
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function setpagetitle($pageTitle): void
+	{
+		if (defined('_JEXEC')) {
+			$this->ct->document->setTitle(common::translate($pageTitle));
+		} elseif (defined('WPINC')) {
+			common::enqueueMessage('Warning: The {{ document.setpagetitle }} tag is not supported in the current version of the Custom Tables for WordPress.');
+		} else
+			common::enqueueMessage('Warning: The {{ document.setpagetitle }} tag is not supported in the current version of the Custom Tables.');
+	}
 
-    function setheadtag($tag): void
-    {
-        $this->ct->document->addCustomTag($tag);
-    }
+	function setheadtag($tag): void
+	{
+		if (defined('_JEXEC')) {
+			$this->ct->document->addCustomTag($tag);
+		} elseif (defined('WPINC')) {
+			common::enqueueMessage('Warning: The {{ document.setheadtag }} tag is not supported in the current version of the Custom Tables for WordPress.');
+		} else
+			common::enqueueMessage('Warning: The {{ document.setheadtag }} tag is not supported in the current version of the Custom Tables.');
+	}
 
-    function script($link): string
-    {
-        if (defined('_JEXEC')) {
-            $this->ct->document->addScript($link);
-            return '';
-        } elseif (defined('WPINC')) {
-            if (!isset($this->ct->LayoutVariables['scripts']))
-                $this->ct->LayoutVariables['scripts'] = [];
+	/**
+	 * Processes JavaScript content or URL and adds it to the layout variables.
+	 * If the input is a URL to a .js file (with optional query parameters),
+	 * it's added to the 'scripts' array.
+	 * If it's JavaScript content, it's concatenated to the 'script' variable.
+	 *
+	 * @param string $linkOrScript Either a URL to a .js file or JavaScript code
+	 * @return string Empty string as the content is stored in layout variables
+	 *
+	 * @example
+	 * // Adding a JavaScript file
+	 * script('https://example.com/script.js?version=2.3');
+	 *
+	 * @example
+	 * // Adding JavaScript code
+	 * script('alert("Hello World");');
+	 *
+	 * @since 3.5.0
+	 */
+	function script($linkOrScript): string
+	{
+		//TODO: Consider using defer or async attributes for external scripts when appropriate (currently managed by the browser/CMS defaults)
 
-            $this->ct->LayoutVariables['scripts'][] = $link;
-            return '';
-        } else {
-            return '{{ document.script() }} not supported in this version of Custom Tables';
-        }
-    }
+		// Clean the input string
+		$input = trim($linkOrScript);
 
-    function style($link): string
-    {
-        if (defined('_JEXEC')) {
-            $this->ct->document->addStyleSheet($link);
-            return '';
-        } elseif (defined('WPINC')) {
-            if (!isset($this->ct->LayoutVariables['styles']))
-                $this->ct->LayoutVariables['styles'] = [];
+		// Check if it's a URL
+		if (filter_var($input, FILTER_VALIDATE_URL)) {
+			// Parse the URL and get the path
+			$urlParts = parse_url($input);
+			$path = $urlParts['path'];
 
-            $this->ct->LayoutVariables['styles'][] = $link;
-            return '';
-        } else {
-            return '{{ document.style() }} not supported in this version of Custom Tables';
-        }
-    }
+			// Check if the path ends with .js, ignoring any URL parameters
+			if (preg_match('/\.js($|\?)/', $path)) {
 
-    function jslibrary($library): string
-    {
-        if (defined('_JEXEC')) {
+				if (!isset($this->ct->LayoutVariables['scripts']))
+					$this->ct->LayoutVariables['scripts'] = [];
 
-            switch ($library) {
-                case 'jquery':
-                    HTMLHelper::_('jquery.framework');
-                    break;
+				$this->ct->LayoutVariables['scripts'][] = $linkOrScript;
 
-                case 'jquery-ui-core':
-                    // Add jQuery (if not already included)
-                    HTMLHelper::_('jquery.framework');
+				return '';
+			}
+		}
 
-                    // Add the jQuery UI core library
-                    $this->ct->document->addScript('https://code.jquery.com/ui/1.14.0/jquery-ui.min.js');
+		if (!isset($this->ct->LayoutVariables['script']))
+			$this->ct->LayoutVariables['script'] = $linkOrScript;
+		else
+			$this->ct->LayoutVariables['script'] .= PHP_EOL . $linkOrScript;
+		return '';
+	}
 
-                    // Add the jQuery UI CSS
-                    $this->ct->document->addStyleSheet('https://code.jquery.com/ui/1.14.0/themes/base/jquery-ui.css');
-            }
+	/**
+	 * Processes CSS content or URL and adds it to the layout variables.
+	 * If the input is a URL to a .css file (with optional query parameters),
+	 * it's added to the 'styles' array.
+	 * If it's CSS content, it's concatenated to the 'style' variable.
+	 *
+	 * @param string $linkOrScript Either a URL to a .css file or CSS code
+	 * @return string Empty string as the content is stored in layout variables
+	 *
+	 * @example
+	 * // Adding a CSS file
+	 * style('https://example.com/styles.css?version=1.2');
+	 *
+	 * @example
+	 * // Adding CSS code
+	 * style('.my-class { color: blue; }');
+	 *
+	 * @since 3.5.0
+	 */
+	function style($linkOrStyle): string
+	{
+		// Clean the input string
+		$input = trim($linkOrStyle);
 
-            return '';
-        } elseif (defined('WPINC')) {
-            if (!isset($this->ct->LayoutVariables['jslibrary']))
-                $this->ct->LayoutVariables['jslibrary'] = [];
+		// Check if it's a URL
+		if (filter_var($input, FILTER_VALIDATE_URL)) {
+			// Parse the URL and get the path
+			$urlParts = parse_url($input);
+			$path = $urlParts['path'];
 
-            $this->ct->LayoutVariables['jslibrary'][] = $library;
-            return '';
-        } else {
-            return '{{ document.jslibrary() }} not supported in this version of Custom Tables';
-        }
-    }
+			// Check if the path ends with .js, ignoring any URL parameters
+			if (preg_match('/\.css($|\?)/', $path)) {
 
-    /**
-     * @throws Exception
-     * @since 3.2.9
-     */
-    function layout(string $layoutName = ''): ?string
-    {
-        if ($layoutName == '') {
-            common::enqueueMessage('Warning: The {{ document.layout("layout_name") }} layout name is required.');
-            return null;
-        }
+				if (!isset($this->ct->LayoutVariables['styles']))
+					$this->ct->LayoutVariables['styles'] = [];
 
-        if (!isset($this->ct->Table)) {
-            $this->ct->errors[] = '{{ document.layout }} - Table not loaded.';
-            return '';
-        }
+				$this->ct->LayoutVariables['styles'][] = $linkOrStyle;
 
-        $layouts = new Layouts($this->ct);
-        $layout = $layouts->getLayout($layoutName);
+				return '';
+			}
+		}
 
-        if (is_null($layouts->tableId)) {
-            $this->ct->errors[] = '{{ document.layout("' . $layoutName . '") }} - Layout "' . $layoutName . ' not found.';
-            return '';
-        }
+		if (!isset($this->ct->LayoutVariables['style']))
+			$this->ct->LayoutVariables['style'] = $linkOrStyle;
+		else
+			$this->ct->LayoutVariables['style'] .= PHP_EOL . $linkOrStyle;
+		return '';
+	}
 
-        if ($layouts->tableId != $this->ct->Table->tableid) {
-            $this->ct->errors[] = '{{ document.layout("' . $layoutName . '") }} - Layout Table ID and Current Table ID do not match.';
-            return '';
-        }
+	function jslibrary($library): string
+	{
+		if (defined('_JEXEC')) {
 
-        $twig = new TwigProcessor($this->ct, $layout, $this->ct->LayoutVariables['getEditFieldNamesOnly'] ?? false);
-        $number = 1;
-        $html_result = '';
+			switch ($library) {
+				case 'jquery':
+					HTMLHelper::_('jquery.framework');
+					break;
 
-        if ($layouts->layoutType == 6 and !is_null($this->ct->Records)) {
-            foreach ($this->ct->Records as $row) {
-                $row['_number'] = $number;
-                $row['_islast'] = $number == count($this->ct->Records);
+				case 'jquery-ui-core':
+					// Add jQuery (if not already included)
+					HTMLHelper::_('jquery.framework');
 
-                $html_result_layout = $twig->process($row);
-                if ($twig->errorMessage !== null)
-                    $this->ct->errors[] = $twig->errorMessage;
+					// Add the jQuery UI core library
+					$this->ct->LayoutVariables['scripts'][] = 'https://code.jquery.com/ui/1.14.0/jquery-ui.min.js';
+					$this->ct->LayoutVariables['styles'][] = 'https://code.jquery.com/ui/1.14.0/themes/base/jquery-ui.css';
 
-                if ($this->ct->Env->legacySupport) {
-                    $LayoutProc = new LayoutProcessor($this->ct);
-                    $LayoutProc->layout = $html_result_layout;
-                    $html_result_layout = $LayoutProc->fillLayout($row);
-                }
+				//$this->ct->document->addScript('https://code.jquery.com/ui/1.14.0/jquery-ui.min.js');
 
-                $html_result .= $html_result_layout;
+				// Add the jQuery UI CSS
+				//$this->ct->document->addStyleSheet('https://code.jquery.com/ui/1.14.0/themes/base/jquery-ui.css');
+			}
 
-                $number++;
-            }
-        } else {
-            $html_result = $twig->process($this->ct->Table->record);
-            if ($twig->errorMessage !== null)
-                $this->ct->errors[] = $twig->errorMessage;
+			return '';
+		} elseif (defined('WPINC')) {
+			if (!isset($this->ct->LayoutVariables['jslibrary']))
+				$this->ct->LayoutVariables['jslibrary'] = [];
 
-            if ($this->ct->Env->legacySupport) {
-                $LayoutProc = new LayoutProcessor($this->ct);
-                $LayoutProc->layout = $html_result;
-                $html_result = $LayoutProc->fillLayout($this->ct->Table->record);
-            }
-        }
-        return $html_result;
-    }
+			$this->ct->LayoutVariables['jslibrary'][] = $library;
+			return '';
+		} else {
+			return '{{ document.jslibrary() }} not supported in this version of Custom Tables';
+		}
+	}
 
-    /**
-     * @throws Exception
-     * @since 3.0.0
-     */
-    function sitename(): ?string
-    {
-        if (defined('_JEXEC'))
-            return $this->ct->app->get('sitename');
-        elseif (defined('WPINC'))
-            return get_bloginfo('name');
-        else
-            common::enqueueMessage('Warning: The {{ document.sitename }} tag is not supported by the current version of the Custom Tables.');
+	/**
+	 * @throws Exception
+	 * @since 3.2.9
+	 */
+	function layout(string $layoutName = ''): ?string
+	{
+		//TODO: the use if this tag must be reflected in the dependence tab of the layout used.
 
-        return null;
-    }
+		if ($layoutName == '') {
+			common::enqueueMessage('Warning: The {{ document.layout("layout_name") }} layout name is required.');
+			return null;
+		}
 
-    /**
-     * @throws Exception
-     * @since 3.4.1
-     */
-    public function get(string $variable)
-    {
-        return $this->ct->LayoutVariables['globalVariables'][$variable];
-    }
+		if (!isset($this->ct->Table)) {
+			$this->ct->errors[] = '{{ document.layout }} - Table not loaded.';
+			return '';
+		}
 
-    function languagepostfix(): string
-    {
-        return $this->ct->Languages->Postfix;
-    }
+		$layouts = new Layouts($this->ct);
+		$layout = $layouts->getLayout($layoutName);
 
-    /**
-     * @throws Exception
-     * @since 3.4.1
-     */
-    public function set(string $variable, $value)
-    {
-        $this->ct->LayoutVariables['globalVariables'][$variable] = $value;
-    }
+		if (is_null($layouts->tableId)) {
+			$this->ct->errors[] = '{{ document.layout("' . $layoutName . '") }} - Layout "' . $layoutName . ' not found.';
+			return '';
+		}
 
+		if ($layouts->tableId != $this->ct->Table->tableid) {
+			$this->ct->errors[] = '{{ document.layout("' . $layoutName . '") }} - Layout Table ID and Current Table ID do not match.';
+			return '';
+		}
+
+		if (!empty($layouts->layoutCodeCSS))
+			$this->ct->LayoutVariables['style'] = ($this->ct->LayoutVariables['style'] ?? '') . $layouts->layoutCodeCSS;
+
+		if (!empty($layouts->layoutCodeJS))
+			$this->ct->LayoutVariables['script'] = ($this->ct->LayoutVariables['script'] ?? '') . $layouts->layoutCodeJS;
+
+		$twig = new TwigProcessor($this->ct, $layout, $this->ct->LayoutVariables['getEditFieldNamesOnly'] ?? false);
+		$number = 1;
+		$html_result = '';
+
+		if ($layouts->layoutType == CUSTOMTABLES_LAYOUT_TYPE_CATALOG_ITEM and !is_null($this->ct->Records)) {
+			foreach ($this->ct->Records as $row) {
+				$row['_number'] = $number;
+				$row['_islast'] = $number == count($this->ct->Records);
+
+				$html_result_layout = $twig->process($row);
+				if ($twig->errorMessage !== null)
+					$this->ct->errors[] = $twig->errorMessage;
+
+				/*
+				if ($this->ct->Env->legacySupport) {
+					$LayoutProc = new LayoutProcessor($this->ct);
+					$LayoutProc->layout = $html_result_layout;
+					$html_result_layout = $LayoutProc->fillLayout($row);
+				}*/
+
+				$html_result .= $html_result_layout;
+
+				$number++;
+			}
+		} else {
+			$html_result = $twig->process($this->ct->Table->record);
+			if ($twig->errorMessage !== null)
+				$this->ct->errors[] = $twig->errorMessage;
+		}
+
+		return $html_result;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.0.0
+	 */
+	function sitename(): ?string
+	{
+		if (defined('_JEXEC'))
+			return $this->ct->app->get('sitename');
+		elseif (defined('WPINC'))
+			return get_bloginfo('name');
+		else
+			common::enqueueMessage('Warning: The {{ document.sitename }} tag is not supported by the current version of the Custom Tables.');
+
+		return null;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.4.1
+	 */
+	public function get(string $variable)
+	{
+		return $this->ct->LayoutVariables['globalVariables'][$variable];
+	}
+
+	function languagepostfix(): string
+	{
+		return $this->ct->Languages->Postfix;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.4.1
+	 */
+	public function set(string $variable, $value)
+	{
+		$this->ct->LayoutVariables['globalVariables'][$variable] = $value;
+	}
+
+	public function config(string $parameter)
+	{
+		if (defined('_JEXEC')) {
+			if ($parameter == 'googlemapapikey') {
+				$joomla_params = ComponentHelper::getParams('com_customtables');
+				return $joomla_params->get('googlemapapikey');
+			} elseif ($parameter == 'fieldprefix') {
+
+				if ($this->ct->Table !== null)
+					return $this->ct->Table->fieldPrefix;
+
+				$prefix = ComponentHelper::getParams('com_customtables');
+				if (empty($prefix))
+					$prefix = 'ct_';
+
+				if ($prefix == 'NO-PREFIX')
+					$prefix = '';
+
+				return $prefix;
+			} elseif ($parameter == 'foldertosavelayouts') {
+				$joomla_params = ComponentHelper::getParams('com_customtables');
+				return $joomla_params->get('folderToSaveLayouts');
+			} else {
+				return 'Unknown parameter in document.config(parameter)';
+			}
+		} elseif (defined('WPINC')) {
+
+			if ($parameter == 'googlemapapikey') {
+				return get_option('customtables-googlemapapikey');
+			} elseif ($parameter == 'fieldprefix') {
+				if ($this->ct->Table !== null)
+					return $this->ct->Table->fieldPrefix;
+
+				$prefix = get_option('customtables-fieldprefix');
+				if (empty($prefix))
+					$prefix = 'ct_';
+
+				if ($prefix == 'NO-PREFIX')
+					$prefix = '';
+
+				return $prefix;
+
+			} elseif ($parameter == 'foldertosavelayouts') {
+				return 'WP: "foldertosavelayouts" unsupported parameter in this version of the Custom Tables.';
+			} else {
+				return 'Unknown parameter in document.config(parameter)';
+			}
+		} else {
+			return 'Unknown parameter in document.config()';
+		}
+	}
 }

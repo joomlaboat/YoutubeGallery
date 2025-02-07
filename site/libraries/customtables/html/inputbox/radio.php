@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2024. Ivan Komlev
+ * @copyright (C) 2018-2025. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -17,101 +17,117 @@ defined('_JEXEC') or die();
 
 class InputBox_radio extends BaseInputBox
 {
-    function __construct(CT &$ct, Field $field, ?array $row, array $option_list = [], array $attributes = [])
-    {
-        parent::__construct($ct, $field, $row, $option_list, $attributes);
-    }
+	function __construct(CT &$ct, Field $field, ?array $row, array $option_list = [], array $attributes = [])
+	{
+		parent::__construct($ct, $field, $row, $option_list, $attributes);
+	}
 
-    /**
-     * @throws Exception
-     * @since 3.3.5
-     */
-    function render(?string $value, ?string $defaultValue): string
-    {
-        if ($this->ct->Env->version < 4)
-            return $this->render_joomla3($value, $defaultValue);
-        else
-            return $this->render_joomla4($value, $defaultValue);
-    }
+	function getOptions(?string $value): array
+	{
+		$options = [];
 
-    /**
-     * @throws Exception
-     * @since 3.3.5
-     */
-    function render_joomla3(?string $value, ?string $defaultValue): string
-    {
-        $result = '<ul class="' . (empty($this->attributes['class']) ? 'list-unstyled' : $this->attributes['class']) . '">';
-        $i = 0;
+		foreach ($this->field->params as $radioValue) {
+			$v = trim($radioValue);
+			$option = ["value" => $v, "label" => $v];
 
-        if ($value === null) {
-            $value = common::inputGetString($this->ct->Table->fieldPrefix . $this->field->fieldname, '');
-            $value = preg_replace("/[^A-Za-z\d\-]/", '', $value);
-            if ($value == '')
-                $value = $defaultValue;
-        }
+			if ($v === $value)
+				$option['selected'] = true;
 
-        $element_id = $this->attributes['id'];
+			$options[] = $option;
+		}
+		return $options;
+	}
 
-        $this->attributes['type'] = 'radio';
+	/**
+	 * @throws Exception
+	 * @since 3.3.5
+	 */
+	function render(?string $value, ?string $defaultValue): string
+	{
+		if (CUSTOMTABLES_JOOMLA_MIN_4)
+			return $this->render_joomla4($value, $defaultValue);
+		else
+			return $this->render_joomla3($value, $defaultValue);
+	}
 
-        foreach ($this->field->params as $radioValue) {
-            $v = trim($radioValue);
+	/**
+	 * @throws Exception
+	 * @since 3.3.5
+	 */
+	function render_joomla4(?string $value, ?string $defaultValue): string
+	{
+		$result = '<div class="' . (empty($this->attributes['class']) ? 'radio' : $this->attributes['class']) . '">';
+		$i = 0;
 
-            $attributes = $this->attributes;
-            $attributes['value'] = $v;
+		if ($value === null) {
+			$value = common::inputGetString($this->ct->Table->fieldPrefix . $this->field->fieldname, '');
+			$value = preg_replace("/[^A-Za-z\d\-]/", '', $value);
+			if ($value == '')
+				$value = $defaultValue;
+		}
 
-            if ($value == $v)
-                $attributes['checked'] = 'checked';
+		$element_id = $this->attributes['id'];
 
-            $result .= '<li><input id="' . $element_id . '_' . $i . '" ' . self::attributes2String($attributes) . ' />'
-                . '<label for="' . $element_id . '_' . $i . '">' . $v . '</label></li>';
+		$this->attributes['type'] = 'radio';
 
-            $i++;
-        }
-        $result .= '</ul>';
+		foreach ($this->field->params as $radioValue) {
+			$v = trim($radioValue);
 
-        return $result;
-    }
+			$attributes = $this->attributes;
+			$attributes['value'] = $v;
+			self::addCSSClass($attributes, 'form-check-input');
 
-    /**
-     * @throws Exception
-     * @since 3.3.5
-     */
-    function render_joomla4(?string $value, ?string $defaultValue): string
-    {
-        $result = '<div class="' . (empty($this->attributes['class']) ? 'radio' : $this->attributes['class']) . '">';
-        $i = 0;
+			if ($value == $v)
+				$attributes['checked'] = 'checked';
 
-        if ($value === null) {
-            $value = common::inputGetString($this->ct->Table->fieldPrefix . $this->field->fieldname, '');
-            $value = preg_replace("/[^A-Za-z\d\-]/", '', $value);
-            if ($value == '')
-                $value = $defaultValue;
-        }
+			$result .= '<div class="form-check' . ($value == $v ? ' has-success' : '') . '">'
+				. '<input id="' . $element_id . '_' . $i . '" ' . self::attributes2String($attributes) . ' />'
+				. '<label for="' . $element_id . '_' . $i . '">' . $v . '</label>'
+				. '</div>';
 
-        $element_id = $this->attributes['id'];
+			$i++;
+		}
+		$result .= '</div>';
 
-        $this->attributes['type'] = 'radio';
+		return $result;
+	}
 
-        foreach ($this->field->params as $radioValue) {
-            $v = trim($radioValue);
+	/**
+	 * @throws Exception
+	 * @since 3.3.5
+	 */
+	function render_joomla3(?string $value, ?string $defaultValue): string
+	{
+		$result = '<ul class="' . (empty($this->attributes['class']) ? 'list-unstyled' : $this->attributes['class']) . '">';
+		$i = 0;
 
-            $attributes = $this->attributes;
-            $attributes['value'] = $v;
-            self::addCSSClass($attributes, 'form-check-input');
+		if ($value === null) {
+			$value = common::inputGetString($this->ct->Table->fieldPrefix . $this->field->fieldname, '');
+			$value = preg_replace("/[^A-Za-z\d\-]/", '', $value);
+			if ($value == '')
+				$value = $defaultValue;
+		}
 
-            if ($value == $v)
-                $attributes['checked'] = 'checked';
+		$element_id = $this->attributes['id'];
 
-            $result .= '<div class="form-check' . ($value == $v ? ' has-success' : '') . '">'
-                . '<input id="' . $element_id . '_' . $i . '" ' . self::attributes2String($attributes) . ' />'
-                . '<label for="' . $element_id . '_' . $i . '">' . $v . '</label>'
-                . '</div>';
+		$this->attributes['type'] = 'radio';
 
-            $i++;
-        }
-        $result .= '</div>';
+		foreach ($this->field->params as $radioValue) {
+			$v = trim($radioValue);
 
-        return $result;
-    }
+			$attributes = $this->attributes;
+			$attributes['value'] = $v;
+
+			if ($value == $v)
+				$attributes['checked'] = 'checked';
+
+			$result .= '<li><input id="' . $element_id . '_' . $i . '" ' . self::attributes2String($attributes) . ' />'
+				. '<label for="' . $element_id . '_' . $i . '">' . $v . '</label></li>';
+
+			$i++;
+		}
+		$result .= '</ul>';
+
+		return $result;
+	}
 }

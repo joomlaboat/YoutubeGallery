@@ -5,7 +5,7 @@
  * @subpackage libraries/_checktable.php
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2024. Ivan Komlev
+ * @copyright (C) 2018-2025. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -19,20 +19,20 @@ use Exception;
 
 class IntegrityChecks
 {
-    /**
-     * @throws Exception
-     * @since 3.2.2
-     */
-    public static function check(CT &$ct, $check_core_tables = true, $check_custom_tables = true): array
-    {
-        $result = []; //Status array
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function check(CT &$ct, $check_core_tables = true, $check_custom_tables = true): array
+	{
+		$result = []; //Status array
 
-        if ($check_core_tables)
-            IntegrityCoreTables::checkCoreTables($ct);
+		if ($check_core_tables)
+			IntegrityCoreTables::checkCoreTables($ct);
 
-        if ($check_custom_tables)
-            $result = IntegrityTables::checkTables($ct);
+		if ($check_custom_tables)
+			$result = IntegrityTables::checkTables($ct);
 
-        return $result;
-    }
+		return $result;
+	}
 }

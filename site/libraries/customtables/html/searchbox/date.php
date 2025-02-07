@@ -4,7 +4,7 @@
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2024. Ivan Komlev
+ * @copyright (C) 2018-2025. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -17,18 +17,18 @@ use DateTime;
 
 class Search_date extends BaseSearch
 {
-    function __construct(CT &$ct, Field $field, string $moduleName, array $attributes, int $index, string $where, string $whereList, string $objectName)
-    {
-        parent::__construct($ct, $field, $moduleName, $attributes, $index, $where, $whereList, $objectName);
-        BaseInputBox::selectBoxAddCSSClass($this->attributes, $this->ct->Env->version);
-        BaseInputBox::inputBoxAddCSSClass($this->attributes, $this->ct->Env->version);
-    }
+	function __construct(CT &$ct, Field $field, string $moduleName, array $attributes, int $index, string $where, string $whereList, string $objectName)
+	{
+		parent::__construct($ct, $field, $moduleName, $attributes, $index, $where, $whereList, $objectName);
+		BaseInputBox::selectBoxAddCSSClass($this->attributes);
+		BaseInputBox::inputBoxAddCSSClass($this->attributes);
+	}
 
-    function render($value): string
-    {
-        common::loadJQueryUI();
+	function render($value): string
+	{
+		common::loadJQueryUI();
 
-        $this->ct->document->addCustomTag('<script>
+		$js = '
 
 jQuery(document).ready(function($) {
     $("#' . $this->objectName . '_start").datepicker({
@@ -46,52 +46,54 @@ jQuery(document).ready(function($) {
     });
 });
 
-</script>');
+';
 
-        $valueParts = explode('-to-', $value);
+		$this->ct->LayoutVariables['script'] .= $js;
 
-        $valueStart = isset($valueParts[0]) ? trim($valueParts[0]) : '';
-        $valueEnd = isset($valueParts[1]) ? trim($valueParts[1]) : '';
+		$valueParts = explode('-to-', $value);
 
-        // Sanitize and validate date format
-        $dateFormat = 'Y-m-d'; // Adjust the format according to your needs
+		$valueStart = isset($valueParts[0]) ? trim($valueParts[0]) : '';
+		$valueEnd = isset($valueParts[1]) ? trim($valueParts[1]) : '';
 
-        if ($valueStart) {
-            $startDateTime = DateTime::createFromFormat($dateFormat, $valueStart);
+		// Sanitize and validate date format
+		$dateFormat = 'Y-m-d'; // Adjust the format according to your needs
 
-            if ($startDateTime !== false) {
-                $valueStart = $startDateTime->format($dateFormat);
-            } else {
-                // Invalid date format, handle the error or set a default value
-                $valueStart = ''; // Set to default or perform error handling
-            }
-        }
+		if ($valueStart) {
+			$startDateTime = DateTime::createFromFormat($dateFormat, $valueStart);
 
-        if ($valueEnd) {
-            $endDateTime = DateTime::createFromFormat($dateFormat, $valueEnd);
+			if ($startDateTime !== false) {
+				$valueStart = $startDateTime->format($dateFormat);
+			} else {
+				// Invalid date format, handle the error or set a default value
+				$valueStart = ''; // Set to default or perform error handling
+			}
+		}
 
-            if ($endDateTime !== false) {
-                $valueEnd = $endDateTime->format($dateFormat);
-            } else {
-                // Invalid date format, handle the error or set a default value
-                $valueEnd = ''; // Set to default or perform error handling
-            }
-        }
+		if ($valueEnd) {
+			$endDateTime = DateTime::createFromFormat($dateFormat, $valueEnd);
 
-        $jsOnChange = 'ctSearchBarDateRangeUpdate(\'' . $this->field->fieldname . '\')';
+			if ($endDateTime !== false) {
+				$valueEnd = $endDateTime->format($dateFormat);
+			} else {
+				// Invalid date format, handle the error or set a default value
+				$valueEnd = ''; // Set to default or perform error handling
+			}
+		}
 
-        $hidden = '<input type="hidden" name="' . $this->objectName . '" id="' . $this->objectName . '" value="' . $valueStart . '-to-' . $valueEnd . '">';
+		$jsOnChange = 'ctSearchBarDateRangeUpdate(\'' . $this->field->fieldname . '\')';
 
-        $start = '<input onblur="' . $jsOnChange . '" onchange="' . $jsOnChange . '" value="' . $valueStart . '" type="text"'
-            . ' class="' . ($this->attributes['class'] ?? '') . '" id="' . $this->objectName . '_start"'
-            . ' placeholder="' . $this->field->title . ' - ' . common::translate('COM_CUSTOMTABLES_START') . '"'
-            . ' style="display:inline-block;width:49%;margin-left:0;margin-right:0;float:left;">';
+		$hidden = '<input type="hidden" name="' . $this->objectName . '" id="' . $this->objectName . '" value="' . $valueStart . '-to-' . $valueEnd . '">';
 
-        $end = '<input onblur="' . $jsOnChange . '" onchange="' . $jsOnChange . '" value="' . $valueEnd . '" type="text"'
-            . ' class="' . ($this->attributes['class'] ?? '') . '" id="' . $this->objectName . '_end"'
-            . ' placeholder="' . $this->field->title . ' - ' . common::translate('COM_CUSTOMTABLES_END') . '"'
-            . ' style="display:inline-block;width:49%;margin-left:0;margin-right:0;float:right;">';
+		$start = '<input onblur="' . $jsOnChange . '" onchange="' . $jsOnChange . '" value="' . $valueStart . '" type="text"'
+			. ' class="' . ($this->attributes['class'] ?? '') . '" id="' . $this->objectName . '_start"'
+			. ' placeholder="' . $this->field->title . ' - ' . common::translate('COM_CUSTOMTABLES_START') . '"'
+			. ' style="display:inline-block;width:49%;margin-left:0;margin-right:0;float:left;">';
 
-        return $hidden . '<div style="position: relative;">' . $start . $end . '</div>';
-    }
+		$end = '<input onblur="' . $jsOnChange . '" onchange="' . $jsOnChange . '" value="' . $valueEnd . '" type="text"'
+			. ' class="' . ($this->attributes['class'] ?? '') . '" id="' . $this->objectName . '_end"'
+			. ' placeholder="' . $this->field->title . ' - ' . common::translate('COM_CUSTOMTABLES_END') . '"'
+			. ' style="display:inline-block;width:49%;margin-left:0;margin-right:0;float:right;">';
+
+		return $hidden . '<div style="position: relative;">' . $start . $end . '</div>';
+	}
 }
