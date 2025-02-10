@@ -14,669 +14,681 @@ use Joomla\CMS\Factory;
 
 class YouTubeGalleryDB
 {
-    var object $videoListRow;
-    var object $theme_row;
+	var object $videoListRow;
+	var object $theme_row;
 
-    static public function getRawData($videoId)
-    {
-        $db = Factory::getDBO();
-        $query = 'SELECT es_rawdata FROM #__customtables_table_youtubegalleryvideos WHERE es_videoid=' . $db->quote($videoId) . ' LIMIT 1';
-        $db->setQuery($query);
-        $values = $db->loadAssocList();
+	static public function getRawData($videoId)
+	{
+		$db = Factory::getDBO();
+		$query = 'SELECT es_rawdata FROM #__customtables_table_youtubegalleryvideos WHERE es_videoid=' . $db->quote($videoId) . ' LIMIT 1';
+		$db->setQuery($query);
+		$values = $db->loadAssocList();
 
-        if (count($values) == 0)
-            return "";
+		if (count($values) == 0)
+			return "";
 
-        $v = $values[0];
-        return $v['es_rawdata'];
-    }
+		$v = $values[0];
+		return $v['es_rawdata'];
+	}
 
-    static public function setDelayedRequest($videoId): void
-    {
-        if ($videoId != '') {
-            $value = '*youtubegallery_request*';//.$link;//md5(mt_rand());
+	static public function setDelayedRequest($videoId): void
+	{
+		if ($videoId != '') {
+			$value = '*youtubegallery_request*';//.$link;//md5(mt_rand());
 
-            $db = Factory::getDBO();
+			$db = Factory::getDBO();
 
-            $query = 'UPDATE #__customtables_table_youtubegalleryvideos SET ' . $db->quoteName('es_rawdata') . '=' . $db->quote($value) . ' WHERE ' . $db->quoteName('es_videoid') . '=' . $db->quote($videoId);
+			$db->setQuery("SET NAMES 'utf8mb4'");
+			$db->execute();
 
-            $db->setQuery($query);
-            $db->execute();
-        }
-    }
+			$query = 'UPDATE #__customtables_table_youtubegalleryvideos SET ' . $db->quoteName('es_rawdata') . '=' . $db->quote($value) . ' WHERE ' . $db->quoteName('es_videoid') . '=' . $db->quote($videoId);
 
-    static public function setRawData($videoid, $videoData): void
-    {
-        if ($videoid != '') {
-            $db = Factory::getDBO();
-            $query = 'UPDATE #__customtables_table_youtubegalleryvideos SET ' . $db->quoteName('es_rawdata') . '=' . $db->quote($videoData) . ' WHERE ' . $db->quoteName('es_videoid') . '=' . $db->quote($videoid);
-            $db->setQuery($query);
-            $db->execute();
-        }
-    }
+			$db->setQuery($query);
+			$db->execute();
+		}
+	}
 
-    public static function Playlist_LastUpdate($theLink)
-    {
-        $db = Factory::getDBO();
-        $query = 'SELECT es_lastupdate FROM #__customtables_table_youtubegalleryvideos WHERE es_link=' . $db->quote($theLink) . ' LIMIT 1';
+	static public function setRawData($videoid, $videoData): void
+	{
+		if ($videoid != '') {
+			$db = Factory::getDBO();
 
-        $db->setQuery($query);
+			$db->setQuery("SET NAMES 'utf8mb4'");
+			$db->execute();
 
-        $videos_rows = $db->loadAssocList();
+			$query = 'UPDATE #__customtables_table_youtubegalleryvideos SET ' . $db->quoteName('es_rawdata') . '=' . $db->quote($videoData) . ' WHERE ' . $db->quoteName('es_videoid') . '=' . $db->quote($videoid);
 
-        if (count($videos_rows))
-            return $videos_rows[0]['es_lastupdate'];
+			$db->setQuery($query);
+			$db->execute();
+		}
+	}
 
-        return 0;
-    }
+	public static function Playlist_LastUpdate($theLink)
+	{
+		$db = Factory::getDBO();
+		$query = 'SELECT es_lastupdate FROM #__customtables_table_youtubegalleryvideos WHERE es_link=' . $db->quote($theLink) . ' LIMIT 1';
 
-    public static function getSettingValue($option)
-    {
-        $db = Factory::getDBO();
-        $query = 'SELECT ' . $db->quoteName('es_value') . ' FROM #__customtables_table_youtubegallerysettings WHERE ' . $db->quoteName('es_option') . '=' . $db->quote($option) . ' LIMIT 1';
-        $db->setQuery($query);
-        $values = $db->loadAssocList();
+		$db->setQuery($query);
 
-        $vlu = "";
-        if (count($values) > 0) {
-            $v = $values[0];
-            $vlu = $v['es_value'];
-        }
+		$videos_rows = $db->loadAssocList();
 
-        if ($option == 'joomlaboat_api_host' and $vlu == '')
-            $vlu = 'https://joomlaboat.com/youtubegallery-api';
+		if (count($videos_rows))
+			return $videos_rows[0]['es_lastupdate'];
 
-        return $vlu;
-    }
+		return 0;
+	}
 
-    public static function getVideoIDbyAlias(string $alias): string
-    {
-        $db = Factory::getDBO();
+	public static function getSettingValue($option)
+	{
+		$db = Factory::getDBO();
+		$query = 'SELECT ' . $db->quoteName('es_value') . ' FROM #__customtables_table_youtubegallerysettings WHERE ' . $db->quoteName('es_option') . '=' . $db->quote($option) . ' LIMIT 1';
+		$db->setQuery($query);
+		$values = $db->loadAssocList();
 
-        $db->setQuery('SELECT ' . $db->quoteName('es_videoid') . ' FROM #__customtables_table_youtubegalleryvideos WHERE ' . $db->quoteName('es_alias') . '=' . $db->quote($alias) . ' LIMIT 1');
+		$vlu = "";
+		if (count($values) > 0) {
+			$v = $values[0];
+			$vlu = $v['es_value'];
+		}
 
-        $rows = $db->loadObjectList();
+		if ($option == 'joomlaboat_api_host' and $vlu == '')
+			$vlu = 'https://joomlaboat.com/youtubegallery-api';
 
-        if (count($rows) == 0)
-            return '';
-        else {
-            $row = $rows[0];
-            return $row->es_videoid;
-        }
-    }
+		return $vlu;
+	}
 
-    public static function getVideoRowByID($videoid)
-    {
-        if ($videoid == '' or $videoid == '****youtubegallery-video-id****')
-            return false;
+	public static function getVideoIDbyAlias(string $alias): string
+	{
+		$db = Factory::getDBO();
+
+		$db->setQuery('SELECT ' . $db->quoteName('es_videoid') . ' FROM #__customtables_table_youtubegalleryvideos WHERE ' . $db->quoteName('es_alias') . '=' . $db->quote($alias) . ' LIMIT 1');
+
+		$rows = $db->loadObjectList();
+
+		if (count($rows) == 0)
+			return '';
+		else {
+			$row = $rows[0];
+			return $row->es_videoid;
+		}
+	}
+
+	public static function getVideoRowByID($videoid)
+	{
+		if ($videoid == '' or $videoid == '****youtubegallery-video-id****')
+			return false;
 
 
-        //Check DB
-        $db = Factory::getDBO();
+		//Check DB
+		$db = Factory::getDBO();
 
-        $query = 'SELECT *,IF(es_customtitle!="", es_customtitle, es_title) AS es_title,IF(es_customdescription!="", es_customdescription, es_description) AS es_description'
-            . ' FROM #__customtables_table_youtubegalleryvideos'
-            . ' WHERE es_videoid=' . $db->quote($videoid) . ' LIMIT 1';
+		$query = 'SELECT *,IF(es_customtitle!="", es_customtitle, es_title) AS es_title,IF(es_customdescription!="", es_customdescription, es_description) AS es_description'
+			. ' FROM #__customtables_table_youtubegalleryvideos'
+			. ' WHERE es_videoid=' . $db->quote($videoid) . ' LIMIT 1';
 
-        $db->setQuery($query);
+		$db->setQuery($query);
 
-        $values = $db->loadAssocList();
+		$values = $db->loadAssocList();
 
-        if (count($values) == 0)
-            return false;
+		if (count($values) == 0)
+			return false;
 
-        return $values[0];
-    }
+		return $values[0];
+	}
 
-    function getVideoListTableRow(int $listId): bool
-    {
-        $db = Factory::getDBO();
+	function getVideoListTableRow(int $listId): bool
+	{
+		$db = Factory::getDBO();
 
-        //Load Video List
+		//Load Video List
 
-        $query = 'SELECT ';
-        $query .= 'l.id AS id, ';
-        $query .= 'l.es_listname AS es_listname, ';
-        $query .= 'l.es_videolist AS es_videolist, ';
-        $query .= 'l.es_catid AS es_catid, ';
-        $query .= 'l.es_updateperiod AS es_updateperiod, ';
-        $query .= 'l.es_lastplaylistupdate AS es_lastplaylistupdate, ';
-        $query .= 'l.es_description AS es_description, ';
-        $query .= 'l.es_authorurl AS es_authorurl, ';
-        $query .= 'l.es_image AS es_image, ';
-        $query .= 'l.es_note AS es_note, ';
-        $query .= 'l.es_watchusergroup AS es_watchusergroup, ';
-        $query .= '(SELECT COUNT(v.id) FROM #__customtables_table_youtubegalleryvideos AS v WHERE v.es_videolist=l.id AND v.es_isvideo LIMIT 1) AS TotalVideos ';
-        $query .= 'FROM #__customtables_table_youtubegalleryvideolists AS l';
-        $query .= ' WHERE l.id=' . (int)$listId . ' ';
-        $query .= ' GROUP BY l.id';
-        $query .= ' LIMIT 1';
+		$query = 'SELECT ';
+		$query .= 'l.id AS id, ';
+		$query .= 'l.es_listname AS es_listname, ';
+		$query .= 'l.es_videolist AS es_videolist, ';
+		$query .= 'l.es_catid AS es_catid, ';
+		$query .= 'l.es_updateperiod AS es_updateperiod, ';
+		$query .= 'l.es_lastplaylistupdate AS es_lastplaylistupdate, ';
+		$query .= 'l.es_description AS es_description, ';
+		$query .= 'l.es_authorurl AS es_authorurl, ';
+		$query .= 'l.es_image AS es_image, ';
+		$query .= 'l.es_note AS es_note, ';
+		$query .= 'l.es_watchusergroup AS es_watchusergroup, ';
+		$query .= '(SELECT COUNT(v.id) FROM #__customtables_table_youtubegalleryvideos AS v WHERE v.es_videolist=l.id AND v.es_isvideo LIMIT 1) AS TotalVideos ';
+		$query .= 'FROM #__customtables_table_youtubegalleryvideolists AS l';
+		$query .= ' WHERE l.id=' . (int)$listId . ' ';
+		$query .= ' GROUP BY l.id';
+		$query .= ' LIMIT 1';
 
-        $db->setQuery($query);
-        $videoListRows = $db->loadObjectList();
+		$db->setQuery($query);
+		$videoListRows = $db->loadObjectList();
 
-        if (count($videoListRows) == 0)
-            return false;//'<p>No video list found</p>';
+		if (count($videoListRows) == 0)
+			return false;//'<p>No video list found</p>';
 
-        $this->videoListRow = $videoListRows[0];
-        return true;
-    }
+		$this->videoListRow = $videoListRows[0];
+		return true;
+	}
 
-    function getThemeTableRow($themeId): bool
-    {
-        $db = Factory::getDBO();
+	function getThemeTableRow($themeId): bool
+	{
+		$db = Factory::getDBO();
 
-        //Load Theme Row
-        //, es_showinfo, es_cols,es_showtitle, , es_linestyle, es_showlistname, es_showactivevideotitle,es_description, es_descr_position,, es_pagination , es_readonly,es_activevideotitlestyle,
-        $query = 'SELECT id, es_themename, es_width, es_height, es_playvideo, es_repeat, es_fullscreen, es_autoplay, es_related, es_allowplaylist, es_bgcolor,
+		//Load Theme Row
+		//, es_showinfo, es_cols,es_showtitle, , es_linestyle, es_showlistname, es_showactivevideotitle,es_description, es_descr_position,, es_pagination , es_readonly,es_activevideotitlestyle,
+		$query = 'SELECT id, es_themename, es_width, es_height, es_playvideo, es_repeat, es_fullscreen, es_autoplay, es_related, es_allowplaylist, es_bgcolor,
 		es_cssstyle, es_navbarstyle, es_thumbnailstyle, es_listnamestyle,
 		es_descrstyle, es_colorone, es_colortwo, es_border, es_openinnewwindow, es_rel, es_hrefaddon, es_customlimit,
 		es_controls, es_youtubeparams, es_useglass, es_logocover, es_customlayout,  es_prepareheadtags, es_muteonplay,
 		es_volume, es_orderby, es_customnavlayout, es_responsive, es_mediafolder, es_headscript, es_themedescription, es_nocookie, es_changepagetitle
 		FROM #__customtables_table_youtubegallerythemes WHERE id=' . (int)$themeId . ' LIMIT 1';
-        //es_playertype,
+		//es_playertype,
 
-        $db->setQuery($query);
+		$db->setQuery($query);
 
-        $theme_rows = $db->loadObjectList();
+		$theme_rows = $db->loadObjectList();
 
-        if (count($theme_rows) == 0)
-            return false;//'<p>No theme found</p>';
+		if (count($theme_rows) == 0)
+			return false;//'<p>No theme found</p>';
 
-        $this->theme_row = $theme_rows[0];
-        return true;
-    }
+		$this->theme_row = $theme_rows[0];
+		return true;
+	}
 
-    function getVideoList_FromCache_From_Table(string &$videoId, int &$total_number_of_rows, bool $get_the_first_one = false): array
-    {
-        $listIDs = array();
-        $listIDs[] = $this->videoListRow->id;
-        $db = Factory::getDBO();
-        $where = array();
-        $where[] = '!INSTR(es_title,"***Video not found***")';
-        $where[] = $db->quoteName('es_videolist') . '=' . $db->quote($this->videoListRow->id);
-        $where[] = 'es_isvideo=0';
-        $where[] = 'es_videosource="videolist"';
-        $query = 'SELECT es_videoid FROM #__customtables_table_youtubegalleryvideos WHERE ' . implode(' AND ', $where);
-        $db->setQuery($query);
-        $videos_lists = $db->loadAssocList();
+	function getVideoList_FromCache_From_Table(string &$videoId, int &$total_number_of_rows, bool $get_the_first_one = false): array
+	{
+		$listIDs = array();
+		$listIDs[] = $this->videoListRow->id;
+		$db = Factory::getDBO();
+		$where = array();
+		$where[] = '!INSTR(es_title,"***Video not found***")';
+		$where[] = $db->quoteName('es_videolist') . '=' . $db->quote($this->videoListRow->id);
+		$where[] = 'es_isvideo=0';
+		$where[] = 'es_videosource="videolist"';
+		$query = 'SELECT es_videoid FROM #__customtables_table_youtubegalleryvideos WHERE ' . implode(' AND ', $where);
+		$db->setQuery($query);
+		$videos_lists = $db->loadAssocList();
 
-        if (count($videos_lists) > 0) {
-            foreach ($videos_lists as $v) {
-                if ($v['es_videoid'] == -1) {
-                    //all videos
-                    $listIDs = array();
-                    break;
-                } elseif (str_contains($v['es_videoid'], 'catid=')) {
-                    //Video Lists of selected category by id
+		if (count($videos_lists) > 0) {
+			foreach ($videos_lists as $v) {
+				if ($v['es_videoid'] == -1) {
+					//all videos
+					$listIDs = array();
+					break;
+				} elseif (str_contains($v['es_videoid'], 'catid=')) {
+					//Video Lists of selected category by id
 
-                    $catId = intval(str_replace('catid=', '', $v['es_videoid']));
-                    $query = 'SELECT id FROM #__customtables_table_youtubegalleryvideolists WHERE es_catid=' . $catId;
-                    $db->setQuery($query);
-                    $videos_lists_ = $db->loadAssocList();
+					$catId = intval(str_replace('catid=', '', $v['es_videoid']));
+					$query = 'SELECT id FROM #__customtables_table_youtubegalleryvideolists WHERE es_catid=' . $catId;
+					$db->setQuery($query);
+					$videos_lists_ = $db->loadAssocList();
 
-                    foreach ($videos_lists_ as $vl)
-                        $listIDs[] = $vl['id'];
-                } elseif (str_contains($v['es_videoid'], 'category=')) {
-                    //Video Lists of selected category by id
+					foreach ($videos_lists_ as $vl)
+						$listIDs[] = $vl['id'];
+				} elseif (str_contains($v['es_videoid'], 'category=')) {
+					//Video Lists of selected category by id
 
-                    $categoryName = str_replace('category=', '', $v['es_videoid']);
+					$categoryName = str_replace('category=', '', $v['es_videoid']);
 
-                    $query = 'SELECT l.id AS computedcatid FROM #__customtables_table_youtubegalleryvideolists AS l
+					$query = 'SELECT l.id AS computedcatid FROM #__customtables_table_youtubegalleryvideolists AS l
 					INNER JOIN #__customtables_table_youtubegallerycategories AS c ON c.id=l.es_catid
 					WHERE c.es_categoryname=' . $db->quote($categoryName);
 
-                    $db->setQuery($query);
-                    $videos_lists_ = $db->loadAssocList();
-
-                    foreach ($videos_lists_ as $vl)
-                        $listIDs[] = $vl['computedcatid'];
-                } else
-                    $listIDs[] = $v['es_videoid'];
-            }
-        }
-
-        return $this->getVideoList_FromCacheFromTable($videoId, $total_number_of_rows, $listIDs, $get_the_first_one);
-    }
-
-    function getVideoList_FromCacheFromTable(string &$videoId, int &$total_number_of_rows, array $listIDs, bool $get_the_first_one = false): array
-    {
-        $jinput = Factory::getApplication()->input;
-
-        $db = Factory::getDBO();
-        $where = array();
-
-        //Only for search module
-        $wq = $this->addSearchQuery();
-        if ($wq != '')
-            $where[] = $wq;
-
-        if (count($listIDs) > 0) {
-            $w = array();
-            foreach ($listIDs as $l) {
-                $w[] = $db->quoteName('es_videolist') . '=' . (int)$l;//$db->quote($l);
-            }
-            $where[] = '(' . implode(' OR ', $w) . ')';
-        }
-
-        $where[] = 'es_isvideo=1';
-
-        if ($this->theme_row->es_rel != '' and Factory::getApplication()->input->getCmd('tmpl') == 'component') {
-            // Get only one video - current video. and shadow box
-            $where[] = $db->quoteName('es_videoid') . '=' . $db->quote($videoId);
-        }
-
-        if ($this->theme_row->es_orderby != '') {
-            if ($this->theme_row->es_orderby == 'randomization')
-                $orderby = 'RAND()';
-            else
-                $orderby = 'es_' . $this->theme_row->es_orderby;
-        } else
-            $orderby = 'es_ordering';
-
-        if ($get_the_first_one) {
-            // Get only one video - the first video.
-            $limitStart = 0;
-            $limit = 1;
-        } else {
-            if ($jinput->getInt('yg_api') == 1 and $orderby == 'RAND()') {
-                $limit = 0; // UNLIMITED
-                $limitStart = 0;
-            } else {
-                if (((int)$this->theme_row->es_customlimit) == 0)
-                    $limit = 0; // UNLIMITED
-                else
-                    $limit = (int)$this->theme_row->es_customlimit;
-
-                $limitStart = $jinput->getInt('ygstart', 0);
-            }
-        }
-
-        $query = 'SELECT *,IF(es_customtitle!="", es_customtitle, es_title) AS es_title, IF(es_customdescription!="", es_customdescription, es_description) AS es_description'
-            . ' FROM #__customtables_table_youtubegalleryvideos WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $orderby;// GROUP BY videoid
-
-        $db->setQuery($query);
-        $db->execute();
-        $total_number_of_rows = $db->getNumRows();
-
-        if ($limitStart > $total_number_of_rows)
-            $limitStart = 0;
-
-        if ($limit == 0)
-            $db->setQuery($query);
-        else
-            $db->setQuery($query, $limitStart, $limit);
-
-        $videos_rows = $db->loadAssocList();
-        $firstVideo = '';
-
-        if (count($videos_rows) > 0)//$firstvideo=='' and
-        {
-            $videos_row = $videos_rows[0];
-            $firstVideo = $videos_row['es_videoid'];
-        }
-
-        if ($videoId == '') {
-            if ($firstVideo != '')
-                $videoId = $firstVideo;
-        }
-
-        return $videos_rows;
-    }
-
-    function addSearchQuery(): string
-    {
-        //Input value sanitized below
-        $search_fields = Factory::getApplication()->input->getVar('ygsearchfields');
-        if ($search_fields != '') {
-            $search_query = str_replace('"', '', Factory::getApplication()->input->getVar('ygsearchquery'));
-            $search_query = str_replace(' ', ',', $search_query);
-            $search_query_array = explode(',', $search_query);
-
-            $search_fields_array = explode(',', $search_fields);
-            $possible_fields = array('es_videoid', 'es_title', 'es_description', 'es_publisheddate', 'es_keywords', 'es_channelusername'
-            , 'es_channeltitle', 'es_channeldescription');
-
-            $q_where = array();
-            foreach ($search_query_array as $q) {
-                if ($q != '') {
-                    $f_where = array();
-                    foreach ($search_fields_array as $f) {
-                        if (in_array($f, $possible_fields))
-                            $f_where[] = 'INSTR(' . $f . ',"' . $q . '")';
-                    }//f
-
-                    if (count($f_where) == 1)
-                        $q_where[] = implode(' OR ', $f_where);
-                    elseif (count($f_where) > 1)
-                        $q_where[] = '(' . implode(' OR ', $f_where) . ')';
-                }
-            }//q
-
-            if (count($q_where) == 1)
-                return implode(' AND ', $q_where);
-            elseif (count($q_where) > 1)
-                return '(' . implode(' AND ', $q_where) . ')';
-        }
-        return '';
-    }
-
-    function update_playlist(bool $force_update = false): void
-    {
-        $start = strtotime($this->videoListRow->es_lastplaylistupdate ?? '');
-        $end = strtotime(date('Y-m-d H:i:s'));
-        $days_diff = ($end - $start) / 86400;
-
-        $updatePeriod = (float)$this->videoListRow->es_updateperiod;
-        if ($updatePeriod == 0)
-            $updatePeriod = 1;
-
-        $active_key = YouTubeGalleryData::isActivated();
-
-        if ($days_diff > abs($updatePeriod) or $force_update) {
-            YouTubeGalleryDB::update_cache_table($active_key, $this->videoListRow, true);
-            $this->videoListRow->es_lastplaylistupdate = date('Y-m-d H:i:s');
-
-            $db = Factory::getDBO();
-            $query = 'UPDATE #__customtables_table_youtubegalleryvideolists SET ' . $db->quoteName('es_lastplaylistupdate') . '=' . $db->quote($this->videoListRow->es_lastplaylistupdate)
-                . ' WHERE id=' . (int)$this->videoListRow->id;
-
-            $db->setQuery($query);
-            $db->execute();
-        }
-    }
-
-    public static function update_cache_table(bool $active_key, object $videoListRow, bool $updateVideoList = false): void
-    {
-        $videoListArray = CTMiscHelper::csv_explode("\n", $videoListRow->es_videolist, '"', true);
-
-        $videoList = YouTubeGalleryData::formVideoList($active_key, $videoListRow, $videoListArray, $updateVideoList);
-        $db = Factory::getDBO();
-        $parent_id = null;
-        $ListOfVideosNotToDelete = array();
-        $customOrdering = 1;
-
-        foreach ($videoList as $g) {
-            if (isset($g['es_videoid'])) {
-                $ListOfVideosNotToDelete[] = '!(es_videoid=' . $db->quote($g['es_videoid']) . ' AND es_videosource=' . $db->quote($g['es_videosource']) . ')';
-
-                if (!isset($g['es_ordering']) or $g['es_ordering'] == '') {
-                    $g['es_ordering'] = $customOrdering;
-                    $customOrdering += 1;
-                }
-                YouTubeGalleryDB::updateDBSingleItem($g, (int)$videoListRow->id, $parent_id);
-            }
-        }
-
-        //Delete All videos of this video list that has been deleted form the list and allowed for updates.
-        $query = 'DELETE FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$videoListRow->id;
-        if (count($ListOfVideosNotToDelete) > 0)
-            $query .= ' AND ' . implode(' AND ', $ListOfVideosNotToDelete);
-
-        $db->setQuery($query);
-        $db->execute();
-    }
-
-    public static function updateDBSingleItem(array $g, string $videoListId, &$parent_id): void
-    {
-        self::checkIfLatLongAltFieldsExists();
-
-        $db = Factory::getDBO();
-        $fields = YouTubeGalleryDB::prepareQuerySets($g, $videoListId, $parent_id);
-        $record_id = YouTubeGalleryDB::isVideo_record_exist($g['es_videosource'], $videoListId, $g['es_videoid']);
-
-        if ($record_id == 0) {
-            $query = 'INSERT #__customtables_table_youtubegalleryvideos SET ' . implode(', ', $fields) . ', es_allowupdates=1';
-
-            $db->setQuery($query);
-            $db->execute();
-
-            $record_id_new = $db->insertid();
-
-            if ((int)$g['es_isvideo'] == 0)
-                $parent_id = $record_id_new;
-        } elseif ($record_id > 0) {
-            $query = "UPDATE #__customtables_table_youtubegalleryvideos SET " . implode(', ', $fields) . ' WHERE id=' . $record_id;
-
-            $db->setQuery($query);
-            $db->execute();
-
-            if ((int)$g['es_isvideo'] == 0)
-                $parent_id = $record_id; //set the parent ID for video records
-        }
-    }
-
-    protected static function checkIfLatLongAltFieldsExists(): void
-    {
-        $db = Factory::getDBO();
-        $query = "SHOW COLUMNS FROM #__customtables_table_youtubegalleryvideos";//SELECT * FROM #__youtubegallery_videos LIMIT 1";
-        $db->setQuery($query);
-        $all = $db->loadAssocList();
-
-        $fields = array();
-        foreach ($all as $key) {
-            if (!in_array($key['Field'], $fields))
-                $fields[] = $key['Field'];
-        }
-
-        if (!in_array("es_latitude", $fields)) {
-            $db->setQuery("ALTER TABLE #__customtables_table_youtubegalleryvideos ADD es_latitude decimal(20,7) NULL DEFAULT NULL");
-            $db->execute();
-        }
-
-        if (!in_array("es_longitude", $fields)) {
-            $db->setQuery("ALTER TABLE #__customtables_table_youtubegalleryvideos ADD es_longitude decimal(20,7) NULL DEFAULT NULL");
-            $db->execute();
-        }
-
-        if (!in_array("es_altitude", $fields)) {
-            $db->setQuery("ALTER TABLE #__customtables_table_youtubegalleryvideos ADD es_altitude int NULL DEFAULT NULL");
-            $db->execute();
-        }
-    }
-
-    protected static function prepareQuerySets(array $g, string $videoListId, ?int &$parent_id): array
-    {
-        $db = Factory::getDBO();
-        $fields = array();
-
-        if (isset($g['es_error']) and $g['es_error'] !== null)
-            $fields[] = $db->quoteName('es_error') . '=' . $db->quote($g['es_error']);
-
-        if ($g['es_title'] !== null)
-            $g_title = str_replace('"', '&quot;', $g['es_title']);
-
-        if ($g['es_description'] !== null)
-            $g_description = str_replace('"', '&quot;', $g['es_description']);
-
-        if (isset($g['es_customtitle']) and $g['es_customtitle'] !== null)
-            $custom_g_title = str_replace('"', '&quot;', $g['es_customtitle']);
-        else
-            $custom_g_title = '';
-
-        if (isset($g['es_customdescription']) and $g['es_customdescription'] !== null)
-            $custom_g_description = str_replace('"', '&quot;', $g['es_customdescription']);
-        else
-            $custom_g_description = '';
-
-        if ($videoListId != 0)
-            $fields[] = $db->quoteName('es_videolist') . '=' . $db->quote($videoListId);
-
-        if ((int)$g['es_isvideo'] == 0)
-            $parent_id = null;
-
-        if ($parent_id != null)
-            $fields[] = $db->quoteName('es_parentid') . '=' . (int)$parent_id;
-
-        $fields[] = $db->quoteName('es_videosource') . '=' . $db->quote($g['es_videosource']);
-
-        $fields[] = $db->quoteName('es_videoid') . '=' . $db->quote($g['es_videoid']);
-
-        if (isset($g['es_datalink']) and $g['es_datalink'] !== null)
-            $fields[] = $db->quoteName('es_datalink') . '=' . $db->quote($g['es_datalink']);
-
-        if ($g['es_imageurl'] != '')
-            $fields[] = $db->quoteName('es_imageurl') . '=' . $db->quote($g['es_imageurl']);
-
-        if ($g['es_title'] != '')
-            $fields[] = $db->quoteName('es_title') . '=' . $db->quote($g_title);
-
-        if ($g['es_description'] != '')
-            $fields[] = $db->quoteName('es_description') . '=' . $db->quote($g_description);
-
-        if (isset($g['es_customimageurl']))
-            $fields[] = $db->quoteName('es_customimageurl') . '=' . $db->quote($g['es_customimageurl']);
-        else
-            $fields[] = $db->quoteName('es_customimageurl') . '=""';
-
-        if ($g['es_title'] != '')
-            $fields[] = $db->quoteName('es_alias') . '=' . $db->quote(YouTubeGalleryDB::get_alias($g_title, $g['es_videoid']));
-
-        $fields[] = $db->quoteName('es_customtitle') . '=' . $db->quote($custom_g_title);
-        $fields[] = $db->quoteName('es_customdescription') . '=' . $db->quote($custom_g_description);
+					$db->setQuery($query);
+					$videos_lists_ = $db->loadAssocList();
+
+					foreach ($videos_lists_ as $vl)
+						$listIDs[] = $vl['computedcatid'];
+				} else
+					$listIDs[] = $v['es_videoid'];
+			}
+		}
+
+		return $this->getVideoList_FromCacheFromTable($videoId, $total_number_of_rows, $listIDs, $get_the_first_one);
+	}
+
+	function getVideoList_FromCacheFromTable(string &$videoId, int &$total_number_of_rows, array $listIDs, bool $get_the_first_one = false): array
+	{
+		$jinput = Factory::getApplication()->input;
+
+		$db = Factory::getDBO();
+		$where = array();
+
+		//Only for search module
+		$wq = $this->addSearchQuery();
+		if ($wq != '')
+			$where[] = $wq;
+
+		if (count($listIDs) > 0) {
+			$w = array();
+			foreach ($listIDs as $l) {
+				$w[] = $db->quoteName('es_videolist') . '=' . (int)$l;//$db->quote($l);
+			}
+			$where[] = '(' . implode(' OR ', $w) . ')';
+		}
+
+		$where[] = 'es_isvideo=1';
+
+		if ($this->theme_row->es_rel != '' and Factory::getApplication()->input->getCmd('tmpl') == 'component') {
+			// Get only one video - current video. and shadow box
+			$where[] = $db->quoteName('es_videoid') . '=' . $db->quote($videoId);
+		}
+
+		if ($this->theme_row->es_orderby != '') {
+			if ($this->theme_row->es_orderby == 'randomization')
+				$orderby = 'RAND()';
+			else
+				$orderby = 'es_' . $this->theme_row->es_orderby;
+		} else
+			$orderby = 'es_ordering';
+
+		if ($get_the_first_one) {
+			// Get only one video - the first video.
+			$limitStart = 0;
+			$limit = 1;
+		} else {
+			if ($jinput->getInt('yg_api') == 1 and $orderby == 'RAND()') {
+				$limit = 0; // UNLIMITED
+				$limitStart = 0;
+			} else {
+				if (((int)$this->theme_row->es_customlimit) == 0)
+					$limit = 0; // UNLIMITED
+				else
+					$limit = (int)$this->theme_row->es_customlimit;
+
+				$limitStart = $jinput->getInt('ygstart', 0);
+			}
+		}
+
+		$query = 'SELECT *,IF(es_customtitle!="", es_customtitle, es_title) AS es_title, IF(es_customdescription!="", es_customdescription, es_description) AS es_description'
+			. ' FROM #__customtables_table_youtubegalleryvideos WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $orderby;// GROUP BY videoid
+
+		$db->setQuery($query);
+		$db->execute();
+		$total_number_of_rows = $db->getNumRows();
+
+		if ($limitStart > $total_number_of_rows)
+			$limitStart = 0;
+
+		if ($limit == 0)
+			$db->setQuery($query);
+		else
+			$db->setQuery($query, $limitStart, $limit);
+
+		$videos_rows = $db->loadAssocList();
+		$firstVideo = '';
+
+		if (count($videos_rows) > 0)//$firstvideo=='' and
+		{
+			$videos_row = $videos_rows[0];
+			$firstVideo = $videos_row['es_videoid'];
+		}
+
+		if ($videoId == '') {
+			if ($firstVideo != '')
+				$videoId = $firstVideo;
+		}
+
+		return $videos_rows;
+	}
+
+	function addSearchQuery(): string
+	{
+		//Input value sanitized below
+		$search_fields = Factory::getApplication()->input->getVar('ygsearchfields');
+		if ($search_fields != '') {
+			$search_query = str_replace('"', '', Factory::getApplication()->input->getVar('ygsearchquery'));
+			$search_query = str_replace(' ', ',', $search_query);
+			$search_query_array = explode(',', $search_query);
+
+			$search_fields_array = explode(',', $search_fields);
+			$possible_fields = array('es_videoid', 'es_title', 'es_description', 'es_publisheddate', 'es_keywords', 'es_channelusername'
+			, 'es_channeltitle', 'es_channeldescription');
+
+			$q_where = array();
+			foreach ($search_query_array as $q) {
+				if ($q != '') {
+					$f_where = array();
+					foreach ($search_fields_array as $f) {
+						if (in_array($f, $possible_fields))
+							$f_where[] = 'INSTR(' . $f . ',"' . $q . '")';
+					}//f
+
+					if (count($f_where) == 1)
+						$q_where[] = implode(' OR ', $f_where);
+					elseif (count($f_where) > 1)
+						$q_where[] = '(' . implode(' OR ', $f_where) . ')';
+				}
+			}//q
+
+			if (count($q_where) == 1)
+				return implode(' AND ', $q_where);
+			elseif (count($q_where) > 1)
+				return '(' . implode(' AND ', $q_where) . ')';
+		}
+		return '';
+	}
+
+	function update_playlist(bool $force_update = false): void
+	{
+		$start = strtotime($this->videoListRow->es_lastplaylistupdate ?? '');
+		$end = strtotime(date('Y-m-d H:i:s'));
+		$days_diff = ($end - $start) / 86400;
+
+		$updatePeriod = (float)$this->videoListRow->es_updateperiod;
+		if ($updatePeriod == 0)
+			$updatePeriod = 1;
+
+		$active_key = YouTubeGalleryData::isActivated();
+
+		if ($days_diff > abs($updatePeriod) or $force_update) {
+			YouTubeGalleryDB::update_cache_table($active_key, $this->videoListRow, true);
+			$this->videoListRow->es_lastplaylistupdate = date('Y-m-d H:i:s');
+
+			$db = Factory::getDBO();
+			$query = 'UPDATE #__customtables_table_youtubegalleryvideolists SET ' . $db->quoteName('es_lastplaylistupdate') . '=' . $db->quote($this->videoListRow->es_lastplaylistupdate)
+				. ' WHERE id=' . (int)$this->videoListRow->id;
+
+			$db->setQuery($query);
+			$db->execute();
+		}
+	}
+
+	public static function update_cache_table(bool $active_key, object $videoListRow, bool $updateVideoList = false): void
+	{
+		$videoListArray = CTMiscHelper::csv_explode("\n", $videoListRow->es_videolist, '"', true);
+
+		$videoList = YouTubeGalleryData::formVideoList($active_key, $videoListRow, $videoListArray, $updateVideoList);
+		$db = Factory::getDBO();
+		$parent_id = null;
+		$ListOfVideosNotToDelete = array();
+		$customOrdering = 1;
+
+		foreach ($videoList as $g) {
+			if (isset($g['es_videoid'])) {
+				$ListOfVideosNotToDelete[] = '!(es_videoid=' . $db->quote($g['es_videoid']) . ' AND es_videosource=' . $db->quote($g['es_videosource']) . ')';
+
+				if (!isset($g['es_ordering']) or $g['es_ordering'] == '') {
+					$g['es_ordering'] = $customOrdering;
+					$customOrdering += 1;
+				}
+				YouTubeGalleryDB::updateDBSingleItem($g, (int)$videoListRow->id, $parent_id);
+			}
+		}
+
+		//Delete All videos of this video list that has been deleted form the list and allowed for updates.
+		$query = 'DELETE FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$videoListRow->id;
+		if (count($ListOfVideosNotToDelete) > 0)
+			$query .= ' AND ' . implode(' AND ', $ListOfVideosNotToDelete);
+
+		$db->setQuery($query);
+		$db->execute();
+	}
+
+	public static function updateDBSingleItem(array $g, string $videoListId, &$parent_id): void
+	{
+		self::checkIfLatLongAltFieldsExists();
+
+		$db = Factory::getDBO();
+
+		$db->setQuery("SET NAMES 'utf8mb4'");
+		$db->execute();
+
+		$fields = YouTubeGalleryDB::prepareQuerySets($g, $videoListId, $parent_id);
+		$record_id = YouTubeGalleryDB::isVideo_record_exist($g['es_videosource'], $videoListId, $g['es_videoid']);
+
+		if ($record_id == 0) {
+			$query = 'INSERT #__customtables_table_youtubegalleryvideos SET ' . implode(', ', $fields) . ', es_allowupdates=1';
+
+			$db->setQuery($query);
+			$db->execute();
+
+			$record_id_new = $db->insertid();
+
+			if ((int)$g['es_isvideo'] == 0)
+				$parent_id = $record_id_new;
+		} elseif ($record_id > 0) {
+			$query = "UPDATE #__customtables_table_youtubegalleryvideos SET " . implode(', ', $fields) . ' WHERE id=' . $record_id;
+
+			$db->setQuery($query);
+			$db->execute();
+
+			if ((int)$g['es_isvideo'] == 0)
+				$parent_id = $record_id; //set the parent ID for video records
+		}
+	}
+
+	protected static function checkIfLatLongAltFieldsExists(): void
+	{
+		$db = Factory::getDBO();
+		$query = "SHOW COLUMNS FROM #__customtables_table_youtubegalleryvideos";//SELECT * FROM #__youtubegallery_videos LIMIT 1";
+		$db->setQuery($query);
+		$all = $db->loadAssocList();
+
+		$fields = array();
+		foreach ($all as $key) {
+			if (!in_array($key['Field'], $fields))
+				$fields[] = $key['Field'];
+		}
+
+		if (!in_array("es_latitude", $fields)) {
+			$db->setQuery("ALTER TABLE #__customtables_table_youtubegalleryvideos ADD es_latitude decimal(20,7) NULL DEFAULT NULL");
+			$db->execute();
+		}
+
+		if (!in_array("es_longitude", $fields)) {
+			$db->setQuery("ALTER TABLE #__customtables_table_youtubegalleryvideos ADD es_longitude decimal(20,7) NULL DEFAULT NULL");
+			$db->execute();
+		}
+
+		if (!in_array("es_altitude", $fields)) {
+			$db->setQuery("ALTER TABLE #__customtables_table_youtubegalleryvideos ADD es_altitude int NULL DEFAULT NULL");
+			$db->execute();
+		}
+	}
+
+	protected static function prepareQuerySets(array $g, string $videoListId, ?int &$parent_id): array
+	{
+		$db = Factory::getDBO();
+		$fields = array();
+
+		if (isset($g['es_error']) and $g['es_error'] !== null)
+			$fields[] = $db->quoteName('es_error') . '=' . $db->quote($g['es_error']);
+
+		if ($g['es_title'] !== null)
+			$g_title = str_replace('"', '&quot;', $g['es_title']);
+
+		if ($g['es_description'] !== null)
+			$g_description = str_replace('"', '&quot;', $g['es_description']);
+
+		if (isset($g['es_customtitle']) and $g['es_customtitle'] !== null)
+			$custom_g_title = str_replace('"', '&quot;', $g['es_customtitle']);
+		else
+			$custom_g_title = '';
+
+		if (isset($g['es_customdescription']) and $g['es_customdescription'] !== null)
+			$custom_g_description = str_replace('"', '&quot;', $g['es_customdescription']);
+		else
+			$custom_g_description = '';
+
+		if ($videoListId != 0)
+			$fields[] = $db->quoteName('es_videolist') . '=' . $db->quote($videoListId);
+
+		if ((int)$g['es_isvideo'] == 0)
+			$parent_id = null;
+
+		if ($parent_id != null)
+			$fields[] = $db->quoteName('es_parentid') . '=' . (int)$parent_id;
+
+		$fields[] = $db->quoteName('es_videosource') . '=' . $db->quote($g['es_videosource']);
+
+		$fields[] = $db->quoteName('es_videoid') . '=' . $db->quote($g['es_videoid']);
+
+		if (isset($g['es_datalink']) and $g['es_datalink'] !== null)
+			$fields[] = $db->quoteName('es_datalink') . '=' . $db->quote($g['es_datalink']);
+
+		if ($g['es_imageurl'] != '')
+			$fields[] = $db->quoteName('es_imageurl') . '=' . $db->quote($g['es_imageurl']);
+
+		if ($g['es_title'] != '')
+			$fields[] = $db->quoteName('es_title') . '=' . $db->quote($g_title);
+
+		if ($g['es_description'] != '')
+			$fields[] = $db->quoteName('es_description') . '=' . $db->quote($g_description);
+
+		if (isset($g['es_customimageurl']))
+			$fields[] = $db->quoteName('es_customimageurl') . '=' . $db->quote($g['es_customimageurl']);
+		else
+			$fields[] = $db->quoteName('es_customimageurl') . '=""';
 
-        if (isset($g['es_specialparams']) and $g['es_specialparams'] !== null)
-            $fields[] = $db->quoteName('es_specialparams') . '=' . $db->quote($g['es_specialparams']);
-        else
-            $fields[] = $db->quoteName('es_specialparams') . '=""';
-
-        if (isset($g['es_startsecond']) and $g['es_startsecond'] !== null)
-            $fields[] = $db->quoteName('es_startsecond') . '=' . (int)$g['es_startsecond'];
-        else
-            $fields[] = $db->quoteName('es_startsecond') . '=0';
-
-        if (isset($g['es_endsecond']) and $g['es_endsecond'] !== null)
-            $fields[] = $db->quoteName('es_endsecond') . '=' . (int)$g['es_endsecond'];
-        else
-            $fields[] = $db->quoteName('es_endsecond') . '=0';
+		if ($g['es_title'] != '')
+			$fields[] = $db->quoteName('es_alias') . '=' . $db->quote(YouTubeGalleryDB::get_alias($g_title, $g['es_videoid']));
 
-        $fields[] = $db->quoteName('es_link') . '=' . $db->quote($g['es_link']);
-
-        $fields[] = $db->quoteName('es_isvideo') . '=' . (int)$g['es_isvideo'];//$db->quote(($this_is_a_list ? '0' : '1'));
+		$fields[] = $db->quoteName('es_customtitle') . '=' . $db->quote($custom_g_title);
+		$fields[] = $db->quoteName('es_customdescription') . '=' . $db->quote($custom_g_description);
 
-        if (isset($g['es_publisheddate']) and $g['es_publisheddate'] !== null and $g['es_publisheddate'] != '') {
-            $publishedDate = date('Y-m-d H:i:s', strtotime($g['es_publisheddate']));
-            $fields[] = $db->quoteName('es_publisheddate') . '=' . $db->quote($publishedDate);
-        }
-
-        if (isset($g['es_duration']) and $g['es_duration'] !== null) {
-            $fields[] = $db->quoteName('es_duration') . '=' . (int)$g['es_duration'];
-            $fields[] = $db->quoteName('es_lastupdate') . '=NOW()';
-        }
-
-        if (isset($g['es_ratingaverage']) and $g['es_ratingaverage'] !== null)
-            $fields[] = $db->quoteName('es_ratingaverage') . '=' . (float)$g['es_ratingaverage'];
-
-        if (isset($g['es_ratingmax']) and $g['es_ratingmax'] !== null)
-            $fields[] = $db->quoteName('es_ratingmax') . '=' . (int)$g['es_ratingmax'];
-
-        if (isset($g['es_ratingmin']) and $g['es_ratingmin'] !== null)
-            $fields[] = $db->quoteName('es_ratingmin') . '=' . (int)$g['es_ratingmin'];
-
-        if (isset($g['es_ratingnumberofraters']) and $g['es_ratingnumberofraters'] !== null)
-            $fields[] = $db->quoteName('es_ratingnumberofraters') . '=' . (int)$g['es_ratingnumberofraters'];
-
-        if (isset($g['es_statisticsfavoritecount']) and $g['es_statisticsfavoritecount'] !== null)
-            $fields[] = $db->quoteName('es_statisticsfavoritecount') . '=' . (int)$g['es_statisticsfavoritecount'];
-
-        if (isset($g['es_statisticsviewcount']) and $g['es_statisticsviewcount'] !== null)
-            $fields[] = $db->quoteName('es_statisticsviewcount') . '=' . (int)$g['es_statisticsviewcount'];
-
-        if (isset($g['es_keywords']) and $g['es_keywords'] !== null) {
-            if (is_array($g['es_keywords'])) {
-                $key_words = implode(',', $g['es_keywords']);
-                $fields[] = $db->quoteName('es_keywords') . '=' . $db->quote($key_words);
-            }
-        }
-
-        if (isset($g['es_likes']) and $g['es_likes'] !== null)
-            $fields[] = $db->quoteName('es_likes') . '=' . (int)$g['es_likes'];
-
-        if (isset($g['es_dislikes']) and $g['es_dislikes'] !== null)
-            $fields[] = $db->quoteName('es_dislikes') . '=' . (int)$g['es_dislikes'];
-
-        if (isset($g['es_channelusername']) and $g['es_channelusername'] !== null)
-            $fields[] = $db->quoteName('es_channelusername') . '=' . $db->quote($g['es_channelusername']);
-
-        if (isset($g['es_channeltitle']) and $g['es_channeltitle'] !== null)
-            $fields[] = $db->quoteName('es_channeltitle') . '=' . $db->quote($g['es_channeltitle']);
-
-        if (isset($g['es_channelsubscribers']) and $g['es_channelsubscribers'] !== null)
-            $fields[] = $db->quoteName('es_channelsubscribers') . '=' . (int)$g['es_channelsubscribers'];
-
-        if (isset($g['es_channelsubscribed']) and $g['es_channelsubscribed'] !== null)
-            $fields[] = $db->quoteName('es_channelsubscribed') . '=' . (int)$g['es_channelsubscribed'];
-
-        if (isset($g['es_channellocation']) and $g['es_channellocation'] !== null)
-            $fields[] = $db->quoteName('es_channellocation') . '=' . $db->quote($g['es_channellocation']);
-
-        if (isset($g['es_channelcommentcount']) and $g['es_channelcommentcount'] !== null)
-            $fields[] = $db->quoteName('es_channelcommentcount') . '=' . (int)$g['es_channelcommentcount'];
-
-        if (isset($g['es_channelviewcount']) and $g['es_channelviewcount'] !== null)
-            $fields[] = $db->quoteName('es_channelviewcount') . '=' . (int)$g['es_channelviewcount'];
-
-        if (isset($g['es_channelvideocount']) and $g['es_channelvideocount'] !== null)
-            $fields[] = $db->quoteName('es_channelvideocount') . '=' . (int)$g['es_channelvideocount'];
-
-        if (isset($g['es_channeldescription']) and $g['es_channeldescription'] !== null)
-            $fields[] = $db->quoteName('es_channeldescription') . '=' . $db->quote($g['es_channeldescription']);
-
-        if (isset($g['es_latitude']) and $g['es_latitude'] !== null)
-            $fields[] = $db->quoteName('es_latitude') . '=' . (float)$g['es_latitude'];
-
-        if (isset($g['es_longitude']) and $g['es_longitude'] !== null)
-            $fields[] = $db->quoteName('es_longitude') . '=' . (float)$g['es_longitude'];
-
-        if (isset($g['es_altitude']) and $g['es_altitude'] !== null)
-            $fields[] = $db->quoteName('es_altitude') . '=' . (int)$g['es_altitude'];
-
-        if (isset($g['es_ordering']) and $g['es_ordering'] !== null)
-            $fields[] = $db->quoteName('es_ordering') . '=' . (int)$g['es_ordering'];
-
-        return $fields;
-    }
-
-    public static function get_alias($title, $videoid)
-    {
-        if ($videoid != '') {
-            $alias = CTMiscHelper::slugify($title);
-
-            if ($alias != "") {
-                $db = Factory::getDBO();
-                $db->setQuery('SELECT ' . $db->quoteName('es_alias') . ' FROM #__customtables_table_youtubegalleryvideos WHERE ' . $db->quoteName('es_alias') . '=' . $db->quote($alias));
-
-                $rows = $db->loadObjectList();
-
-                if (count($rows) > 1)
-                    $alias .= "_" . $videoid;
-            } else
-                return $videoid;
-
-            if ($alias == '')
-                return 'x-' . $videoid;
-            else
-                return $alias;
-        } else
-            return '-wrong video id-';
-    }
-
-    protected static function isVideo_record_exist($videosource, $listid, $videoid)
-    {
-        $db = Factory::getDBO();
-        $query = 'SELECT id, es_allowupdates FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$listid . ' AND ' . $db->quoteName('es_videosource') . '=' . $db->quote($videosource) . ' AND ' . $db->quoteName('es_videoid') . '=' . $db->quote($videoid) . ' LIMIT 1';
-        $db->setQuery($query);
-        $db->execute();
-        $videos_rows = $db->loadAssocList();
-
-        if (count($videos_rows) == 0)
-            return 0;
-
-        $videos_row = $videos_rows[0];
-
-        if ($videos_row['es_allowupdates'] != 1)
-            return -1; //Updates disable
-
-        return $videos_row['id'];
-    }
+		if (isset($g['es_specialparams']) and $g['es_specialparams'] !== null)
+			$fields[] = $db->quoteName('es_specialparams') . '=' . $db->quote($g['es_specialparams']);
+		else
+			$fields[] = $db->quoteName('es_specialparams') . '=""';
+
+		if (isset($g['es_startsecond']) and $g['es_startsecond'] !== null)
+			$fields[] = $db->quoteName('es_startsecond') . '=' . (int)$g['es_startsecond'];
+		else
+			$fields[] = $db->quoteName('es_startsecond') . '=0';
+
+		if (isset($g['es_endsecond']) and $g['es_endsecond'] !== null)
+			$fields[] = $db->quoteName('es_endsecond') . '=' . (int)$g['es_endsecond'];
+		else
+			$fields[] = $db->quoteName('es_endsecond') . '=0';
+
+		$fields[] = $db->quoteName('es_link') . '=' . $db->quote($g['es_link']);
+
+		$fields[] = $db->quoteName('es_isvideo') . '=' . (int)$g['es_isvideo'];//$db->quote(($this_is_a_list ? '0' : '1'));
+
+		if (isset($g['es_publisheddate']) and $g['es_publisheddate'] !== null and $g['es_publisheddate'] != '') {
+			$publishedDate = date('Y-m-d H:i:s', strtotime($g['es_publisheddate']));
+			$fields[] = $db->quoteName('es_publisheddate') . '=' . $db->quote($publishedDate);
+		}
+
+		if (isset($g['es_duration']) and $g['es_duration'] !== null) {
+			$fields[] = $db->quoteName('es_duration') . '=' . (int)$g['es_duration'];
+			$fields[] = $db->quoteName('es_lastupdate') . '=NOW()';
+		}
+
+		if (isset($g['es_ratingaverage']) and $g['es_ratingaverage'] !== null)
+			$fields[] = $db->quoteName('es_ratingaverage') . '=' . (float)$g['es_ratingaverage'];
+
+		if (isset($g['es_ratingmax']) and $g['es_ratingmax'] !== null)
+			$fields[] = $db->quoteName('es_ratingmax') . '=' . (int)$g['es_ratingmax'];
+
+		if (isset($g['es_ratingmin']) and $g['es_ratingmin'] !== null)
+			$fields[] = $db->quoteName('es_ratingmin') . '=' . (int)$g['es_ratingmin'];
+
+		if (isset($g['es_ratingnumberofraters']) and $g['es_ratingnumberofraters'] !== null)
+			$fields[] = $db->quoteName('es_ratingnumberofraters') . '=' . (int)$g['es_ratingnumberofraters'];
+
+		if (isset($g['es_statisticsfavoritecount']) and $g['es_statisticsfavoritecount'] !== null)
+			$fields[] = $db->quoteName('es_statisticsfavoritecount') . '=' . (int)$g['es_statisticsfavoritecount'];
+
+		if (isset($g['es_statisticsviewcount']) and $g['es_statisticsviewcount'] !== null)
+			$fields[] = $db->quoteName('es_statisticsviewcount') . '=' . (int)$g['es_statisticsviewcount'];
+
+		if (isset($g['es_keywords']) and $g['es_keywords'] !== null) {
+			if (is_array($g['es_keywords'])) {
+				$key_words = implode(',', $g['es_keywords']);
+				$fields[] = $db->quoteName('es_keywords') . '=' . $db->quote($key_words);
+			}
+		}
+
+		if (isset($g['es_likes']) and $g['es_likes'] !== null)
+			$fields[] = $db->quoteName('es_likes') . '=' . (int)$g['es_likes'];
+
+		if (isset($g['es_dislikes']) and $g['es_dislikes'] !== null)
+			$fields[] = $db->quoteName('es_dislikes') . '=' . (int)$g['es_dislikes'];
+
+		if (isset($g['es_channelusername']) and $g['es_channelusername'] !== null)
+			$fields[] = $db->quoteName('es_channelusername') . '=' . $db->quote($g['es_channelusername']);
+
+		if (isset($g['es_channeltitle']) and $g['es_channeltitle'] !== null)
+			$fields[] = $db->quoteName('es_channeltitle') . '=' . $db->quote($g['es_channeltitle']);
+
+		if (isset($g['es_channelsubscribers']) and $g['es_channelsubscribers'] !== null)
+			$fields[] = $db->quoteName('es_channelsubscribers') . '=' . (int)$g['es_channelsubscribers'];
+
+		if (isset($g['es_channelsubscribed']) and $g['es_channelsubscribed'] !== null)
+			$fields[] = $db->quoteName('es_channelsubscribed') . '=' . (int)$g['es_channelsubscribed'];
+
+		if (isset($g['es_channellocation']) and $g['es_channellocation'] !== null)
+			$fields[] = $db->quoteName('es_channellocation') . '=' . $db->quote($g['es_channellocation']);
+
+		if (isset($g['es_channelcommentcount']) and $g['es_channelcommentcount'] !== null)
+			$fields[] = $db->quoteName('es_channelcommentcount') . '=' . (int)$g['es_channelcommentcount'];
+
+		if (isset($g['es_channelviewcount']) and $g['es_channelviewcount'] !== null)
+			$fields[] = $db->quoteName('es_channelviewcount') . '=' . (int)$g['es_channelviewcount'];
+
+		if (isset($g['es_channelvideocount']) and $g['es_channelvideocount'] !== null)
+			$fields[] = $db->quoteName('es_channelvideocount') . '=' . (int)$g['es_channelvideocount'];
+
+		if (isset($g['es_channeldescription']) and $g['es_channeldescription'] !== null)
+			$fields[] = $db->quoteName('es_channeldescription') . '=' . $db->quote($g['es_channeldescription']);
+
+		if (isset($g['es_latitude']) and $g['es_latitude'] !== null)
+			$fields[] = $db->quoteName('es_latitude') . '=' . (float)$g['es_latitude'];
+
+		if (isset($g['es_longitude']) and $g['es_longitude'] !== null)
+			$fields[] = $db->quoteName('es_longitude') . '=' . (float)$g['es_longitude'];
+
+		if (isset($g['es_altitude']) and $g['es_altitude'] !== null)
+			$fields[] = $db->quoteName('es_altitude') . '=' . (int)$g['es_altitude'];
+
+		if (isset($g['es_ordering']) and $g['es_ordering'] !== null)
+			$fields[] = $db->quoteName('es_ordering') . '=' . (int)$g['es_ordering'];
+
+		return $fields;
+	}
+
+	public static function get_alias($title, $videoid)
+	{
+		if ($videoid != '') {
+			$alias = CTMiscHelper::slugify($title);
+
+			if ($alias != "") {
+				$db = Factory::getDBO();
+				$db->setQuery('SELECT ' . $db->quoteName('es_alias') . ' FROM #__customtables_table_youtubegalleryvideos WHERE ' . $db->quoteName('es_alias') . '=' . $db->quote($alias));
+
+				$rows = $db->loadObjectList();
+
+				if (count($rows) > 1)
+					$alias .= "_" . $videoid;
+			} else
+				return $videoid;
+
+			if ($alias == '')
+				return 'x-' . $videoid;
+			else
+				return $alias;
+		} else
+			return '-wrong video id-';
+	}
+
+	protected static function isVideo_record_exist($videosource, $listid, $videoid)
+	{
+		$db = Factory::getDBO();
+		$query = 'SELECT id, es_allowupdates FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$listid . ' AND ' . $db->quoteName('es_videosource') . '=' . $db->quote($videosource) . ' AND ' . $db->quoteName('es_videoid') . '=' . $db->quote($videoid) . ' LIMIT 1';
+		$db->setQuery($query);
+		$db->execute();
+		$videos_rows = $db->loadAssocList();
+
+		if (count($videos_rows) == 0)
+			return 0;
+
+		$videos_row = $videos_rows[0];
+
+		if ($videos_row['es_allowupdates'] != 1)
+			return -1; //Updates disable
+
+		return $videos_row['id'];
+	}
 }
