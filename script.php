@@ -146,7 +146,8 @@ class com_YoutubeGalleryInstallerScript
 		$path_utilities = $path . 'utilities' . DIRECTORY_SEPARATOR;
 
 		require_once($path_utilities . 'importtables.php');
-		$status = ImportTables::processFile($filename, 'YoutubeGallery', $msg);
+		$status = ImportTables::processFile($filename, 'YoutubeGallery', $msg, '',
+			true, true, false, 'es_');
 
 		if ($msg != '') {
 			Factory::getApplication()->enqueueMessage($msg, 'error');
