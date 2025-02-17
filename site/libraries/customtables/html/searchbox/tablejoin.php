@@ -231,23 +231,24 @@ class Search_tablejoin extends BaseSearch
 
 		foreach ($ct->Records as $row) {
 			if ($layout_mode) {
-				/*
-				if ($ct->Env->legacySupport) {
-					$LayoutProc = new LayoutProcessor($ct);
-					$LayoutProc->layout = $layoutcode;
-					$v = $LayoutProc->fillLayout($row);
-				} else*/
+
 				$v = $layoutcode;
 
-				$twig = new TwigProcessor($ct, $v);
-				$v = $twig->process($row);
-
-				if ($twig->errorMessage !== null)
-					$ct->errors[] = $twig->errorMessage;
+				try {
+					$twig = new TwigProcessor($ct, $v);
+					$v = $twig->process($row);
+				} catch (Exception $e) {
+					throw new Exception($e->getMessage());
+				}
 
 			} else {
-				$twig = new TwigProcessor($ct, '{{ ' . $field . ' }}');
-				$v = $twig->process($row);
+
+				try {
+					$twig = new TwigProcessor($ct, '{{ ' . $field . ' }}');
+					$v = $twig->process($row);
+				} catch (Exception $e) {
+					throw new Exception($e->getMessage());
+				}
 			}
 
 			if ($dynamic_filter != '')

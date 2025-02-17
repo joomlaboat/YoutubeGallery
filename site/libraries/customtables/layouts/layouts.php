@@ -17,7 +17,6 @@ defined('_JEXEC') or die();
 
 use Exception;
 
-//use LayoutProcessor;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -207,21 +206,13 @@ class Layouts
 	 */
 	function parseRawLayoutContent(string $content, bool $applyContentPlugins = true): string
 	{
-		/*
-		if ($this->ct->Env->legacySupport) {
-			require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'layout.php');
-
-			$LayoutProc = new LayoutProcessor($this->ct);
-			$LayoutProc->layout = $content;
-			$content = $LayoutProc->fillLayout($this->ct->Table->record);
-		}
-		*/
-
 		$twig = new TwigProcessor($this->ct, $content);
-		$content = $twig->process($this->ct->Table->record);
 
-		if ($twig->errorMessage !== null)
-			$this->ct->errors[] = $twig->errorMessage;
+		try {
+			$content = $twig->process($this->ct->Table->record);
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
+		}
 
 		if ($applyContentPlugins and $this->ct->Params->allowContentPlugins)
 			$content = CTMiscHelper::applyContentPlugins($content);
@@ -236,6 +227,9 @@ class Layouts
 	 */
 	function renderMixedLayout($layoutId, ?int $layoutType = null, ?string $task = null): array
 	{
+		if ($layoutType === null and ($task == 'saveandcontinue' or $task == 'save' or $task == 'saveascopy'))
+			$layoutType = CUSTOMTABLES_ACTION_EDIT;
+
 		if (!empty($layoutId)) {
 			$this->getLayout($layoutId);
 			if ($this->layoutType === null)
@@ -681,14 +675,12 @@ class Layouts
 
 			$result .= '<th>';
 
-			if ($field['allowordering'] && in_array($field['type'], $fieldtypes_allowed_to_orderby))
-
+			if (in_array($field['type'], $fieldtypes_allowed_to_orderby)) {
 				if (Fields::isVirtualField($field))
 					$result .= '{{ ' . $field['fieldname'] . '.title }}';
 				else
 					$result .= '{{ ' . $field['fieldname'] . '.label(true) }}';
-
-			else
+			} else
 				$result .= '{{ ' . $field['fieldname'] . '.title }}';
 
 			if ($addToolbar and in_array($field['type'], $fieldtypesWithSearch)) {
@@ -884,8 +876,12 @@ class Layouts
 			return $this->doTask_save($task);
 		} elseif ($task == 'createuser') {
 			return $this->doTask_createuser();
+		} elseif ($task == 'setorderby') {
+			return $this->doTask_setorderby();
+		} elseif ($task == 'setlimit') {
+			return $this->doTask_setlimit();
 		}
-		return ['success' => false, 'message' => 'Unknown task', 'short' => 'error'];
+		return ['success' => false, 'message' => 'Unknown task', 'short' => 'unknown'];
 	}
 
 	/**
@@ -945,6 +941,16 @@ class Layouts
 			if (count($listing_ids) == 0) {
 				if (common::inputPostCmd('listing_id', null, 'create-edit-record') !== null) {
 					$listing_id_ = common::inputPostCmd('listing_id', null, 'create-edit-record');
+					$listing_id = trim(preg_replace("/[^a-zA-Z_\d-]/", "", $listing_id_));
+
+					if ($listing_id !== '')
+						$listing_ids = [$listing_id];
+				}
+			}
+
+			if (count($listing_ids) == 0) {
+				if (common::inputGetCmd('listing_id', null) !== null) {
+					$listing_id_ = common::inputGetCmd('listing_id', null);
 					$listing_id = trim(preg_replace("/[^a-zA-Z_\d-]/", "", $listing_id_));
 
 					if ($listing_id !== '')
@@ -1084,16 +1090,12 @@ class Layouts
 
 		if ($ok) {
 			//Success
-			//Prepare success message
-			$twig = new TwigProcessor($this->ct, $this->ct->Params->msgItemIsSaved);
 
 			try {
+				$twig = new TwigProcessor($this->ct, $this->ct->Params->msgItemIsSaved);
 				$output['message'] = $twig->process($this->ct->Table->record);
 			} catch (Exception $e) {
 				$output['message'] = $e->getMessage();
-			}
-			if ($twig->errorMessage !== null) {
-				$output['message'] = $twig->errorMessage;
 			}
 
 			$action = $record->isItNewRecord ? 'create' : 'update';
@@ -1150,6 +1152,7 @@ class Layouts
 		if (count($listing_ids) > 0) {
 
 			$count = 0;
+			$record = new record($this->ct);
 
 			foreach ($listing_ids as $listing_id) {
 				try {
@@ -1164,8 +1167,14 @@ class Layouts
 					$saveField = new SaveFieldQuerySet($this->ct, $this->ct->Table->record, false);
 					$field = new Field($this->ct, $fieldRow);
 
-					if (!$saveField->Try2CreateUserAccount($field))
-						return ['success' => false, 'message' => common::translate('COM_CUSTOMTABLES_ERROR_USER_NOTCREATED'), 'short' => 'error'];
+					try {
+						$saveField->Try2CreateUserAccount($field);
+					} catch (Exception $e) {
+						return ['success' => false, 'message' => common::translate('COM_CUSTOMTABLES_ERROR_USER_NOTCREATED')
+							. ' ' . $e->getMessage(), 'short' => 'error'];
+					}
+
+					$record->refresh($this->ct->Params->listing_id);
 
 					$count += 1;
 				} catch (Exception $e) {
@@ -1183,6 +1192,53 @@ class Layouts
 
 	/**
 	 * @throws Exception
+	 * @since 3.5.4
+	 */
+	private function doTask_setorderby()
+	{
+		$order_by = common::inputGetString('orderby', '');
+		$order_by = trim(preg_replace("/[^a-zA-Z-+%.: ,_]/", "", $order_by));
+
+		if (defined('_JEXEC'))
+			common::setUserState('com_customtables.orderby_' . $this->ct->Params->ItemId, $order_by);
+		elseif (defined('WPINC'))
+			common::setUserState('com_customtables.orderby_' . $this->tableId, $order_by);
+		else
+			throw new Exception('doTask_setorderby not supported in this version');
+
+		$link = common::curPageURL();
+
+		$link = CTMiscHelper::deleteURLQueryOption($link, 'task');
+		$link = CTMiscHelper::deleteURLQueryOption($link, 'orderby');
+
+		return ['success' => true, 'message' => null, 'short' => 'order_by set', 'redirect' => $link];
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.5.4
+	 */
+	private function doTask_setlimit()
+	{
+		$limit = common::inputGetInt('limit', 0);
+
+		if (defined('_JEXEC'))
+			common::setUserState('com_customtables.limit_' . $this->ct->Params->ItemId, $limit);
+		elseif (defined('WPINC'))
+			common::setUserState('com_customtables.limit_' . $this->tableId, $limit);
+		else
+			throw new Exception('doTask_setlimit not supported in this version');
+
+		$link = common::curPageURL();
+
+		$link = CTMiscHelper::deleteURLQueryOption($link, 'task');
+		$link = CTMiscHelper::deleteURLQueryOption($link, 'limit');
+
+		return ['success' => true, 'message' => null, 'short' => 'order_by set', 'redirect' => $link];
+	}
+
+	/**
+	 * @throws Exception
 	 * @since 3.2.2
 	 */
 	protected function renderCatalog(): string
@@ -1191,10 +1247,8 @@ class Layouts
 		if ($this->ct->Table === null) {
 			$this->ct->getTable($this->ct->Params->tableName);
 
-			if ($this->ct->Table === null) {
-				$this->ct->errors[] = 'Catalog View: Table not selected.';
-				return 'Catalog View: Table not selected.';
-			}
+			if ($this->ct->Table === null)
+				throw new Exception('Catalog View: Table not selected.');
 		}
 
 		//if ($this->ct->Env->frmt == 'html' and !$this->ct->Env->clean)
@@ -1238,27 +1292,24 @@ class Layouts
 		if (!empty($this->ct->Params->listing_id))
 			$this->ct->applyLimits(1);
 		else
-			$this->ct->applyLimits($this->ct->Params->limit ?? 0);
+			$this->ct->applyLimits();
 
 		$this->ct->LayoutVariables['layout_type'] = $this->layoutType;
 
 		// -------------------- Load Records
-		if (!$this->ct->getRecords()) {
-
-			if (defined('_JEXEC'))
-				$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND');
-
-			return 'CustomTables: Records not loaded.';
-		}
+		if (!$this->ct->getRecords())
+			throw new Exception(common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND'));
 
 		// -------------------- Parse Layouts
 		$twig = new TwigProcessor($this->ct, $this->layoutCode, false, false, true, $this->pageLayoutNameString, $this->pageLayoutLink);
-		$pageLayout = $twig->process();
+
+		try {
+			$pageLayout = $twig->process();
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
+		}
 
 		if (defined('_JEXEC')) {
-			if ($twig->errorMessage !== null)
-				$this->ct->errors[] = $twig->errorMessage;
-
 			if ($this->ct->Params->allowContentPlugins)
 				$pageLayout = CTMiscHelper::applyContentPlugins($pageLayout);
 		}
@@ -1295,15 +1346,15 @@ class Layouts
 	 */
 	public function renderDetailedLayoutDO(): string
 	{
-		$twig = new TwigProcessor($this->ct, $this->layoutCode, false, false, true, $this->pageLayoutNameString, $this->pageLayoutLink);
-		$layoutDetailsContent = $twig->process($this->ct->Table->record);
-
-		if ($twig->errorMessage !== null)
-			$this->ct->errors[] = $twig->errorMessage;
+		try {
+			$twig = new TwigProcessor($this->ct, $this->layoutCode, false, false, true, $this->pageLayoutNameString, $this->pageLayoutLink);
+			$layoutDetailsContent = $twig->process($this->ct->Table->record);
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
+		}
 
 		if ($this->ct->Params->allowContentPlugins)
 			$layoutDetailsContent = CTMiscHelper::applyContentPlugins($layoutDetailsContent);
-
 
 		if (!is_null($this->ct->Table->record)) {
 			//Save view log

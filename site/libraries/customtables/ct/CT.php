@@ -16,7 +16,6 @@ defined('_JEXEC') or die();
 use CustomTablesImageMethods;
 use CustomTablesKeywordSearch;
 use Exception;
-use Joomla\CMS\Factory;
 
 class CT
 {
@@ -38,10 +37,6 @@ class CT
 	var array $errors;
 	var array $messages;
 
-	//Joomla Specific
-	var $app;
-	var $document;
-
 	/**
 	 * @throws Exception
 	 * @since 3.0.0
@@ -50,19 +45,6 @@ class CT
 	{
 		$this->errors = [];
 		$this->messages = [];
-
-		if (defined('_JEXEC')) {
-
-			$this->app = Factory::getApplication();
-
-			if (!($this->app instanceof \Joomla\CMS\Application\ConsoleApplication)) {
-				try {
-					$this->document = $this->app->getDocument();
-				} catch (Exception $e) {
-					// Handle error if needed
-				}
-			}
-		}
 
 		$this->Languages = new Languages;
 
@@ -370,10 +352,24 @@ class CT
 				$KeywordSearcher->groupby = $this->GroupBy;
 				$KeywordSearcher->esordering = $this->Ordering->ordering_processed_string;
 
+				if (defined('_JEXEC')) {
+					$limit_var = 'com_customtables.limit_' . $this->Params->ItemId;
+					$limit = common::getUserState($limit_var, 0);
+				} elseif (defined('WPINC')) {
+					if ($this->Table === null) {
+						$limit = 0;
+					} else {
+						$limit_var = 'com_customtables.limit_' . $this->Table->tableid;
+						$limit = common::getUserState($limit_var, 0);
+					}
+				} else {
+					$limit = 0;
+				}
+
 				$this->Records = $KeywordSearcher->getRowsByKeywords(
 					$keywordSearch,
 					$this->Table->recordcount,
-					(int)$this->app->getState('limit'),
+					$limit,
 					$this->LimitStart
 				);
 
@@ -411,9 +407,15 @@ class CT
 
 		if (defined('_JEXEC')) {
 			$limit_var = 'com_customtables.limit_' . $this->Params->ItemId;
-			$this->Limit = $this->app->getUserState($limit_var, 0);
-		} else
-			$this->Limit = 0;
+			$this->Limit = common::getUserState($limit_var, 0);
+		} elseif (defined('WPINC')) {
+			if ($this->Table === null) {
+				$this->Limit = 0;
+			} else {
+				$limit_var = 'com_customtables.limit_' . $this->Table->tableid;
+				$this->Limit = common::getUserState($limit_var, 0);
+			}
+		}
 
 		//Grouping
 		$this->GroupBy = null;
@@ -424,8 +426,11 @@ class CT
 		}
 
 		if ($this->Params->blockExternalVars) {
-			if ((int)$this->Params->limit > 0) {
+
+			if ($this->Limit == 0 and (int)$this->Params->limit > 0)
 				$this->Limit = (int)$this->Params->limit;
+
+			if ($this->Limit > 0) {
 				$this->LimitStart = common::inputGetInt('start', 0);
 				$this->LimitStart = ($this->Limit != 0 ? (floor($this->LimitStart / $this->Limit) * $this->Limit) : 0);
 			} else {
@@ -437,9 +442,15 @@ class CT
 
 			if (defined('_JEXEC')) {
 				$limit_var = 'com_customtables.limit_' . $this->Params->ItemId;
-				$this->Limit = $this->app->getUserState($limit_var, 0);
-			} else
-				$this->Limit = 0;
+				$this->Limit = common::getUserState($limit_var, 0);
+			} elseif (defined('WPINC')) {
+				if ($this->Table === null) {
+					$this->Limit = 0;
+				} else {
+					$limit_var = 'com_customtables.limit_' . $this->Table->tableid;
+					$this->Limit = common::getUserState($limit_var, 0);
+				}
+			}
 
 			if ($this->Limit == 0 and (int)$this->Params->limit > 0) {
 				$this->Limit = (int)$this->Params->limit;
@@ -644,6 +655,9 @@ class CT
 	 */
 	public function CheckAuthorization(int $action = CUSTOMTABLES_ACTION_EDIT): bool
 	{
+		if ($this->Table === null)
+			throw new Exception("Table is not set.");
+
 		if ($action == 0)
 			return true;
 

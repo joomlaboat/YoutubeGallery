@@ -46,9 +46,13 @@
 		<tag name="print" label="Print Button" startchar="{" endchar="}" twigclass="html"
 			 description="A button that opens a new controllers window without a template, only content.">
 			<params>
-				<param name="listtype" label="Link Type" type="list">
-					<option value="" label="Button"/>
-					<option value="fontawesome" label="Font Awesome icon"/>
+				<param name="listtype" label="Link Type" type="list" default="buttoniconlabel">
+					<option value="buttoniconlabel" label="Button with Icon and Label" wordpress="true"/>
+					<option value="buttonicon" label="Button with Icon" wordpress="true"/>
+					<option value="buttonlabel" label="Button with Label" wordpress="true"/>
+					<option value="linkiconlabel" label="Link with Icon and Label" wordpress="true"/>
+					<option value="linkicon" label="Link with Icon" wordpress="true"/>
+					<option value="linklabel" label="Link with Label" wordpress="true"/>
 				</param>
 				<param type="label" name="label" label="Label" description="What will be written on the button."/>
 				<param type="string" name="cssclass" label="CSS Class" description="Name or names of CSS class(s)."/>
@@ -67,6 +71,7 @@
 					   example="style='border:1px solid red;'"/>
 				<param name="redirectlink" label="Custom Redirect Link" type="string"
 					   description="URL to redirect after processing the button click. Tip: user $get_listing_id keyword to get newly saved record id."/>
+				<param type="string" name="cssclass" label="CSS Class" description="Name or names of CSS class(s)."/>
 			</params>
 		</tag>
 
@@ -103,24 +108,24 @@
 			 image="https://joomlaboat.com/images/components/ct/tags/search-box.png" wordpress="true">
 			<params>
 				<param type="field" name="field" label="Field(s)"
-					   description="Specify which table field(s) to search. For multiple fields, use comma separation (e.g., {{ html.search('firstname,lastname') }}).
+					   description="Specifies which table field(s) to search within. Use a comma to separate multiple fields. (e.g., {{ html.search('firstname,lastname') }}).
 					   When using 'Table Join (Lookup Table)' or 'Table Join List' fields, you can specify a rendering layout (e.g., {{ html.search('fieldname:layoutname') }})."
 					   repetitive="0"/>
 
 				<param type="string" name="cssclass" label="CSS Class"
-					   description="Add custom styling by specifying one or more CSS class names, separated by spaces (e.g., 'search-input highlighted')"/>
+					   description="Defines custom styling by specifying one or more CSS class names, separated by spaces (e.g., 'search-input highlighted')"/>
 
-				<param name="reload" label="On Change"
-					   description="For select boxes only: Choose whether to automatically reload the page when a new option is selected."
+				<param name="reload" label="Reload"
+					   description="For select boxes only: Determines whether the page reloads automatically when a new option is selected. "
 					   type="radio"
 					   default="" example="reload"
 					   options="|Do nothing,reload|Reload Page"/>
 
-				<param name="improved" label="Enhanced Select Box"
-					   description="Enable an advanced select box interface with built-in search functionality for easier option finding."
+				<param name="improved" label="In-list search"
+					   description="For large select boxes only: Enables an advanced dropdown with built-in search functionality for easier option selection."
 					   type="radio"
 					   default=""
-					   example="reload"
+					   example="standard"
 					   options="|Standard,improved|Improved"/>
 
 				<param name="match" label="Exact Match"
@@ -144,8 +149,16 @@
 			 twigclass="html" image="https://joomlaboat.com/images/components/ct/tags/search-button.png"
 			 wordpress="true">
 			<params>
-				<param name="label" label="Button Label" type="string" example="Search"
-					   description="The label of the button. Leaving the label parameter empty will produce an icon only (a magnifying glass). You can also pass HTML code as the label argument to control the button look completely. "/>
+				<param name="listtype" label="Link Type" type="list" default="buttoniconlabel">
+					<option value="buttoniconlabel" label="Button with Icon and Label" wordpress="true"/>
+					<option value="buttonicon" label="Button with Icon" wordpress="true"/>
+					<option value="buttonlabel" label="Button with Label" wordpress="true"/>
+					<option value="linkiconlabel" label="Link with Icon and Label" wordpress="true"/>
+					<option value="linkicon" label="Link with Icon" wordpress="true"/>
+					<option value="linklabel" label="Link with Label" wordpress="true"/>
+				</param>
+				<param name="label" label="Label" type="string" example="Search"
+					   description="The label. Leaving the label parameter empty will produce an icon only (a magnifying glass). You can also pass HTML code as the label argument to control the button look completely. "/>
 				<param type="string" name="cssclass" label="CSS Class"
 					   description="Name or names of CSS classes separated by space."/>
 			</params>
@@ -189,23 +202,48 @@
 			</params>
 		</tag>
 
-		<tag name="orderby" label="Order By (Sort By) box" startchar="{" endchar="}" proversion="1"
-			 description="Renders HTML Order By select box." twigclass="html"/>
+		<tag name="orderby" label="Order By (Sort By) Box" startchar="{" endchar="}" proversion="0"
+			 description="Generates an HTML dropdown allowing visitors to sort the table by selected fields. If no fields are specified, all available fields will be included."
+			 twigclass="html" wordpress="true">
 
-		<tag name="limit" label="A select box to change the number of records per page" startchar="{" endchar="}"
-			 proversion="1"
-			 description="Renders HTML Limit box to limit the number of records per page. To set default number of records per page go to Menu Item, Filters tab: 'Limit number of records per page'."
-			 twigclass="html"
+			<params>
+				<param name="fieldlist" example="firstname,lastname,birthdate" label="List of Fields"
+					   description="Comma-separated list of fields that users can choose from to sort the table in the front-end. If left empty, all available fields will be included."
+					   default=""
+					   type="field" repetitive="1"/>
+				<param name="label" label="Show Label"
+					   description="Display a text label before the dropdown menu."
+					   type="radio" default=""
+					   options="|No,true|Yes"/>
+
+				<param name="class" label="CSS Class" type="string" description="Name or names of CSS class(s)."
+					   example="registerButton"/>
+			</params>
+		</tag>
+
+		<tag name="limit" label="Dropdown to Select Records per Page" startchar="{" endchar="}"
+			 proversion="0"
+			 description="Generates an HTML dropdown menu allowing users to set the number of records displayed per page. To configure a default value, navigate to the Menu Item settings under the Filters tab and adjust the 'Limit number of records per page' option."
+			 twigclass="html" wordpress="true"
 			 image="https://joomlaboat.com/images/components/ct/tags/html-limit.png">
+
 			<params>
 				<param name="step" label="Step" type="list" example="10" default="5"
-					   description="This parameter sets the incremental step of the list. If you select 1 then the list of options will be: 1,2,3,4,5,6,10,20">
-					<option value="1" label="1"/>
-					<option value="5" label="5"/>
-					<option value="10" label="10"/>
-					<option value="20" label="20"/>
-					<option value="50" label="50"/>
+					   description="Defines the incremental steps for the dropdown options. For example, if set to 1, the options will be: 1, 2, 3, 4, 5, 6, 10, 20.">
+					<option value="1" label="1" wordpress="true"/>
+					<option value="5" label="5" wordpress="true"/>
+					<option value="10" label="10" wordpress="true"/>
+					<option value="20" label="20" wordpress="true"/>
+					<option value="50" label="50" wordpress="true"/>
 				</param>
+
+				<param name="label" label="Show Label"
+					   description="Display a text label before the dropdown menu."
+					   type="radio" default=""
+					   options="|No,true|Yes"/>
+
+				<param name="class" label="CSS Class" type="string" description="Name or names of CSS class(s)."
+					   example="registerButton"/>
 			</params>
 		</tag>
 

@@ -208,6 +208,7 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
 	require_once($path_helpers . 'user.php');
 	require_once($path_helpers . 'misc.php');
 	require_once($path_helpers . 'Fields.php');
+	require_once($path_helpers . 'Icons.php');
 
 	if (defined('_JEXEC')) {
 		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'ct-common-joomla.php');
@@ -255,11 +256,6 @@ function CustomTablesLoader($include_utilities = false, $include_html = false, $
 
 	$pathDataTypes = $path . 'ordering' . DIRECTORY_SEPARATOR;
 	require_once($pathDataTypes . 'ordering.php');
-
-	if ($include_html) {
-		$pathDataTypes = $path . 'ordering' . DIRECTORY_SEPARATOR;
-		require_once($pathDataTypes . 'html.php');
-	}
 
 	$pathDataTypes = $path . 'records' . DIRECTORY_SEPARATOR;
 	require_once($pathDataTypes . 'savefieldqueryset.php');

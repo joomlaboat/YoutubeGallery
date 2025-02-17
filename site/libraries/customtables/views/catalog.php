@@ -18,8 +18,8 @@ use Exception;
 class Catalog
 {
 	var CT $ct;
-	var string $layoutCodeCSS;
-	var string $layoutCodeJS;
+	var ?string $layoutCodeCSS;
+	var ?string $layoutCodeJS;
 
 	function __construct(CT &$ct)
 	{
@@ -37,10 +37,8 @@ class Catalog
 		// --------------------- Layouts
 		$Layouts = new Layouts($this->ct);
 		$Layouts->layoutType = 0;
-		$itemLayout = '';
 		$pageLayoutNameString = null;
 		$pageLayoutLink = null;
-		$itemLayoutNameString = null;
 
 		if ($layoutName === '')
 			$layoutName = null;
@@ -50,6 +48,9 @@ class Catalog
 			if (isset($Layouts->layoutId)) {
 				$pageLayoutNameString = ($layoutName == '' ? 'InlinePageLayout' : $layoutName);
 				$pageLayoutLink = common::UriRoot(true, true) . 'administrator/index.php?option=com_customtables&view=listoflayouts&task=layouts.edit&id=' . $Layouts->layoutId;
+
+				$this->layoutCodeCSS = $Layouts->layoutCodeCSS;
+				$this->layoutCodeJS = $Layouts->layoutCodeJS;
 			} else {
 				throw new Exception('Layout "' . $layoutName . '" not found.');
 			}
@@ -106,7 +107,7 @@ class Catalog
 			$this->ct->applyLimits($limit);
 
 		// --------------------- Layouts
-		
+
 		if ($layoutName === null) {
 			if ($this->ct->Env->frmt == 'csv') {
 				$pageLayout = $Layouts->createDefaultLayout_CSV($this->ct->Table->fields);
@@ -116,26 +117,19 @@ class Catalog
 
 				if (!is_null($this->ct->Params->pageLayout) and $this->ct->Params->pageLayout != '') {
 
-					if (empty($this->ct->Params->pageLayout)) {
-						$this->ct->errors[] = 'Catalog Layout not selected.';
-						return '';
-					}
+					if (empty($this->ct->Params->pageLayout))
+						throw new Exception('Catalog Layout not selected.');
 
 					$pageLayout = $Layouts->getLayout($this->ct->Params->pageLayout);//Get Layout by name
 					if (isset($Layouts->layoutId)) {
 
-						if (!empty($Layouts->layoutCodeCSS)) {
-							$this->layoutCodeCSS = $Layouts->layoutCodeCSS;
-						}
-
-						if (!empty($Layouts->layoutCodeJS))
-							$this->layoutCodeJS = $Layouts->layoutCodeJS;
+						$this->layoutCodeCSS = $Layouts->layoutCodeCSS;
+						$this->layoutCodeJS = $Layouts->layoutCodeJS;
 
 						$pageLayoutNameString = $this->ct->Params->pageLayout;
 						$pageLayoutLink = common::UriRoot(true, true) . 'administrator/index.php?option=com_customtables&view=listoflayouts&task=layouts.edit&id=' . $Layouts->layoutId;
 					} else {
-						$this->ct->errors[] = 'Layout "' . $this->ct->Params->pageLayout . '" not found.';
-						return '';
+						throw new Exception('Layout "' . $this->ct->Params->pageLayout . '" not found.');
 					}
 
 				} elseif (!is_null($this->ct->Params->itemLayout) and $this->ct->Params->itemLayout != '') {
@@ -172,28 +166,17 @@ class Catalog
 			return $e->getMessage();
 		}
 
-		if (!$recordsLoaded) {
-			if (defined('_JEXEC'))
-				$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND');
-
-			return 'CustomTables: Records not loaded.';
-		}
-
-		$twig = null;
+		if (!$recordsLoaded)
+			throw new Exception(common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND'));
 
 		try {
 			$twig = new TwigProcessor($this->ct, $pageLayout, false, false, true, $pageLayoutNameString, $pageLayoutLink);
 			if (count($this->ct->errors) > 0)
-				return 'There is an error in rendering the catalog page:' . implode(', ', $this->ct->errors);
+				throw new Exception('TwigProcessor: ' . implode(', ', $this->ct->errors));
 
 			$pageLayout = $twig->process();
 		} catch (Exception $e) {
-			$this->ct->errors[] = $e->getMessage();
-		}
-
-		if ($twig->errorMessage !== null) {
-			$this->ct->errors[] = $twig->errorMessage;
-			return 'There is an error in rendering the catalog page :' . implode(', ', $this->ct->errors);
+			throw new Exception($e->getMessage());
 		}
 
 		if ($this->ct->Env->clean == 0) {

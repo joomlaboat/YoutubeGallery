@@ -14,7 +14,6 @@ namespace CustomTables;
 defined('_JEXEC') or die();
 
 use Exception;
-use Joomla\CMS\Factory;
 use Joomla\Utilities\ArrayHelper;
 
 class Ordering
@@ -182,7 +181,6 @@ class Ordering
 	{
 		if (defined('_JEXEC')) {
 			//get sort field (and direction) example "price desc"
-			$app = Factory::getApplication();
 			$ordering_param_string = '';
 
 			if ($this->Params->blockExternalVars) {
@@ -194,15 +192,16 @@ class Ordering
 			} else {
 				if ($this->Params->forceSortBy != '') {
 					$ordering_param_string = $this->Params->forceSortBy;
-				} elseif (common::inputGetCmd('esordering', '', 'create-edit-record')) {
-					$ordering_param_string = common::inputGetString('esordering', '', 'create-edit-record');
+				} elseif (common::inputGetCmd('esordering', '')) {
+					$ordering_param_string = common::inputGetString('esordering', '');
 					$ordering_param_string = trim(preg_replace("/[^a-zA-Z-+%.: ,_]/", "", $ordering_param_string));
 				} else {
-					$Itemid = common::inputGetInt('Itemid', 0, 'create-edit-record');
-					$ordering_param_string = $app->getUserState('com_customtables.orderby_' . $Itemid, '');
+
+					$Itemid = common::inputGetInt('Itemid', 0);
+					$ordering_param_string = common::getUserState('com_customtables.orderby_' . $Itemid);
 
 					if ($ordering_param_string == '') {
-						if ($this->Params->sortBy !== null and $this->Params->sortBy != '')
+						if (!empty($this->Params->sortBy))
 							$ordering_param_string = $this->Params->sortBy;
 					}
 				}
@@ -210,85 +209,79 @@ class Ordering
 			$this->ordering_processed_string = $ordering_param_string;
 
 			//set state
-			if (!$this->Params->blockExternalVars)
-				$app->setUserState('com_customtables.esorderby', $this->ordering_processed_string);
+			if (!$this->Params->blockExternalVars) {
+				$Itemid = common::inputGetInt('Itemid', 0);
+				common::setUserState('com_customtables.orderby_' . $Itemid, $this->ordering_processed_string);
+			}
+
 		} else {
-			if ($this->Params->sortBy != '')
-				$this->ordering_processed_string = $this->Params->sortBy;
+			if ($this->Params->forceSortBy != '') {
+				$ordering_param_string = $this->Params->forceSortBy;
+			} elseif (common::inputGetCmd('ordering', '')) {
+				$ordering_param_string = common::inputGetString('ordering', '');
+				$ordering_param_string = trim(preg_replace("/[^a-zA-Z-+%.: ,_]/", "", $ordering_param_string));
+			} else {
+				$ordering_param_string = common::getUserState('com_customtables.orderby_' . $this->Table->tableid);
+			}
+
+
+			$this->ordering_processed_string = $ordering_param_string;
+
+			//set state
+			if ($ordering_param_string == '') {
+				if (!empty($this->Params->sortBy))
+					common::setUserState('com_customtables.orderby_' . $this->Table->tableid, $this->ordering_processed_string);
+			}
 		}
 	}
 
-	function getSortByFields(): ?object
+	function getSortByFields(): array
 	{
 		//default sort by fields
-		$order_list = [];
-		$order_values = [];
+		$fieldsToSort = [];
 
-		$order_list[] = 'ID ' . common::translate('COM_CUSTOMTABLES_AZ');
-		$order_list[] = 'ID ' . common::translate('COM_CUSTOMTABLES_ZA');
-
-		$order_values[] = '_id';
-		$order_values[] = '_id desc';
+		$fieldsToSort[] = ['value' => '_id', 'label' => 'ID ' . common::translate('COM_CUSTOMTABLES_AZ')];
+		$fieldsToSort[] = ['value' => '_id desc', 'label' => 'ID ' . common::translate('COM_CUSTOMTABLES_ZA')];
 
 		$label = common::translate('COM_CUSTOMTABLES_PUBLISHED') . ' ';
-		$order_list[] = $label . common::translate('COM_CUSTOMTABLES_AZ');
-		$order_list[] = $label . common::translate('COM_CUSTOMTABLES_ZA');
-
-		$order_values[] = '_published';
-		$order_values[] = '_published desc';
+		$fieldsToSort[] = ['value' => '_published', 'label' => $label . common::translate('COM_CUSTOMTABLES_AZ')];
+		$fieldsToSort[] = ['value' => '_published desc', 'label' => $label . common::translate('COM_CUSTOMTABLES_ZA')];
 
 		foreach ($this->Table->fields as $row) {
-			if ($row['allowordering'] == 1) {
+			$fieldType = $row['type'];
+			$fieldname = $row['fieldname'];
 
-				$fieldType = $row['type'];
-				$fieldname = $row['fieldname'];
+			if ($row['fieldtitle' . $this->Table->Languages->Postfix] != '')
+				$fieldtitle = $row['fieldtitle' . $this->Table->Languages->Postfix];
+			else
+				$fieldtitle = $row['fieldtitle'];
 
-				if ($row['fieldtitle' . $this->Table->Languages->Postfix] != '')
-					$fieldtitle = $row['fieldtitle' . $this->Table->Languages->Postfix];
-				else
-					$fieldtitle = $row['fieldtitle'];
+			$typeParams = $row['typeparams'];
 
-				$typeParams = $row['typeparams'];
-
-				if ($fieldType == 'string' or $fieldType == 'email' or $fieldType == 'url') {
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ');
-					$order_values[] = $fieldname;
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA');
-					$order_values[] = $fieldname . ' desc';
-				} elseif ($fieldType == 'sqljoin') {
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ');
-					$order_values[] = $fieldname . '.sqljoin.' . $typeParams;
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA');
-					$order_values[] = $fieldname . '.sqljoin.' . $typeParams . ' desc';
-				} elseif ($fieldType == 'phponadd' or $fieldType == 'phponchange') {
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ');
-					$order_values[] = $fieldname;
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA');
-					$order_values[] = $fieldname . ' desc';
-				} elseif ($fieldType == 'int' or $fieldType == 'float' or $fieldType == 'ordering') {
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_MINMAX');
-					$order_values[] = $fieldname;
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_MAXMIN');
-					$order_values[] = $fieldname . " desc";
-				} elseif ($fieldType == 'changetime' or $fieldType == 'creationtime' or $fieldType == 'date') {
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_NEWOLD');
-					$order_values[] = $fieldname . " desc";
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_OLDNEW');
-					$order_values[] = $fieldname;
-				} elseif ($fieldType == 'multilangstring') {
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ');
-					$order_values[] = $fieldname . $this->Table->Languages->Postfix;
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA');
-					$order_values[] = $fieldname . $this->Table->Languages->Postfix . " desc";
-				} elseif ($fieldType == 'userid' or $fieldType == 'user') {
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ');
-					$order_values[] = $fieldname . '.user';
-					$order_list[] = $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA');
-					$order_values[] = $fieldname . '.user desc';
-				}
+			if ($fieldType == 'string' or $fieldType == 'email' or $fieldType == 'url') {
+				$fieldsToSort[] = ['value' => $fieldname, 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ')];
+				$fieldsToSort[] = ['value' => $fieldname . ' desc', 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA')];
+			} elseif ($fieldType == 'sqljoin') {
+				$fieldsToSort[] = ['value' => $fieldname . '.sqljoin.' . $typeParams, 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ')];
+				$fieldsToSort[] = ['value' => $fieldname . '.sqljoin.' . $typeParams . ' desc', 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA')];
+			} elseif ($fieldType == 'phponadd' or $fieldType == 'phponchange') {
+				$fieldsToSort[] = ['value' => $fieldname, 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ')];
+				$fieldsToSort[] = ['value' => $fieldname . ' desc', 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA')];
+			} elseif ($fieldType == 'int' or $fieldType == 'float' or $fieldType == 'ordering') {
+				$fieldsToSort[] = ['value' => $fieldname, 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_MINMAX')];
+				$fieldsToSort[] = ['value' => $fieldname . " desc", 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_MAXMIN')];
+			} elseif ($fieldType == 'changetime' or $fieldType == 'creationtime' or $fieldType == 'date') {
+				$fieldsToSort[] = ['value' => $fieldname . " desc", 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_NEWOLD')];
+				$fieldsToSort[] = ['value' => $fieldname, 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_OLDNEW')];
+			} elseif ($fieldType == 'multilangstring') {
+				$fieldsToSort[] = ['value' => $fieldname . $this->Table->Languages->Postfix, 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ')];
+				$fieldsToSort[] = ['value' => $fieldname . $this->Table->Languages->Postfix . " desc", 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA')];
+			} elseif ($fieldType == 'userid' or $fieldType == 'user') {
+				$fieldsToSort[] = ['value' => $fieldname . '.user', 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_AZ')];
+				$fieldsToSort[] = ['value' => $fieldname . '.user desc', 'label' => $fieldtitle . ' ' . common::translate('COM_CUSTOMTABLES_ZA')];
 			}
 		}
-		return (object)['titles' => $order_list, 'values' => $order_values];
+		return $fieldsToSort;
 	}
 
 	/**

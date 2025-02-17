@@ -88,22 +88,13 @@ class Edit
 	{
 		if ($row !== null)
 			$this->row = $row;
-		/*
-				if ($this->ct->Env->legacySupport) {
-					$path = CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR;
-					require_once($path . 'tagprocessor' . DIRECTORY_SEPARATOR . 'edittags.php');
-					require_once($path . 'layout.php');
 
-					$LayoutProc = new LayoutProcessor($this->ct, $this->layoutContent);
-					$this->layoutContent = $LayoutProc->fillLayout(null, null, '||', false, true);
-					tagProcessor_Edit::process($this->ct, $this->layoutContent, $row, true);
-				}*/
-
-		$twig = new TwigProcessor($this->ct, $this->layoutContent, true);
-		$result = $twig->process($this->row);
-
-		if ($twig->errorMessage !== null)
-			$this->ct->errors[] = $twig->errorMessage;
+		try {
+			$twig = new TwigProcessor($this->ct, $this->layoutContent, true);
+			$result = $twig->process($this->row);
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
+		}
 
 		return $result;
 	}
@@ -157,15 +148,7 @@ class Edit
 		try {
 			$pageLayout = @$twig->process($this->row);
 		} catch (Exception $e) {
-			return 'Caught exception: ' . $e->getMessage();
-		}
-
-		if ($twig->errorMessage !== null) {
-			if (defined('_JEXEC')) {
-				$this->ct->errors[] = $twig->errorMessage;
-			} else {
-				return $twig->errorMessage;
-			}
+			throw new Exception($e->getMessage());
 		}
 
 		if ($this->ct->Params->allowContentPlugins)

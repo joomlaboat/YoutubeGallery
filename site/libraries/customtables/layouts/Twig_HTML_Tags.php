@@ -120,15 +120,8 @@ class Twig_HTML_Tags
 			return '{{ html.add }} not supported.';
 		}
 
-		$alt = common::translate('COM_CUSTOMTABLES_ADD');
-
-		if ($this->ct->Env->toolbarIcons != '')
-			$img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' fa-plus-circle" data-icon="' . $this->ct->Env->toolbarIcons . ' fa-plus-circle" title="' . $alt . '"></i>';
-		else {
-			$img = '<img src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/icons/new.png" alt="' . $alt . '" title="' . $alt . '" />';
-		}
-
-		return '<a href="' . $link . '" id="ctToolBarAddNew' . $this->ct->Table->tableid . '" class="toolbarIcons">' . $img . '</a>';
+		$icon = Icons::iconNew($this->ct->Env->toolbarIcons);
+		return '<a href="' . $link . '" id="ctToolBarAddNew' . $this->ct->Table->tableid . '" class="toolbarIcons">' . $icon . '</a>';
 	}
 
 	/**
@@ -211,7 +204,7 @@ class Twig_HTML_Tags
 			return '<div class="pagination">' . $pagination->getPagesLinks() . '</div>';
 	}
 
-	function limit($the_step = 5): string
+	function limit($the_step = 5, $showLabel = false, $CSS_Class = null): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -219,11 +212,74 @@ class Twig_HTML_Tags
 		if ($this->ct->Env->isPlugin or !empty($this->ct->Params->ModuleId))
 			return '';
 
-		$pagination = new JESPagination($this->ct->Table->recordcount, $this->ct->LimitStart, $this->ct->Limit, '');
-		return common::translate('COM_CUSTOMTABLES_SHOW') . ': ' . $pagination->getLimitBox($the_step);
+		$result = '';
+		if ($showLabel)
+			$result .= common::translate('COM_CUSTOMTABLES_SHOW') . ': ';
+
+		if ($CSS_Class === null) {
+			if (CUSTOMTABLES_JOOMLA_MIN_4)
+				$CSS_Class = 'form-select';
+			else
+				$CSS_Class = 'inputbox';
+		}
+
+		$result .= $this->getLimitBox((int)$the_step, $CSS_Class);
+		return $result;
 	}
 
-	function orderby(): string
+	/**
+	 * Creates a dropdown box for selecting how many records to show per page.
+	 *
+	 * @return  string   The HTML for the limit # input box.
+	 * @since   3.5.4
+	 */
+	protected function getLimitBox(int $the_step, string $CSS_Class)
+	{
+		$all = false;
+
+		if ($the_step < 1)
+			$the_step = 1;
+
+		if ($the_step > 1000)
+			$the_step = 1000;
+
+		$limit = (int)max($this->ct->Limit, 0);
+
+		// If we are viewing all records set the view all flag to true.
+		if ($limit == 0)
+			$all = true;
+
+		// Initialise variables.
+		$limitOptions = [];
+
+		// Make the option list.
+		for ($i = $the_step; $i <= $the_step * 6; $i += $the_step)
+			$limitOptions [] = ['value' => $i, 'label' => $i];
+
+		$limitOptions [] = ['value' => $the_step * 10, 'label' => $the_step * 10];
+		$limitOptions [] = ['value' => $the_step * 20, 'label' => $the_step * 20];
+		$selected = $all ? 0 : $limit;
+
+		$moduleIDString = $this->ct->Params->ModuleId === null ? 'null' : $this->ct->Params->ModuleId;
+		// Build the select list.
+
+		$options = [];
+
+		foreach ($limitOptions as $limitOption) {
+			$isSelected = ($selected === $limitOption['value']) ? ' selected' : '';
+			$options[] = '<option value="' . htmlspecialchars($limitOption['value'], ENT_QUOTES) . '"' . $isSelected . '>'
+				. htmlspecialchars($limitOption['label'] ?? '', ENT_QUOTES) . '</option>';
+		}
+
+		return '<select name="limit" id="limit" onChange="ctLimitChanged(this.value, ' . $moduleIDString . ')" class="' . $CSS_Class . '">'
+			. PHP_EOL . implode(PHP_EOL, $options) . PHP_EOL . '</select>';
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.0.0
+	 */
+	function orderby($listOfFields = null, $showLabel = false, $CSS_Class = null): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -232,10 +288,59 @@ class Twig_HTML_Tags
 			return '';
 
 		if ($this->ct->Params->forceSortBy !== null and $this->ct->Params->forceSortBy != '')
-			$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_ERROR_SORT_BY_FIELD_LOCKED');
+			throw new Exception(common::translate('COM_CUSTOMTABLES_ERROR_SORT_BY_FIELD_LOCKED'));
 
-		return common::translate('COM_CUSTOMTABLES_ORDER_BY') . ': ' . OrderingHTML::getOrderBox($this->ct->Ordering);
+		$result = '';
+		if ($showLabel)
+			$result .= common::translate('COM_CUSTOMTABLES_ORDER_BY') . ': ';
+
+		if ($CSS_Class === null) {
+			if (CUSTOMTABLES_JOOMLA_MIN_4)
+				$CSS_Class = 'form-select';
+			else
+				$CSS_Class = 'inputbox';
+		}
+
+		$result .= $this->getOrderBox($this->ct->Ordering, $listOfFields, $CSS_Class);
+		return $result;
 	}
+
+	protected function getOrderBox(Ordering $ordering, ?string $listOfFields, string $CSS_Class): string
+	{
+		$listOfFields_Array = !empty($listOfFields) ? explode(",", $listOfFields) : [];
+		$lists = $ordering->getSortByFields();
+
+		// Initialize the sorting options with a default "Order By" placeholder
+		$fieldsToSort = [
+			['value' => '', 'label' => ' - ' . common::translate('COM_CUSTOMTABLES_ORDER_BY')]
+		];
+
+		// Filter sorting fields if a list is provided
+		if (!empty($listOfFields_Array)) {
+			foreach ($lists as $list) {
+
+				$fieldName = trim(strtok($list['value'], " ")); // Extract first part before space
+
+				if (in_array($fieldName, $listOfFields_Array, true))
+					$fieldsToSort[] = ['value' => $list['value'], 'label' => $list['label']];
+			}
+		} else {
+			$fieldsToSort = array_merge($fieldsToSort, $lists);
+		}
+
+		$moduleIDString = $ordering->Params->ModuleId ?? 'null';
+		$options = [];
+
+		foreach ($fieldsToSort as $sortField) {
+			$isSelected = ($ordering->ordering_processed_string === $sortField['value']) ? ' selected' : '';
+			$options[] = '<option value="' . htmlspecialchars($sortField['value'], ENT_QUOTES) . '"' . $isSelected . '>'
+				. htmlspecialchars($sortField['label'] ?? '', ENT_QUOTES) . '</option>';
+		}
+
+		return '<select name="esordering" id="esordering" onChange="ctOrderChanged(this.value, ' . $moduleIDString . ')" class="' . $CSS_Class . '">'
+			. PHP_EOL . implode(PHP_EOL, $options) . PHP_EOL . '</select>';
+	}
+
 
 	/**
 	 * $returnto must be provided already decoded
@@ -243,13 +348,8 @@ class Twig_HTML_Tags
 	 * @throws Exception
 	 * @since 3.0.0
 	 */
-	function goback($defaultLabel = null, $image_icon = '', $attribute = '', string $returnto = ''): string //WordPress Ready
+	function goback($defaultLabel = null, $image_icon = '', $attribute = '', string $returnto = '', string $class = ''): string //WordPress Ready
 	{
-		if ($defaultLabel === null)
-			$label = common::translate('COM_CUSTOMTABLES_GO_BACK');
-		else
-			$label = $defaultLabel;
-
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
 
@@ -265,26 +365,24 @@ class Twig_HTML_Tags
 		if ($returnto == '')
 			return '';
 
-		if ($attribute == '' and $image_icon == '') {
-			if ($this->ct->Env->toolbarIcons != '')
-				$vlu = '<a href="' . $returnto . '"><i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons
-					. ' fa-angle-left" data-icon="' . $this->ct->Env->toolbarIcons . ' fa-angle-left" title="'
-					. $label . '" style="margin-right:10px;"></i>' . $label . '</a>';
+		if ($defaultLabel === null or $defaultLabel == common::ctStripTags($defaultLabel)) {
+
+			if ($defaultLabel === null)
+				$label = common::translate('COM_CUSTOMTABLES_GO_BACK');
 			else
-				$vlu = '<a href="' . $returnto . '" class="ct_goback"><div>' . $label . '</div></a>';
+				$label = $defaultLabel;
+
+			$icon = Icons::iconGoBack($this->ct->Env->toolbarIcons, $label, $image_icon);
+
+			if ($label === '')
+				$content = $icon;
+			else
+				$content = $icon . '<span>' . $label . '</span>';
+
+			return '<a href="' . $returnto . '"' . (!empty($attribute) ? ' ' . $attribute : '') . (!empty($class) ? ' class="' . $class . '"' : '') . '>' . $content . '</a>';
 		} else {
-
-			$img = '';
-			if (($this->ct->Env->toolbarIcons != '' or $image_icon == '') and $attribute == '')
-				$img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' fa-angle-left" data-icon="'
-					. $this->ct->Env->toolbarIcons . ' fa-angle-left" title="' . $label . '" style="margin-right:10px;"></i>';
-			elseif ($this->ct->Env->toolbarIcons == '')
-				$img = '<img src="' . $image_icon . '" alt="' . $label . '" />';
-
-			$vlu = '<a href="' . $returnto . '" ' . $attribute . '><div>' . $img . $label . '</div></a>';
+			return '<a href="' . $returnto . '"' . (!empty($attribute) ? ' ' . $attribute : '') . (!empty($class) ? ' class="' . $class . '"' : '') . '>' . $defaultLabel . '</a>';
 		}
-
-		return $vlu;
 	}
 
 	function batch(): string
@@ -319,30 +417,23 @@ class Twig_HTML_Tags
 
 					switch ($mode) {
 						case 'publish':
-							$alt = common::translate('COM_CUSTOMTABLES_PUBLISH_SELECTED');
+							$icons = Icons::iconPublished($this->ct->Env->toolbarIcons, common::translate('COM_CUSTOMTABLES_PUBLISH_SELECTED'));
 							break;
 						case 'unpublish':
-							$alt = common::translate('COM_CUSTOMTABLES_UNPUBLISH_SELECTED');
+							$icons = Icons::iconUnpublished($this->ct->Env->toolbarIcons, common::translate('COM_CUSTOMTABLES_UNPUBLISH_SELECTED'));
 							break;
 						case 'refresh':
-							$alt = common::translate('COM_CUSTOMTABLES_REFRESH_SELECTED');
+							$icons = Icons::iconRefresh($this->ct->Env->toolbarIcons, common::translate('COM_CUSTOMTABLES_REFRESH_SELECTED'));
 							break;
 						case 'delete':
-							$alt = common::translate('COM_CUSTOMTABLES_DELETE_SELECTED');
+							$icons = Icons::iconDelete($this->ct->Env->toolbarIcons, common::translate('COM_CUSTOMTABLES_DELETE_SELECTED'));
 							break;
 						default:
 							return 'unsupported batch toolbar icon.';
 					}
-
-					if ($this->ct->Env->toolbarIcons != '') {
-						$icons = ['publish' => 'fa-check-circle', 'unpublish' => 'fa-ban', 'refresh' => 'fa-sync', 'delete' => 'fa-trash'];
-						$img = '<i class="ba-btn-transition ' . $this->ct->Env->toolbarIcons . ' ' . $icons[$mode] . '" data-icon="' . $this->ct->Env->toolbarIcons . ' ' . $icons[$mode] . '" title="' . $alt . '"></i>';
-					} else
-						$img = '<img src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/icons/' . $mode . '.png" border="0" alt="' . $alt . '" title="' . $alt . '" />';
-
 					$moduleIDString = $this->ct->Params->ModuleId === null ? 'null' : $this->ct->Params->ModuleId;
 					$link = 'javascript:ctToolBarDO("' . $mode . '", ' . $this->ct->Table->tableid . ', ' . $moduleIDString . ')';
-					$html_buttons[] = '<div id="' . $rid . '" class="toolbarIcons"><a href=\'' . $link . '\'>' . $img . '</a></div>';
+					$html_buttons[] = '<div id="' . $rid . '" class="toolbarIcons"><a href=\'' . $link . '\'>' . $icons . '</a></div>';
 				}
 			}
 		}
@@ -381,13 +472,23 @@ class Twig_HTML_Tags
 	 * @throws Exception
 	 * @since 3.0.0
 	 */
-	function print($linktype = '', $label = '', $class = 'ctEditFormButton btn button'): string
+	function print($linkType = '', $defaultLabel = null, $class = 'ctEditFormButton btn button-apply btn-primary'): string
 	{
-		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
+		if ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != '')
 			return '';
 
 		if ($this->ct->Env->isPlugin or !empty($this->ct->Params->ModuleId))
 			return '';
+
+		if (empty($defaultLabel))
+			$label = common::translate('COM_CUSTOMTABLES_PRINT');
+		else
+			$label = $defaultLabel;
+
+		$icon = Icons::iconPrint($this->ct->Env->toolbarIcons, $label);
+
+		if ($this->ct->Env->print == 1)
+			return '<p><a class="no-print" href="#" onclick="window.print();return false;">' . $icon . '</a></p>';
 
 		$link = $this->ct->Env->current_url . (!str_contains($this->ct->Env->current_url, '?') ? '?' : '&') . 'tmpl=component&amp;print=1';
 
@@ -403,18 +504,26 @@ class Twig_HTML_Tags
 		}
 
 		$onClick = 'window.open("' . $link . '","win2","status=no,toolbar=no,scrollbars=yes,titlebar=no,menubar=no,resizable=yes,width=640,height=480,directories=no,location=no");return false;';
-		if ($this->ct->Env->print == 1) {
-			$vlu = '<p><a href="#" onclick="window.print();return false;"><img src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/icons/print.png" alt="' . common::translate('COM_CUSTOMTABLES_PRINT') . '"  /></a></p>';
-		} else {
-			if ($label == '')
-				$label = common::translate('COM_CUSTOMTABLES_PRINT');
 
-			if ($linktype != '')
-				$vlu = '<a href="#" onclick=\'' . $onClick . '\'><i class="ba-btn-transition fas fa-print" data-icon="fas fa-print" title="' . $label . '"></i></a>';
-			else
-				$vlu = '<input type="button" class="' . $class . '" value="' . $label . '" onClick=\'' . $onClick . '\' />';
-		}
-		return $vlu;
+		return $this->renderButtonOrIcon($linkType, $label, $class, $icon, $onClick);
+	}
+
+	protected function renderButtonOrIcon($linkType, $label, $class, $icon, $onClick)
+	{
+		if ($linkType == 'linkicon')
+			return '<a href="#" onclick=\'' . $onClick . '\'>' . $icon . '</a>';
+		elseif ($linkType == 'linklabel')
+			return '<a href="#" onclick=\'' . $onClick . '\'><span>' . $label . '</span></a>';
+		elseif ($linkType == 'linkiconlabel')
+			return '<a href="#" onclick=\'' . $onClick . '\'>' . $icon . '<span>' . $label . '</span></a>';
+		elseif ($linkType == 'buttonicon')
+			return '<button class="' . $class . '" onclick=\'' . $onClick . '\' title="' . $label . '">' . $icon . '</button>';
+		elseif ($linkType == 'buttonlabel')
+			return '<button class="' . $class . '" onclick=\'' . $onClick . '\' title="' . $label . '"><span>' . $label . '</span></button>';
+		elseif ($linkType == 'buttoniconlabel')
+			return '<button class="' . $class . '" onclick=\'' . $onClick . '\' title="' . $label . '">' . $icon . '<span>' . $label . '</span></button>';
+		else
+			return '<button class="' . $class . '" onclick=\'' . $onClick . '\' title="' . $label . '">' . $icon . '<span>' . $label . '</span></button>';
 	}
 
 	/**
@@ -607,7 +716,7 @@ class Twig_HTML_Tags
 		}
 	}
 
-	function searchbutton($label = '', $class_ = ''): string
+	function searchbutton($linkType = '', $defaultLabel = null, $class_ = ''): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
@@ -617,29 +726,21 @@ class Twig_HTML_Tags
 
 		$class = 'ctSearchBox';
 
-		if (isset($class_) and $class_ != '')
+		if (!empty($class_))
 			$class .= ' ' . $class_;
 		else
 			$class .= ' btn button-apply btn-primary';
 
-		$default_Label = common::translate('COM_CUSTOMTABLES_SEARCH');
+		if (empty($defaultLabel))
+			$label = common::translate('COM_CUSTOMTABLES_SEARCH');
+		else
+			$label = $defaultLabel;
 
-		if ($label == common::ctStripTags($label)) {
-			if ($this->ct->Env->toolbarIcons != '') {
-				$img = '<i class=\'' . $this->ct->Env->toolbarIcons . ' fa-search\' data-icon=\'' . $this->ct->Env->toolbarIcons . ' fa-search\' title=\'' . $label . '\'></i>';
-				$labelHtml = ($label !== '' ? '<span style=\'margin-left:10px;\'>' . $label . '</span>' : '');
-			} else {
-				$img = '';
+		$icon = Icons::iconSearch($this->ct->Env->toolbarIcons, $label);
 
-				if ($label == '')
-					$label = $default_Label;
+		$onClick = 'ctSearchBoxDo()';
 
-				$labelHtml = ($label !== '' ? '<span>' . $label . '</span>' : '');
-			}
-			return '<button class=\'' . common::convertClassString($class) . '\' onClick=\'ctSearchBoxDo()\' title=\'' . $default_Label . '\'>' . $img . $labelHtml . '</button>';
-		} else {
-			return '<button class=\'' . common::convertClassString($class) . '\' onClick=\'ctSearchBoxDo()\' title=\'' . $default_Label . '\'>' . $label . '</button>';
-		}
+		return $this->renderButtonOrIcon($linkType, $label, $class, $icon, $onClick);
 	}
 
 	function searchreset($label = '', $class_ = ''): string

@@ -15,15 +15,6 @@ defined('_JEXEC') or die();
 
 use CustomTablesImageMethods;
 use Exception;
-
-//use LayoutProcessor;
-
-//use tagProcessor_General;
-use tagProcessor_Item;
-use tagProcessor_If;
-use tagProcessor_Page;
-
-//use tagProcessor_Value;
 use CustomTables\CustomPHP;
 
 class SaveFieldQuerySet
@@ -649,20 +640,11 @@ class SaveFieldQuerySet
 
 		if (!Fields::isVirtualField($fieldRow) and $this->field->defaultvalue != "" and !isset($this->row_old[$this->field->realfieldname]) and $this->field->type != 'dummy') {
 
-			/*
-			if ($this->ct->Env->legacySupport) {
-				$LayoutProc = new LayoutProcessor($this->ct);
-				$LayoutProc->layout = $this->field->defaultvalue;
-				$this->field->defaultvalue = $LayoutProc->fillLayout($this->row_old);
-			}
-			*/
-
-			$twig = new TwigProcessor($this->ct, $this->field->defaultvalue);
-			$value = $twig->process($this->row_old);
-
-			if ($twig->errorMessage !== null) {
-				$this->ct->errors[] = $twig->errorMessage;
-				return;
+			try {
+				$twig = new TwigProcessor($this->ct, $this->field->defaultvalue);
+				$value = $twig->process($this->row_old);
+			} catch (Exception $e) {
+				throw new Exception($e->getMessage());
 			}
 
 			if ($value == '') {
@@ -681,17 +663,12 @@ class SaveFieldQuerySet
 				try {
 					$code = str_replace('****quote****', '"', ($this->field->params !== null and count($this->field->params) > 0) ? $this->field->params[0] : '');
 					$code = str_replace('****apos****', "'", $code);
-					$twig = new TwigProcessor($this->ct, $code, false, false, true);
-					$value = @$twig->process($this->row_old);
 
-					if ($twig->errorMessage !== null) {
-						$this->ct->errors[] = $twig->errorMessage;
-						return;
-					}
+					$twig = new TwigProcessor($this->ct, $code, false, false, true);
+					$value = $twig->process($this->row_old);
 
 				} catch (Exception $e) {
-					$this->ct->errors[] = $e->getMessage();
-					return;
+					throw new Exception($e->getMessage());
 				}
 
 				if ($storage == "storedintegersigned" or $storage == "storedintegerunsigned") {
@@ -720,37 +697,23 @@ class SaveFieldQuerySet
 		if ($uid != 0) {
 
 			$email = $this->ct->Env->user->email . '';
-			if ($email != '') {
-				$this->ct->messages[] = common::translate('COM_CUSTOMTABLES_ERROR_ALREADY_EXISTS');
-				return false; //all good, user already assigned.
-			}
+			if ($email != '')
+				throw new Exception(common::translate('COM_CUSTOMTABLES_ERROR_ALREADY_EXISTS'));
 		}
 
-		if (count($field->params) < 3) {
-			$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_USERACCOUNT_PARAMCOUNT_ERROR');
-			return false;
-		}
+		if (count($field->params) < 3)
+			throw new Exception(common::translate('COM_CUSTOMTABLES_USERACCOUNT_PARAMCOUNT_ERROR'));
 
 		//Try to create user
 		$new_parts = array();
 
 		foreach ($field->params as $part) {
 
-			/*
-			if ($this->ct->Env->legacySupport) {
-				tagProcessor_General::process($this->ct, $part, $this->ct->Table->record);
-				tagProcessor_Item::process($this->ct, $part, $this->ct->Table->record, '');
-				tagProcessor_If::process($this->ct, $part, $this->ct->Table->record);
-				tagProcessor_Page::process($this->ct, $part);
-				tagProcessor_Value::processValues($this->ct, $part, $this->ct->Table->record);
-			}*/
-
-			$twig = new TwigProcessor($this->ct, $part, false, false, false);
-			$part = $twig->process($this->ct->Table->record);
-
-			if ($twig->errorMessage !== null) {
-				$this->ct->errors[] = $twig->errorMessage;
-				return false;
+			try {
+				$twig = new TwigProcessor($this->ct, $part, false, false, false);
+				$part = $twig->process($this->ct->Table->record);
+			} catch (Exception $e) {
+				throw new Exception($e->getMessage());
 			}
 
 			$new_parts[] = $part;
@@ -760,16 +723,12 @@ class SaveFieldQuerySet
 		$user_name = $new_parts[1];
 		$user_email = $new_parts[2];
 
-		if ($user_groups == '') {
-			$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_USERACCOUNT_GROUPFIELD_NOT_SET');
-			return false;
-		} elseif ($user_name == '') {
-			$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_USERACCOUNT_NAME_NOT_SET');
-			return false;
-		} elseif ($user_email == '') {
-			$this->ct->errors[] = common::translate('COM_CUSTOMTABLES_USERACCOUNT_EMAIL_NOT_SET');
-			return false;
-		}
+		if ($user_groups == '')
+			throw new Exception(common::translate('COM_CUSTOMTABLES_USERACCOUNT_GROUPFIELD_NOT_SET'));
+		elseif ($user_name == '')
+			throw new Exception(common::translate('COM_CUSTOMTABLES_USERACCOUNT_NAME_NOT_SET'));
+		elseif ($user_email == '')
+			throw new Exception(common::translate('COM_CUSTOMTABLES_USERACCOUNT_EMAIL_NOT_SET'));
 
 		$unique_users = false;
 		if (isset($new_parts[4]) and $new_parts[4] == 'unique')
@@ -785,14 +744,20 @@ class SaveFieldQuerySet
 
 				$this->ct->messages[] = common::translate('COM_CUSTOMTABLES_RECORD_USER_UPDATED');
 			} else {
-				$this->ct->errors[] =
+				$msg =
 					common::translate('COM_CUSTOMTABLES_ERROR_USER_WITH_EMAIL')
 					. ' "' . $user_email . '" '
 					. common::translate('COM_CUSTOMTABLES_ERROR_ALREADY_EXISTS');
+
+				throw new Exception($msg);
 			}
 		} else {
-			CTUser::CreateUser($this->ct->Table->realtablename, $this->ct->Table->realidfieldname, $user_email, $user_name,
-				$user_groups, $this->ct->Table->record[$this->ct->Table->realidfieldname], $field->realfieldname);
+			try {
+				CTUser::CreateUser($this->ct->Table->realtablename, $this->ct->Table->realidfieldname, $user_email, $user_name,
+					$user_groups, $this->ct->Table->record[$this->ct->Table->realidfieldname], $field->realfieldname);
+			} catch (Exception $e) {
+				throw new Exception($e->getMessage());
+			}
 		}
 		return true;
 	}
