@@ -35,7 +35,7 @@ class TwigProcessor
 	var string $itemLayoutName;
 	var string $itemLayoutLineStart;
 	var bool $parseParams;
-	var bool $debug;
+
 
 	/**
 	 * @throws Exception
@@ -43,8 +43,6 @@ class TwigProcessor
 	 */
 	public function __construct(CT $ct, $layoutContent, $getEditFieldNamesOnly = false, $DoHTMLSpecialChars = false, $parseParams = true, ?string $layoutName = null, ?string $pageLayoutLink = null)
 	{
-		$this->debug = false;
-
 		$this->parseParams = $parseParams;
 		$this->DoHTMLSpecialChars = $DoHTMLSpecialChars;
 		$this->ct = $ct;
@@ -215,7 +213,7 @@ class TwigProcessor
 			$result = '';
 		} else {
 
-			if ($this->debug) {
+			if ($this->ct->Env->debug) {
 				$result = $this->twig->render($this->pageLayoutName, $this->variables);
 			} else {
 				try {
@@ -242,7 +240,7 @@ class TwigProcessor
 
 					$this->ct->Table->record = $blockRow;
 
-					if ($this->debug) {
+					if ($this->ct->Env->debug) {
 						$row_result = $this->twig->render($this->itemLayoutName, $this->variables);
 					} else {
 						try {
@@ -382,10 +380,10 @@ class fieldObject
 	public function value()
 	{
 		if (!isset($this->field))
-			return 'Field not initialized.';
+			throw new Exception('{{ fieldname.value }} - Field not initialized.');
 
 		if ($this->ct->Table->record === null)
-			return '';
+			return null;
 
 		$options = func_get_args();
 		$rfn = $this->field->realfieldname;
@@ -452,9 +450,11 @@ class fieldObject
 				$vlu = null;
 			}
 		} else {
-			$vlu = $this->ct->Table->record[$rfn];
+			if (isset($this->ct->Table->record[$rfn]))
+				$vlu = $this->ct->Table->record[$rfn];
+			else
+				return null;
 		}
-
 
 		if ($this->DoHTMLSpecialChars)
 			$vlu = $this->escapeJsonCharacters($vlu);

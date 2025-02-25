@@ -29,7 +29,6 @@ $themeId = $input->getInt('themeid');
 HTMLHelper::addIncludePath(JPATH_SITE . '/administrator/components/com_youtubegallery/helpers');
 ?>
 
-
 <script>
 	ygSiteBase = '<?php echo Uri::root(); ?>';
 
@@ -131,7 +130,7 @@ HTMLHelper::addIncludePath(JPATH_SITE . '/administrator/components/com_youtubega
 					<div class="pull-right">
 						<button id="yginsertbutton" class="btn btn-success button-save-selected" type="button"
 								<?php if (!empty($onClick)) :
-								// This is for Mootools compatibility                                                                                                   ?>onclick="<?php echo $onClick; ?>"<?php endif; ?>
+								// This is for Mootools compatibility                                                                                                    ?>onclick="<?php echo $onClick; ?>"<?php endif; ?>
 								data-dismiss="modal"><?php echo Text::_('COM_YOUTUBEGALLERY_INSERT'); ?></button>
 
 					</div>

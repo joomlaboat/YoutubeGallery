@@ -47,9 +47,9 @@ class Save_file
 		if (!empty($fileData) and $fileData[0] == '{') {
 
 			if (defined('_JEXEC'))
-				$CompletePathToFile = $this->downloadGoogleDriveFile($fileData, CUSTOMTABLES_TEMP_PATH);
+				$CompletePathToFile = $this->downloadGoogleDriveFile($fileData);
 			elseif (defined('WPINC'))
-				$CompletePathToFile = $this->downloadGoogleDriveFile(stripslashes($fileData), CUSTOMTABLES_TEMP_PATH);
+				$CompletePathToFile = $this->downloadGoogleDriveFile(stripslashes($fileData));
 
 			if ($CompletePathToFile === null)
 				return null;
@@ -119,7 +119,7 @@ class Save_file
 	 * @since 3.4.1
 	 */
 
-	private function downloadGoogleDriveFile(string $temporaryFile, string $path): ?string
+	private function downloadGoogleDriveFile(string $temporaryFile): ?string
 	{
 		try {
 			$data = json_decode($temporaryFile, true);
@@ -144,7 +144,7 @@ class Save_file
 		$parts = explode('.', $fileName);
 		$fileExtension = end($parts);
 		$uniqueFileName = common::generateRandomString() . '.' . $fileExtension;
-		$completePathToFile = $path . DIRECTORY_SEPARATOR . $uniqueFileName;
+		$completePathToFile = CUSTOMTABLES_TEMP_PATH . DIRECTORY_SEPARATOR . $uniqueFileName;
 
 		// Set up the cURL request to download the file from Google Drive
 		$url = 'https://www.googleapis.com/drive/v3/files/' . $fileId . '?alt=media';
@@ -177,20 +177,15 @@ class Save_file
 
 		if ($success === false) {
 			$error = curl_error($ch);
-			error_log('Error downloading file from Google Drive: ' . $error);
-			common::enqueueMessage('Error downloading file from Google Drive: ' . $error);
 			curl_close($ch);
-			return null;
+			throw new Exception('Error downloading file from Google Drive: ' . $error);
 		}
 
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
 
-		if ($httpCode !== 200) {
-			error_log('HTTP Error: ' . $httpCode);
-			common::enqueueMessage('Error downloading file from Google Drive. HTTP Code: ' . $httpCode);
-			return null;
-		}
+		if ($httpCode !== 200)
+			throw new Exception('Error downloading file from Google Drive. HTTP Code: ' . $httpCode);
 
 		return $completePathToFile;
 	}

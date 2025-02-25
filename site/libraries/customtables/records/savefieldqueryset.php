@@ -206,10 +206,15 @@ class SaveFieldQuerySet
 				break;
 
 			case 'int':
-				$value = common::inputPostInt($this->field->comesfieldname, null, 'create-edit-record');
+				$value = common::inputPostString($this->field->comesfieldname, null, 'create-edit-record');
 
 				if (!is_null($value)) // always check with isset(). null doesn't work as 0 is null somehow in PHP
 				{
+					if ($value === '')
+						$value = null;
+					else
+						$value = common::inputPostInt($this->field->comesfieldname, null, 'create-edit-record');
+
 					$this->setNewValue($value);
 					return;
 				}
@@ -293,9 +298,14 @@ class SaveFieldQuerySet
 				return;
 
 			case 'float':
-				$value = common::inputPostFloat($this->field->comesfieldname, null, 'create-edit-record');
+				$value = common::inputPostString($this->field->comesfieldname, null, 'create-edit-record');
 
 				if (isset($value)) {
+					if ($value === '')
+						$value = null;
+					else
+						$value = common::inputPostFloat($this->field->comesfieldname, null, 'create-edit-record');
+
 					$this->setNewValue($value);
 					return;
 				}
@@ -329,7 +339,7 @@ class SaveFieldQuerySet
 
 				require_once 'Save_blob.php';
 				$image = new Save_blob($this->ct, $this->field, $this->row_new);
-				$value = $image->saveFieldSet($listing_id);
+				$value = $image->saveFieldSet();
 
 				//This way it will be clear if the value changed or not. If $this->newValue = null means that value not changed.
 				if ($value !== null and is_array($value))
@@ -878,7 +888,7 @@ class SaveFieldQuerySet
 					$attachments[] = $filename;//TODO: Check the functionality
 					$vlu = '';
 				} else
-					$vlu = '<p>File "' . $filename . '"not found.</p>';
+					$vlu = '<p>File Attachment "' . $filename . '"not found.</p>';
 
 				$note_final = str_replace($fItem, $vlu, $note);
 				$i++;

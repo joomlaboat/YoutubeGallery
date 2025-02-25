@@ -41,7 +41,7 @@ class IntegrityFields extends IntegrityChecks
 		$result = '';
 
 		//Do not check third-party tables
-		if ($ct->Table->customtablename != '')
+		if (!empty($ct->Table->customtablename))
 			return $result;
 
 		$dbPrefix = database::getDBPrefix();
@@ -204,7 +204,7 @@ class IntegrityFields extends IntegrityChecks
 							$result .= '<p>' . common::translate('COM_CUSTOMTABLES_FIELD') . ' <span style="color:green;">'
 								. $nice_field_name . '</span> ' . common::translate('COM_CUSTOMTABLES_FIELD_FIXED') . '.</p>';
 						} else {
-							common::enqueueMessage($msg);
+							throw new Exception($msg);
 						}
 
 						if ($msg != '')

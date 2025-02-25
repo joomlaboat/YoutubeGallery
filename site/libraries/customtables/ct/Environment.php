@@ -40,8 +40,8 @@ class Environment
 	var string $toolbarIcons;
 	var ?string $folderToSaveLayouts;
 	var bool $isPlugin; //this can be set by calling the class from the plugin
-
 	var bool $CustomPHPEnabled;
+	var bool $debug;
 
 	function __construct()
 	{
@@ -115,13 +115,10 @@ class Environment
 		if (defined('_JEXEC')) {
 			$path = CUSTOMTABLES_PRO_PATH . 'protagprocessor' . DIRECTORY_SEPARATOR;
 
-			if (file_exists($path . 'phptags.php')) {
+			if (file_exists($path . 'customphp.php')) {
 				$this->advancedTagProcessor = true;
-				require_once($path . 'phptags.php');
-			}
-
-			if (file_exists($path . 'customphp.php'))
 				require_once($path . 'customphp.php');
+			}
 
 			if (file_exists($path . 'helpers.php'))
 				require_once($path . 'helpers.php');
@@ -163,6 +160,8 @@ class Environment
 				if ($this->folderToSaveLayouts[0] != '/')
 					$this->folderToSaveLayouts = CUSTOMTABLES_ABSPATH . $this->folderToSaveLayouts;
 			}
+
+			$this->debug = Factory::getApplication()->get('debug');
 		} else {
 
 			$this->field_prefix = get_option('customtables-fieldprefix') ?? 'ct_';
@@ -172,6 +171,8 @@ class Environment
 			$this->loadTwig = true;
 			$this->toolbarIcons = get_option('customtables-toolbaricons', ''); // Default is empty means Legacy Image Icons
 			$this->folderToSaveLayouts = null;
+
+			$this->debug = defined('WP_DEBUG') && WP_DEBUG;
 		}
 		$this->isPlugin = false;
 	}

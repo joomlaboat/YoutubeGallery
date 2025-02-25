@@ -217,7 +217,7 @@ class CustomTablesKeywordSearch
 						break;
 
 					case 'sqljoin':
-						common::enqueueMessage('Search box not ready yet.');
+						common::enqueueMessage('Search box not ready yet.', 'notice');
 
 						$typeParamsArrayy = explode(',', $fieldrow['typeparams']);
 						$esr_table = '#__customtables_table_' . $typeParamsArrayy[0];
@@ -251,6 +251,10 @@ class CustomTablesKeywordSearch
 		return $result_rows;
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
 	function getRowsByKeywords_ProcessTypes($fieldType, $fieldname, $typeParams, $regExpression, &$inner): MySQLWhereClause
 	{
 		$whereClause = new MySQLWhereClause();
@@ -284,7 +288,7 @@ class CustomTablesKeywordSearch
 				break;
 
 			case 'sqljoin':
-				common::enqueueMessage('Search box not ready yet.');
+				common::enqueueMessage('Search box not ready yet.', 'notice');
 				break;
 
 			case 'userid':
