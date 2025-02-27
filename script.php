@@ -10,6 +10,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 use CustomTables\CT;
+use CustomTables\Fields;
 use CustomTables\ImportTables;
 use CustomTables\IntegrityChecks;
 use CustomTables\TableHelper;
@@ -113,7 +114,7 @@ class com_YoutubeGalleryInstallerScript
 			return true; //No need to do anything
 		}
 
-		com_YoutubeGalleryInstallerScript::enableButtonPlugin();
+		self::enableButtonPlugin();
 		$path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
 		$loader_file = $path . 'loader.php';
 
@@ -132,6 +133,8 @@ class com_YoutubeGalleryInstallerScript
 		CustomTablesLoader($include_utilities = true, false, null, $component_name, $loadTwig);
 
 		$ct = new CT([], true);
+
+		self::setFieldPrefixes();
 
 		//Check Custom Tables, create if necessary
 		$result = IntegrityChecks::check($ct, $check_core_tables = true, $check_custom_tables = false);
@@ -177,6 +180,36 @@ class com_YoutubeGalleryInstallerScript
 
 		$db->setQuery($query);
 		$db->execute();
+	}
+
+	protected static function setFieldPrefixes()
+	{
+		$db = Factory::getDBO();
+		$tables = ['youtubegallerycategories', 'youtubegallerysettings', 'youtubegallerythemes', 'youtubegalleryvideolists', 'youtubegalleryvideos'];
+		$where = [];
+		foreach ($tables as $table)
+			$where[] = 'tablename="' . $table . '"';
+
+		$query = 'UPDATE #__customtables_tables SET customfieldprefix="es_" WHERE ' . implode(' OR ', $where);
+		$db->setQuery($query);
+		$db->execute();
+
+		$fields = ['ct_videosource', 'ct_videoid', 'ct_imageurl', 'ct_description', 'ct_customimageurl', 'ct_customtitle', 'ct_customdescription',
+			'ct_specialparams', 'ct_lastupdate', 'ct_allowupdates', 'ct_status', 'ct_isvideo', 'ct_link', 'ct_ordering', 'ct_publisheddate', 'ct_duration',
+			'ct_ratingaverage', 'ct_ratingmax', 'ct_ratingmin', 'ct_ratingnumberofraters', 'ct_statisticsfavoritecount', 'ct_statisticsviewcount',
+			'ct_keywords', 'ct_startsecond', 'ct_endsecond', 'ct_likes', 'ct_dislikes', 'ct_commentcount', 'ct_channelusername', 'ct_channeltitle',
+			'ct_channelsubscribers', 'ct_channelsubscribed', 'ct_channellocation', 'ct_channelcommentcount', 'ct_channelviewcount',
+			'ct_channelvideocount', 'ct_channeldescription', 'ct_alias', 'ct_rawdata', 'ct_datalink', 'ct_error', 'ct_title', 'ct_trackid',
+			'ct_videoids', 'ct_latitude', 'ct_longitude', 'ct_altitude', 'ct_videolist', 'ct_parentid'];
+
+		foreach ($fields as $field) {
+			$msg = null;
+			try {
+				Fields::deleteMYSQLField('#__customtables_table_youtubegalleryvideos', $field, $msg);
+			} catch (Exception $e) {
+				Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+			}
+		}
 	}
 
 	function updateYGv3tov4()
