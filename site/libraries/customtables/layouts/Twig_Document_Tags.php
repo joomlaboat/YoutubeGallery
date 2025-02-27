@@ -27,11 +27,19 @@ class Twig_Document_Tags
 		$this->ct = &$ct;
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
 	function setmetakeywords($metakeywords): void
 	{
 		Factory::getApplication()->getDocument()->setMetaData('keywords', $metakeywords);
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
 	function setmetadescription($metadescription): void
 	{
 		Factory::getApplication()->getDocument()->setMetaData('description', $metadescription);
@@ -51,6 +59,10 @@ class Twig_Document_Tags
 			throw new Exception('Warning: The {{ document.setpagetitle }} tag is not supported in the current version of the Custom Tables.');
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
 	function setheadtag($tag): void
 	{
 		if (defined('_JEXEC'))
@@ -80,7 +92,7 @@ class Twig_Document_Tags
 	 *
 	 * @since 3.5.0
 	 */
-	function script($linkOrScript): string
+	function script(string $linkOrScript): string
 	{
 		//TODO: Consider using defer or async attributes for external scripts when appropriate (currently managed by the browser/CMS defaults)
 
@@ -118,7 +130,7 @@ class Twig_Document_Tags
 	 * it's added to the 'styles' array.
 	 * If it's CSS content, it's concatenated to the 'style' variable.
 	 *
-	 * @param string $linkOrScript Either a URL to a .css file or CSS code
+	 * @param $linkOrStyle
 	 * @return string Empty string as the content is stored in layout variables
 	 *
 	 * @example
@@ -207,23 +219,17 @@ class Twig_Document_Tags
 		if ($layoutName == '')
 			throw new Exception('Warning: The {{ document.layout("layout_name") }} layout name is required.');
 
-		if (!isset($this->ct->Table)) {
-			$this->ct->errors[] = '{{ document.layout }} - Table not loaded.';
-			return '';
-		}
+		if (!isset($this->ct->Table))
+			throw new Exception('{{ document.layout }} - Table not loaded.');
 
 		$layouts = new Layouts($this->ct);
 		$layout = $layouts->getLayout($layoutName);
 
-		if (is_null($layouts->tableId)) {
-			$this->ct->errors[] = '{{ document.layout("' . $layoutName . '") }} - Layout "' . $layoutName . ' not found.';
-			return '';
-		}
+		if (is_null($layouts->tableId))
+			throw new Exception('{{ document.layout("' . $layoutName . '") }} - Layout "' . $layoutName . ' not found.');
 
-		if ($layouts->tableId != $this->ct->Table->tableid) {
-			$this->ct->errors[] = '{{ document.layout("' . $layoutName . '") }} - Layout Table ID and Current Table ID do not match.';
-			return '';
-		}
+		if ($layouts->tableId != $this->ct->Table->tableid)
+			throw new Exception('{{ document.layout("' . $layoutName . '") }} - Layout Table ID and Current Table ID do not match.');
 
 		if (!empty($layouts->layoutCodeCSS))
 			$this->ct->LayoutVariables['style'] = ($this->ct->LayoutVariables['style'] ?? '') . $layouts->layoutCodeCSS;

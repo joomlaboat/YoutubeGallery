@@ -75,10 +75,8 @@ class TwigProcessor
 			$tag2 = '{% endblock %}';
 			$pos2 = strpos($layoutContent, $tag2, $pos1 + strlen($tag1));
 
-			if ($pos2 === false) {
-				$this->ct->errors[] = '{% endblock %} is missing';
-				return;
-			}
+			if ($pos2 === false)
+				throw new Exception('{% endblock %} is missing');
 
 			$tag1_length = strlen($tag1);
 			$record_block = substr($layoutContent, $pos1 + $tag1_length, $pos2 - $pos1 - $tag1_length);
@@ -126,6 +124,10 @@ class TwigProcessor
 		$this->twig->addGlobal('tables', new Twig_Tables_Tags($this->ct));
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
 	protected function addFieldValueMethods(): void
 	{
 		if (isset($this->ct->Table->fields)) {
@@ -306,6 +308,10 @@ class fieldObject
 	var bool $getEditFieldNamesOnly;
 	var bool $parseParams;
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
 	function __construct(CT &$ct, $fieldRow, $DoHTMLSpecialChars = false, $getEditFieldNamesOnly = false, $parseParams = true)
 	{
 		$this->parseParams = $parseParams;
@@ -315,7 +321,7 @@ class fieldObject
 		try {
 			$this->field = new Field($ct, $fieldRow, $this->ct->Table->record, $this->parseParams);
 		} catch (Exception $e) {
-			$ct->errors[] = $e->getMessage();
+			throw new Exception($e->getMessage());
 		}
 		$this->getEditFieldNamesOnly = $getEditFieldNamesOnly;
 	}
@@ -532,6 +538,10 @@ class fieldObject
 		return $this->field->params;
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
 	public function input(): ?array
 	{
 		if (!isset($this->field->fieldrow))
@@ -661,18 +671,15 @@ class fieldObject
 		//1. $fieldName
 		if (isset($functionParams[0]))
 			$fieldName = $functionParams[0];
-		else {
-			$this->ct->errors[] = '{{ ' . $this->field->fieldname . '.get(field_name) }} field name not specified.';
-			return '';
-		}
+		else
+			throw new Exception('{{ ' . $this->field->fieldname . '.get(field_name) }} field name not specified.');
 
 		if ($this->field->type == 'sqljoin') {
 			//2. ?array $options = null
 			if (isset($functionParams[1])) {
-				if (!is_array($functionParams[1])) {
-					$this->ct->errors[] = '{{ ' . $this->field->fieldname . '.get("' . $fieldName . '",' . $functionParams[1] . ') }} value parameters must be an array.';
-					return '';
-				}
+				if (!is_array($functionParams[1]))
+					throw new Exception('{{ ' . $this->field->fieldname . '.get("' . $fieldName . '",' . $functionParams[1] . ') }} value parameters must be an array.');
+
 				$options = $functionParams[1];
 			} else
 				$options = null;
@@ -699,8 +706,7 @@ class fieldObject
 			return Value_tablejoinlist::resolveRecordTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname],
 				$showPublishedString, $separatorCharacter);
 		} else {
-			$this->ct->errors[] = '{{ ' . $this->field->fieldname . '.get }}. Wrong field type "' . $this->field->type . '". ".get" method is only available for Table Join and Records filed types.';
-			return '';
+			throw new Exception('{{ ' . $this->field->fieldname . '.get }}. Wrong field type "' . $this->field->type . '". ".get" method is only available for Table Join and Records filed types.');
 		}
 	}
 
@@ -732,8 +738,7 @@ class fieldObject
 		if (isset($functionParams[0]))
 			$fieldName = $functionParams[0];
 		else {
-			$this->ct->errors[] = '{{ ' . $this->field->fieldname . '.getvalue(field_name) }}. field_name name not specified.';
-			return '';
+			throw new Exception('{{ ' . $this->field->fieldname . '.getvalue(field_name) }}. field_name name not specified.');
 		}
 
 		$layoutcode = '{{ ' . $fieldName . '.value }}';
@@ -758,8 +763,7 @@ class fieldObject
 			return Value_tablejoinlist::resolveRecordTypeValue($this->field, $layoutcode, $this->ct->Table->record[$this->field->realfieldname],
 				$showPublishedString, $separatorCharacter);
 		} else {
-			$this->ct->errors[] = '{{ ' . $this->field->fieldname . '.getvalue }}. Wrong field type "' . $this->field->type . '". ".getvalue" method is only available for Table Join and Records filed types.';
-			return '';
+			throw new Exception('{{ ' . $this->field->fieldname . '.getvalue }}. Wrong field type "' . $this->field->type . '". ".getvalue" method is only available for Table Join and Records filed types.');
 		}
 	}
 
