@@ -23,25 +23,28 @@ class ImportTables
 	 * @since 3.2.2
 	 */
 	public static function processFile($filename, $menuType, &$msg, $category = '',
-									   $importFields = true, $importLayouts = true, $importMenu = true, string $fieldPrefix = null): bool
+									   $importFields = true, $importLayouts = true, $importMenu = true, string $fieldPrefix = null): void
 	{
 		$ct = new CT([], true);
 
 		if (file_exists($filename)) {
 			$data = common::getStringFromFile($filename);
-			if ($data == '') {
-				$msg = 'Uploaded file "' . $filename . '" is empty.';
-				return false;
-			}
+			if ($data == '')
+				throw new Exception('Uploaded file "' . $filename . '" is empty.');
+
 			$ct->Env->folderToSaveLayouts = null;
 
 			if ($fieldPrefix === null)
 				$fieldPrefix = $ct->Env->field_prefix;
 
-			return ImportTables::processContent($ct, $data, $menuType, $msg, $category, $importFields, $importLayouts, $importMenu, $fieldPrefix);
+			try {
+				ImportTables::processContent($ct, $data, $menuType, $category, $importFields, $importLayouts, $importMenu, $fieldPrefix);
+			} catch (Exception $e) {
+				throw new Exception($e->getMessage());
+			}
+
 		} else {
-			$msg = 'Uploaded file "' . $filename . '" not found.';
-			return false;
+			throw new Exception('Uploaded file "' . $filename . '" not found.');
 		}
 	}
 
@@ -49,27 +52,30 @@ class ImportTables
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	public static function processContent(CT   &$ct, string $data, string $menuType, string &$msg, string $category = '',
-										  bool $importFields = true, bool $importLayouts = true, bool $importMenu = true, string $fieldPrefix = 'ct_'): bool
+	public static function processContent(CT   &$ct, string $data, string $menuType, string $category = '',
+										  bool $importFields = true, bool $importLayouts = true, bool $importMenu = true, string $fieldPrefix = 'ct_'): void
 	{
 		$keyword = '<customtablestableexport>';
 		if (!str_contains($data, $keyword)) {
 			$keyword = '<extrasearchtableexport>';
-			if (!str_contains($data, $keyword)) {
-				$msg = 'Uploaded file/content does not contain CustomTables table structure data.';
-				return false;
-			}
+			if (!str_contains($data, $keyword))
+				throw new Exception('Uploaded file/content does not contain CustomTables table structure data.');
 		}
 
 		$JSON_data = json_decode(str_replace($keyword, '', $data), true);
-		return ImportTables::processData($ct, $JSON_data, $menuType, $msg, $category, $importFields, $importLayouts, $importMenu, $fieldPrefix);
+
+		try {
+			ImportTables::processData($ct, $JSON_data, $menuType, $category, $importFields, $importLayouts, $importMenu, $fieldPrefix);
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
+		}
 	}
 
 	/**
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	protected static function processData(CT   &$ct, array $JSON_data, string $menuType, string &$msg, string $category = '',
+	protected static function processData(CT   &$ct, array $JSON_data, string $menuType, string $category = '',
 										  bool $importfields = true, bool $importlayouts = true, bool $importmenu = true, string $fieldPrefix = 'ct_'): bool
 	{
 		foreach ($JSON_data as $table) {
@@ -81,16 +87,35 @@ class ImportTables
 				//Ok, table created or found and updated
 				//Next: Add/Update Fields
 
-				if ($importfields)
-					ImportTables::processFields($table['table']['tablename'], $table['fields'], $msg, $fieldPrefix);
+				if ($importfields) {
+					try {
+						ImportTables::processFields($table['table']['tablename'], $table['fields'], $fieldPrefix);
+					} catch (Exception $e) {
+						throw new Exception($table['table']['tablename'] . ' - Fields: ' . $e->getMessage());
+					}
+				}
 
-				if ($importlayouts)
-					ImportTables::processLayouts($ct, $tableid, $table['layouts'], $msg);
+				if ($importlayouts) {
+					try {
+						ImportTables::processLayouts($ct, $tableid, $table['layouts']);
+					} catch (Exception $e) {
+						throw new Exception($table['table']['tablename'] . ' - Layouts: ' . $e->getMessage());
+					}
+				}
 
-				if ($importmenu and is_array($table['menu']))
-					ImportTables::processMenu($table['menu'], $menuType, $msg);
+				if ($importmenu and is_array($table['menu'])) {
+					try {
+						ImportTables::processMenu($table['menu'], $menuType);
+					} catch (Exception $e) {
+						throw new Exception($table['table']['tablename'] . ' - Menu: ' . $e->getMessage());
+					}
+				}
 
-				IntegrityChecks::check($ct, false);
+				try {
+					IntegrityChecks::check($ct, false);
+				} catch (Exception $e) {
+					throw new Exception($e->getMessage());
+				}
 
 				if (isset($table['records']))
 					ImportTables::processRecords($table['table']['tablename'], $table['records']);
@@ -390,19 +415,16 @@ class ImportTables
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	protected static function processFields(string $tableName, array $fields, &$msg, string $fieldPrefix = 'ct_'): bool
+	protected static function processFields(string $tableName, array $fields, string $fieldPrefix = 'ct_'): void
 	{
 		$ct = new CT([], true);
 		$ct->getTable($tableName);
 
 		foreach ($fields as $field) {
 			$fieldid = ImportTables::processField($ct, $field, $fieldPrefix);
-			if ($fieldid == 0) {
-				$msg = 'Could not Add or Update field "' . $field['fieldname'] . '"';
-				return false;
-			}
+			if ($fieldid == 0)
+				throw new Exception('Could not Add or Update field "' . $field['fieldname'] . '"');
 		}
-		return true;
 	}
 
 	/**
@@ -440,16 +462,13 @@ class ImportTables
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	protected static function processLayouts(CT &$ct, $tableid, $layouts, &$msg): bool
+	protected static function processLayouts(CT &$ct, $tableid, $layouts): void
 	{
 		foreach ($layouts as $layout) {
 			$layoutId = ImportTables::processLayout($ct, $tableid, $layout);
-			if ($layoutId == 0) {
-				$msg = 'Could not Add or Update layout "' . $layout['layoutname'] . '"';
-				return false;
-			}
+			if ($layoutId == 0)
+				throw new Exception('Could not Add or Update layout "' . $layout['layoutname'] . '"');
 		}
-		return true;
 	}
 
 	/**
@@ -497,7 +516,7 @@ class ImportTables
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	protected static function processMenu(array $listOfMenus, string $menuType, &$msg): bool
+	protected static function processMenu(array $listOfMenus, string $menuType): void
 	{
 		$menus = array();
 		foreach ($listOfMenus as $menuitem) {
@@ -505,11 +524,9 @@ class ImportTables
 			if ($menuId != 0) {
 				//All Good
 			} else {
-				$msg = 'Could not Add or Update menu item "' . $menuitem['title'] . '"';
-				return false;
+				throw new Exception('Could not Add or Update menu item "' . $menuitem['title'] . '"');
 			}
 		}
-		return true;
 	}
 
 	/**

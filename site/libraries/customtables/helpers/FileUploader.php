@@ -79,16 +79,13 @@ class FileUploader
 						move_uploaded_file($file["tmp_name"], $newFileName);
 
 						try {
-							$msg = ImportCSV::importCSVFile($newFileName, common::inputGetInt('tableid', 0));
-						} catch (Exception $e) {
-							$msg = ['error' => $e->getMessage()];
-						}
+							ImportCSV::importCSVFile($newFileName, common::inputGetInt('tableid', 0));
 
-						if ($msg !== null)
-							$ret = ['error' => $msg];
-						else
 							$ret = ['status' => 'success', 'filename' => 'ct_' . $t . '_' . $fileId . '_' . $fileName
 								, 'originalfilename' => $file['name']];
+						} catch (Exception $e) {
+							$ret = ['error' => $e->getMessage()];
+						}
 
 						unlink($newFileName);
 
@@ -101,11 +98,11 @@ class FileUploader
 					}
 				} else {
 					unlink($file["tmp_name"]);
-					$msg = 'File type (' . $mime . ') not permitted.';
+					$message = 'File type (' . $mime . ') not permitted.';
 					if ($filetypes_str != '')
-						$msg .= ' ' . common::translate('COM_CUSTOMTABLES_PERMITTED_TYPES') . ' ' . $filetypes_str . ' (' . $filetypes_str_argument . ')';//implode(', ', $accepted_types);
+						$message .= ' ' . common::translate('COM_CUSTOMTABLES_PERMITTED_TYPES') . ' ' . $filetypes_str . ' (' . $filetypes_str_argument . ')';//implode(', ', $accepted_types);
 
-					$ret = ['error' => $msg];
+					$ret = ['error' => $message];
 				}
 			}
 			return common::ctJsonEncode($ret);

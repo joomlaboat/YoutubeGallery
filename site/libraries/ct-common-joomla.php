@@ -10,15 +10,19 @@
 
 namespace CustomTables;
 
+use DateInvalidTimeZoneException;
 use DateTimeZone;
 use Exception;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Version;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Throwable;
 
 class common
 {
@@ -66,6 +70,10 @@ class common
 		return $input->getString($parameter, $default);
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.
+	 */
 	protected static function inputPostVariable()
 	{
 		$app = Factory::getApplication();
@@ -75,7 +83,6 @@ class common
 		$contentType = $app->input->server->get('CONTENT_TYPE');
 
 		if (
-
 			$contentType === 'applicationjson' ||         // Joomla's modified version
 			$contentType === 'application/json' ||        // Standard version
 			strpos(($contentType ?? ''), 'application/json') !== false  // Partial match for safety
@@ -157,12 +164,15 @@ class common
 	}
 
 	/**
-	 * @throws Exception
 	 * @since 3.2.9
 	 */
 	public static function inputGetCmd(string $parameter, $default = null): ?string
 	{
-		return Factory::getApplication()->input->getCmd($parameter, $default);
+		try {
+			return Factory::getApplication()->input->getCmd($parameter, $default);
+		} catch (Throwable $e) {
+			return $default;
+		}
 	}
 
 	/**
@@ -380,12 +390,15 @@ class common
 	}
 
 	/**
-	 * @throws Exception
 	 * @since 3.2.9
 	 */
 	public static function getReturnToURL(bool $decode = true): ?string
 	{
-		$returnto = self::inputGet('returnto', null, 'BASE64');
+		try {
+			$returnto = self::inputGet('returnto', null, 'BASE64');
+		} catch (Exception $e) {
+			return null;
+		}
 
 		if ($returnto === null)
 			return null;
@@ -478,14 +491,17 @@ class common
 		return $randomString;
 	}
 
-	public static function saveString2File(string $filePath, string $content): ?string
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
+	public static function saveString2File(string $filePath, string $content)
 	{
 		try {
 			@file_put_contents($filePath, $content);
 		} catch (Exception $e) {
-			return $e->getMessage();
+			throw new Exception($e->getMessage());
 		}
-		return null;
 	}
 
 	/**
@@ -575,12 +591,15 @@ class common
 	}
 
 	/**
-	 * @throws Exception
 	 * @since 3.2.9
 	 */
 	public static function inputGetString($parameter, $default = null): ?string
 	{
-		return Factory::getApplication()->input->get->getString($parameter, $default);
+		try {
+			return Factory::getApplication()->input->get->getString($parameter, $default);
+		} catch (Exception $e) {
+			return $default;
+		}
 	}
 
 	/**
@@ -608,7 +627,7 @@ class common
 		$app = Factory::getApplication();
 		$document = $app->getDocument();
 
-		if ($params->ModuleId === null or (int)$params->ModuleId == 0) {
+		if (empty($params->ModuleId)) {
 			//JQuery and Bootstrap
 			if (CUSTOMTABLES_JOOMLA_MIN_4) {
 				HTMLHelper::_('jquery.framework');
@@ -639,22 +658,55 @@ class common
 				. $googleMapAPIKey . '&loading=async"></script>');//&sensor=false.&callback=initMap
 		}
 
-
 		$js = [];
 		$js[] = 'let ctWebsiteRoot = "' . $env->WebsiteRoot . '";';
 		$js[] = 'let ctFieldInputPrefix = "' . $fieldInputPrefix . '";';
 		$js[] = 'let gmapdata = [];';
 		$js[] = 'let gmapmarker = [];';
-		$js[] = 'const CTEditHelper = new CustomTablesEdit("Joomla",' . (explode(',', CUSTOMTABLES_JOOMLA_VERSION)[0]) . ');';
-
-		if ($params->ModuleId == null)
-			$js[] = 'let ctItemId = "' . $params->ItemId . '";';
+		$js[] = '
+if (typeof window.CTEditHelper === "undefined") {
+	window.CTEditHelper = new CustomTablesEdit("Joomla",' . (explode('.', CUSTOMTABLES_JOOMLA_VERSION)[0]) . ',' . ($params->ItemId ?? 0) . ');
+}
+';
 
 		$document->addCustomTag('
 <script>
     ' . implode('
 ', $js) . '
 </script>
+');
+
+		$document->addCustomTag('
+<style>
+	:root {--ctToolBarIconSize: 16px;--ctToolBarIconFontSize: 16px;}
+	
+	.toolbarIcons{
+		text-decoration: none;
+	}
+	
+	.toolbarIcons a{
+		text-decoration: none;
+	}
+	
+	.ctToolBarIcon{
+		width: var(--ctToolBarIconSize);
+		height: var(--ctToolBarIconSize);
+	}
+	
+	.ctToolBarIcon + span {
+		margin-left:10px;
+	}
+	
+	.ctToolBarIcon2x{
+		width: calc(var(--ctToolBarIconSize) * 2);
+		height: calc(var(--ctToolBarIconSize) * 2);
+		font-size: 1.5em;
+	}
+	
+	.ctToolBarIcon2x + span {
+		margin-left:15px;
+	}
+</style>
 ');
 
 		//Styles
@@ -681,6 +733,42 @@ class common
 		Text::script('COM_CUSTOMTABLES_JS_SECURE_URL_INVALID');
 		Text::script('COM_CUSTOMTABLES_JS_SIGNATURE_REQUIRED');
 		Text::script('COM_CUSTOMTABLES_JS_HOSTNAME_INVALID');
+		Text::script('COM_CUSTOMTABLES_SEARCH_ALERT_MINLENGTH');
+
+		if ($env->toolbarIcons == 'font-awesome-4' or $env->toolbarIcons == 'font-awesome-5' or $env->toolbarIcons == 'font-awesome-6') {
+			$wa = Factory::getApplication()->getDocument()->getWebAssetManager();
+
+			// Check if Font Awesome is loaded
+			$isFontAwesomeLoaded = $wa->assetExists('style', 'fontawesome');
+
+			if (!$isFontAwesomeLoaded) {
+				common::enqueueMessage('Font Awesome icons have been selected for the toolbar, but the Font Awesome library is not loaded in your template.'
+					. ' Please ensure the library is included for proper icon display.');
+			}
+		}
+
+		if ($env->toolbarIcons == 'bootstrap') {
+			$wa = Factory::getApplication()->getDocument()->getWebAssetManager();
+
+			// Check if Bootstrap Icons are loaded
+			$isBootstrapLoaded = $wa->assetExists('style', 'bootstrap-icons');
+
+			if (!$isBootstrapLoaded) {
+				common::enqueueMessage('Bootstrap icons have been selected for the toolbar, but the Bootstrap Icons library is not loaded in your template. Please ensure the library is included for proper icon display.');
+			}
+		}
+	}
+
+	/**
+	 * @since 3.2.9
+	 */
+	public static function enqueueMessage($text, string $type = 'error'): void
+	{
+		try {
+			Factory::getApplication()->enqueueMessage($text, $type);
+		} catch (Exception $e) {
+			echo $e->getMessage();
+		}
 	}
 
 	public static function filterText(?string $text): string
@@ -692,19 +780,30 @@ class common
 	}
 
 	/**
+	 * Redirect user to a specified URL with optional notification message
+	 *
+	 * @param string $link The URL to redirect to
+	 * @param string|null $message Optional message to display after redirect
+	 * @param bool $success Whether the message is a success (true) or error (false) notification
+	 * @return void
+	 *
 	 * @throws Exception
-	 * @since 3.2.9
+	 * @since 3.5.1
 	 */
-	public static function redirect(string $link, ?string $msg = null): void
+	public static function redirect(string $link, ?string $message = null, bool $success = true): void
 	{
-		if ($msg === null)
-			$msg = '';
+		if ($message !== null) {
+			$app = Factory::getApplication();
+			$messageType = $success ? 'message' : 'error';
+			$app->enqueueMessage($message, $messageType);
+		}
 
-		Factory::getApplication()->setRedirect($link, $msg);
+		$app = Factory::getApplication();
+		$app->redirect(Route::_($link, false));
 	}
 
 	/**
-	 * @throws \DateInvalidTimeZoneException
+	 * @throws DateInvalidTimeZoneException
 	 *
 	 * @since 3.0.0
 	 */
@@ -724,7 +823,7 @@ class common
 	}
 
 	/**
-	 * @throws \DateInvalidTimeZoneException
+	 * @throws DateInvalidTimeZoneException
 	 *
 	 * @since 3.0.0
 	 */
@@ -748,7 +847,7 @@ class common
 	}
 
 	/**
-	 * @throws \DateInvalidTimeZoneException
+	 * @throws DateInvalidTimeZoneException
 	 *
 	 * @since 3.0.0
 	 */
@@ -810,7 +909,7 @@ class common
 	static public function sendEmail($email, $emailSubject, $emailBody, $isHTML = true, $attachments = array()): bool
 	{
 		try {
-			if (CUSTOMTABLES_JOOMLA_MIN_4)
+			if (Version::MAJOR_VERSION >= 5)
 				$mailer = Factory::getContainer()->get('mailer');
 			else
 				$mailer = Factory::getMailer();
@@ -844,18 +943,6 @@ class common
 			return false;
 
 		return true;
-	}
-
-	/**
-	 * @since 3.2.9
-	 */
-	public static function enqueueMessage($text, string $type = 'error'): void
-	{
-		try {
-			Factory::getApplication()->enqueueMessage($text, $type);
-		} catch (Exception $e) {
-			echo $e->getMessage();
-		}
 	}
 
 	public static function getMailFrom()

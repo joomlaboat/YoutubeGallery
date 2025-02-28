@@ -150,8 +150,9 @@ class MySQLWhereClause
 				$where [] = '(' . self::getWhereClauseMergeConditions($this->orConditions, 'OR') . ')';
 		}
 		// Process nested conditions
-		foreach ($this->nestedConditions as $nestedCondition)
-			$where [] = $nestedCondition->getWhereClause();
+		foreach ($this->nestedConditions as $nestedCondition) {
+			$where [] = '(' . $nestedCondition->getWhereClause() . ')';
+		}
 
 		$orWhere = [];
 		foreach ($this->nestedOrConditions as $nestedOrCondition) {
@@ -161,8 +162,12 @@ class MySQLWhereClause
 				$orWhere [] = '(' . $nestedOrCondition->getWhereClause('OR') . ')';
 		}
 
-		if (count($orWhere) > 0)
-			$where [] = implode(' OR ', $orWhere);
+		if (count($orWhere) > 0) {
+			if (count($orWhere) > 1)
+				$where [] = '(' . implode(' OR ', $orWhere) . ')';
+			else
+				$where [] = implode(' OR ', $orWhere);
+		}
 
 		return implode(' ' . $logicalOperator . ' ', $where);
 	}
@@ -603,6 +608,8 @@ class database
 			$realTableName = $tablename;
 		elseif ($type == 'table')
 			$realTableName = $dbPrefix . 'customtables_table_' . $tablename;
+		elseif ($type == 'categories')
+			$realTableName = $dbPrefix . 'customtables_categories';
 		else
 			$realTableName = $dbPrefix . 'customtables_' . $tablename;
 
@@ -648,7 +655,7 @@ class database
 			return true;
 
 		$db = self::getDB();
-
+		
 		$db->setQuery("SET NAMES 'utf8mb4'");
 		$db->execute();
 

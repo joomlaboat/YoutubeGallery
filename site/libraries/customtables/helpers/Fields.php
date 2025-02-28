@@ -141,11 +141,13 @@ class Fields
 			}
 		}
 
-		foreach ($realFieldNames as $realfieldname) {
-			if ($field->type != 'dummy' and !Fields::isVirtualField($fieldRow)) {
-				$msg = '';
-				Fields::deleteMYSQLField($tableRow['realtablename'], $realfieldname, $msg);
+		try {
+			foreach ($realFieldNames as $realfieldname) {
+				if ($field->type != 'dummy' and !Fields::isVirtualField($fieldRow))
+					Fields::deleteMYSQLField($tableRow['realtablename'], $realfieldname);
 			}
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
 		}
 
 		//Delete field from the list
@@ -252,15 +254,14 @@ class Fields
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	public static function deleteMYSQLField($realtablename, $realfieldname, &$msg): bool
+	public static function deleteMYSQLField($realtablename, $realfieldname): bool
 	{
 		if (Fields::checkIfFieldExists($realtablename, $realfieldname)) {
 			try {
 				database::dropColumn($realtablename, $realfieldname);
 				return true;
 			} catch (Exception $e) {
-				$msg = '<p style="color:#ff0000;">Caught exception: ' . $e->getMessage() . '</p>';
-				return false;
+				throw new exception($e->getMessage());
 			}
 		}
 		return false;
@@ -374,14 +375,13 @@ class Fields
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	public static function fixMYSQLField(string $realtablename, string $fieldname, array $PureFieldType, string &$msg, string $title): bool
+	public static function fixMYSQLField(string $realtablename, string $fieldname, array $PureFieldType, string $title): void
 	{
 		if ($fieldname == 'id') {
 			try {
 				$constrances = Fields::getTableConstrances($realtablename, '');
 			} catch (Exception $e) {
-				$msg = 'Caught exception fixMYSQLField->Fields::getTableConstrances: ' . $e->getMessage();
-				return false;
+				throw new Exception('Caught exception fixMYSQLField->Fields::getTableConstrances: ' . $e->getMessage());
 			}
 
 			//Delete same table child-parent constrances
@@ -395,23 +395,17 @@ class Fields
 			try {
 				database::changeColumn($realtablename, 'id', 'id', $PureFieldType, 'Primary Key');
 			} catch (Exception $e) {
-				$msg = 'Caught exception fixMYSQLField 1: ' . $e->getMessage();
+				throw new Exception('Caught exception fixMYSQLField 1: ' . $e->getMessage());
 			}
-
-			$msg = '';
-			return true;
 		} elseif ($fieldname == 'published') {
 			try {
 				database::changeColumn($realtablename, 'published', 'published', $PureFieldType, 'Publish Status');
 			} catch (Exception $e) {
-				$msg = 'Caught exception fixMYSQLField 2: ' . $e->getMessage();
+				throw new Exception('Caught exception fixMYSQLField 2: ' . $e->getMessage());
 			}
 		} else {
 			database::changeColumn($realtablename, $fieldname, $fieldname, $PureFieldType, $title);
 		}
-
-		$msg = '';
-		return true;
 	}
 
 	/**
@@ -749,8 +743,11 @@ class Fields
 			Fields::addIndexIfNotExist($realtablename, $realfieldname);
 
 			//Add Foreign Key
-			$msg = '';
-			Fields::addForeignKey($realtablename, $realfieldname, $new_typeparams, '', 'id', $msg);
+			try {
+				Fields::addForeignKey($realtablename, $realfieldname, $new_typeparams, '', 'id');
+			} catch (Exception $e) {
+				throw new Exception($e->getMessage());
+			}
 		}
 
 		if ($new_type == 'user' or $new_type == 'userid') {
@@ -758,8 +755,11 @@ class Fields
 			Fields::addIndexIfNotExist($realtablename, $realfieldname);
 
 			//Add Foreign Key
-			$msg = '';
-			Fields::addForeignKey($realtablename, $realfieldname, '', '#__users', 'id', $msg);
+			try {
+				Fields::addForeignKey($realtablename, $realfieldname, '', '#__users', 'id');
+			} catch (Exception $e) {
+				throw new Exception($e->getMessage());
+			}
 		}
 		return true;
 	}
@@ -1209,32 +1209,26 @@ class Fields
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	public static function addForeignKey($realtablename_, $realfieldname, string $new_typeparams, string $join_with_table_name, string $join_with_table_field, &$msg): bool
+	public static function addForeignKey($realtablename_, $realfieldname, string $new_typeparams, string $join_with_table_name, string $join_with_table_field): void
 	{
 		$realtablename = database::realTableName($realtablename_);
 		$serverType = database::getServerType();
 		if ($serverType == 'postgresql')
-			return false;
+			throw new Exception('addForeignKey PostgreSql not supported.');
 
 		//Create Key only if possible
 		$typeParams = explode(',', $new_typeparams);
 
 		if ($join_with_table_name == '') {
-			if ($new_typeparams == '') {
-				$msg = 'Parameters not set.';
-				return false; //Exit if parameters not set
-			}
+			if ($new_typeparams == '')
+				throw new Exception('Parameters not set.');
 
-			if (count($typeParams) < 2) {
-				$msg = 'Parameters not complete.';
-				return false;    // Exit if field not set (just in case)
-			}
+			if (count($typeParams) < 2)
+				throw new Exception('Parameters not complete.');
 
 			$tableRow = TableHelper::getTableRowByName($typeParams[0]); //[0] - is tablename
-			if (!is_object($tableRow)) {
-				$msg = 'Join with table "' . $join_with_table_name . '" not found.';
-				return false;    // Exit if table to connect with not found
-			}
+			if (!is_object($tableRow))
+				throw new Exception('Join with table "' . $join_with_table_name . '" not found.');
 
 			$join_with_table_name = $tableRow->realtablename;
 			$join_with_table_field = $tableRow->realidfieldname;
@@ -1249,12 +1243,10 @@ class Fields
 
 			try {
 				database::addForeignKey($realtablename, $realfieldname, $join_with_table_name, $join_with_table_field);
-				return true;
 			} catch (Exception $e) {
-				$msg = $e->getMessage();
+				throw new Exception($e->getMessage());
 			}
 		}
-		return false;
 	}
 
 	/**
