@@ -108,6 +108,9 @@ class com_YoutubeGalleryInstallerScript
 		return true;
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	function postflight($type, $parent)
 	{
 		if ($type == 'uninstall') {
@@ -134,10 +137,10 @@ class com_YoutubeGalleryInstallerScript
 
 		$ct = new CT([], true);
 
-		self::setFieldPrefixes();
-
 		//Check Custom Tables, create if necessary
 		$result = IntegrityChecks::check($ct, $check_core_tables = true, $check_custom_tables = false);
+
+		self::setFieldPrefixes();
 
 		$filename = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . $component_name . DIRECTORY_SEPARATOR
 			. 'importfiles' . DIRECTORY_SEPARATOR . 'youtubegallery_tables.txt';
@@ -157,7 +160,7 @@ class com_YoutubeGalleryInstallerScript
 			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
 			return false;
 		}
-		
+
 		//com_YoutubeGalleryInstallerScript::updateYGv3tov4();
 		return true;
 	}
