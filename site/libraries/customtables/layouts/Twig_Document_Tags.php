@@ -173,6 +173,10 @@ class Twig_Document_Tags
 		return '';
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.5.0
+	 */
 	function jslibrary($library): string
 	{
 		if (defined('_JEXEC')) {
@@ -204,7 +208,7 @@ class Twig_Document_Tags
 			$this->ct->LayoutVariables['jslibrary'][] = $library;
 			return '';
 		} else {
-			return '{{ document.jslibrary() }} not supported in this version of Custom Tables';
+			throw new Exception('{{ document.jslibrary() }} not supported in this version of Custom Tables');
 		}
 	}
 
@@ -289,6 +293,10 @@ class Twig_Document_Tags
 		$this->ct->LayoutVariables['globalVariables'][$variable] = $value;
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.5.0
+	 */
 	public function config(string $parameter)
 	{
 		if (defined('_JEXEC')) {
@@ -312,7 +320,7 @@ class Twig_Document_Tags
 				$joomla_params = ComponentHelper::getParams('com_customtables');
 				return $joomla_params->get('folderToSaveLayouts');
 			} else {
-				return 'Unknown parameter in document.config(parameter)';
+				throw new Exception('Unknown parameter in document.config(parameter)');
 			}
 		} elseif (defined('WPINC')) {
 
@@ -332,12 +340,12 @@ class Twig_Document_Tags
 				return $prefix;
 
 			} elseif ($parameter == 'foldertosavelayouts') {
-				return 'WP: "foldertosavelayouts" unsupported parameter in this version of the Custom Tables.';
+				throw new Exception('WP: "foldertosavelayouts" unsupported parameter in this version of the Custom Tables.');
 			} else {
-				return 'Unknown parameter in document.config(parameter)';
+				throw new Exception('Unknown parameter in document.config(parameter)');
 			}
 		} else {
-			return 'Unknown parameter in document.config()';
+			throw new Exception('Unknown parameter in document.config()');
 		}
 	}
 

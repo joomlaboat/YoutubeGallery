@@ -152,7 +152,7 @@ class Inputbox
 				$input['value'] = $value;
 				break;
 
-			case 'multilangstring':
+			case 'multilangtext':
 				$input["renderAs"] = "textarea";
 				$input["multiple"] = true;
 				$input['value'] = $value;
@@ -398,7 +398,7 @@ class Inputbox
 
 			case 'sqljoin':
 				if (!$this->isTwig)
-					return 'Old Table Join tags no longer supported';
+					throw new Exception('Old Table Join tags no longer supported');
 
 				$path = CUSTOMTABLES_PRO_PATH . 'inputbox' . DIRECTORY_SEPARATOR;
 
