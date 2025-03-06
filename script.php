@@ -30,30 +30,7 @@ if (!function_exists('str_contains')) {
 class com_YoutubeGalleryInstallerScript
 {
 
-	/**
-	 * method to run before an installation/update/uninstall method
-	 *
-	 * @return true
-	 *
-	 * @throws Exception
-	 * @since 1.0.0
-	 */
-	public function preflight($type, $parent)
-	{
-		if ($type != 'uninstall') {
-			$version_object = new Version;
-			$version = (int)$version_object->getShortVersion();
-			if ($version < 4)
-				$db = Factory::getDbo();
-			else
-				$db = Factory::getContainer()->get(DatabaseInterface::class);
-
-			$this->setFieldPrefix($db);
-		}
-		return true;
-	}
-
-	function setFieldPrefix($db)
+	protected static function setFieldPrefix($db)
 	{
 		try {
 
@@ -102,9 +79,22 @@ class com_YoutubeGalleryInstallerScript
 			}
 
 		} catch (Exception $e) {
-			JFactory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+			Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
 			return false;
 		}
+		return true;
+	}
+
+	/**
+	 * method to run before an installation/update/uninstall method
+	 *
+	 * @return true
+	 *
+	 * @throws Exception
+	 * @since 1.0.0
+	 */
+	public function preflight($type, $parent)
+	{
 		return true;
 	}
 
@@ -139,6 +129,15 @@ class com_YoutubeGalleryInstallerScript
 
 		//Check Custom Tables, create if necessary
 		$result = IntegrityChecks::check($ct, $check_core_tables = true, $check_custom_tables = false);
+
+		$version_object = new Version;
+		$version = (int)$version_object->getShortVersion();
+		if ($version < 4)
+			$db = Factory::getDbo();
+		else
+			$db = Factory::getContainer()->get(DatabaseInterface::class);
+
+		//self::setFieldPrefix($db);
 
 		self::setFieldPrefixes();
 
