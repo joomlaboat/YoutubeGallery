@@ -49,7 +49,7 @@ if ($version < 4) {
 
 			if ($messages) {
 				foreach ($messages as $message) {
-					$options[] = JHtml::_('select.option', $message->id, $message->es_categoryname);
+					$options[] = JHtml::_('select.option', $message->id, $message->es_listname);
 				}
 			}
 
