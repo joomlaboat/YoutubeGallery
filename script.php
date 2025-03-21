@@ -150,7 +150,7 @@ class com_YoutubeGalleryInstallerScript
 			. 'customtables' . DIRECTORY_SEPARATOR;
 		$path_utilities = $path . 'utilities' . DIRECTORY_SEPARATOR;
 
-		require_once($path_utilities . 'importtables.php');
+		require_once($path_utilities . 'ImportTables.php');
 
 		try {
 			ImportTables::processFile($filename, 'YoutubeGallery', $msg, '',
