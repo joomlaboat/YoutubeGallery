@@ -31,7 +31,6 @@ function YGLoadClasses(): void
 	require_once($path . 'hotplayer.php');
 	require_once($path . 'layoutrenderer.php');
 	require_once($path . 'misc.php');
-	require_once($path . 'pagination_render.php');
 	require_once($path . 'players.php');
 	require_once($path . 'render.php');
 	require_once($path . 'render_css.php');
@@ -39,10 +38,5 @@ function YGLoadClasses(): void
 	require_once($path . 'socialbuttons.php');
 	require_once($path . 'thumbnails.php');
 
-	//require_once($path . 'dailymotion.php');
-	//require_once($path . 'soundcloud.php');
-	//require_once($path . 'ustream.php');
-	//require_once($path . 'ustreamlive.php');
-	//require_once($path . 'vimeo.php');
 	require_once($path . 'providers' . DIRECTORY_SEPARATOR . 'youtube.php');
 }
