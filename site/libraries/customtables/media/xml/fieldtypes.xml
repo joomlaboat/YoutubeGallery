@@ -106,7 +106,7 @@
 		<valueparams name="userid" label="User Details Format" description="Information about the user to display."
 					 example="registerdate">
 			<params>
-				<param type="list" name="userAccountField" default="name"
+				<param type="user" name="userAccountField" default="name"
 					   label="Information about the user to display."
 					   description="Information about the user to display." example="registerdate">
 					<option value="id" label="User ID" wordpress="true"/>
@@ -1671,7 +1671,7 @@
 	<!-- WordPress Ready 34 -->
 	<type ct_name="user" label="User"
 		  description="Provides User Selection box. It can also create a New User account if all necessary fields are set: Name, Email and User Group(s)"
-		  priority="2" wordpress="false" order="34">
+		  priority="2" wordpress="true" order="34">
 		<params>
 			<param name="usergroups" label="User Groups"
 				   description="Limit selection to certain User Group(s). Or used as default User Group(s) when creating a new user account."
@@ -1796,6 +1796,7 @@
 				<option value="storedstring" label="Stored String" wordpress="true"/>
 				<option value="storedintegersigned" label="Stored Integer Signed" wordpress="true"/>
 				<option value="storedintegerunsigned" label="Stored Integer Unsigned" wordpress="true"/>
+				<option value="storeddecimal" label="Stored Decimal" wordpress="true"/>
 			</param>
 
 			<param name="length" label="Length"

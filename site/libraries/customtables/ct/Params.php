@@ -321,7 +321,8 @@ class Params
 		$this->forceSortBy = $menu_params['forcesortby'] ?? null;
 
 		//Limit
-		$this->limit = common::inputGetInt('limit', (int)($menu_params['limit'] ?? 20));
+		if (is_null($this->limit))
+			$this->limit = common::inputGetInt('limit', (int)($menu_params['limit'] ?? 20));
 
 		//Layouts
 		$this->pageLayout = $menu_params['escataloglayout'] ?? null;
@@ -366,7 +367,7 @@ class Params
 
 		//Form Saved
 		if (!$this->blockExternalVars and common::inputGetCmd('returnto'))
-			$this->returnTo = common::getReturnToURL();//base 64 decode "returnto" value
+			$this->returnTo = common::getReturnToURL(true, null, 'create-edit-record');//base 64 decode "returnto" value
 		else {
 
 			if (empty($this->ModuleId)) {
@@ -509,7 +510,8 @@ class Params
 		$this->forceSortBy = $menu_params['forcesortby'] ?? null;
 
 		//Limit
-		$this->limit = common::inputGetInt('limit', (int)($menu_params['limit'] ?? 20));
+		if (is_null($this->limit))
+			$this->limit = common::inputGetInt('limit', (int)($menu_params['limit'] ?? 20));
 
 		//Layouts
 		$this->pageLayout = $menu_params['escataloglayout'] ?? null;
@@ -555,7 +557,7 @@ class Params
 
 		//Form Saved
 		if (!$this->blockExternalVars and common::inputGetCmd('returnto'))
-			$this->returnTo = common::getReturnToURL();
+			$this->returnTo = common::getReturnToURL(true, null, 'create-edit-record');
 		else {
 			$this->returnTo = $menu_params['returnto'] ?? null;
 		}

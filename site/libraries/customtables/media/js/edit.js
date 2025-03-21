@@ -862,20 +862,11 @@ function doFilters(obj, label, filters_string) {
 				alert(TranslateText('COM_CUSTOMTABLES_JS_URL_INVALID', label, value));
 				return false;
 			}
-			console.log("hostname: " + hostname);
-			console.log("domain: " + domain);
 
-			/*
-			let found = false;
-			for (let f = 0; f < domains.length; f++) {
+			hostname = hostname.trim().replaceAll('www.', '').toLowerCase();
+			domain = domain.toString().trim().replaceAll('www.', '').toLowerCase();
 
-				if (domains[f] === hostname) {
-					found = true;
-					break;
-				}
-			}
-*/
-			if (domain !== hostname && 'www.' + domain !== hostname && domain !== 'www.' + hostname) {
+			if (domain !== hostname) {
 				alert(TranslateText('COM_CUSTOMTABLES_JS_HOSTNAME_INVALID', value, label, filter_parts[1]));
 				return false;
 			}
@@ -1059,7 +1050,7 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
 			next_sub_index = 0;
 			next_index += 1;
 
-			if (next_index + 1 < filters.length) {
+			if (next_index < filters.length) {
 				document.getElementById(control_name + "Selector" + index + '_' + sub_index).innerHTML = '<div id="' + control_name + 'Selector' + next_index + '_' + next_sub_index + '"></div>';
 				ctUpdateTableJoinLink(control_name, next_index, false, next_sub_index, parent_object_id, formId, false, null);
 				return false;
@@ -1269,18 +1260,7 @@ function ctRenderTableJoinSelectBoxLoadRecords(url, control_name, index, execute
 }
 
 // --------------------- Inputbox: Records
-
-//let ctInputBoxRecords_r = [];
-//let ctInputBoxRecords_v = [];
-//let ctInputBoxRecords_p = [];
 let ctInputBoxRecords_dynamic_filter = [];
-
-/*
-if (typeof ctInputBoxRecords_dynamic_filter === "undefined") {
-    var ctInputBoxRecords_dynamic_filter = {};
-}
-*/
-
 
 function ctInputBoxRecords_removeOptions(selectobj) {
 	//Old calls replaced

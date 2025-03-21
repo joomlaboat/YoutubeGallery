@@ -13,7 +13,6 @@ namespace CustomTables;
 // no direct access
 defined('_JEXEC') or die();
 
-use CustomTablesFileMethods;
 use CustomTablesImageMethods;
 use Exception;
 
@@ -69,17 +68,16 @@ class Fields
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	public static function deleteField_byID(CT $ct, int $fieldId): bool
+	public static function deleteField_byID(CT $ct, int $fieldId): void
 	{
-		if ($ct->Table === null) {
-			die('deleteField_byID: Table not selected.');
-		}
+		if ($ct->Table === null)
+			throw new Exception('Delete Field by ID: Table not selected.');
 
 		$ImageFolder = CUSTOMTABLES_IMAGES_PATH;
 		$fieldRow = $ct->Table->getFieldById($fieldId);
 
 		if (is_null($fieldRow))
-			return false;
+			throw new Exception('Field ' . $fieldId . ' not found.');
 
 		$field = new Field($ct, $fieldRow);
 		$tableRow = $ct->Table->tablerow;
@@ -99,7 +97,7 @@ class Fields
 				//Delete all files belongs to the filebox
 
 				$fileBoxTableName = '#__customtables_filebox_' . $tableRow['tablename'] . '_' . $field->fieldname;
-				CustomTablesFileMethods::DeleteFileBoxFiles($fileBoxTableName, (string)$field->fieldrow['tableid'], $field->fieldname, $field->params);
+				FileMethods::DeleteFileBoxFiles($fileBoxTableName, (string)$field->fieldrow['tableid'], $field->fieldname, $field->params);
 
 				//Delete gallery table
 				database::dropTableIfExists($tableRow['tablename'] . '_' . $field->fieldname, 'filebox');
@@ -116,7 +114,11 @@ class Fields
 					}
 				}
 			} elseif ($field->type == 'user' or $field->type == 'userid' or $field->type == 'sqljoin') {
-				Fields::removeForeignKey($tableRow['realtablename'], $field->realfieldname);
+				try {
+					Fields::removeForeignKey($tableRow['realtablename'], $field->realfieldname);
+				} catch (Exception $e) {
+					throw new Exception($e->getMessage());
+				}
 			} elseif ($field->type == 'file') {
 				// TODO: delete all files
 				//if(file_exists($filename))
@@ -152,7 +154,6 @@ class Fields
 
 		//Delete field from the list
 		database::deleteRecord('#__customtables_fields', 'id', $fieldId);
-		return true;
 	}
 
 	/**
@@ -193,12 +194,12 @@ class Fields
 	 */
 	public static function removeForeignKey($realtablename, $realfieldname): bool
 	{
-		$constrances = Fields::getTableConstrances($realtablename, $realfieldname);
+		$constrances = Fields::getTableConstraints($realtablename, $realfieldname);
 
 		if (!is_null($constrances)) {
-			foreach ($constrances as $constrance) {
-				Fields::removeForeignKey($realtablename, $constrance);
-			}
+			foreach ($constrances as $constrance)
+				database::dropForeignKey($realtablename, $constrance);
+
 			return true;
 		}
 		return false;
@@ -208,35 +209,60 @@ class Fields
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	protected static function getTableConstrances($realtablename, $realfieldname): ?array
+	protected static function getTableConstraints(string $realtablename, string $realfieldname): ?array
 	{
+		if (empty($realtablename)) {
+			return null;
+		}
+
 		$serverType = database::getServerType();
-		if ($serverType == 'postgresql')
+		if ($serverType === 'postgresql') {
 			return null;
+		}
 
-		//get constrant name
-		$tableCreateQuery = database::showCreateTable($realtablename);//::loadAssocList($query, ['', '', '', ''], $whereClause, null, null);
-
-		if (count($tableCreateQuery) == 0)
+		// Get table creation query
+		$tableCreateQuery = database::showCreateTable($realtablename);
+		if (empty($tableCreateQuery) || !isset($tableCreateQuery[0]['Create Table'])) {
 			return null;
+		}
 
-		$rec = $tableCreateQuery[0];
-		$constrances = array();
-		$q = $rec['Create Table'];
-		$lines = explode(',', $q);
+		$createTableSQL = $tableCreateQuery[0]['Create Table'];
+		$constraints = [];
 
-		foreach ($lines as $line_) {
-			$line = trim(str_replace('`', '', $line_));
-			if (str_contains($line, 'CONSTRAINT')) {
-				$pair = explode(' ', $line);
+		/*
+		$createTableSQL example:
 
-				if ($realfieldname == '')
-					$constrances[] = $pair;
-				elseif ($pair[4] == '(' . $realfieldname . ')')
-					$constrances[] = $pair[1];
+		CREATE TABLE `eas39_customtables_table_states` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `published` tinyint(1) NOT NULL DEFAULT '1',
+  `es_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `es_user` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `es_user` (`es_user`),
+  CONSTRAINT `eas39_customtables_table_states_ibfk_1` FOREIGN KEY (`es_user`) REFERENCES `eas39_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='States'
+
+		*/
+		// Extract lines from the query
+		$lines = explode(',', $createTableSQL);
+
+		foreach ($lines as $line) {
+			$line = trim(str_replace('`', '', $line));
+
+			if (stripos($line, 'CONSTRAINT') !== false) {
+				// Match constraint name and field name using regex
+				if (preg_match('/CONSTRAINT\s+(\S+)\s+FOREIGN KEY\s*\((\S+)\)/i', $line, $matches)) {
+					$constraintName = $matches[1] ?? '';
+					$fieldName = $matches[2] ?? '';
+
+					if ($realfieldname === '' || $fieldName === $realfieldname) {
+						$constraints[] = $constraintName;
+					}
+				}
 			}
 		}
-		return $constrances;
+
+		return $constraints;
 	}
 
 	public static function isVirtualField(array $fieldRow): bool
@@ -379,7 +405,7 @@ class Fields
 	{
 		if ($fieldname == 'id') {
 			try {
-				$constrances = Fields::getTableConstrances($realtablename, '');
+				$constrances = Fields::getTableConstraints($realtablename, '');
 			} catch (Exception $e) {
 				throw new Exception('Caught exception fixMYSQLField->Fields::getTableConstrances: ' . $e->getMessage());
 			}
@@ -466,10 +492,10 @@ class Fields
 		if ($fieldId == 0)
 			$fieldId = null; // new field
 
-		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'utilities' . DIRECTORY_SEPARATOR . 'importtables.php');
+		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'utilities' . DIRECTORY_SEPARATOR . 'ImportTables.php');
 
 		$ct = new CT([], true);
-		$ct->getTable($tableId);
+		$ct->getTable($tableId, null, true);
 		if ($ct->Table === null)
 			throw new Exception('Save Field: Table not found');
 
@@ -577,7 +603,6 @@ class Fields
 		if ($fieldId !== null) {
 
 			try {
-
 				$whereClauseUpdate = new MySQLWhereClause();
 				$whereClauseUpdate->addCondition('id', $fieldId);
 
@@ -594,13 +619,14 @@ class Fields
 				throw new Exception('Add field details: ' . $e->getMessage());
 			}
 
-			$ct->getTable($tableId);//reload table to include new field
+			$ct->getTable($tableId, null, true);//reload table to include new field
 
 		}
 
-		if (!self::update_physical_field($ct, $fieldId, $data)) {
-			//Cannot create
-			return null;
+		try {
+			self::update_physical_field($ct, $fieldId, $data);
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
 		}
 
 		self::findAndFixFieldOrdering();
@@ -644,8 +670,8 @@ class Fields
 	 */
 	public static function AddMySQLFieldNotExist(string $realtablename, string $realfieldname, string $fieldType, string $options): void
 	{
-		if ($realfieldname == '')
-			throw new Exception('Add New Field: Field name cannot be empty.');
+		if (empty($realfieldname))
+			throw new Exception('Add MySQL Field IF Not Exists: Field name cannot be empty.');
 
 		if (!Fields::checkIfFieldExists($realtablename, $realfieldname)) {
 
@@ -675,12 +701,16 @@ class Fields
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	protected static function update_physical_field(CT $ct, int $fieldId, array $data): bool
+	protected static function update_physical_field(CT $ct, int $fieldId, array $data): void
 	{
 		$realtablename = $ct->Table->realtablename;
 
 		if ($fieldId != 0) {
 			$fieldRow = $ct->Table->getFieldById($fieldId);
+			if ($fieldRow === null) {
+				throw new Exception('Update Physical Field: Field not found: ' . $fieldId);
+			}
+
 			$ex_type = $fieldRow['type'];
 			$ex_typeparams = $fieldRow['typeparams'];
 			$realfieldname = $fieldRow['realfieldname'];
@@ -695,8 +725,8 @@ class Fields
 				$realfieldname = $data['fieldname'];
 		}
 
-		if ($realfieldname === '')
-			throw new Exception('Add New Field: Field name cannot be empty.');
+		if (empty($realfieldname))
+			throw new Exception('Update Physical Field: Field name cannot be empty.');
 
 		$new_typeparams = $data['typeparams'];
 		$fieldTitle = $data['fieldtitle'];
@@ -705,7 +735,7 @@ class Fields
 
 		$new_type = $data['type'];
 		if ($new_type === null)
-			return false;
+			throw new Exception('Update Physical Field: New Field Type Cannot be NUL');
 
 		$PureFieldType = null;
 		if ($new_typeparams !== null)
@@ -744,7 +774,7 @@ class Fields
 
 			//Add Foreign Key
 			try {
-				Fields::addForeignKey($realtablename, $realfieldname, $new_typeparams, '', 'id');
+				Fields::addForeignKey_FieldParams($realtablename, $realfieldname, $new_typeparams);
 			} catch (Exception $e) {
 				throw new Exception($e->getMessage());
 			}
@@ -756,12 +786,11 @@ class Fields
 
 			//Add Foreign Key
 			try {
-				Fields::addForeignKey($realtablename, $realfieldname, '', '#__users', 'id');
+				Fields::addForeignKey_Users($realtablename, $realfieldname, '', '#__users', 'id');
 			} catch (Exception $e) {
 				throw new Exception($e->getMessage());
 			}
 		}
-		return true;
 	}
 
 	public static function getPureFieldType(string $ct_fieldType, string $typeParams): array
@@ -770,6 +799,10 @@ class Fields
 		return Fields::makeProjectedFieldType($ct_fieldTypeArray);
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 3.2.2
+	 */
 	public static function getProjectedFieldType(string $ct_fieldType, ?string $typeParams): ?array
 	{
 		//Returns an array of mysql column parameters
@@ -855,6 +888,14 @@ class Fields
 
 			case 'userid':
 			case 'user':
+				if (defined('_JEXEC')) {
+					return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null];
+				} elseif (defined('WPINC')) {
+					return ['data_type' => 'bigint', 'is_nullable' => true, 'is_unsigned' => true, 'length' => null, 'default' => null];
+				} else {
+					throw new Exception("User field tyoe not supported");
+				}
+
 			case 'sqljoin':
 			case 'article':
 				return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => true, 'length' => null, 'default' => null];
@@ -912,6 +953,15 @@ class Fields
 				if ($storage == 'storedstring') {
 					$l = (int)$typeParamsArray[2] ?? 255;
 					return ['data_type' => 'varchar', 'is_nullable' => true, 'is_unsigned' => null, 'length' => ($l < 1 ? 255 : (min($l, 4069))), 'default' => null];
+				} elseif ($storage == 'storeddecimal') {
+					$l = abs((int)$typeParamsArray[2] ?? 2);
+					if ($l > 65)
+						$l = 65;
+
+					$length = '20,' . $l;
+
+					return ['data_type' => 'decimal', 'is_nullable' => true, 'is_unsigned' => false, 'length' => $length, 'default' => null];
+
 				} elseif ($storage == 'storedintegersigned')
 					return ['data_type' => 'int', 'is_nullable' => true, 'is_unsigned' => false, 'length' => null, 'default' => null];
 				elseif ($storage == 'storedintegerunsigned')
@@ -1207,42 +1257,38 @@ class Fields
 
 	/**
 	 * @throws Exception
-	 * @since 3.2.2
+	 * @since 3.5.8
 	 */
-	public static function addForeignKey($realtablename_, $realfieldname, string $new_typeparams, string $join_with_table_name, string $join_with_table_field): void
+	private static function addForeignKey_FieldParams($RealTableName, $realfieldname, string $new_typeparams): void
 	{
-		$realtablename = database::realTableName($realtablename_);
 		$serverType = database::getServerType();
 		if ($serverType == 'postgresql')
 			throw new Exception('addForeignKey PostgreSql not supported.');
 
+		$RealTableNameWithPrefix = database::realTableName($RealTableName);
+		Fields::removeForeignKey($RealTableNameWithPrefix, $realfieldname);
+
 		//Create Key only if possible
-		$typeParams = explode(',', $new_typeparams);
+		$typeParams = CTMiscHelper::csv_explode(',', $new_typeparams);
 
-		if ($join_with_table_name == '') {
-			if ($new_typeparams == '')
-				throw new Exception('Parameters not set.');
+		if ($new_typeparams == '')
+			throw new Exception('Add Foreign Key: Parameters not set.');
 
-			if (count($typeParams) < 2)
-				throw new Exception('Parameters not complete.');
+		if (count($typeParams) < 2)
+			throw new Exception('Add Foreign Key: Parameters not complete.');
 
-			$tableRow = TableHelper::getTableRowByName($typeParams[0]); //[0] - is tablename
-			if (!is_object($tableRow))
-				throw new Exception('Join with table "' . $join_with_table_name . '" not found.');
+		$tableRow = TableHelper::getTableRowByName($typeParams[0]);
+		if (!is_object($tableRow))
+			throw new Exception('Add Foreign Key: Table "' . $typeParams[0] . '" not found.');
 
-			$join_with_table_name = $tableRow->realtablename;
-			$join_with_table_field = $tableRow->realidfieldname;
-		}
-
-		$join_with_table_name = database::realTableName($join_with_table_name);
-
-		Fields::removeForeignKey($realtablename, $realfieldname);
+		$join_with_real_table_name_with_prefix = database::realTableName($tableRow->realtablename);
+		$join_with_table_field = $tableRow->realidfieldname;
 
 		if (isset($typeParams[7]) and $typeParams[7] == 'addforeignkey') {
-			Fields::cleanTableBeforeNormalization($realtablename, $realfieldname, $join_with_table_name, $join_with_table_field);
+			Fields::cleanTableBeforeNormalization($RealTableNameWithPrefix, $realfieldname, $join_with_real_table_name_with_prefix, $join_with_table_field);
 
 			try {
-				database::addForeignKey($realtablename, $realfieldname, $join_with_table_name, $join_with_table_field);
+				database::addForeignKey($RealTableNameWithPrefix, $realfieldname, $join_with_real_table_name_with_prefix, $join_with_table_field);
 			} catch (Exception $e) {
 				throw new Exception($e->getMessage());
 			}
@@ -1251,7 +1297,7 @@ class Fields
 
 	/**
 	 * @throws Exception
-	 * @since 3.2.2
+	 * @since 3.5.8
 	 */
 	public static function cleanTableBeforeNormalization($realtablename, $realfieldname, $join_with_table_name, $join_with_table_field): void
 	{
@@ -1264,7 +1310,7 @@ class Fields
 
 		$whereClause = new MySQLWhereClause();
 		$whereClause->addCondition('b.' . $join_with_table_field, null, 'NULL');
-		$rows = database::loadAssocList($from, ['DISTINCT a.' . $realfieldname . ' AS customtables_distinct_temp_id'], $whereClause);
+		$rows = database::loadAssocList($from, [['DISTINCT', 'a', $realfieldname, 'customtables_distinct_temp_id']], $whereClause);
 
 		$whereClauseUpdate = new MySQLWhereClause();
 		$whereClauseUpdate->addOrCondition($realfieldname, 0);
@@ -1274,6 +1320,35 @@ class Fields
 				$whereClauseUpdate->addOrCondition($realfieldname, $row['customtables_distinct_temp_id']);
 		}
 		database::update($realtablename, [$realfieldname => null], $whereClauseUpdate);
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.5.8
+	 */
+	private static function addForeignKey_Users($RealTableName, $realfieldname): void
+	{
+		$serverType = database::getServerType();
+		if ($serverType == 'postgresql')
+			throw new Exception('addForeignKey PostgreSql not supported.');
+
+		if (defined('_JEXEC'))
+			$join_with_table_field = 'id';
+		elseif (defined('WPINC'))
+			$join_with_table_field = 'ID';
+		else
+			throw new Exception('Add Foreign Key for Users not supported in this CMS.');
+
+		$RealTableNameWithPrefix = database::realTableName($RealTableName);
+		Fields::removeForeignKey($RealTableNameWithPrefix, $realfieldname);
+		$join_with_real_table_name_with_prefix = database::realTableName('#__users');
+		Fields::cleanTableBeforeNormalization($RealTableNameWithPrefix, $realfieldname, $join_with_real_table_name_with_prefix, $join_with_table_field);
+
+		try {
+			database::addForeignKey($RealTableNameWithPrefix, $realfieldname, $join_with_real_table_name_with_prefix, $join_with_table_field);
+		} catch (Exception $e) {
+			throw new Exception($e->getMessage());
+		}
 	}
 
 	/**
