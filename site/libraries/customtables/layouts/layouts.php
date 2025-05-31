@@ -221,12 +221,12 @@ class Layouts
 		if (!empty($layoutId)) {
 			$this->getLayout($layoutId);
 			if ($this->layoutType === null)
-				return ['success' => false, 'message' => 'CustomTable: Layout "' . $layoutId . '" not found', 'short' => 'error'];
+				return ['success' => false, 'message' => 'Layout "' . $layoutId . '" not found', 'short' => 'error'];
 			if ($this->ct->Table->fields === null)
-				return ['success' => false, 'message' => 'CustomTable: Table not selected or not found', 'short' => 'error'];
+				return ['success' => false, 'message' => 'Table not selected or not found', 'short' => 'error'];
 		} elseif ($task !== 'cancel') {
 			if ($this->ct->Table === null)
-				return ['success' => false, 'message' => 'CustomTable: Table not selected', 'short' => 'error'];
+				return ['success' => false, 'message' => 'Table not selected', 'short' => 'error'];
 
 			if ($layoutType === null) {
 				if ($task == 'saveandcontinue' or $task == 'save' or $task == 'saveascopy')
@@ -276,6 +276,8 @@ class Layouts
 			}
 		}
 
+		$this->ct->LayoutVariables['layout_type'] = $this->layoutType;
+
 		if (in_array($this->layoutType, [
 			CUSTOMTABLES_LAYOUT_TYPE_SIMPLE_CATALOG,
 			CUSTOMTABLES_LAYOUT_TYPE_CATALOG_PAGE,
@@ -283,6 +285,7 @@ class Layouts
 			CUSTOMTABLES_LAYOUT_TYPE_CSV,
 			CUSTOMTABLES_LAYOUT_TYPE_JSON
 		])) {
+
 			$output['html'] = $this->renderCatalog();
 		} elseif ($this->layoutType == CUSTOMTABLES_LAYOUT_TYPE_EDIT_FORM) {
 
@@ -332,7 +335,7 @@ class Layouts
 		} elseif ($this->layoutType == CUSTOMTABLES_LAYOUT_TYPE_DETAILS or $this->layoutType == CUSTOMTABLES_LAYOUT_TYPE_CATALOG_ITEM) {
 			$output['html'] = $this->renderDetailedLayout();
 		} else {
-			return ['success' => false, 'message' => 'CustomTable: Unknown Layout Type', 'short' => 'error'];
+			return ['success' => false, 'message' => 'Unknown Layout Type', 'short' => 'error'];
 		}
 
 		if ($this->ct->Env->clean == 0) {
@@ -411,6 +414,7 @@ class Layouts
 
 		$this->layoutId = (int)$row['id'];
 		$this->layoutType = (int)$row['layouttype'];
+		$this->ct->LayoutVariables['layout_type'] = $this->layoutId;
 
 		if (!empty($row['params'])) {
 			try {
@@ -617,13 +621,14 @@ class Layouts
 					$record->delete($listing_id);
 					$count += 1;
 				} catch (Exception $e) {
-					return ['success' => false, 'message' => 'Delete records: ' . $e->getMessage(), 'short' => 'error'];
+					return ['success' => false, 'message' => 'Delete records: ' . $e->getMessage(), 'short' => 'error', 'id' => $listing_id];
 				}
 			}
 
 			$message = ($count == 1 ? common::translate('COM_CUSTOMTABLES_LISTOFRECORDS_N_ITEMS_DELETED_1') :
 				common::translate('COM_CUSTOMTABLES_LISTOFRECORDS_N_ITEMS_DELETED', $count));
-			return ['success' => true, 'message' => $message, 'short' => 'deleted'];
+
+			return ['success' => true, 'message' => $message, 'short' => 'deleted', 'id' => (count($listing_ids) > $listing_ids ? null : $listing_ids[0])];
 		}
 
 		return ['success' => false, 'message' => 'Records not selected', 'short' => 'error'];
@@ -641,6 +646,9 @@ class Layouts
 		if (count($listing_ids) == 0) {
 			//Joomla front-end many
 			$listing_ids_str = common::inputPostString('ids', null, 'create-edit-record');
+			if ($listing_ids_str === null)
+				$listing_ids_str = common::inputGetString('ids', null, 'create-edit-record');
+
 			if ($listing_ids_str != null) {
 				$listing_ids_ = explode(',', $listing_ids_str);
 
@@ -694,14 +702,14 @@ class Layouts
 					$record->refresh($listing_id);
 					$count += 1;
 				} catch (Exception $e) {
-					return ['success' => false, 'message' => $e->getMessage(), 'short' => 'error'];
+					return ['success' => false, 'message' => $e->getMessage(), 'short' => 'error', 'id' => $listing_id];
 				}
 			}
 
 			$message = ($count == 1 ? common::translate('COM_CUSTOMTABLES_LISTOFRECORDS_N_ITEMS_REFRESHED_1') :
 				common::translate('COM_CUSTOMTABLES_LISTOFRECORDS_N_ITEMS_REFRESHED', $count));
 
-			return ['success' => true, 'message' => $message, 'short' => 'refreshed'];
+			return ['success' => true, 'message' => $message, 'short' => 'refreshed', 'id' => (count($listing_ids) > $listing_ids ? null : $listing_ids[0])];
 
 		}
 
@@ -724,10 +732,10 @@ class Layouts
 		try {
 			$record->copy($listing_id);
 		} catch (Exception $e) {
-			return ['success' => false, 'message' => $e->getMessage(), 'short' => 'error'];
+			return ['success' => false, 'message' => $e->getMessage(), 'short' => 'error', 'id' => $record->listing_id, 'original_id' => $listing_id];
 		}
 
-		return ['success' => true, 'message' => common::translate('COM_CUSTOMTABLES_RECORDS_COPIED'), 'short' => 'copied'];
+		return ['success' => true, 'message' => common::translate('COM_CUSTOMTABLES_RECORDS_COPIED'), 'short' => 'copied', 'id' => $record->listing_id];
 	}
 
 	/**
@@ -748,7 +756,7 @@ class Layouts
 					$record->publish($listing_id, $status);
 					$count += 1;
 				} catch (Exception $e) {
-					return ['success' => false, 'message' => $e->getMessage(), 'short' => 'error'];
+					return ['success' => false, 'message' => $e->getMessage(), 'short' => 'error', 'id' => $listing_id];
 				}
 			}
 
@@ -764,7 +772,7 @@ class Layouts
 				$statusMessage = 'unpublished';
 			}
 
-			return ['success' => true, 'message' => $message, 'short' => $statusMessage];
+			return ['success' => true, 'message' => $message, 'short' => $statusMessage, 'id' => (count($listing_ids) > $listing_ids ? null : $listing_ids[0])];
 		}
 
 		return ['success' => false, 'message' => 'Records not selected', 'short' => 'error'];
@@ -801,7 +809,7 @@ class Layouts
 		} catch (Exception $e) {
 
 			if ($this->ct->Env->debug)
-				$message = $e->getMessage() . '<br/>' . $e->getFile() . '<br/>' . $e->getLine();// . $e->getTraceAsString();
+				$message = $e->getMessage() . ', ' . $e->getFile() . ', ' . $e->getLine();// . $e->getTraceAsString();
 			else
 				$message = $e->getMessage();
 
@@ -1065,6 +1073,9 @@ class Layouts
 
 			$this->ct->getRecord();
 		}
+
+		if ($this->ct->Table->record === null)
+			throw new Exception(common::translate('COM_CUSTOMTABLES_NOTFOUND'));
 
 		return $this->renderDetailedLayoutDO();
 	}

@@ -104,7 +104,10 @@ class SearchInputBox
 			'multilangtext' => 'string',
 			'url' => 'string',
 			'virtual' => 'string',
-			'email' => 'string'
+			'email' => 'string',
+			'creationtime' => 'date',
+			'changetime' => 'date',
+			'lastviewtime' => 'date'
 		];
 
 		if (isset($this->field->fieldrow['fields']) and is_array($this->field->fieldrow['fields']) and count($this->field->fieldrow['fields']) > 1)

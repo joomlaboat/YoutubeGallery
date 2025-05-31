@@ -7,7 +7,9 @@
  * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  **/
 
-const uploaderParams = [];
+if (!window.uploaderParams) { // This works only if uploaderParams is defined globally.
+	window.uploaderParams = [];
+}
 
 function updateUploadedFileBox(index) {
 	if (uploaderParams[index].uploadedFileBox != null) {
@@ -101,7 +103,7 @@ function ct_getUploader(index, URL_String, maxFileSize, allowedTypes, UploaderFo
 
 							if (typeof CTEditHelper !== 'undefined') {
 								let formObject = document.getElementById(UploaderForm);
-								CTEditHelper.checkRequiredFields(formObject);
+								CTEditHelper.checkRequiredFields(formObject, ctFieldInputPrefix);
 							}
 
 							document.getElementById(p.esUploaderFormID).submit();
@@ -144,7 +146,7 @@ function ct_getUploader(index, URL_String, maxFileSize, allowedTypes, UploaderFo
 
 				if (typeof CTEditHelper !== 'undefined') {
 					let formObject = document.getElementById(UploaderForm);
-					CTEditHelper.checkRequiredFields(formObject);
+					CTEditHelper.checkRequiredFields(formObject, ctFieldInputPrefix);
 				}
 			}
 		});

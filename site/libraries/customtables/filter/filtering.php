@@ -86,13 +86,13 @@ class Filtering
 	protected function sanitizeAndParseFilter($paramWhere, $parse = false): string
 	{
 		if ($parse) {
-			//Parse using layout, has no effect to layout itself
+			//Parse using layout has no effect to layout itself
 
 			try {
 				$twig = new TwigProcessor($this->ct, $paramWhere);
 				$paramWhere = $twig->process();
 			} catch (Exception $e) {
-				throw new Exception($e->getMessage());
+				throw new Exception('Params: "' . $paramWhere . '"' . $e->getMessage());
 			}
 
 			if ($this->ct->Params->allowContentPlugins)
@@ -918,24 +918,37 @@ class Filtering
 		}
 
 		if ($valueStart and $valueEnd) {
-			//Breadcrumbs
-			$this->PathValue[] = $title1 . ' '
-				. common::translate('COM_CUSTOMTABLES_DATE_FROM') . ' ' . $titleStart . ' '
-				. common::translate('COM_CUSTOMTABLES_DATE_TO') . ' ' . $titleEnd;
 
-			$whereClause->addCondition($fieldRow1['realfieldname'], $valueStart, '>=');
-			$whereClause->addCondition($fieldRow1['realfieldname'], $valueEnd, '<=');
+			if ($valueStart == $valueEnd) {
+				//Breadcrumbs
+				$this->PathValue[] = $title1 . ' '
+					. common::translate('COM_CUSTOMTABLES_DATE') . ' ' . $titleStart;
+
+				$whereClause->addCondition($fieldRow1['realfieldname'], $valueStart . ' 00:00:00', '>=');
+				$whereClause->addCondition($fieldRow1['realfieldname'], $valueEnd . ' 23:59:59', '<=');
+
+			} else {
+				//Breadcrumbs
+				$this->PathValue[] = $title1 . ' '
+					. common::translate('COM_CUSTOMTABLES_DATE_FROM') . ' ' . $titleStart . ' '
+					. common::translate('COM_CUSTOMTABLES_DATE_TO') . ' ' . $titleEnd;
+
+				$whereClause->addCondition($fieldRow1['realfieldname'], $valueStart . ' 00:00:00', '>=');
+				$whereClause->addCondition($fieldRow1['realfieldname'], $valueEnd . ' 23:59:59', '<=');
+			}
+
 		} elseif ($valueStart and $valueEnd === null) {
 			$this->PathValue[] = $title1 . ' '
 				. common::translate('COM_CUSTOMTABLES_FROM') . ' ' . $titleStart;
 
-			$whereClause->addCondition($fieldRow1['realfieldname'], $valueStart, '>=');
+			$whereClause->addCondition($fieldRow1['realfieldname'] . ' 00:00:00', $valueStart, '>=');
 		} elseif ($valueStart === null and $valueEnd) {
 			$this->PathValue[] = $title1 . ' '
 				. common::translate('COM_CUSTOMTABLES_TO') . ' ' . $valueEnd;
 
-			$whereClause->addCondition($fieldRow1['realfieldname'], $valueEnd, '<=');
+			$whereClause->addCondition($fieldRow1['realfieldname'], $valueEnd . ' 23:59:59', '<=');
 		}
+
 		return $whereClause;
 	}
 
@@ -973,9 +986,11 @@ class Filtering
 		if ($fieldRow2 !== null) {
 			$value2 = $value;
 			$title2 = $fieldRow2['fieldtitle' . $this->ct->Languages->Postfix];
+			$value2isFieldName = true;
 		} else {
 			$value2 = $value;
 			$title2 = $value;
+			$value2isFieldName = false;
 		}
 
 		//Breadcrumbs
@@ -986,8 +1001,15 @@ class Filtering
 			$whereClause->addCondition($value1, null, 'NULL');
 		elseif ($value2 == 'NULL' and $comparison_operator == '!=')
 			$whereClause->addCondition($value1, null, 'NOT NULL');
-		else
-			$whereClause->addCondition($value1, $value2, $comparison_operator);
+		else {
+			if ($value2isFieldName or ($comparison_operator != '=' and $comparison_operator != '==')) {
+				$whereClause->addCondition($value1, $value2, $comparison_operator);
+			} else {
+				$whereClause->addCondition($value1, $value2 . ' 00:00:00', '>=');
+				$whereClause->addCondition($value1, $value2 . ' 23:59:59', '<=');
+			}
+		}
+
 		return $whereClause;
 	}
 
@@ -1138,7 +1160,7 @@ class LinkJoinFilters
 		$selects[] = $ct->Table->realtablename . '.' . $fieldRow['realfieldname'];
 		$rows = database::loadAssocList($ct->Table->realtablename, $selects, $whereClause, $fieldRow['realfieldname']);
 
-		$result .= '<select id="' . $control_name . 'SQLJoinLink" class="' . common::convertClassString('form-select') . '" onchange="ctInputbox_UpdateSQLJoinLink(\'' . $control_name . '\',\'' . $control_name_postfix . '\')">';
+		$result .= '<select id="' . $control_name . 'SQLJoinLink" class="' . common::convertClassString('form-select') . '" onchange="CTEditHelper.ctInputbox_UpdateSQLJoinLink(\'' . $control_name . '\',\'' . $control_name_postfix . '\')">';
 		$result .= '<option value="">- ' . common::translate('COM_CUSTOMTABLES_SELECT') . '</option>';
 
 		foreach ($rows as $row) {

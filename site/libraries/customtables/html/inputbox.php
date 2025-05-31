@@ -110,6 +110,7 @@ class Inputbox
 				$input['value'] = $value;
 				break;
 
+			case 'creationtime':
 			case 'date':
 				$input["renderAs"] = "date";
 				$input['value'] = $value;
@@ -253,6 +254,7 @@ class Inputbox
 			case 'blob':
 			case 'color':
 			case 'date':
+			case 'creationtime':
 			case 'email':
 			case 'file':
 			case 'filebox':
@@ -366,6 +368,7 @@ class Inputbox
 			case 'checkbox':
 			case 'color':
 			case 'date':
+			case 'creationtime':
 			case 'email':
 			case 'file':
 			case 'filebox':
@@ -405,8 +408,17 @@ class Inputbox
 				if (file_exists($path . 'tablejoin.php')) {
 					require_once($path . 'tablejoin.php');
 
-					$inputBoxRenderer = new ProInputBoxTableJoin($this->ct, $this->field, $this->row, $this->option_list, $this->attributes);
-					return $inputBoxRenderer->render($value, $this->defaultValue);
+					try {
+						$inputBoxRenderer = new ProInputBoxTableJoin($this->ct, $this->field, $this->row, $this->option_list, $this->attributes);
+						return $inputBoxRenderer->render($value, $this->defaultValue);
+					} catch (Exception $e) {
+						if ($this->ct->Env->debug)
+							$message = $e->getMessage() . ', ' . $e->getFile() . ', ' . $e->getLine() . $e->getTraceAsString();
+						else
+							$message = $e->getMessage();
+						return $message;
+					}
+
 				} else {
 					return common::translate('COM_CUSTOMTABLES_AVAILABLE');
 				}
@@ -560,7 +572,8 @@ abstract class BaseInputBox
 		if (substr($onchange, -1) !== ';') {
 			$onchange .= ';';
 		}
-		if (substr($attributes['onchange'], -1) !== ';') {
+
+		if (!empty($attributes['onchange']) and substr($attributes['onchange'], -1) !== ';') {
 			$attributes['onchange'] .= ';';
 		}
 

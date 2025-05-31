@@ -1153,12 +1153,12 @@ class CTMiscHelper
 			}
 
 			$app->setHeader('status', $code);
-			$app->setHeader('Content-Type', 'application/vnd.api+json');
+			$app->setHeader('Content-Type', 'application/json');
 			$app->sendHeaders();
 		} elseif (defined('WPINC')) {
 			// Set headers
 			status_header($code);
-			header('Content-Type: application/vnd.api+json');
+			header('Content-Type: application/application/json');
 		}
 
 		echo json_encode([
@@ -1177,10 +1177,11 @@ class CTMiscHelper
 
 	static public function fireSuccess(?string $id = null, $dataVariable = null, ?string $message = null, ?array $metadata = null): void
 	{
+		$html = null;
 		if (is_array($dataVariable)) {
 			$data = $dataVariable;
 		} else {
-			if ($dataVariable === null) {
+			if ($dataVariable === null or $dataVariable === "") {
 				$data = null;
 			} else {
 				try {
@@ -1189,7 +1190,8 @@ class CTMiscHelper
 					if ($id === null and $data !== null and is_array($data) and !empty($data['id']))
 						$id = $data['id'];
 				} catch (Exception $e) {
-					$data = ['error' => $e->getMessage(), 'result' => $dataVariable];
+					$data = null;//['error' => $e->getMessage(), 'result' => $dataVariable];
+					$html = $dataVariable;
 				}
 			}
 		}
@@ -1197,17 +1199,18 @@ class CTMiscHelper
 		if (defined('_JEXEC')) {
 			$app = Factory::getApplication();
 			$app->setHeader('status', 200);
-			$app->setHeader('Content-Type', 'application/vnd.api+json');
+			$app->setHeader('Content-Type', 'application/json');
 			$app->sendHeaders();
 		} elseif (defined('WPINC')) {
 			// Set headers
 			status_header(200);
-			header('Content-Type: application/vnd.api+json');
+			header('Content-Type: application/json');
 		}
 
 		$result = [
 			'success' => true,
 			'data' => $data,
+			'html' => $html,
 			'message' => $message
 		];
 
@@ -1349,7 +1352,7 @@ class CTMiscHelper
 		} elseif (defined('WPINC')) {
 			// Set headers
 			status_header($code);
-			//header('Content-Type: application/vnd.api+json');
+			//header('Content-Type: application/json');
 		}
 
 		if ($format == 'text/html')

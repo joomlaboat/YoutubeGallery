@@ -179,13 +179,13 @@
 			 hidedefaultexample="1" repetitive="1" twigclass="html" wordpress="true">
 			<params>
 				<param name="button" label="Button" type="list" example="edit">
-					<option value="" label="- None"/>
+					<option value="" label="- None" wordpress="true"/>
 					<option value="checkbox" label="Checkbox"/>
 					<option value="edit" label="Edit" wordpress="true"/>
 					<option value="editmodal" label="Edit Modal Form"/>
-					<option value="refresh" label="Refresh"/>
+					<option value="refresh" label="Refresh" wordpress="true"/>
 					<option value="delete" label="Delete" wordpress="true"/>
-					<option value="publish" label="Publish/Unpublish"/>
+					<option value="publish" label="Publish/Unpublish" wordpress="true"/>
 					<option value="gallery" label="Image Gallery"/>
 					<option value="filebox" label="File Box"/>
 					<option value="copy" label="Copy" proversion="1"/>
@@ -958,6 +958,17 @@
 			<params>
 				<param name="parameter" label="Parameter" type="string" description="Url query parameter"
 					   example="firstname"/>
+			</params>
+		</tag>
+
+		<tag name="getwhere" label="Query Where" startchar="{" endchar="}"
+			 description="Generates and returns a URL query string segment for the 'where' parameter. This tag is useful when constructing URLs dynamically based on specific conditions or filtering criteria. For example, to retrieve entries created on a particular date, you can use: ?view=catalog&#38;where=CreatedAt%3D2025-03-20."
+			 twigclass="url"
+			 wordpress="true">
+			<params>
+				<param name="parameter" label="Parameter" type="string"
+					   description="The name of the field to filter by within the URL query. This parameter should match the field name used in your database or catalog."
+					   example="CreatedAt"/>
 			</params>
 		</tag>
 
