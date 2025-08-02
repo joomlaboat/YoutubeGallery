@@ -101,11 +101,16 @@ class YoutubeGalleryHotPlayer
             $hotRefreshScript .= '
 			//Show first video
 			youtubeplayer' . $videoListRow->id . '.CurrentVideoID="' . $videoId . '";
+			
 			window.addEventListener( "load", function( event ) {
+			
+						if (!document.body.hasAttribute("data-findnextvideo-done")) {
+			document.body.setAttribute("data-findnextvideo-done", "1");
 ';
             if ($videoId == '') {
                 $hotRefreshScript .= '
-			setTimeout(youtubeplayer' . $videoListRow->id . '.FindNextVideo(), 500);
+                
+    		setTimeout(() => youtubeplayer1.FindNextVideo(), 500);
 ';
             } else {
                 $hotRefreshScript .= '
@@ -114,7 +119,7 @@ class YoutubeGalleryHotPlayer
             }
 
             $hotRefreshScript .= '
-		});
+		} });
 ';
         }
         $document->addCustomTag('<script>' . $hotRefreshScript . '</script>');
