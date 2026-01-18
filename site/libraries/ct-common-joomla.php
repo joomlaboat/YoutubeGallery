@@ -427,7 +427,7 @@ class common
 		return Factory::getApplication()->input->get($parameter, $default, $filter);
 	}
 
-	public static function makeReturnToURL(string $currentURL = null): ?string
+	public static function makeReturnToURL(?string $currentURL = null): ?string
 	{
 		if ($currentURL === null)
 			$currentURL = self::curPageURL();

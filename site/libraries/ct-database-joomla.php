@@ -386,7 +386,7 @@ class database
 	public static function loadAssocList(string  $table, array $selects, MySQLWhereClause $whereClause,
 										 ?string $order = null, ?string $orderBy = null,
 										 ?int    $limit = null, ?int $limitStart = null,
-										 string  $groupBy = null, bool $returnQueryString = false)
+										 ?string  $groupBy = null, bool $returnQueryString = false)
 	{
 		return self::loadObjectList($table, $selects, $whereClause, $order, $orderBy, $limit, $limitStart, 'ARRAY_A', $groupBy, $returnQueryString);
 	}
@@ -394,7 +394,7 @@ class database
 	public static function loadObjectList(string  $table, array $selectsRaw, MySQLWhereClause $whereClause,
 										  ?string $order = null, ?string $orderBy = null,
 										  ?int    $limit = null, ?int $limitStart = null,
-										  string  $output_type = 'OBJECT', string $groupBy = null,
+										  string  $output_type = 'OBJECT', ?string $groupBy = null,
 										  bool    $returnQueryString = false)
 	{
 		$db = self::getDB();
@@ -575,7 +575,7 @@ class database
 	public static function loadRowList(string  $table, array $selects, MySQLWhereClause $whereClause,
 									   ?string $order = null, ?string $orderBy = null,
 									   ?int    $limit = null, ?int $limitStart = null,
-									   string  $groupBy = null, bool $returnQueryString = false)
+									   ?string  $groupBy = null, bool $returnQueryString = false)
 	{
 		return self::loadObjectList($table, $selects, $whereClause, $order, $orderBy, $limit, $limitStart, 'ROW_LIST', $groupBy, $returnQueryString);
 	}
@@ -583,7 +583,7 @@ class database
 	public static function loadColumn(string  $table, array $selects, MySQLWhereClause $whereClause,
 									  ?string $order = null, ?string $orderBy = null,
 									  ?int    $limit = null, ?int $limitStart = null,
-									  string  $groupBy = null, bool $returnQueryString = false)
+									  ?string  $groupBy = null, bool $returnQueryString = false)
 	{
 		return self::loadObjectList($table, $selects, $whereClause, $order, $orderBy, $limit, $limitStart, 'COLUMN', $groupBy, $returnQueryString);
 	}
