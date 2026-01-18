@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2025. Ivan Komlev
+ * @copyright (C) 2018-2026. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -238,7 +238,7 @@ class InputBox_usergroups extends BaseInputBox
 		$htmlResult .= '<div style="padding-bottom:20px;"><div style="width:90%;" id="' . $control_name . '_box"></div>'
 			. '<div style="height:30px;">'
 			. '<div id="' . $control_name . '_addButton" style="visibility:visible;"><img src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/icons/new.png" alt="Add" title="Add" style="cursor: pointer;" '
-			. 'onClick="ctInputBoxRecords_addItem(\'' . $control_name . '\',\'_selector\')" /></div>'
+			. 'onClick="CTEditHelper.ctInputBoxRecords_addItem(\'' . $control_name . '\',\'_selector\')" /></div>'
 			. '<div id="' . $control_name . '_addBox" style="visibility:hidden;">'
 			. '<div style="float:left;">' . $single_box . '</div>'
 			. '<img src="' . CUSTOMTABLES_MEDIA_WEBPATH . 'images/icons/plus.png" alt="Add" title="Add" '

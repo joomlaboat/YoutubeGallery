@@ -312,29 +312,6 @@
 		</editparams>
 	</type>
 
-	<!-- Not used in WordPress version and will be obsolete in Joomla version in December 2024 -->
-	<type ct_name="customtables" deprecated="1" name="customtables" label="Hierarchical List"
-		  description="Hierarchical List."
-		  rawquotes="1" ct_alias="customtables" disabled="false" ct_special="false" priority="3" proversion="1">
-		<params>
-			<param name="option" label="Option" description="" default="" type="string"/>
-			<param name="selector" label="Selector" description="How to select records." default="single" type="list"
-				   example="multi">
-				<option value="single" label="Single (Select Box)"/>
-				<option value="multi" label="Multiple (List Box)"/>
-			</param>
-		</params>
-
-		<editparams name="customtables" label="Input Element Parameters" description="">
-			<params>
-				<param type="string" name="cssclass" label="CSS Class" description="Name or names of CSS class(es)."/>
-				<param name="attributes" label="Attributes"
-					   description="Optional attributes like: disabled, onclick, onchange, etc." default=""
-					   type="string"/>
-			</params>
-		</editparams>
-	</type>
-
 	<!-- WordPress Ready 32 -->
 	<type ct_name="id" label="Auto-increment ID" description="Custom record ID."
 		  priority="2" wordpress="true" order="32">
@@ -738,10 +715,10 @@
 						   default="" type="string"/>
 				<sizeparam name="format" label="Image Format" description="New image file format." style="width:150px;"
 						   default="jpg" type="list">
-					<option value="jpg" label="JPEG"/>
-					<option value="gif" label="GIF"/>
-					<option value="png" label="PNG"/>
-					<option value="webp" label="WEBP"/>
+					<option value="jpg" label="JPEG" wordpress="true"/>
+					<option value="gif" label="GIF" wordpress="true"/>
+					<option value="png" label="PNG" wordpress="true"/>
+					<option value="webp" label="WEBP" wordpress="true"/>
 				</sizeparam>
 			</param>
 			<param name="additionalparams" label="Image Processing Methods"
@@ -1174,6 +1151,15 @@
 				<option value="ORIG_PATH_INFO" label="ORIG_PATH_INFO"
 						description="Original version of 'PATH_INFO' before processed by PHP."
 						wordpress="true"/>
+			</param>
+			<param type="list" name="updateaction" label="Update on Action"
+				   description="Update field value when action occurs.">
+				<option value="add" label="Record added" wordpress="true"/>
+				<option value="edit" label="Record edited" wordpress="false"/>
+				<option value="refreshed" label="Record refreshed" wordpress="false"/>
+				<option value="published" label="Record published" wordpress="false"/>
+				<option value="unpublished" label="Record unpublished" wordpress="false"/>
+				<option value="view" label="Record viewed" wordpress="false"/>
 			</param>
 		</params>
 		<editparams name="server" label="Input Element Parameters" description="">

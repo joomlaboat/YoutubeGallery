@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2025. Ivan Komlev
+ * @copyright (C) 2018-2026. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -418,7 +418,7 @@ class TableHelper
 
 		database::deleteRecord('#__customtables_fields', 'tableid', (string)$tableId);
 		database::deleteRecord('#__customtables_tables', 'id', $tableId);
-		database::deleteTableLessFields();//TODO: No longer needed but lets keep ot for one year till Oct 2025 to make sure that all unused fields deleted.
+		//database::deleteTableLessFields();//TODO: No longer needed but lets keep ot for one year till Oct 2025 to make sure that all unused fields deleted.
 		return $table_row;
 	}
 
@@ -492,7 +492,7 @@ class TableHelper
 			$whereClause->addCondition('TABLE_NAME', $prefix . 'user_usergroup_map', '!=');
 			$whereClause->addCondition('TABLE_NAME', $prefix . 'usergroups', '!=');
 			$whereClause->addCondition('TABLE_NAME', $prefix . 'users', '!=');
-			$rows = database::loadAssocList('information_schema.tables', ['TABLE_NAME AS table_name'], $whereClause);
+			$rows = database::loadAssocList('information_schema.tables', ['TABLE_NAME AS table_name'], $whereClause, 'table_name');
 		}
 		$list = array();
 

@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2025. Ivan Komlev
+ * @copyright (C) 2018-2026. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -1177,6 +1177,10 @@ class CTMiscHelper
 
 	static public function fireSuccess(?string $id = null, $dataVariable = null, ?string $message = null, ?array $metadata = null): void
 	{
+		while (ob_get_level() > 0) {
+			ob_end_clean();
+		}
+
 		$html = null;
 		if (is_array($dataVariable)) {
 			$data = $dataVariable;
@@ -1324,12 +1328,14 @@ class CTMiscHelper
 	public static function fireFormattedOutput(string $content, string $format, string $pageTitle, int $code)
 	{
 		// Ensure no previous output interferes
-		while (ob_get_level() > 0) ob_end_clean();
+		while (ob_get_level() > 0) {
+			ob_end_clean();
+		}
 
-		if (!$format == 'rawhtml') {
+		if (!($format == 'rawhtml')) {
 
 			$fileExtension = 'html';
-			if ($format == 'text/html')
+			if ($format == '' or $format == 'html' or $format == 'text/html')
 				$fileExtension = 'html';
 			elseif ($format == 'txt')
 				$fileExtension = 'txt';
@@ -1337,6 +1343,8 @@ class CTMiscHelper
 				$fileExtension = 'json';
 			elseif ($format == 'xml')
 				$fileExtension = 'xml';
+			elseif ($format == 'csv')
+				$fileExtension = 'csv';
 
 			$filename = CTMiscHelper::makeNewFileName($pageTitle, $fileExtension);
 			if (is_null($filename))
@@ -1349,25 +1357,41 @@ class CTMiscHelper
 			$app = Factory::getApplication();
 			$app->setHeader('status', $code);
 			//$app->sendHeaders();
+
+			if ($format == 'text/html')
+				$app->setHeader('Content-Type', 'text/html; charset=utf-8');
+			elseif ($format == 'csv')
+				$app->setHeader('Content-Type', 'text/csv; charset=utf-8');
+			elseif ($format == 'txt')
+				$app->setHeader('Content-Type', 'text/plain; charset=utf-8');
+			elseif ($format == 'json')
+				$app->setHeader('Content-Type', 'application/json; charset=utf-8');
+			elseif ($format == 'xml')
+				$app->setHeader('Content-Type', 'application/xml; charset=utf-8');
+
+			$app->setHeader('Pragma', 'no-cache');
+			$app->setHeader('Expires', '0');
+
+			$app->sendHeaders();
 		} elseif (defined('WPINC')) {
 			// Set headers
 			status_header($code);
-			//header('Content-Type: application/json');
+
+			if ($format == 'text/html')
+				header('Content-Type: text/html; charset=utf-8');
+			elseif ($format == 'csv')
+				header('Content-Type: text/csv; charset=utf-8');
+			elseif ($format == 'txt')
+				header('Content-Type: text/plain; charset=utf-8');
+			elseif ($format == 'json')
+				header('Content-Type: application/json; charset=utf-8');
+			elseif ($format == 'xml')
+				header('Content-Type: application/xml; charset=utf-8');
+
+			header("Pragma: no-cache");
+			header("Expires: 0");
 		}
 
-		if ($format == 'text/html')
-			header('Content-Type: text/html; charset=utf-8');
-		elseif ($format == 'csv')
-			header('Content-Type: text/csv; charset=utf-8');
-		elseif ($format == 'txt')
-			header('Content-Type: text/plain; charset=utf-8');
-		elseif ($format == 'json')
-			header('Content-Type: application/json; charset=utf-8');
-		elseif ($format == 'xml')
-			header('Content-Type: application/xml; charset=utf-8');
-
-		header("Pragma: no-cache");
-		header("Expires: 0");
 
 		if ($format == 'csv')
 			echo preg_replace('/(<(script|style)\b[^>]*>).*?(<\/\2>)/is', "$1$3", $content);
@@ -1416,4 +1440,19 @@ class CTMiscHelper
 		return $filename;
 	}
 
+	public static function getUserIP(): string
+	{
+		if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER)) {
+			$forwardAddress = common::getServerParam('HTTP_X_FORWARDED_FOR');
+			if (!empty($forwardAddress)) {
+				if (str_contains($forwardAddress, ',')) {
+					$address = explode(",", $forwardAddress);
+					return trim($address[0]);
+				} else
+					return $forwardAddress;
+			} else
+				return common::getServerParam('REMOTE_ADDR');
+		} else
+			return common::getServerParam('REMOTE_ADDR');
+	}
 }

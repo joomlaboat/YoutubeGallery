@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2025. Ivan Komlev
+ * @copyright (C) 2018-2026. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -544,8 +544,8 @@ class Twig_HTML_Tags
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
 
-		if ($this->ct->Env->isPlugin or !empty($this->ct->Params->ModuleId))
-			return '';
+		//if ($this->ct->Env->isPlugin or !empty($this->ct->Params->ModuleId))
+		//return '';
 
 		if (is_array($list_of_fields_string_or_array))
 			$list_of_fields_string_array = $list_of_fields_string_or_array;
@@ -721,8 +721,8 @@ class Twig_HTML_Tags
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
 
-		if ($this->ct->Env->isPlugin or !empty($this->ct->Params->ModuleId))
-			return '';
+		//if ($this->ct->Env->isPlugin or !empty($this->ct->Params->ModuleId))
+		//return '';
 
 		$class = 'ctSearchBox';
 
@@ -737,19 +737,18 @@ class Twig_HTML_Tags
 			$label = $defaultLabel;
 
 		$icon = Icons::iconSearch($this->ct->Env->toolbarIcons, $label);
-
 		$onClick = 'ctSearchBoxDo()';
 
 		return $this->renderButtonOrIcon($linkType, $label, $class, $icon, $onClick);
 	}
 
-	function searchreset($label = '', $class_ = ''): string
+	function searchreset($linkType = '', $label = '', $class_ = ''): string
 	{
 		if ($this->ct->Env->print == 1 or ($this->ct->Env->frmt != 'html' and $this->ct->Env->frmt != ''))
 			return '';
 
-		if ($this->ct->Env->isPlugin or !empty($this->ct->Params->ModuleId))
-			return '';
+		//if ($this->ct->Env->isPlugin or !empty($this->ct->Params->ModuleId))
+		//return '';
 
 		$class = 'ctSearchBox';
 
@@ -758,23 +757,15 @@ class Twig_HTML_Tags
 		else
 			$class .= ' btn button-apply btn-primary';
 
-		$default_Label = common::translate('COM_CUSTOMTABLES_SEARCHRESET');
-		if ($label == common::ctStripTags($label)) {
-			if ($this->ct->Env->toolbarIcons != '') {
-				$img = '<i class=\'' . $this->ct->Env->toolbarIcons . ' fa-times\' data-icon=\'' . $this->ct->Env->toolbarIcons . ' fa-times\' title=\'' . $label . '\'></i>';
-				$labelHtml = ($label !== '' ? '<span style=\'margin-left:10px;\'>' . $label . '</span>' : '');
-			} else {
-				$img = '';
+		if (empty($defaultLabel))
+			$label = common::translate('COM_CUSTOMTABLES_SEARCHRESET');
+		else
+			$label = $defaultLabel;
 
-				if ($label == '')
-					$label = $default_Label;
+		$icon = Icons::iconSearchReset($this->ct->Env->toolbarIcons, $label);
+		$onClick = 'ctSearchReset()';
 
-				$labelHtml = ($label !== '' ? '<span>' . $label . '</span>' : '');
-			}
-			return '<button class=\'' . $class . '\' onClick=\'ctSearchReset()\' title=\'' . $default_Label . '\'>' . $img . $labelHtml . '</button>';
-		} else {
-			return '<button class=\'' . $class . '\' onClick=\'ctSearchReset()\' title=\'' . $default_Label . '\'>' . $label . '</button>';
-		}
+		return $this->renderButtonOrIcon($linkType, $label, $class, $icon, $onClick);
 	}
 
 	function message($text, $type = 'notice'): ?string
@@ -886,7 +877,7 @@ class Twig_HTML_Tags
 	 * @throws Exception
 	 * @since 3.0.0
 	 */
-	function button($type = 'save', $title = '', $redirectlink = null, $optional_class = '')
+	function button($type = 'save', $title = '', $redirectLink = null, $optional_class = '')
 	{
 		if (defined('_JEXEC')) {
 			if (common::clientAdministrator())   //since   3.2
@@ -912,8 +903,8 @@ class Twig_HTML_Tags
 		if ($this->ct->Env->isPlugin)
 			return '2';
 
-		if ($redirectlink === null and !is_null($this->ct->Params->returnTo))
-			$redirectlink = $this->ct->Params->returnTo;
+		if ($redirectLink === null and !is_null($this->ct->Params->returnTo))
+			$redirectLink = $this->ct->Params->returnTo;
 
 		switch ($type) {
 			case 'save':
@@ -921,11 +912,11 @@ class Twig_HTML_Tags
 				break;
 
 			case 'saveandclose':
-				$vlu = $this->renderSaveAndCloseButton($optional_class, $title, $redirectlink, $formName);
+				$vlu = $this->renderSaveAndCloseButton($optional_class, $title, $redirectLink, $formName);
 				break;
 
 			case 'saveandprint':
-				$vlu = $this->renderSaveAndPrintButton($optional_class, $title, $redirectlink, $formName);
+				$vlu = $this->renderSaveAndPrintButton($optional_class, $title, $redirectLink, $formName);
 				break;
 
 			case 'saveascopy':
@@ -933,16 +924,16 @@ class Twig_HTML_Tags
 				if (!isset($this->ct->Table->record[$this->ct->Table->realidfieldname]) or $this->ct->Table->record[$this->ct->Table->realidfieldname] == 0)
 					$vlu = '';
 				else
-					$vlu = $this->renderSaveAsCopyButton($optional_class, $title, $redirectlink, $formName);
+					$vlu = $this->renderSaveAsCopyButton($optional_class, $title, $redirectLink, $formName);
 				break;
 
 			case 'close':
 			case 'cancel':
-				$vlu = $this->renderCancelButton($optional_class, $title, $redirectlink, $formName);
+				$vlu = $this->renderCancelButton($optional_class, $title, $redirectLink, $formName);
 				break;
 
 			case 'delete':
-				$vlu = $this->renderDeleteButton($optional_class, $title, $redirectlink);
+				$vlu = $this->renderDeleteButton($optional_class, $title, $redirectLink);
 				break;
 
 			default:
@@ -952,7 +943,7 @@ class Twig_HTML_Tags
 
 		//Not clear where and how this variable used.
 		if ($this->ct->Env->frmt == 'json') {
-			$this->button_objects[] = ['type' => $type, 'title' => $title, 'redirectlink' => $redirectlink];
+			$this->button_objects[] = ['type' => $type, 'title' => $title, 'redirectlink' => $redirectLink];
 			return $title;
 		}
 

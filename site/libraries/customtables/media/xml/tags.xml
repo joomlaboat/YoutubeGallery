@@ -25,11 +25,19 @@
 	<tagset name="html" label="HTML" description="HTML Tags to render HTML code." priority="2">
 
 		<tag name="add" label="Add New" startchar="{" endchar="}"
-			 description="Renders 'Add New Record' button" twigclass="html" wordpress="true">
+			 description="Renders an 'Add New Record' button that links to the input form."
+			 twigclass="html" wordpress="true">
 
 			<params>
 				<param type="string" name="alias" label="Menu Alias or Itemid in Joomla"
-					   description="To redirect to a specific Menu Item."/>
+					   description="Optional. Enter a Joomla Menu Alias or numeric Itemid to redirect the user to a specific menu item after clicking the button."/>
+
+				<param name="modal" label="Open Form in Modal"
+					   description="Display the form in a popup modal window instead of navigating to a new page."
+					   type="radio"
+					   default=""
+					   example="true"
+					   options="|No,true|Yes"/>
 			</params>
 		</tag>
 
@@ -168,6 +176,14 @@
 			 description="A button to resets search parameters"
 			 twigclass="html" image="https://joomlaboat.com/images/components/ct/tags/search-reset.png">
 			<params>
+				<param name="listtype" label="Link Type" type="list" default="buttoniconlabel">
+					<option value="buttoniconlabel" label="Button with Icon and Label" wordpress="true"/>
+					<option value="buttonicon" label="Button with Icon" wordpress="true"/>
+					<option value="buttonlabel" label="Button with Label" wordpress="true"/>
+					<option value="linkiconlabel" label="Link with Icon and Label" wordpress="true"/>
+					<option value="linkicon" label="Link with Icon" wordpress="true"/>
+					<option value="linklabel" label="Link with Label" wordpress="true"/>
+				</param>
 				<param name="label" label="Button Label" type="string" example="Search"
 					   description="The label of the button. Leaving the label parameter empty will produce an icon only (a magnifying glass). You can also pass HTML code as the label argument to control the button look completely. "/>
 				<param type="string" name="cssclass" label="CSS Class"
@@ -1031,7 +1047,7 @@
 		</tag>
 
 		<tag name="base64" label="Base64 Encode URL" startchar="{" endchar="}"
-			 description="Returns base64 encoded current URL." twigclass="url" proversion="1" wordpress="false"/>
+			 description="Returns base64 encoded current URL." twigclass="url" proversion="1" wordpress="true"/>
 
 		<tag name="root" label="Website Root URI" startchar="{" endchar="}"
 			 description="Returns the root URI for the request." twigclass="url"
@@ -1290,9 +1306,15 @@
 		<tag name="languagepostfix" label="Language Postfix" startchar="{" endchar="}"
 			 description="Current page Language Postfix." proversion="1" twigclass="document" wordpress="false"/>
 
-		<tag name="attachment" label="Email file attachment" startchar="{" endchar="}" layouttypes="7"
-			 description="The link to a file that will be attached to an email. Works in Email Layout Type."
+		<tag name="attachment" label="Email File Attachment" startchar="{" endchar="}" layouttypes="7"
+			 description="Inserts a link to a file that will be attached to an outgoing email. This tag is only supported in Email Layout Type."
 			 proversion="1" twigclass="document" wordpress="false">
+
+			<params>
+				<param name="file" label="File" type="string"
+					   example="images/logo.png"
+					   description="Path to the file you want to attach to the email. The path should be relative to your website root."/>
+			</params>
 		</tag>
 
 		<tag name="sitename" label="Site Name" startchar="{" endchar="}" layouttypes="1,2,4,5,6"

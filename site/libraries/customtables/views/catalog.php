@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2025. Ivan Komlev
+ * @copyright (C) 2018-2026. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -20,12 +20,14 @@ class Catalog
 	var CT $ct;
 	var ?string $layoutCodeCSS;
 	var ?string $layoutCodeJS;
+	var bool $stealth;
 
 	function __construct(CT &$ct)
 	{
 		$this->ct = &$ct;
 		$this->layoutCodeCSS = '';
 		$this->layoutCodeJS = '';
+		$this->stealth = false;
 	}
 
 	/**
@@ -45,6 +47,7 @@ class Catalog
 
 		if ($layoutName !== null) {
 			$pageLayout = $Layouts->getLayout($layoutName);
+
 			if (isset($Layouts->layoutId)) {
 				$pageLayoutNameString = ($layoutName == '' ? 'InlinePageLayout' : $layoutName);
 				$pageLayoutLink = common::UriRoot(true, true) . 'administrator/index.php?option=com_customtables&view=listoflayouts&task=layouts.edit&id=' . $Layouts->layoutId;
@@ -55,6 +58,8 @@ class Catalog
 				throw new Exception('Layout "' . $layoutName . '" not found.');
 			}
 		}
+
+		$this->stealth = $Layouts->stealth;
 
 		// -------------------- Table
 		if ($this->ct->Table === null) {
@@ -168,6 +173,7 @@ class Catalog
 
 		if (!$recordsLoaded)
 			throw new Exception(common::translate('COM_CUSTOMTABLES_ERROR_TABLE_NOT_FOUND'));
+
 
 		try {
 			$twig = new TwigProcessor($this->ct, $pageLayout, false, false, true, $pageLayoutNameString, $pageLayoutLink);

@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2025. Ivan Komlev
+ * @copyright (C) 2018-2026. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -71,6 +71,8 @@ class CustomTablesImageMethods
 
 				if ($ImageFolder[0] != '/')
 					$ImageFolder = 'wp-content/uploads/' . $ImageFolder;
+				else
+					$ImageFolder = 'wp-content/uploads' . $ImageFolder;
 
 			} else
 				$ImageFolder = 'wp-content/uploads';
@@ -443,33 +445,9 @@ class CustomTablesImageMethods
 			return $duplicateImageID;
 		//--------- end of compare thumbnails
 
-		//custom images
-		if ($isOk) {
-			$customSizes = $this->getCustomImageOptions($params[0] ?? '');
-
-			foreach ($customSizes as $imageSize) {
-				$prefix = $imageSize[0];
-				$width = (int)$imageSize[1];
-				$height = (int)$imageSize[2];
-				$color = (int)$imageSize[3];
-				$watermark = $imageSize[5];
-
-				//save as extension
-				if ($imageSize[4] != '')
-					$ext = $imageSize[4];
-				else
-					$ext = $new_photo_ext;
-
-				$r = $this->ProportionalResize($uploadedFile, $ImageFolder . DIRECTORY_SEPARATOR . $prefix . '_' . $ImageID . '.' . $ext, $width, $height, 1, $color, $watermark);
-				if ($r != 1)
-					$isOk = false;
-			}
-		}
-
 		if ($isOk) {
 			copy($uploadedFile, $original_image_file);
 			unlink($uploadedFile);
-			return $ImageID;
 		} else {
 			if (file_exists($original_image_file))
 				unlink($original_image_file);
@@ -477,12 +455,32 @@ class CustomTablesImageMethods
 			if (file_exists($uploadedFile))
 				unlink($uploadedFile);
 
-			if ($fileNameType == '') {
-				return '-1';
-			} else {
-				return '';
-			}
+			return '-1';
 		}
+
+		//custom images
+
+		$customSizes = $this->getCustomImageOptions($params[0] ?? '');
+
+		foreach ($customSizes as $imageSize) {
+			$prefix = $imageSize[0];
+			$width = (int)$imageSize[1];
+			$height = (int)$imageSize[2];
+			$color = (int)$imageSize[3];
+			$watermark = $imageSize[5];
+
+			//save as extension
+			if ($imageSize[4] != '')
+				$ext = $imageSize[4];
+			else
+				$ext = $new_photo_ext;
+
+			$r = $this->ProportionalResize($original_image_file, $ImageFolder . DIRECTORY_SEPARATOR . $prefix . '_' . $ImageID . '.' . $ext, $width, $height, 1, $color, $watermark);
+			if ($r != 1)
+				return '-1';
+		}
+
+		return $ImageID;
 	}
 
 	function FileExtension($src): string
@@ -509,7 +507,7 @@ class CustomTablesImageMethods
 			CustomTablesImageMethods::DeleteCustomImage($ExistingImage, $ImageFolder, $customSize[0]);
 	}
 
-	function ProportionalResize(string $src, string $dst, int $dst_width, int $dst_height, int $LevelMax, int $backgroundColor, string $watermark, string $fileExtension = null): int
+	function ProportionalResize(string $src, string $dst, int $dst_width, int $dst_height, int $LevelMax, int $backgroundColor, string $watermark, ?string $fileExtension = null): int
 	{
 		//Returns:
 		// 1 if everything is ok

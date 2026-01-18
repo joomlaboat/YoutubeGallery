@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2025. Ivan Komlev
+ * @copyright (C) 2018-2026. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -13,6 +13,7 @@ namespace CustomTables;
 // no direct access
 defined('_JEXEC') or die();
 
+use api\components\com_customtables\Controller\LoginController;
 use CustomTablesImageMethods;
 use CustomTablesKeywordSearch;
 use Exception;
@@ -145,11 +146,11 @@ class CT
 		else
 			$this->Table->record = $records[0];
 
+		if (!empty($this->Params->recordsTable) and !empty($this->Params->recordsUserIdField) and !empty($this->Params->recordsField)) {
 
-		if (!is_null($this->Params->recordsTable) and !is_null($this->Params->recordsUserIdField) and !is_null($this->Params->recordsField)) {
 			if (!$this->checkRecordUserJoin($this->Params->recordsTable, $this->Params->recordsUserIdField, $this->Params->recordsField, $this->Params->listing_id)) {
 				//YOU ARE NOT AUTHORIZED TO ACCESS THIS SOURCE;
-				throw new Exception(common::translate('COM_CUSTOMTABLES_NOT_AUTHORIZED'));
+				throw new Exception(common::translate('COM_CUSTOMTABLES_NOT_AUTHORIZED') . ' ONLY USER CREATED THIS RECORD ALLOWED TO EDIT IT.');
 			}
 		}
 
@@ -239,23 +240,26 @@ class CT
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	function getRecords(bool $all = false, int $limit = 0, ?string $orderby = null, string $groupBy = null): bool
+	function getRecords(bool $all = false, int $limit = 0, ?string $orderby = null, ?string $groupBy = null): bool
 	{
+		//Grouping
+		$realGroupByFieldNames = [];
+
+		if (!empty($groupBy)) {
+			$realGroupByFieldNames = $this->getGroupByRealFieldNames($groupBy);
+			$this->GroupBy = implode(',', $realGroupByFieldNames);
+		} elseif (!empty($this->GroupBy)) {
+			$realGroupByFieldNames = explode(',', $this->GroupBy);
+		}
+
 		try {
-			$count = $this->getNumberOfRecords($this->Filter->whereClause);
+			$count = $this->getNumberOfRecords($this->Filter->whereClause, $realGroupByFieldNames);
 		} catch (Throwable $e) {
 			throw new Exception($e->getMessage());
 		}
 
 		if ($count === null)
 			return false;
-
-		//Grouping
-		if (!empty($groupBy)) {
-			$tempFieldRow = $this->Table->getFieldByName($groupBy);
-			if ($tempFieldRow !== null)
-				$this->GroupBy = $tempFieldRow['realfieldname'];
-		}
 
 		//Ordering
 		if ($orderby != null)
@@ -275,9 +279,13 @@ class CT
 			$ordering[] = $this->Ordering->orderby;
 		}
 
+		if (count($realGroupByFieldNames) > 0)
+			$selects[] = ['COUNT', $this->Table->realtablename, $this->Table->realidfieldname, 'ct_group_count'];
+
 		if ($this->Table->recordcount > 0) {
 
 			if ($limit > 0) {
+				//orderBy parameter is NULL because order direction is already included in $ordering
 				$this->Records = database::loadAssocList($this->Table->realtablename, $selects, $this->Filter->whereClause,
 					(count($ordering) > 0 ? implode(',', $ordering) : null), null, $limit, null, $this->GroupBy);
 				$this->Limit = $limit;
@@ -285,6 +293,7 @@ class CT
 				$the_limit = $this->Limit;
 
 				if ($all) {
+					//orderBy parameter is NULL because order direction is already included in $ordering
 					$this->Records = database::loadAssocList($this->Table->realtablename, $selects, $this->Filter->whereClause,
 						(count($ordering) > 0 ? implode(',', $ordering) : null), null, 20000, null, $this->GroupBy);
 				} else {
@@ -298,6 +307,7 @@ class CT
 						$this->LimitStart = 0;
 
 					try {
+						//orderBy parameter is NULL because order direction is already included in $ordering
 						$this->Records = database::loadAssocList($this->Table->realtablename, $selects, $this->Filter->whereClause,
 							(count($ordering) > 0 ? implode(',', $ordering) : null), null, $the_limit, $this->LimitStart, $this->GroupBy);
 					} catch (Exception $e) {
@@ -314,18 +324,41 @@ class CT
 		return true;
 	}
 
+	function getGroupByRealFieldNames(string $groupBy): array
+	{
+		$fieldNames = explode(',', $groupBy);
+		$fieldNamesClean = array_map('trim', $fieldNames);
+
+		$realGroupByFieldNames = [];
+
+		foreach ($fieldNamesClean as $fieldName) {
+			$tempFieldRow = $this->Table->getFieldByName($fieldName);
+			if ($tempFieldRow !== null and !in_array($tempFieldRow['realfieldname'], $realGroupByFieldNames))
+				$realGroupByFieldNames[] = $tempFieldRow['realfieldname'];
+		}
+
+		return $realGroupByFieldNames;
+	}
+
 	/**
 	 * @throws Exception
 	 * @since 3.2.0
 	 */
-	function getNumberOfRecords(MySQLWhereClause $whereClause): ?int
+	function getNumberOfRecords(MySQLWhereClause $whereClause, ?array $GroupBy = null): ?int
 	{
 		if ($this->Table === null or $this->Table->tablerow === null or $this->Table->tablerow['realidfieldname'] === null) {
 			throw new Exception('getNumberOfRecords: Table not selected.');
 		}
 
 		try {
-			$rows = database::loadObjectList($this->Table->realtablename, ['COUNT_ROWS'], $whereClause);
+			if ($GroupBy === null or count($GroupBy) == 0)
+				$rows = database::loadObjectList($this->Table->realtablename, ['COUNT_ROWS'], $whereClause, null, null, null, null, 'OBJECT', null);
+			else {
+				if (count($GroupBy) == 1)
+					$rows = database::loadObjectList($this->Table->realtablename, [['COUNT_DISTINCT_ROWS', implode(',', $GroupBy)]], $whereClause, null, null, null, null, 'OBJECT', null);
+				else
+					$rows = database::loadObjectList($this->Table->realtablename, [['COUNT_DISTINCT_ROWS', 'JSON_ARRAY(' . implode(',', $GroupBy) . ')']], $whereClause, null, null, null, null, 'OBJECT', null);
+			}
 		} catch (Exception $e) {
 			throw new Exception('getNumberOfRecords:' . $e->getMessage());
 		}
@@ -422,9 +455,8 @@ class CT
 		//Grouping
 		$this->GroupBy = null;
 		if (!empty($this->Params->groupBy)) {
-			$tempFieldRow = $this->Table->getFieldByName($this->Params->groupBy);
-			if ($tempFieldRow !== null)
-				$this->GroupBy = $tempFieldRow['realfieldname'];
+			$realGroupByFieldNames = $this->getGroupByRealFieldNames($this->Params->groupBy);
+			$this->GroupBy = implode(',', $realGroupByFieldNames);
 		}
 
 		if ($this->Params->blockExternalVars) {
@@ -684,6 +716,7 @@ class CT
 			if ($action == CUSTOMTABLES_ACTION_EDIT and $this->Table->record === null)
 				$action = CUSTOMTABLES_ACTION_ADD; //add new
 		}
+
 
 		//check is authorized or not
 		if ($action == CUSTOMTABLES_ACTION_EDIT)

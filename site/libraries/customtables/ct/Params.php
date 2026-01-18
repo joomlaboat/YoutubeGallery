@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2025. Ivan Komlev
+ * @copyright (C) 2018-2026. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -172,7 +172,16 @@ class Params
 			try {
 				if (Factory::getApplication()->getLanguage() !== null) {
 					$menu_params_registry = @Factory::getApplication()->getParams();//Joomla specific
-					$menu_paramsArray = self::menuParamsRegistry2Array($menu_params_registry);
+					$establename = $menu_params_registry->get('establename');
+					if (empty($establename)) {
+						$Itemid = common::inputGetInt('Itemid');
+						if ($Itemid !== null)
+							$menu_paramsArray = CTMiscHelper::getMenuParams($Itemid);
+						else
+							$menu_paramsArray = self::menuParamsRegistry2Array($menu_params_registry);
+					} else
+						$menu_paramsArray = self::menuParamsRegistry2Array($menu_params_registry);
+
 					$this->setParams($menu_paramsArray);
 				}
 			} catch (Throwable $e) {
@@ -299,9 +308,9 @@ class Params
 		if (common::inputGetInt("ctmodalform", 0) == 1)
 			$this->tableName = common::inputGetInt("tableid");//Used in Save Modal form content.
 
-		if ($this->tableName === null) {
+		if (empty($this->tableName)) {
 			$this->tableName = $menu_params['establename'] ?? null; //Table name or id not sanitized
-			if ($this->tableName === null)
+			if (empty($this->tableName))
 				$this->tableName = $menu_params['tableid'] ?? null; //Used in the back-end
 		}
 
@@ -360,7 +369,7 @@ class Params
 		//Permissions
 		$this->setPermissions($menu_params);
 
-		$this->publishStatus = $menu_params['publishstatus'] ?? 1;
+		$this->publishStatus = $menu_params['publishstatus'] ?? ($this->publishStatus ?? 1);// Update if the is a new value.
 
 		//Emails
 		$this->onRecordAddSendEmail = (int)($menu_params['onrecordaddsendemail'] ?? null);
@@ -370,21 +379,29 @@ class Params
 		$this->emailSentStatusField = $menu_params['emailsentstatusfield'] ?? null;
 
 		//Form Saved
-		if (!$this->blockExternalVars and common::inputGetCmd('returnto'))
+		if (!$this->blockExternalVars and common::inputGetCmd('returnto')) {
 			$this->returnTo = common::getReturnToURL(true, null, 'create-edit-record');//base 64 decode "returnto" value
-		else {
+		} else {
 
 			if (empty($this->ModuleId)) {
+
 				if (CUSTOMTABLES_JOOMLA_MIN_4 and !empty($this->ItemId)) {
-					//Check if current ItemId is not the same as set $this->ItemId
-					if ($this->ItemId != common::inputGetInt('Itemid'))
-						$this->returnTo = $menu_params['returnto'] ?? Route::_(sprintf('index.php/?option=com_customtables&Itemid=%d', $this->ItemId));
+
+					if (!empty($menu_params['returnto'])) {
+						$this->returnTo = $menu_params['returnto'];
+					} else {
+						//Check if current ItemId is not the same as set $this->ItemId
+						if ($this->ItemId != common::inputGetInt('Itemid'))
+							$this->returnTo = Route::_(sprintf('index.php/?option=com_customtables&Itemid=%d', $this->ItemId));
+					}
+
 				} else
 					$this->returnTo = $menu_params['returnto'] ?? null;
 			} else {
 				$this->returnTo = common::curPageURL();
 			}
 		}
+
 		$this->requiredLabel = $menu_params['requiredlabel'] ?? null;
 
 		$this->msgItemIsSaved = (empty($menu_params['msgitemissaved']) ? common::translate('COM_CUSTOMTABLES_RECORD_SAVED') : $menu_params['msgitemissaved']);

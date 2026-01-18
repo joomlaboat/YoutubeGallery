@@ -1,9 +1,9 @@
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright Copyright (C) 2018-2025. All Rights Reserved
+ * @copyright (C) 2018-2026. All Rights Reserved
  * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -23,10 +23,21 @@ if (typeof globalThis.CustomTablesEdit === 'undefined') {
 			this.ct_signaturePad_formats = [];
 
 			this.ctInputBoxRecords_dynamic_filter = [];
-
 			this.ctLinkLoading = false;
-
 			this.websiteRoot = websiteRoot;//With trailing front slash /
+			this.dragDropStr = TranslateText('COM_CUSTOMTABLES_DRAG_DROP_FILES');
+			this.uploadStr = TranslateText('COM_CUSTOMTABLES_UPLOAD_FILE');
+			this.abortStr = TranslateText('COM_CUSTOMTABLES_ABORT');
+			this.cancelStr = TranslateText('COM_CUSTOMTABLES_CANCEL');
+			this.deleteStr = TranslateText('COM_CUSTOMTABLES_DELETE');
+			this.doneStr = TranslateText('COM_CUSTOMTABLES_DONE');
+			this.multiDragErrorStr = TranslateText('COM_CUSTOMTABLES_MULTIPLE_DRAG_DROP_FILES');
+			this.extErrorStr = TranslateText('COM_CUSTOMTABLES_ALLOWED_EXTENSIONS');
+			this.duplicateErrorStr = TranslateText('COM_CUSTOMTABLES_FILE_ALREADY_EXISTS');
+			this.sizeErrorStr = TranslateText('COM_CUSTOMTABLES_ALLOWED_MAX_SIZE');
+			this.uploadErrorStr = TranslateText('COM_CUSTOMTABLES_UPLOAD_NOT_ALLOWED');
+			this.maxFileCountErrorStr = TranslateText('COM_CUSTOMTABLES_MAX_ALLOWED_FILES');
+			this.downloadStr = TranslateText('COM_CUSTOMTABLES_DOWNLOAD');
 		}
 
 		GoogleDriveInitClient(fieldName, GoogleDriveAPIKey, GoogleDriveClientId) {
@@ -443,10 +454,13 @@ if (typeof globalThis.CustomTablesEdit === 'undefined') {
 					let tableId = parts[1];
 					let trId = 'ctTable_' + tableId + '_' + listing_id;
 					const records = table.querySelectorAll('tr[id^="' + trId + '"]');
-					if (records.length == 1) {
-						let table_object = findTableByRowId(tableid + '_' + listing_id);
-						let index = findRowIndexById(table_object, tableId, listing_id, 'ctEditIcon');
-						ctCatalogUpdate(tableId, listing_id, index, ModuleId);
+					if (records.length === 1) {
+						let table_row_object = findTableByRowId(tableId + '_' + listing_id);
+						if (table_row_object) {
+							let index = findRowIndexById(table_row_object, tableId, listing_id, 'ctEditIcon');
+							let ModuleId = null;
+							ctCatalogUpdate(tableId, listing_id, index, ModuleId);
+						}
 					}
 				}
 			});
@@ -574,6 +588,7 @@ if (typeof globalThis.CustomTablesEdit === 'undefined') {
 					if (n.indexOf(fieldInputPrefix) !== -1) {
 
 						let objName = n.replace('_selector', '');
+						let objId = objName.replace('[]', '');
 
 						let d = requiredFields[i].dataset;
 						if (d.label)
@@ -583,7 +598,7 @@ if (typeof globalThis.CustomTablesEdit === 'undefined') {
 
 						if (d.type === 'sqljoin') {
 							if (requiredFields[i].type === "hidden") {
-								let obj = document.getElementById(objName);
+								let obj = document.getElementById(objId);
 
 								if (obj.value === '') {
 									alert(TranslateText('COM_CUSTOMTABLES_REQUIRED', label));
@@ -592,20 +607,21 @@ if (typeof globalThis.CustomTablesEdit === 'undefined') {
 							}
 
 						} else if (requiredFields[i].type === "text") {
-							let obj = document.getElementById(objName);
+							let obj = document.getElementById(objId);
 							if (obj.value === '') {
 								alert(TranslateText('COM_CUSTOMTABLES_REQUIRED', label));
 								return false;
 							}
 						} else if (requiredFields[i].type === "select-one") {
-							let obj = document.getElementById(objName);
+							let obj = document.getElementById(objId);
 
 							if (obj.value === null || obj.value === '') {
 								alert(TranslateText('COM_CUSTOMTABLES_NOT_SELECTED', label));
 								return false;
 							}
 						} else if (requiredFields[i].type === "select-multiple") {
-							let count_multiple_obj = document.getElementById(lbln);
+
+							let count_multiple_obj = document.getElementById(objId);
 							let options = count_multiple_obj.options;
 							let count_multiple = 0;
 
@@ -998,6 +1014,7 @@ function submitModalForm(url, elements, tableid, recordId, hideModelOnSave, moda
 				}
 
 				if (response.success) {
+
 					//let element_tableid_tr = "ctTable_" + tableid + '_' + recordId;
 					let table_object = document.getElementById("ctTable_" + tableid);
 
@@ -1007,7 +1024,7 @@ function submitModalForm(url, elements, tableid, recordId, hideModelOnSave, moda
 					}
 
 					if (modalFormParentField !== null) {
-						console.warn("modalFormParentField:", modalFormParentField)
+
 						let parts = modalFormParentField.split('.');
 						let parentField = parts[1];
 						let parentFieldInputPrefix = parts[2];
@@ -1015,13 +1032,13 @@ function submitModalForm(url, elements, tableid, recordId, hideModelOnSave, moda
 						//refreshTableJoinField(parentField, response, parentFieldInputPrefix);
 					}
 
-					if (hideModelOnSave) {
+					if (hideModelOnSave)
 						ctHidePopUp();
-						return;
-					}
 
 					if (returnLinkEncoded !== "")
 						location.href = stripInvalidCharacters(Base64.decode(returnLinkEncoded));
+
+					return;
 
 				} else {
 					/*
@@ -1032,6 +1049,7 @@ function submitModalForm(url, elements, tableid, recordId, hideModelOnSave, moda
 					else
 						*/
 					alert(response.message);
+					return;
 				}
 			}
 		};
@@ -1209,10 +1227,14 @@ function TranslateText() {
 	if (arguments.length === 0)
 		return 'Nothing to translate';
 
-	let str;
 	const key = arguments[0];
+	let str;
 
-	str = ctTranslationScriptObject[key];
+	if (typeof ctTranslationScriptObject !== "undefined" && key in ctTranslationScriptObject) {
+		str = ctTranslationScriptObject[key];
+	} else {
+		str = key;
+	}
 
 	// Handle placeholders
 	if (arguments.length === 1)
@@ -1354,7 +1376,7 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
 		return false;
 	}
 
-	if (r.length === 0) {
+	if (r.data.length === 0) {
 		if (Array.isArray(filters[next_index])) {
 
 			next_sub_index = 0;
@@ -1375,7 +1397,6 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
 			}
 		} else {
 
-			/*
 			let NoItemsText;
 
 			if (typeof wrapper.dataset.addrecordmenualias !== 'undefined' && wrapper.dataset.addrecordmenualias !== '') {
@@ -1387,7 +1408,6 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
 
 			document.getElementById(control_name + "Selector" + index + '_' + sub_index).innerHTML = NoItemsText;
 
-			*/
 			return false;
 		}
 	}
@@ -1400,7 +1420,7 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
 	//Add select box
 	let current_object_id = control_name + index + (Array.isArray(filters[index]) ? '_' + sub_index : '');
 
-	if (r.length > 0) {
+	if (r.data.length > 0) {
 
 		let updateValueString = (index + 1 === filters.length ? 'true' : 'false');
 		let onChangeFunction = 'ctUpdateTableJoinLink(\'' + control_name + '\', ' + next_index + ', false, ' + next_sub_index + ',\'' + current_object_id + '\', \'' + formId + '\', ' + updateValueString + ',null);'
@@ -1412,9 +1432,9 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
 		if (typeof wrapper.dataset.addrecordmenualias !== 'undefined' && wrapper.dataset.addrecordmenualias !== '')
 			result += '<option value="%addRecord%">- ' + TranslateText('COM_CUSTOMTABLES_ADD') + '</option>';
 
-		for (let i = 0; i < r.length; i++) {
-			let optionLabel = decodeHtml(r[i].label);
-			result += '<option value="' + r[i].value + '">' + optionLabel + '</option>';
+		for (let i = 0; i < r.data.length; i++) {
+			let optionLabel = decodeHtml(r.data[i].label);
+			result += '<option value="' + r.data[i].value + '">' + optionLabel + '</option>';
 		}
 
 		result += '</select>';
@@ -1434,7 +1454,7 @@ function ctRenderTableJoinSelectBox(control_name, r, index, execute_all, sub_ind
 		obj.value = forceValue;
 	}
 
-	if (r.length > 0) {
+	if (r.data.length > 0) {
 		if (execute_all && next_index + 1 < filters.length && val != null) {
 			ctUpdateTableJoinLink(control_name, next_index, true, next_sub_index, null, formId, false, null);
 		}
@@ -2006,8 +2026,6 @@ function refreshTableJoinField(fieldName, response, fieldInputPrefix) {
 
 	for (let i = 0; i < valueFiltersNames.length; i++) {
 		if (valueFiltersNames[i] !== null) {
-			console.warn("response", response['record']);
-			console.warn("valueFiltersNames[i]", valueFiltersNames[i]);
 
 			let value = "";
 			if (response['record']) {
@@ -2042,9 +2060,9 @@ async function onCTVirtualSelectServerSearch(searchValue, virtualSelect) {
 		let link = location.href.split('administrator/index.php?option=com_customtables');
 
 		if (link.length === 2)//to make sure that it will work in the back-end
-			url = CTEditHelper.websiteRoot + 'administrator/index.php?option=com_customtables&view=catalog&tmpl=component&clean=1&from=json&key=' + key + '&index=0&limit=20&';
+			url = CTEditHelper.websiteRoot + 'administrator/index.php?option=com_customtables&view=catalog&tmpl=component&clean=1&frmt=json&key=' + key + '&index=0&limit=20&';
 		else
-			url = CTEditHelper.websiteRoot + 'index.php?option=com_customtables&view=catalog&tmpl=component&clean=1&from=json&key=' + key + '&index=0&limit=20&';
+			url = CTEditHelper.websiteRoot + 'index.php?option=com_customtables&view=catalog&tmpl=component&clean=1&frmt=json&key=' + key + '&index=0&limit=20&';
 
 	} else if (CTEditHelper.cmsName === "WordPress") {
 		console.error("onCTVirtualSelectServerSearch is not supported by WP yet.");

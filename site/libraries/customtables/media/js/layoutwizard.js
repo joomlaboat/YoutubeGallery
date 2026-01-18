@@ -1,10 +1,10 @@
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @subpackage administrator/components/com_customtables/js/layoutwizard.js
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright Copyright (C) 2018-2025. All Rights Reserved
+ * @copyright Copyright (C) 2018-2026. All Rights Reserved
  * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -1165,7 +1165,7 @@ function getLayout_SimpleCatalog() {
 	}
 
 	let fieldtypes_to_skip = ['log', 'filebox', 'dummy'];
-	let fieldTypesWithSearch = ['email', 'string', 'multilangstring', 'text', 'multilangtext', 'sqljoin', 'records', 'user', 'userid', 'int', 'checkbox'];
+	let fieldTypesWithSearch = ['email', 'string', 'radio', 'multilangstring', 'text', 'multilangtext', 'sqljoin', 'records', 'user', 'userid', 'int', 'checkbox'];
 	let fieldtypes_allowed_to_orderby = ['string', 'email', 'url', 'sqljoin', 'phponadd', 'phponchange', 'int', 'float', 'ordering', 'changetime', 'creationtime', 'date', 'multilangstring', 'customtables', 'userid', 'user'];
 	fieldtypes_allowed_to_orderby.push('virtual');
 	let fields_to_skip = getFieldsToSkip();

@@ -1,9 +1,9 @@
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright Copyright (C) 2018-2025. All Rights Reserved
+ * @copyright Copyright (C) 2018-2026. All Rights Reserved
  * @license GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -88,17 +88,17 @@ function esEditObject(objId, toolbarBoxId, Itemid, tmpl, returnto) {
 function runTheTask(task, tableid, recordId, responses, last, reload, ModuleId) {
 
 	let params = 'task=' + task + '&listing_id=' + recordId;
+	let http = CreateHTTPRequestObject();   // defined in ajax.js
+	let addParams = ['option=com_customtables', 'view=edititem', 'clean=1', 'frmt=json'];
 
 	if (CTEditHelper.cmsName === 'Joomla') {
 		if (typeof ModuleId !== 'undefined' && ModuleId !== null && ModuleId !== 0)
-			params += '&ModuleId=' + ModuleId;
+			addParams.push('ModuleId=' + ModuleId);
 		else
-			params += '&Itemid=' + CTEditHelper.itemId;
+			addParams.push('Itemid=' + CTEditHelper.itemId);
 	}
 
-	let http = CreateHTTPRequestObject();   // defined in ajax.js
-	let addParams = ['clean=1'];
-	let url = esPrepareLink(['task', "listing_id", 'returnto', 'ids'], addParams);
+	let url = esPrepareLink(['ModuleId', 'clean', 'option', 'view', 'task', "listing_id", 'returnto', 'ids'], addParams);
 
 	if (http) {
 		http.open("POST", url, true);
@@ -107,9 +107,18 @@ function runTheTask(task, tableid, recordId, responses, last, reload, ModuleId) 
 
 			if (http.readyState === 4) {
 
-				let res = http.response.replace(/(\r\n|\n|\r)/gm, "");
+				let data;
+				try {
+					data = JSON.parse(http.response);
+				} catch (e) {
+					console.warn(http.response);
+					return;
+				}
 
-				if (responses.indexOf(res) !== -1) {
+				//let res = http.response.replace(/(\r\n|\n|\r)/gm, "");
+
+				if (data.success) {
+					//if (responses.indexOf(res) !== -1) {
 
 					let table_object = findTableByRowId(tableid + '_' + recordId);
 					if (!reload && table_object && CTEditHelper.cmsName === 'Joomla') {
@@ -144,7 +153,10 @@ function runTheTask(task, tableid, recordId, responses, last, reload, ModuleId) 
 						if (toolbarBoxIdObject) toolbarBoxIdObject.style.visibility = 'visible';
 					}
 
-				} else alert(res);
+				} else {
+					console.log("URL: ", url);
+					console.warn(data.message);
+				}
 			}
 		}
 		http.send(params);
@@ -219,6 +231,7 @@ function ctPublishRecord(tableid, recordId, toolbarBoxId, publish, ModuleId) {
 
 	CTEditHelper.ctLinkLoading = true;
 	document.getElementById(toolbarBoxId).innerHTML = '';
+
 	runTheTask((publish === 0 ? 'unpublish' : 'publish'), tableid, recordId, ['published', 'unpublished'], false, false, ModuleId);
 }
 
@@ -232,9 +245,8 @@ function findRowIndexById(table, tableid, id, icon) {
 	//icon = "ctDeleteIcon"
 	if (!table) return -2;
 	let lookingFor = '#' + icon + tableid + "x" + id;
-	console.warn("lookingFor", lookingFor)
 	let rows = table.rows;
-	console.log("count:", rows.length)
+
 	for (let i = 0; i < rows.length; i++) {
 
 		let deleteIcon = rows[i].querySelector(lookingFor);

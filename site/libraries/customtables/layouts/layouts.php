@@ -1,10 +1,10 @@
 <?php
 /**
- * CustomTables Joomla! 3.x/4.x/5.x Component and WordPress 6.x Plugin
+ * CustomTables Joomla! 3.x/4.x/5.x/6.x Component and WordPress 6.x Plugin
  * @package Custom Tables
  * @author Ivan Komlev <support@joomlaboat.com>
  * @link https://joomlaboat.com
- * @copyright (C) 2018-2025. Ivan Komlev
+ * @copyright (C) 2018-2026. Ivan Komlev
  * @license GNU/GPL Version 2 or later - https://www.gnu.org/licenses/gpl-2.0.html
  **/
 
@@ -32,6 +32,7 @@ class Layouts
 	var ?string $layoutCode;
 	var ?string $layoutCodeCSS;
 	var ?string $layoutCodeJS;
+	var bool $stealth;
 
 	function __construct(&$ct)
 	{
@@ -43,6 +44,7 @@ class Layouts
 		$this->layoutCode = null;
 		$this->layoutCodeCSS = null;
 		$this->layoutCodeJS = null;
+		$this->stealth = false;
 	}
 
 	/**
@@ -225,8 +227,13 @@ class Layouts
 			if ($this->ct->Table->fields === null)
 				return ['success' => false, 'message' => 'Table not selected or not found', 'short' => 'error'];
 		} elseif ($task !== 'cancel') {
-			if ($this->ct->Table === null)
-				return ['success' => false, 'message' => 'Table not selected', 'short' => 'error'];
+			if ($this->ct->Table === null) {
+				$Itemid = common::inputGetInt('Itemid');
+
+				return ['success' => false,
+					'message' => 'Table not selected. Layout ID: ' . $layoutId . ', task: ' . $task . ', $Itemid: ' . $Itemid,
+					'short' => 'error'];
+			}
 
 			if ($layoutType === null) {
 				if ($task == 'saveandcontinue' or $task == 'save' or $task == 'saveascopy')
@@ -286,7 +293,7 @@ class Layouts
 			CUSTOMTABLES_LAYOUT_TYPE_JSON
 		])) {
 
-			$output['html'] = $this->renderCatalog();
+			$output['content'] = $this->renderCatalog();
 		} elseif ($this->layoutType == CUSTOMTABLES_LAYOUT_TYPE_EDIT_FORM) {
 
 			if ($task == 'new') {
@@ -320,7 +327,7 @@ class Layouts
 				$formName .= $this->ct->Params->ModuleId;
 
 			if ($this->ct->CheckAuthorization($this->ct->Table->record === null ? CUSTOMTABLES_ACTION_ADD : CUSTOMTABLES_ACTION_EDIT)) {
-				$output['html'] = $editForm->render($this->ct->Table->record,
+				$output['content'] = $editForm->render($this->ct->Table->record,
 					$formLink,
 					$formName,
 					$this->ct->Env->clean == 0);
@@ -333,7 +340,7 @@ class Layouts
 
 			$output['fieldtypes'] = $this->ct->editFieldTypes;
 		} elseif ($this->layoutType == CUSTOMTABLES_LAYOUT_TYPE_DETAILS or $this->layoutType == CUSTOMTABLES_LAYOUT_TYPE_CATALOG_ITEM) {
-			$output['html'] = $this->renderDetailedLayout();
+			$output['content'] = $this->renderDetailedLayout();
 		} else {
 			return ['success' => false, 'message' => 'Unknown Layout Type', 'short' => 'error'];
 		}
@@ -417,8 +424,40 @@ class Layouts
 		$this->ct->LayoutVariables['layout_type'] = $this->layoutId;
 
 		if (!empty($row['params'])) {
+
 			try {
 				$params = json_decode($row['params'], true);
+				if (isset($params['mimetype'])) {
+					if ($params['mimetype'] == 'txt')
+						$this->ct->Env->frmt = 'txt';
+					elseif ($params['mimetype'] == 'csv')
+						$this->ct->Env->frmt = 'csv';
+					elseif ($params['mimetype'] == 'json')
+						$this->ct->Env->frmt = 'json';
+					elseif ($params['mimetype'] == 'xml')
+						$this->ct->Env->frmt = 'xml';
+
+					if ($this->ct->Env->frmt != 'html' and $params['mimetype'] != '')
+						$this->ct->Env->clean = true;
+				}
+
+				if (isset($params['stealth'])) {
+					$this->stealth = (bool)intval($params['stealth']);
+				}
+
+
+				if (!$this->ct->Env->advancedTagProcessor) {
+					//Do not apply Layout params in Free version as they are inaccessible.
+					$params['filter'] = null;
+					$params['addusergroups'] = null;
+					$params['editusergroups'] = null;
+					$params['publishusergroups'] = null;
+					$params['deleteusergroups'] = null;
+					$params['publishstatus'] = null;
+					$params['mimetype'] = null;
+					$params['stealth'] = null;
+				}
+
 				$this->ct->Params->setParams($params);
 			} catch (Exception $e) {
 
@@ -839,7 +878,13 @@ class Layouts
 					$customPHP = new CustomPHP($this->ct, $action);
 					$customPHP->executeCustomPHPFile($this->ct->Table->tablerow['customphp'], $record->row_new, $record->row_old);
 				} catch (Exception $e) {
-					$output['message'] = 'Custom PHP file: ' . $this->ct->Table->tablerow['customphp'] . ' (' . $e->getMessage() . ')';
+					$output['message'] = $e->getMessage();
+					$output['success'] = false;
+					$output['action'] = $action;
+					$output['id'] = $this->ct->Table->record[$this->ct->Table->realidfieldname];
+					$output['content'] = null;
+					$output['short'] = $action == 'create' ? 'created' : 'updated';
+					return $output;
 				}
 			}
 
@@ -868,7 +913,7 @@ class Layouts
 			$output['success'] = true;
 			$output['action'] = $action;
 			$output['id'] = $this->ct->Table->record[$this->ct->Table->realidfieldname];
-			$output['data'] = $data;
+			$output['content'] = $data;
 			$output['short'] = $action == 'create' ? 'created' : 'updated';
 		} else {
 			if ($record->incorrectCaptcha)
@@ -1099,7 +1144,7 @@ class Layouts
 		if ($this->ct->Params->allowContentPlugins)
 			$layoutDetailsContent = CTMiscHelper::applyContentPlugins($layoutDetailsContent);
 
-		if (!is_null($this->ct->Table->record)) {
+		if (!$this->stealth and !is_null($this->ct->Table->record)) {
 			//Save view log
 			$this->SaveViewLogForRecord();
 		}
