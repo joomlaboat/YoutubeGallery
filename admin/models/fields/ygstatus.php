@@ -8,8 +8,7 @@
 
 namespace Joomla\CMS\Form\Field;
 
-\defined('JPATH_PLATFORM') or die;
-
+defined('_JEXEC') or die();
 class YGStatusField extends PredefinedlistField
 {
     public $type = 'YGStatus';

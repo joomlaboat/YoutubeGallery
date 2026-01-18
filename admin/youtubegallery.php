@@ -35,6 +35,7 @@ $controller = BaseController::getInstance('YoutubeGallery');
 
 /// Perform the Request task
 $task = Factory::getApplication()->input->getCmd('task');
+
 // Perform the Request task
 try {
     $controller->execute($task);

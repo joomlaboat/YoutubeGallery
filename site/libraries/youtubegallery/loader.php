@@ -2,7 +2,7 @@
 
 use Joomla\CMS\Component\ComponentHelper;
 
-defined('JPATH_PLATFORM') or die;
+defined('_JEXEC') or die();
 
 function YGLoadClasses(): void
 {
