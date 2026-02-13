@@ -19,7 +19,7 @@ use Joomla\CMS\MVC\Controller\FormController;
  */
 class YoutubeGalleryControllerSettings extends FormController
 {
-    var mixed $canDo;
+    var $canDo;
     var bool $canView;
 
     var bool $canEdit;
