@@ -44,7 +44,7 @@ class YoutubeGalleryModelCategories extends ListModel
      *
      * @return  mixed  An array of data items on success, false on failure.
      */
-    public function getItems(): mixed
+    public function getItems()
     {
         // load parent items
         return parent::getItems();

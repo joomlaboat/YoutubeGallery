@@ -106,7 +106,7 @@ class YoutubeGalleryModelCategoryForm extends AdminModel
      * @return      mixed   The data for the form.
      * @throws Exception
      */
-    protected function loadFormData(): mixed
+    protected function loadFormData()
     {
         // Check the session for previously entered form data.
         $data = Factory::getApplication()->getUserState('com_youtubegallery.edit.categoryform.data', array());
