@@ -379,18 +379,23 @@ class YouTubeGalleryDB
 		if ($updatePeriod == 0)
 			$updatePeriod = 1;
 
-		$active_key = YouTubeGalleryData::isActivated();
-
 		if ($days_diff > abs($updatePeriod) or $force_update) {
-			YouTubeGalleryDB::update_cache_table($active_key, $this->videoListRow, true);
-			$this->videoListRow->es_lastplaylistupdate = date('Y-m-d H:i:s');
 
-			$db = Factory::getDBO();
-			$query = 'UPDATE #__customtables_table_youtubegalleryvideolists SET ' . $db->quoteName('es_lastplaylistupdate') . '=' . $db->quote($this->videoListRow->es_lastplaylistupdate)
-				. ' WHERE id=' . (int)$this->videoListRow->id;
+			try {
+				$active_key = YouTubeGalleryData::isActivated();
 
-			$db->setQuery($query);
-			$db->execute();
+				YouTubeGalleryDB::update_cache_table($active_key, $this->videoListRow, true);
+				$this->videoListRow->es_lastplaylistupdate = date('Y-m-d H:i:s');
+
+				$db = Factory::getDBO();
+				$query = 'UPDATE #__customtables_table_youtubegalleryvideolists SET ' . $db->quoteName('es_lastplaylistupdate') . '=' . $db->quote($this->videoListRow->es_lastplaylistupdate)
+					. ' WHERE id=' . (int)$this->videoListRow->id;
+
+				$db->setQuery($query);
+				$db->execute();
+			}catch(Exception $e){
+				//Do nothing
+			}
 		}
 	}
 
