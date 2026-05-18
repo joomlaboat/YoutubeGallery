@@ -19,6 +19,7 @@ class Table
 {
 	use Logs;
 
+	private static $fieldsCache = [];
 	var Languages $Languages;
 	var Environment $Env;
 	var int $tableid;
@@ -39,7 +40,6 @@ class Table
 	var ?array $imagegalleries;
 	var ?array $fileboxes;
 	var ?array $selects;
-
 	var string $fieldPrefix;
 	var string $fieldInputPrefix;
 
@@ -47,7 +47,7 @@ class Table
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	function __construct($Languages, $Env, $tablename_or_id_not_sanitized, $useridfieldname = null, bool $loadAllField = true)
+	function __construct($Languages, $Env, $tablename_or_id_not_sanitized, $useridfieldname = null, bool $loadAllField = true, bool $reloadFields = false)
 	{
 		$this->Languages = $Languages;
 		$this->Env = $Env;
@@ -88,14 +88,14 @@ class Table
 		if (!isset($this->tablerow['id']))
 			return;
 
-		$this->setTable($this->tablerow, $useridfieldname, $loadAllField);
+		$this->setTable($this->tablerow, $useridfieldname, $loadAllField, $reloadFields);
 	}
 
 	/**
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
-	protected function setTable(array $tableRow, $useridFieldName = null, bool $loadAllField = false): void
+	protected function setTable(array $tableRow, $useridFieldName = null, bool $loadAllField = false, bool $reloadFields = false): void
 	{
 		$this->tablerow = $tableRow;
 		$this->tablename = $this->tablerow['tablename'];
@@ -126,13 +126,26 @@ class Table
 		$this->fieldInputPrefix = 'com' . $this->fieldPrefix;
 
 		//Fields
-		$whereClause = new MySQLWhereClause();
+		//We will use static variables to cache fields to improve the speed
 
 		if (!$loadAllField)
-			$whereClause->addCondition('f.published', 1);
+			$table_fields_variable_name = -$this->tableid;
+		else
+			$table_fields_variable_name = $this->tableid;
 
-		$whereClause->addCondition('f.tableid', $this->tableid);
-		$this->fields = database::loadAssocList('#__customtables_fields AS f', ['*', ['REAL_FIELD_NAME', $this->fieldPrefix]], $whereClause, 'f.ordering, f.fieldname');
+		if ($reloadFields or !isset(self::$fieldsCache[$table_fields_variable_name])) {
+
+			$whereClause = new MySQLWhereClause();
+
+			if (!$loadAllField)
+				$whereClause->addCondition('f.published', 1);
+
+			$whereClause->addCondition('f.tableid', $this->tableid);
+			self::$fieldsCache[$table_fields_variable_name] = database::loadAssocList('#__customtables_fields AS f', ['*', ['REAL_FIELD_NAME', $this->fieldPrefix]], $whereClause, 'f.ordering, f.fieldname');
+		}
+
+		$this->fields = self::$fieldsCache[$table_fields_variable_name];
+
 
 		foreach ($this->fields as $fld) {
 

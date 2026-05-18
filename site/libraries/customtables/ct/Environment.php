@@ -20,26 +20,27 @@ use Joomla\CMS\Component\ComponentHelper;
 
 class Environment
 {
+	public static $librariesToLoad = [];
 	var string $current_url;
 	var string $current_sef_url;
 	var string $encoded_current_url;
-	var string $encoded_current_url_no_return;
 
 	//var int $userid;
+	var string $encoded_current_url_no_return;
 	var ?CTUser $user;
 	var bool $isUserAdministrator;
 	var bool $print;
 	var bool $clean;
-	var string $frmt;
-	var string $WebsiteRoot;//With trailing front slash /
+		var string $frmt;//With trailing front slash /
+var string $WebsiteRoot;
 	var bool $advancedTagProcessor;
 	var bool $isMobile;
 	var bool $isModal;
 	var string $field_prefix;
 	var bool $loadTwig;
 	var string $toolbarIcons;
-	var ?string $folderToSaveLayouts;
-	var bool $isPlugin; //this can be set by calling the class from the plugin
+		var ?string $folderToSaveLayouts; //this can be set by calling the class from the plugin
+var bool $isPlugin;
 	var bool $CustomPHPEnabled;
 	var bool $SQLSelectEnabled;
 	var bool $debug;
@@ -58,6 +59,8 @@ class Environment
 				$this->CustomPHPEnabled = (int)($pluginParamsArray->phpPlugin ?? 0) == 1;
 				$this->SQLSelectEnabled = (int)($pluginParamsArray->sqlSelectTag ?? 0) == 1;
 			}
+		} elseif (defined('WPINC')) {
+			$this->SQLSelectEnabled = (int)get_option('customtables-sqlselecttag', '') == 1;
 		}
 
 		$this->current_url = common::curPageURL();
@@ -127,8 +130,6 @@ class Environment
 			if (file_exists($path . 'helpers.php'))
 				require_once($path . 'helpers.php');
 
-			if (file_exists($path . 'servertags.php'))
-				require_once($path . 'servertags.php');
 		} elseif (defined('WPINC') and defined('CustomTablesWPPro\CTWPPRO')) {
 			$path = CUSTOMTABLES_PRO_PATH;
 			$path = str_replace('/', DIRECTORY_SEPARATOR, $path);

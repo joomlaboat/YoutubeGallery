@@ -21,6 +21,9 @@ class Filtering
 	var array $PathValue;
 	var MySQLWhereClause $whereClause;
 	var int $showPublished;
+	var ?string $innerJoinRealTableName;
+	var ?string $innerJoinRealFieldName;
+	var ?string $innerJoinWhere;
 
 	function __construct(CT $ct, int $showPublished = CUSTOMTABLES_SHOWPUBLISHED_PUBLISHED_ONLY)
 	{
@@ -28,6 +31,9 @@ class Filtering
 		$this->PathValue = [];
 		$this->whereClause = new MySQLWhereClause();
 		$this->showPublished = $showPublished;
+		$this->innerJoinRealTableName = null;
+		$this->innerJoinRealFieldName = null;
+		$this->innerJoinWhere = null;
 
 		if ($this->ct->Table !== null and $this->ct->Table->published_field_found) {
 
@@ -55,6 +61,25 @@ class Filtering
 
 	/**
 	 * @throws Exception
+	 * @since 3.7.4
+	 */
+	function setInnerJoin(string $realtablename, string $realfieldname, ?string $where)
+	{
+		if (empty($realtablename))
+			throw new Exception('Search Table Join field: Table Name cannot be empty.');
+
+		$this->innerJoinRealTableName = $realtablename;
+
+		if (empty($realfieldname))
+			throw new Exception('Search Table Join field: Field Name cannot be empty.');
+
+		$this->innerJoinRealFieldName = $realfieldname;
+
+		$this->innerJoinWhere = $where;
+	}
+
+	/**
+	 * @throws Exception
 	 * @since 3.2.2
 	 */
 	public function addQueryWhereFilter(): void
@@ -65,7 +90,6 @@ class Filtering
 		if (common::inputGetString('where')) {
 			$decodedURL = common::inputGetString('where', '');
 			$filter_string = urldecode($decodedURL);
-			//$filter_string = $this->sanitizeAndParseFilter(urldecode($decodedURL));
 
 			if ($filter_string != '')
 				$this->addWhereExpression($filter_string);
@@ -74,7 +98,6 @@ class Filtering
 		if (common::inputGetString('filter')) {
 			$decodedURL = common::inputGetString('filter', '');
 			$filter_string = urldecode($decodedURL);
-			//$filter_string = $this->sanitizeAndParseFilter(urldecode($decodedURL));
 
 			if ($filter_string != '')
 				$this->addWhereExpression($filter_string);
@@ -91,7 +114,6 @@ class Filtering
 			return;
 
 		$param = $this->sanitizeAndParseFilter($param, true);
-
 		$items = CTMiscHelper::ExplodeSmartParamsArray($param);
 		$whereClauseExpression = new MySQLWhereClause();
 
@@ -253,13 +275,19 @@ class Filtering
 				if ($comparison_operator == '==')
 					$comparison_operator = '=';
 
-				return $this->Search_Number($value, $fieldRow, $comparison_operator);
+				if (str_contains($value, '-to-'))
+					return $this->getRangeWhere($fieldRow, $value);
+				else
+					return $this->Search_Number($value, $fieldRow, $comparison_operator);
 
 			case 'float':
 				if ($comparison_operator == '==')
 					$comparison_operator = '=';
 
-				return $this->Search_Number($value, $fieldRow, $comparison_operator, true);
+				if (str_contains($value, '-to-'))
+					return $this->getRangeWhere($fieldRow, $value);
+				else
+					return $this->Search_Number($value, $fieldRow, $comparison_operator, true);
 
 			case 'checkbox':
 				$vList = explode(',', $value);
@@ -436,69 +464,8 @@ class Filtering
 				return $whereClause;
 
 			case 'sqljoin':
+				return $this->Search_TableJoin($value, $fieldRow, $comparison_operator, $field);
 
-				require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . 'value'
-					. DIRECTORY_SEPARATOR . 'tablejoin.php');
-
-				if ($comparison_operator == '==')
-					$comparison_operator = '=';
-
-				$vList = explode(',', $this->getString_vL($value));
-
-				// Filter Title
-				$typeParamsArray = CTMiscHelper::csv_explode(',', $fieldRow['typeparams']);
-				$filterTitle = '';
-
-				if (count($typeParamsArray) < 2)
-					$filterTitle = 'field or layout not specified';
-
-				if (count($typeParamsArray) < 1)
-					$filterTitle = 'table not specified';
-
-				$esr_table_full = $this->ct->Table->realtablename;
-				$esr_field_name = $typeParamsArray[1];
-
-				if (count($typeParamsArray) >= 2) {
-					foreach ($vList as $vL) {
-						$valueNew = $vL;
-
-						$esr_field_name_parts = explode(':', $esr_field_name);
-						if (count($esr_field_name_parts) == 2 and ($esr_field_name_parts[0] == 'tablelesslayout' or $esr_field_name_parts[0] == 'layout'))
-							$filterTitle .= Value_tablejoin::renderTableJoinValue($field, '{{ document.layout("' . $esr_field_name_parts[1] . '") }}', $valueNew);
-						else
-							$filterTitle .= Value_tablejoin::renderTableJoinValue($field, '{{ ' . $esr_field_name . ' }}', $valueNew);
-
-						if ($valueNew != '') {
-							if ($comparison_operator == '!=') {
-								$opt_title = common::translate('COM_CUSTOMTABLES_NOT');
-								$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], $valueNew, '!=');
-								$this->PathValue[] = $fieldRow['fieldtitle' . $this->ct->Languages->Postfix]
-									. ' '
-									. $opt_title
-									. ' '
-									. $filterTitle;
-							} elseif ($comparison_operator == '=') {
-								$opt_title = ':';
-
-								$integerValueNew = $valueNew;
-								if ($integerValueNew == 0 or $integerValueNew == -1) {
-									$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], null, 'NULL');
-									$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], '');
-									$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], 0);
-								} else
-									$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], $valueNew);
-
-								$this->PathValue[] = $fieldRow['fieldtitle'
-									. $this->ct->Languages->Postfix]
-									. ''
-									. $opt_title
-									. ' '
-									. $filterTitle;
-							}
-						}
-					}
-				}
-				return $whereClause;
 
 			case 'virtual':
 				if ($comparison_operator == '==')
@@ -671,43 +638,13 @@ class Filtering
 		return $whereClause;
 	}
 
-	protected function Search_Number($value, array $fieldRow, string $comparison_operator, bool $isFloat = false): MySQLWhereClause
-	{
-		if ($comparison_operator == '==')
-			$comparison_operator = '=';
-
-		$v = $this->getString_vL($value);
-		$vList = explode(',', $v);
-		$whereClause = new MySQLWhereClause();
-
-		foreach ($vList as $vL) {
-			if ($vL != '') {
-
-				if ($isFloat)
-					$cleanValue = floatval($vL);
-				else
-					$cleanValue = intval($vL);
-
-				$whereClause->addOrCondition($this->ct->Table->realtablename . '.' . $fieldRow['realfieldname'], $cleanValue, $comparison_operator);
-
-				$opt_title = ' ' . $comparison_operator;
-				if ($comparison_operator == '=')
-					$opt_title = ':';
-
-				$this->PathValue[] = $fieldRow['fieldtitle' . $this->ct->Languages->Postfix] . $opt_title . ' ' . $cleanValue;
-			}
-		}
-
-		return $whereClause;
-	}
-
 	protected function getRangeWhere($fieldRow, $value): MySQLWhereClause
 	{
 		$whereClause = new MySQLWhereClause();
 
 		$fieldTitle = $fieldRow['fieldtitle' . $this->ct->Languages->Postfix];
 
-		if ($fieldRow['typeparams'] == 'date')
+		if ($fieldRow['typeparams'] == 'date' or str_contains($value, '-to-'))
 			$valueArr = explode('-to-', $value);
 		else
 			$valueArr = explode('-', $value);
@@ -716,8 +653,8 @@ class Filtering
 			return $whereClause;
 
 		$range = explode('_r_', $fieldRow['fieldname']);
-		if (count($range) == 1)
-			return $whereClause;
+		//if (count($range) == 1)
+		//return $whereClause;
 
 		$valueTitle = '';
 		$from_field = '';
@@ -759,6 +696,36 @@ class Filtering
 			$valueTitle .= common::translate('COM_CUSTOMTABLES_TO') . ' ' . $valueArr[1];
 
 		$this->PathValue[] = $fieldTitle . ': ' . $valueTitle;
+
+		return $whereClause;
+	}
+
+	protected function Search_Number($value, array $fieldRow, string $comparison_operator, bool $isFloat = false): MySQLWhereClause
+	{
+		if ($comparison_operator == '==')
+			$comparison_operator = '=';
+
+		$v = $this->getString_vL($value);
+		$vList = explode(',', $v);
+		$whereClause = new MySQLWhereClause();
+
+		foreach ($vList as $vL) {
+			if ($vL != '') {
+
+				if ($isFloat)
+					$cleanValue = floatval($vL);
+				else
+					$cleanValue = intval($vL);
+
+				$whereClause->addOrCondition($this->ct->Table->realtablename . '.' . $fieldRow['realfieldname'], $cleanValue, $comparison_operator);
+
+				$opt_title = ' ' . $comparison_operator;
+				if ($comparison_operator == '=')
+					$opt_title = ':';
+
+				$this->PathValue[] = $fieldRow['fieldtitle' . $this->ct->Languages->Postfix] . $opt_title . ' ' . $cleanValue;
+			}
+		}
 
 		return $whereClause;
 	}
@@ -1029,6 +996,144 @@ class Filtering
 			return common::inputGetInt($getPar);
 		}
 		return $vL;
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 3.7.3
+	 */
+	protected function Search_TableJoin($value, $fieldRow, $comparison_operator, Field $field): MySQLWhereClause
+	{
+		require_once(CUSTOMTABLES_LIBRARIES_PATH . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . 'value'
+			. DIRECTORY_SEPARATOR . 'tablejoin.php');
+
+		if ($comparison_operator == '==')
+			$comparison_operator = '=';
+
+		$vList = explode(',', $this->getString_vL($value));
+
+		// Filter Title
+		$typeParamsArray = CTMiscHelper::csv_explode(',', $fieldRow['typeparams']);
+		$filterTitle = '';
+
+		if (count($typeParamsArray) < 2)
+			$filterTitle = 'field or layout not specified';
+
+		if (count($typeParamsArray) < 1)
+			$filterTitle = 'table not specified';
+
+		$esr_table_full = $this->ct->Table->realtablename;
+		$esr_field_name = $typeParamsArray[1];
+
+		$whereClause = new MySQLWhereClause();
+
+		if (str_contains($value, '-to-') or $comparison_operator == '>' or $comparison_operator == '<' or $comparison_operator == '>=' or $comparison_operator == '<=') {
+
+			$valueArr = explode('-to-', $value);
+			if ($valueArr[0] == '' and $valueArr[1] == '')
+				return $whereClause;
+
+			$joinTableName = $field->params[0];
+			if (isset($field->params[1]))
+				$joinTableField = $field->params[1];
+			else
+				throw new Exception('TableJoin range Search: "' . implode(',', $field->params) . '" sqljoin: field not set');
+
+			$ct = new CT([], true);
+			$ct->getTable($joinTableName);
+
+			if ($ct->Table === null)
+				throw new Exception('TableJoin range Search: sqljoin: table "' . $joinTableName . '" not found');
+
+			$fieldRow = $ct->Table->getFieldByName($joinTableField);
+			if (!is_array($fieldRow))
+				throw new Exception('TableJoin range Search: sqljoin: field "' . $joinTableField . '" not found');
+		}
+
+
+		if (count($typeParamsArray) >= 2) {
+			foreach ($vList as $vL) {
+				$valueNew = $vL;
+
+				$esr_field_name_parts = explode(':', $esr_field_name);
+				if (count($esr_field_name_parts) == 2 and ($esr_field_name_parts[0] == 'tablelesslayout' or $esr_field_name_parts[0] == 'layout'))
+					$filterTitle .= Value_tablejoin::renderTableJoinValue($field, '{{ document.layout("' . $esr_field_name_parts[1] . '") }}', $valueNew);
+				else
+					$filterTitle .= Value_tablejoin::renderTableJoinValue($field, '{{ ' . $esr_field_name . ' }}', $valueNew);
+
+				if ($valueNew != '') {
+					if (str_contains($valueNew, '-to-')) {
+
+						$valueArr = explode('-to-', $value);
+						if ($valueArr[0] == '' and $valueArr[1] == '')
+							return $whereClause;
+
+						$valueTitle = '';
+
+						if (!empty($valueArr[0])) {
+							$where_from = '(SELECT ' . $fieldRow['realfieldname'] . ' FROM ' . $ct->Table->realtablename . ' WHERE '
+								. $ct->Table->realtablename . '.' . $ct->Table->realidfieldname . '=' . $this->ct->Table->realtablename . '.' . $field->realfieldname . ')';
+
+							$whereClause->addCondition($where_from, floatval($valueArr[0]), '>=', true);
+							$valueTitle .= common::translate('COM_CUSTOMTABLES_FROM') . ' ' . floatval($valueArr[0]) . ' ';
+						}
+
+						if (!empty($valueArr[1])) {
+							$where_to = '(SELECT ' . $fieldRow['realfieldname'] . ' FROM ' . $ct->Table->realtablename . ' WHERE '
+								. $ct->Table->realtablename . '.' . $ct->Table->realidfieldname . '=' . $this->ct->Table->realtablename . '.' . $field->realfieldname . ')';
+
+							$whereClause->addCondition($where_to, floatval($valueArr[1]), '<=', true);
+							$valueTitle .= common::translate('COM_CUSTOMTABLES_TO') . ' ' . floatval($valueArr[1]);
+						}
+
+						$this->PathValue[] = $field->title . ' / ' . $fieldRow['fieldtitle' . $this->ct->Languages->Postfix] . ': ' . $valueTitle;
+
+					} else {
+						if ($comparison_operator == '!=') {
+							$opt_title = common::translate('COM_CUSTOMTABLES_NOT');
+							$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], $valueNew, '!=');
+							$this->PathValue[] = $fieldRow['fieldtitle' . $this->ct->Languages->Postfix]
+								. ' '
+								. $opt_title
+								. ' '
+								. $filterTitle;
+						} elseif ($comparison_operator == '=') {
+							$opt_title = ':';
+
+							$integerValueNew = $valueNew;
+							if ($integerValueNew == 0 or $integerValueNew == -1) {
+								$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], null, 'NULL');
+								$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], '');
+								$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], 0);
+							} else
+								$whereClause->addOrCondition($esr_table_full . '.' . $fieldRow['realfieldname'], $valueNew);
+
+							$this->PathValue[] = $fieldRow['fieldtitle'
+								. $this->ct->Languages->Postfix]
+								. ''
+								. $opt_title
+								. ' '
+								. $filterTitle;
+						} elseif ($comparison_operator == '>' or $comparison_operator == '<' or $comparison_operator == '>=' or $comparison_operator == '<=') {
+							$opt_title = ' ' . $comparison_operator;
+
+							$where_from = '(SELECT ' . $fieldRow['realfieldname'] . ' FROM ' . $ct->Table->realtablename . ' WHERE '
+								. $ct->Table->realtablename . '.' . $ct->Table->realidfieldname . '=' . $this->ct->Table->realtablename
+								. '.' . $field->realfieldname . ')';
+
+							$whereClause->addCondition($where_from, floatval($valueNew), $comparison_operator, true);
+
+							$this->PathValue[] = $field->title . ' / ' . $fieldRow['fieldtitle' . $this->ct->Languages->Postfix]
+								. ' '
+								. $opt_title
+								. ' '
+								. floatval($valueNew);
+						}
+					}
+				}
+			}
+		}
+		return $whereClause;
 	}
 
 	protected function getCmd_vL($vL)

@@ -22,6 +22,9 @@ class TableHelper
 	 * @throws Exception
 	 * @since 3.2.2
 	 */
+
+	private static $tablesCache = [];
+
 	public static function checkTableName($tablename)
 	{
 		$new_tablename = $tablename;
@@ -96,8 +99,8 @@ class TableHelper
 	 * @since 3.2.2
 	 */
 	public static function createTableIfNotExists(string $dbPrefix, string $tableName, string $tableTitle,
-												  string $complete_table_name = '', string $privateKey = 'id',
-												  string $primaryKeyType = 'int UNSIGNED NOT NULL AUTO_INCREMENT'): bool
+	                                              string $complete_table_name = '', string $privateKey = 'id',
+	                                              string $primaryKeyType = 'int UNSIGNED NOT NULL AUTO_INCREMENT'): bool
 	{
 		if ($complete_table_name == '')
 			$realTableName = $dbPrefix . 'customtables_table_' . $tableName;
@@ -300,7 +303,13 @@ class TableHelper
 		if ($tablename === null)
 			return null;
 
-		return self::getTableRowByWhere(['tablename' => $tablename]);
+		if (!isset(self::$tablesCache[$tablename])) {
+			self::$tablesCache[$tablename] = self::getTableRowByWhere([
+				'tablename' => $tablename
+			]);
+		}
+
+		return self::$tablesCache[$tablename];
 	}
 
 	/**
@@ -447,7 +456,13 @@ class TableHelper
 		if ($tableid == 0)
 			return null;
 
-		return self::getTableRowByWhere(['id' => $tableid]);
+		if (!isset(self::$tablesCache[$tableid])) {
+			self::$tablesCache[$tableid] = self::getTableRowByWhere([
+				'id' => $tableid
+			]);
+		}
+
+		return self::$tablesCache[$tableid];
 	}
 
 	/**

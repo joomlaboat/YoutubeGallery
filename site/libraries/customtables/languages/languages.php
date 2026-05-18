@@ -18,17 +18,24 @@ use Joomla\CMS\Factory;
 
 class Languages
 {
+	private static $languageListCache = [];
 	var array $LanguageList;
 	var string $Postfix;
 	var string $tag;
 
 	function __construct()
 	{
-		$this->LanguageList = $this->getLanguageList();
+		//Language list request caching
+		if (count(self::$languageListCache) == 0) {
+			self::$languageListCache = self::queryLanguageList();
+		}
+
+		//Let's keep this $this->LanguageList variable for legacy support. It can be replaced later.
+		$this->LanguageList = self::$languageListCache;
 		$this->Postfix = $this->getLangPostfix();
 	}
 
-	function getLanguageList(): array
+	protected static function queryLanguageList(): array
 	{
 		if (defined('_JEXEC')) {
 			$whereClause = new MySQLWhereClause();
@@ -36,13 +43,13 @@ class Languages
 
 			$rows = database::loadObjectList('#__languages', ['lang_id AS id', 'lang_code AS language', 'title AS caption', 'title', 'sef AS original_sef'], $whereClause, 'lang_id');
 
-			$this->LanguageList = array();
+			$LanguageList = array();
 			foreach ($rows as $row) {
 				$parts = explode('-', $row->original_sef);
 				$row->sef = $parts[0];
-				$this->LanguageList[] = $row;
+				$LanguageList[] = $row;
 			}
-			return $this->LanguageList;
+			return $LanguageList;
 		} else {
 
 			require_once ABSPATH . 'wp-admin/includes/translation-install.php';
@@ -60,7 +67,7 @@ class Languages
 
 			$i = 2;
 			foreach ($languages as $lang_code) {
-				$translation = $this->wp_findLanguageTranslation($translations, $lang_code);
+				$translation = self::wp_findLanguageTranslation($translations, $lang_code);
 
 				$parts = explode('_', $lang_code);
 				$sef = $parts[0];
@@ -79,7 +86,7 @@ class Languages
 		}
 	}
 
-	protected function wp_findLanguageTranslation($translations, $lang_code)
+	protected static function wp_findLanguageTranslation($translations, $lang_code)
 	{
 		foreach ($translations as $translation) {
 			if ($translation['language'] == $lang_code)
