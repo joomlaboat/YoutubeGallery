@@ -110,7 +110,7 @@ class YoutubeGalleryHotPlayer
             if ($videoId == '') {
                 $hotRefreshScript .= '
                 
-    		setTimeout(() => youtubeplayer1.FindNextVideo(), 500);
+    		setTimeout(() => youtubeplayer' . $videoListRow->id . '.FindNextVideo(), 500);
 ';
             } else {
                 $hotRefreshScript .= '
