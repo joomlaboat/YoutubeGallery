@@ -303,6 +303,17 @@ class database
 			return Factory::getDbo();
 		else
 			return Factory::getContainer()->get(DatabaseInterface::class);
+
+		/*
+		$version_object = new Version;
+		$version = (float)$version_object->getShortVersion();
+		if ($version < 4)
+			$db = Factory::getDbo();
+		elseif ($version < 6)
+			$db = Factory::getContainer()->get('DatabaseDriver');
+		else
+			$db = Factory::getContainer()->get(DatabaseInterface::class);
+		*/
 	}
 
 	/**

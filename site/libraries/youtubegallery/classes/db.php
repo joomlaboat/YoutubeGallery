@@ -10,8 +10,8 @@
 defined('_JEXEC') or die('Restricted access');
 
 use CustomTables\CTMiscHelper;
+use CustomTables\database;
 use Joomla\CMS\Factory;
-
 class YouTubeGalleryDB
 {
 	var object $videoListRow;
@@ -260,11 +260,11 @@ class YouTubeGalleryDB
 			$where[] = $wq;
 
 		if (count($listIDs) > 0) {
-			$w = array();
-			foreach ($listIDs as $l) {
-				$w[] = $db->quoteName('es_videolist') . '=' . (int)$l;//$db->quote($l);
-			}
-			$where[] = '(' . implode(' OR ', $w) . ')';
+			$w = [];
+			foreach ($listIDs as $l)
+				$w[] = $db->quoteName('es_videolist') . '=' . (int)$l;
+
+			$where[] = (count($w) == 1 ? $w[0] : '(' . implode(' OR ', $w) . ')');
 		}
 
 		$where[] = 'es_isvideo=1';
@@ -278,9 +278,9 @@ class YouTubeGalleryDB
 			if ($this->theme_row->es_orderby == 'randomization')
 				$orderby = 'RAND()';
 			else
-				$orderby = 'es_' . $this->theme_row->es_orderby;
+				$orderby = $db->quoteName('es_' . $this->theme_row->es_orderby);
 		} else
-			$orderby = 'es_ordering';
+			$orderby = $db->quoteName('es_ordering');
 
 		if ($get_the_first_one) {
 			// Get only one video - the first video.
@@ -334,37 +334,49 @@ class YouTubeGalleryDB
 
 	function addSearchQuery(): string
 	{
+		$db = database::getDB();
+
 		//Input value sanitized below
-		$search_fields = Factory::getApplication()->input->getVar('ygsearchfields');
-		if ($search_fields != '') {
-			$search_query = str_replace('"', '', Factory::getApplication()->input->getVar('ygsearchquery'));
-			$search_query = str_replace(' ', ',', $search_query);
-			$search_query_array = explode(',', $search_query);
+		$jInput = Factory::getApplication()->input;
+		$search_fields_raw = $jInput->getString('ygsearchfields','');
+		$search_fields_array = array_filter(
+			array_map('trim', explode(',', $search_fields_raw))
+		);
 
-			$search_fields_array = explode(',', $search_fields);
-			$possible_fields = array('es_videoid', 'es_title', 'es_description', 'es_publisheddate', 'es_keywords', 'es_channelusername'
-			, 'es_channeltitle', 'es_channeldescription');
+		$possible_fields = ['es_videoid', 'es_title', 'es_description', 'es_publisheddate', 'es_keywords', 'es_channelusername'
+			, 'es_channeltitle', 'es_channeldescription'];
 
-			$q_where = array();
-			foreach ($search_query_array as $q) {
-				if ($q != '') {
-					$f_where = array();
-					foreach ($search_fields_array as $f) {
-						if (in_array($f, $possible_fields))
-							$f_where[] = 'INSTR(' . $f . ',"' . $q . '")';
-					}//f
+		$search_fields = array_unique(array_values(array_intersect(
+			$search_fields_array,
+			$possible_fields
+		)));
 
-					if (count($f_where) == 1)
-						$q_where[] = implode(' OR ', $f_where);
-					elseif (count($f_where) > 1)
-						$q_where[] = '(' . implode(' OR ', $f_where) . ')';
+		if (!empty($search_fields)){
+
+			$search_query = preg_replace('/\s+/', ',', $jInput->getString('ygsearchquery'));
+			$search_query_array = array_filter(array_unique(explode(',', $search_query)));
+
+			$q_where = [];
+			foreach ($search_query_array as $q_row) {
+				$q=trim($q_row);
+				if ($q !== '') {
+					$f_where = [];
+					foreach ($search_fields as $f)
+						$f_where[] = 'INSTR(' . $db->quoteName($f) . ',' . $db->quote($q) . ')';
+
+					$sql = implode(' OR ', $f_where);
+
+					$q_where[] = count($f_where) > 1
+						? '(' . $sql . ')'
+						: $sql;
 				}
-			}//q
+			}
 
-			if (count($q_where) == 1)
-				return implode(' AND ', $q_where);
-			elseif (count($q_where) > 1)
-				return '(' . implode(' AND ', $q_where) . ')';
+			$sql = implode(' AND ', $q_where);
+
+			return count($q_where) > 1
+				? '(' . $sql . ')'
+				: $sql;
 		}
 		return '';
 	}
