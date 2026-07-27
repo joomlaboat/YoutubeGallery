@@ -1043,7 +1043,7 @@ class database
 				'EXTRA AS extra'];
 
 			$selectsSafe = database::sanitizeSelects($selects, 'information_schema.COLUMNS');
-			$query = 'SELECT ' . $selectsSafe . ' FROM information_schema.COLUMNS WHERE TABLE_SCHEMA="' . $dbName . '" AND TABLE_NAME=' . $db->quote($realtablename);
+			$query = 'SELECT ' . $selectsSafe . ' FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=' . $db->quote($dbName) . ' AND TABLE_NAME=' . $db->quote($realtablename);
 
 			$db->setQuery($query);
 			$results = $db->loadAssocList();

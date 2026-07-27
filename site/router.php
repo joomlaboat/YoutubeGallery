@@ -34,7 +34,7 @@ function YouTubeGalleryBuildRoute(&$query)
 
             $db = Factory::getDBO();
 
-            $db->setQuery('SELECT alias FROM #__youtubegallery_videos WHERE videoid="' . $videoid . '" LIMIT 1');
+            $db->setQuery('SELECT alias FROM #__youtubegallery_videos WHERE videoid=' . $db->quote($videoid) . ' LIMIT 1');
 
             $rows = $db->loadObjectList();
 
@@ -65,7 +65,7 @@ function YouTubeGalleryParseRoute($segments)
 
         $db = Factory::getDBO();
 
-        $db->setQuery('SELECT videoid FROM #__youtubegallery_videos WHERE alias="' . $alias . '" LIMIT 1');
+        $db->setQuery('SELECT videoid FROM #__youtubegallery_videos WHERE alias=' . $db->quote($alias) . ' LIMIT 1');
 
         $rows = $db->loadObjectList();
 
