@@ -14,6 +14,7 @@ use Joomla\CMS\Form\FormField;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Version;
+use CustomTables\database;
 
 $versionObject = new Version;
 $version = (int)$versionObject->getShortVersion();
@@ -41,7 +42,7 @@ if ($version < 4) {
         {
             $current_category_id = Factory::getApplication()->input->getInt('id', '0');
 
-            $db = Factory::getDBO();
+			$db = database::getDB();
 
             $query = 'SELECT id,es_categoryname,es_parentid FROM #__customtables_table_youtubegallerycategories';
             $db->setQuery((string)$query);
@@ -75,7 +76,7 @@ if ($version < 4) {
             if ($parentid == 0)
                 return $children;
 
-            $db = Factory::getDBO();
+			$db = database::getDB();
             $query = $db->getQuery(true);
             $query->select(array('id', 'es_parentid'));
             $query->from('#__customtables_table_youtubegallerycategories');
@@ -116,7 +117,7 @@ if ($version < 4) {
         {
             $current_category_id = Factory::getApplication()->input->getInt('id', '0');
 
-            $db = Factory::getDBO();
+			$db = database::getDB();
 
             $query = 'SELECT id,es_categoryname,es_parentid FROM #__customtables_table_youtubegallerycategories';
             $db->setQuery((string)$query);
@@ -148,7 +149,7 @@ if ($version < 4) {
             if ($parentid == 0)
                 return $children;
 
-            $db = Factory::getDBO();
+			$db = database::getDB();
             $query = $db->getQuery(true);
             $query->select(array('id', 'es_parentid'));
             $query->from('#__customtables_table_youtubegallerycategories');

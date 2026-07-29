@@ -11,6 +11,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use CustomTables\database;
 use Joomla\CMS\MVC\Model\ListModel;
 
 /**
@@ -71,10 +72,8 @@ class YoutubeGalleryModelThemeList extends ListModel
      */
     protected function getListQuery()
     {
-        // Get the user object.
-        $user = Factory::getUser();
         // Create a new query object.
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = $db->getQuery(true);
 
         // Select some fields

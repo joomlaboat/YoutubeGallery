@@ -9,11 +9,11 @@
 // No direct access to this file
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\Form\FormField;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Version;
+use CustomTables\database;
 
 /**
  * YouTubeGallery Form Field class for the Youtube Gallery component
@@ -41,7 +41,7 @@ if ($version < 4) {
          */
         protected function getOptions()
         {
-            $db = Factory::getDBO();
+			$db = database::getDB();
             $query = $db->getQuery(true);
             $query->select(array('id', 'es_categoryname'));
             $query->from('#__customtables_table_youtubegallerycategories');
@@ -89,7 +89,7 @@ if ($version < 4) {
          */
         public function getOptions()
         {
-            $db = Factory::getDBO();
+			$db = database::getDB();
             $query = $db->getQuery(true);
             $query->select(array('id', 'es_categoryname'));
             $query->from('#__customtables_table_youtubegallerycategories');

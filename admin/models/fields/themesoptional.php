@@ -14,6 +14,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Form\FormField;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Version;
+use CustomTables\database;
 
 $versionObject = new Version;
 $version = (int)$versionObject->getShortVersion();
@@ -32,7 +33,7 @@ if ($version < 4) {
 
 		protected function getOptions()
 		{
-			$db = Factory::getDBO();
+			$db = database::getDB();
 			$query = $db->getQuery(true);
 			$query->select(array('id', 'es_themename'));
 			$query->from('#__customtables_table_youtubegallerythemes');
@@ -67,7 +68,7 @@ if ($version < 4) {
 
 		public function getOptions(): array
 		{
-			$db = Factory::getDBO();
+			$db = database::getDB();
 			$query = $db->getQuery(true);
 			$query->select(array('id', 'es_themename'));
 			$query->from('#__customtables_table_youtubegallerythemes');

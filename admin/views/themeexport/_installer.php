@@ -41,7 +41,7 @@ class YoutubeGalleryTheme_'.$themeName.'InstallerScript
     {
         //delete extension - type="file"
         $db = Factory::getDbo();
-        $db->setQuery('DELETE FROM #__extensions WHERE name = "YoutubeGalleryTheme_' . $themeName . '" ');
+        $db->setQuery('DELETE FROM #__extensions WHERE name = ' . $db->quote('YoutubeGalleryTheme_' . $themeName));
         $db->execute();
     }
 

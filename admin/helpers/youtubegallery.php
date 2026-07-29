@@ -12,6 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\Utilities\ArrayHelper;
+use CustomTables\database;
 
 /**
  * YouTubeGallery component helper.
@@ -57,7 +58,7 @@ abstract class YoutubeGalleryHelper
 
     protected static function deleteSingleRecord($id, $tableShortName): bool
     {
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = 'DELETE FROM #__customtables_table_' . $tableShortName . ' WHERE id=' . (int)$id;
         $db->setQuery($query);
         $db->execute();
@@ -82,7 +83,7 @@ abstract class YoutubeGalleryHelper
     }
 
     /**
-     *    Check if have a string with a length
+     *    Check if it has a string with a length
      *
      * @input    string   The string to check
      *
@@ -158,7 +159,7 @@ abstract class YoutubeGalleryHelper
 
     protected static function setPublishStatusSingleRecord($id, $status, $tableShortName): bool
     {
-        $db = Factory::getDBO();
+		$db = database::getDB();
 
         $query = 'UPDATE #__customtables_table_' . $tableShortName . ' SET published=' . (int)$status . ' WHERE id=' . (int)$id;
         $db->setQuery($query);

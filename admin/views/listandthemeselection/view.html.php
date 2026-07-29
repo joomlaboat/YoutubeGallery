@@ -11,6 +11,7 @@ defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView;
+use CustomTables\database;
 
 class YoutubegalleryViewListandthemeselection extends HtmlView
 {
@@ -27,7 +28,7 @@ class YoutubegalleryViewListandthemeselection extends HtmlView
 
     function checkIfPluginIsEnabled()
     {
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = 'SELECT extension_id, enabled FROM #__extensions WHERE ' . $db->quoteName('type') . '="plugin" AND folder="content" AND ' . $db->quoteName('element') . '="youtubegallery" LIMIT 1';
         $db->setQuery($query);
         $plugins = $db->loadAssocList();
@@ -40,7 +41,7 @@ class YoutubegalleryViewListandthemeselection extends HtmlView
 
     function EnablePlugin(): void
     {
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = 'UPDATE #__extensions SET enabled=1 WHERE ' . $db->quoteName('type') . '="plugin" AND folder="content" AND ' . $db->quoteName('element') . '="youtubegallery"';
         $db->setQuery($query);
         $db->execute();

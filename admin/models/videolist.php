@@ -12,9 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\CMS\Table\Table;
-
-// import the Joomla modellist library
-//jimport('joomla.application.component.modellist');
+use CustomTables\database;
 
 /**
  * VideoList Model
@@ -34,7 +32,7 @@ class YoutubeGalleryModelVideoList extends ListModel
     protected function getListQuery()
     {
         // Create a new query object.
-        $db = Factory::getDBO();
+		$db = database::getDB();
 
         $where = array();
 

@@ -14,6 +14,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Form\FormField;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Version;
+use CustomTables\database;
 
 $versionObject = new Version;
 $version = (int)$versionObject->getShortVersion();
@@ -39,7 +40,7 @@ if ($version < 4) {
 
 		protected function getOptions()
 		{
-			$db = Factory::getDBO();
+			$db = database::getDB();
 
 			$query = 'SELECT id,es_listname FROM #__customtables_table_youtubegalleryvideolists WHERE published=1';
 			$db->setQuery($query);
@@ -83,7 +84,7 @@ if ($version < 4) {
 		 */
 		public function getOptions()
 		{
-			$db = Factory::getDBO();
+			$db = database::getDB();
 			$query = $db->getQuery(true);
 			$query->select(array('id', 'es_listname'));
 			$query->from('#__customtables_table_youtubegalleryvideolists');

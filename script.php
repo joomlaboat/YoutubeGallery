@@ -16,9 +16,7 @@ use CustomTables\IntegrityChecks;
 use CustomTables\TableHelper;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Version;
-use Joomla\Database\DatabaseInterface;
-
+use CustomTables\database;
 
 if (!function_exists('str_contains')) {
 	function str_contains($haystack, $needle): bool
@@ -130,14 +128,7 @@ class com_YoutubeGalleryInstallerScript
 		//Check Custom Tables, create if necessary
 		$result = IntegrityChecks::check($ct, $check_core_tables = true, $check_custom_tables = false);
 
-		$version_object = new Version;
-		$version = (int)$version_object->getShortVersion();
-		if ($version < 4)
-			$db = Factory::getDbo();
-		else
-			$db = Factory::getContainer()->get(DatabaseInterface::class);
-
-		//self::setFieldPrefix($db);
+		$db = database::getDB();
 
 		self::setFieldPrefixes();
 
@@ -166,7 +157,7 @@ class com_YoutubeGalleryInstallerScript
 
 	protected static function enableButtonPlugin()
 	{
-		$db = Factory::getDbo();
+		$db = database::getDB();
 		$query = $db->getQuery(true);
 
 		$fields = array(
@@ -188,7 +179,7 @@ class com_YoutubeGalleryInstallerScript
 
 	protected static function setFieldPrefixes()
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 		$tables = ['youtubegallerycategories', 'youtubegallerysettings', 'youtubegallerythemes', 'youtubegalleryvideolists', 'youtubegalleryvideos'];
 		$where = [];
 		foreach ($tables as $table)
@@ -269,7 +260,7 @@ class com_YoutubeGalleryInstallerScript
 		if (!TableHelper::checkIfTableExists($old_table))
 			return false;
 
-		$db = Factory::getDBO();
+		$db = database::getDB();
 		$query = 'SELECT COUNT(*) AS c FROM ' . $new_table . ' LIMIT 1';
 		$db->setQuery($query);
 		$records = $db->loadAssocList();
@@ -295,7 +286,7 @@ class com_YoutubeGalleryInstallerScript
 		else
 			$mysqltablename = $table;
 
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		$inserts = array();
 
@@ -397,7 +388,7 @@ class com_YoutubeGalleryInstallerScript
 
 	public static function insertRecords2($realtablename, $sets)
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		if ($db->serverType == 'postgresql') {
 			$set_fieldnames = array();

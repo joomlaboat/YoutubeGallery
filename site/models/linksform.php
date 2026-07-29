@@ -9,6 +9,7 @@
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
 
+use CustomTables\database;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Table\Table;
@@ -58,7 +59,7 @@ class YoutubeGalleryModelLinksForm extends AdminModel
 
         // Create a new query object.
 
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = $db->getQuery(true);
         // Select some fields
         $query->select(array('*'));
@@ -152,7 +153,7 @@ class YoutubeGalleryModelLinksForm extends AdminModel
     {
         $linksform_row = $this->getTable('videolists');
 
-        $db = Factory::getDBO();
+		$db = database::getDB();
 
         if (count($cids)) {
             foreach ($cids as $cid) {

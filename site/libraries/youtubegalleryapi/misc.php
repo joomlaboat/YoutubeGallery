@@ -7,9 +7,10 @@
  **/
 
 // No direct access to this file
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die('Restricted access');
+
+use Joomla\CMS\Factory;
+use CustomTables\database;
 
 require_once('data.php');
 
@@ -86,26 +87,6 @@ class YouTubeGalleryAPIMisc
 		return $vlu;
 	}
 
-	/*
-		public static function getNumberOfPayments()
-		{
-			$db = Factory::getDBO();
-			$query = 'SELECT COUNT(id) AS c FROM #__customtables_table_payments';
-
-			try {
-				$db->setQuery($query);
-				$recs = $db->loadAssocList();
-			} catch (RuntimeException $e) {
-				return 0;
-			}
-
-			if (count($recs) == 0)
-				return 0;
-
-			return (int)$recs[0]['c'];
-		}
-	*/
-
 	function checkLink(bool $active_key, $theLink, &$isNew, $force_update = false, $videoListId = null, $youtube_data_api_key = '')
 	{
 		$blankArray = array();
@@ -164,7 +145,7 @@ class YouTubeGalleryAPIMisc
 
 	function getVideoRecords($videosource, $videoid, $noNullDate = false)
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		$item = YouTubeGalleryAPIMisc::getBlankArray(true);
 		$keys = array_keys($item);
@@ -259,7 +240,7 @@ class YouTubeGalleryAPIMisc
 	{
 		$videoList = YouTubeGalleryAPIData::formVideoList($theLink, $active_key, $youtube_data_api_key);
 		$parent_id = null;
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		$db->setQuery("SET NAMES 'utf8mb4'");
 		$db->execute();
@@ -307,7 +288,7 @@ class YouTubeGalleryAPIMisc
 
 	protected static function makeSetList($g, &$parent_id): array
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		$g_title = str_replace('"', '&quot;', $g['es_title']);
 		$g_description = str_replace('"', '&quot;', $g['es_description']);
@@ -432,7 +413,7 @@ class YouTubeGalleryAPIMisc
 
 	function isVideo_record_exist($videosource, $videoid, $videolist_id = null)
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		$wheres = [];
 

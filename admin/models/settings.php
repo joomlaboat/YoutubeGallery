@@ -12,7 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Table\Table;
-
+use CustomTables\database;
 /**
  * YouTubeGallery - Settings Model
  */
@@ -52,7 +52,7 @@ class YoutubeGalleryModelSettings extends AdminModel
         $joomlaboat_api_key = trim(preg_replace("/[^a-zA-Z0-9~_-]/", "", Factory::getApplication()->input->getVar('joomlaboat_api_key')));
         $youtubedataapi_key = trim(preg_replace("/[^a-zA-Z0-9~_-]/", "", Factory::getApplication()->input->getVar('youtubedataapi_key')));
 
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = array();
         $query[] = YoutubeGalleryModelSettings::makeQueryLine('allowsef', $allowsef);
         $query[] = YoutubeGalleryModelSettings::makeQueryLine('joomlaboat_api_host', $joomlaboat_api_host);
@@ -68,12 +68,7 @@ class YoutubeGalleryModelSettings extends AdminModel
 
     static protected function makeQueryLine($field, $value)
     {
-        $db = Factory::getDBO();
-        /*
-        return 'INSERT INTO #__customtables_table_youtubegallerysettings (es_option, es_value)
-        VALUES ('.$db->quote($field).', '.$db->quote($value).')
-        ON DUPLICATE KEY UPDATE es_option='.$db->quote($field).', es_value='.$db->quote($value);
-        */
+		$db = database::getDB();
 
         $id = YoutubeGalleryModelSettings::getRecordID($field);
         if ($id == null)
@@ -85,7 +80,7 @@ class YoutubeGalleryModelSettings extends AdminModel
 
     static protected function getRecordID($field)
     {
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = 'SELECT id FROM #__customtables_table_youtubegallerysettings WHERE es_option=' . $db->quote($field) . ' LIMIT 1';
         $db->setQuery($query);
         $records = $db->loadAssocList();

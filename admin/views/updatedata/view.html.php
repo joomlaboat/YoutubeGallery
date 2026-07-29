@@ -12,10 +12,6 @@ defined('_JEXEC') or die('Restricted access');
 
 use Joomla\CMS\MVC\View\HtmlView;
 
-// import Joomla view library
-//jimport('joomla.application.component.view');
-
-
 class YoutubeGalleryViewUpdateData extends HtmlView
 {
     function display($tpl = null)

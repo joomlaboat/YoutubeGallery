@@ -19,7 +19,7 @@ class YouTubeGalleryDB
 
 	static public function getRawData($videoId)
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 		$query = 'SELECT es_rawdata FROM #__customtables_table_youtubegalleryvideos WHERE es_videoid=' . $db->quote($videoId) . ' LIMIT 1';
 		$db->setQuery($query);
 		$values = $db->loadAssocList();
@@ -36,7 +36,7 @@ class YouTubeGalleryDB
 		if ($videoId != '') {
 			$value = '*youtubegallery_request*';//.$link;//md5(mt_rand());
 
-			$db = Factory::getDBO();
+			$db = database::getDB();
 
 			$db->setQuery("SET NAMES 'utf8mb4'");
 			$db->execute();
@@ -51,7 +51,7 @@ class YouTubeGalleryDB
 	static public function setRawData($videoid, $videoData): void
 	{
 		if ($videoid != '') {
-			$db = Factory::getDBO();
+			$db = database::getDB();
 
 			$db->setQuery("SET NAMES 'utf8mb4'");
 			$db->execute();
@@ -65,7 +65,7 @@ class YouTubeGalleryDB
 
 	public static function Playlist_LastUpdate($theLink)
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 		$query = 'SELECT es_lastupdate FROM #__customtables_table_youtubegalleryvideos WHERE es_link=' . $db->quote($theLink) . ' LIMIT 1';
 
 		$db->setQuery($query);
@@ -80,7 +80,7 @@ class YouTubeGalleryDB
 
 	public static function getSettingValue($option)
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 		$query = 'SELECT ' . $db->quoteName('es_value') . ' FROM #__customtables_table_youtubegallerysettings WHERE ' . $db->quoteName('es_option') . '=' . $db->quote($option) . ' LIMIT 1';
 		$db->setQuery($query);
 		$values = $db->loadAssocList();
@@ -99,9 +99,9 @@ class YouTubeGalleryDB
 
 	public static function getVideoIDbyAlias(string $alias): string
 	{
-		$db = Factory::getDBO();
-
-		$db->setQuery('SELECT ' . $db->quoteName('es_videoid') . ' FROM #__customtables_table_youtubegalleryvideos WHERE ' . $db->quoteName('es_alias') . '=' . $db->quote($alias) . ' LIMIT 1');
+		$db = database::getDB();
+		$db->setQuery('SELECT ' . $db->quoteName('es_videoid') . ' FROM #__customtables_table_youtubegalleryvideos WHERE '
+			. $db->quoteName('es_alias') . '=' . $db->quote($alias) . ' LIMIT 1');
 
 		$rows = $db->loadObjectList();
 
@@ -118,9 +118,7 @@ class YouTubeGalleryDB
 		if ($videoid == '' or $videoid == '****youtubegallery-video-id****')
 			return false;
 
-
-		//Check DB
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		$query = 'SELECT *,IF(es_customtitle!="", es_customtitle, es_title) AS es_title,IF(es_customdescription!="", es_customdescription, es_description) AS es_description'
 			. ' FROM #__customtables_table_youtubegalleryvideos'
@@ -138,7 +136,7 @@ class YouTubeGalleryDB
 
 	function getVideoListTableRow(int $listId): bool
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		//Load Video List
 
@@ -172,7 +170,7 @@ class YouTubeGalleryDB
 
 	function getThemeTableRow($themeId): bool
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		//Load Theme Row
 		//, es_showinfo, es_cols,es_showtitle, , es_linestyle, es_showlistname, es_showactivevideotitle,es_description, es_descr_position,, es_pagination , es_readonly,es_activevideotitlestyle,
@@ -182,7 +180,6 @@ class YouTubeGalleryDB
 		es_controls, es_youtubeparams, es_useglass, es_logocover, es_customlayout,  es_prepareheadtags, es_muteonplay,
 		es_volume, es_orderby, es_customnavlayout, es_responsive, es_mediafolder, es_headscript, es_themedescription, es_nocookie, es_changepagetitle
 		FROM #__customtables_table_youtubegallerythemes WHERE id=' . (int)$themeId . ' LIMIT 1';
-		//es_playertype,
 
 		$db->setQuery($query);
 
@@ -199,7 +196,8 @@ class YouTubeGalleryDB
 	{
 		$listIDs = array();
 		$listIDs[] = $this->videoListRow->id;
-		$db = Factory::getDBO();
+		$db = database::getDB();
+
 		$where = array();
 		$where[] = '!INSTR(es_title,"***Video not found***")';
 		$where[] = $db->quoteName('es_videolist') . '=' . $db->quote($this->videoListRow->id);
@@ -251,7 +249,7 @@ class YouTubeGalleryDB
 	{
 		$jinput = Factory::getApplication()->input;
 
-		$db = Factory::getDBO();
+		$db = database::getDB();
 		$where = array();
 
 		//Only for search module
@@ -383,6 +381,8 @@ class YouTubeGalleryDB
 
 	function update_playlist(bool $force_update = false): void
 	{
+		$db = database::getDB();
+
 		$start = strtotime($this->videoListRow->es_lastplaylistupdate ?? '');
 		$end = strtotime(date('Y-m-d H:i:s'));
 		$days_diff = ($end - $start) / 86400;
@@ -399,8 +399,8 @@ class YouTubeGalleryDB
 				YouTubeGalleryDB::update_cache_table($active_key, $this->videoListRow, true);
 				$this->videoListRow->es_lastplaylistupdate = date('Y-m-d H:i:s');
 
-				$db = Factory::getDBO();
-				$query = 'UPDATE #__customtables_table_youtubegalleryvideolists SET ' . $db->quoteName('es_lastplaylistupdate') . '=' . $db->quote($this->videoListRow->es_lastplaylistupdate)
+				$query = 'UPDATE #__customtables_table_youtubegalleryvideolists SET '
+					. $db->quoteName('es_lastplaylistupdate') . '=' . $db->quote($this->videoListRow->es_lastplaylistupdate)
 					. ' WHERE id=' . (int)$this->videoListRow->id;
 
 				$db->setQuery($query);
@@ -414,9 +414,10 @@ class YouTubeGalleryDB
 	public static function update_cache_table(bool $active_key, object $videoListRow, bool $updateVideoList = false): void
 	{
 		$videoListArray = CTMiscHelper::csv_explode("\n", $videoListRow->es_videolist, '"', true);
-
 		$videoList = YouTubeGalleryData::formVideoList($active_key, $videoListRow, $videoListArray, $updateVideoList);
-		$db = Factory::getDBO();
+
+		$db = database::getDB();
+
 		$parent_id = null;
 		$ListOfVideosNotToDelete = array();
 		$customOrdering = 1;
@@ -446,7 +447,7 @@ class YouTubeGalleryDB
 	{
 		self::checkIfLatLongAltFieldsExists();
 
-		$db = Factory::getDBO();
+		$db = database::getDB();
 
 		$db->setQuery("SET NAMES 'utf8mb4'");
 		$db->execute();
@@ -477,7 +478,8 @@ class YouTubeGalleryDB
 
 	protected static function checkIfLatLongAltFieldsExists(): void
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
+
 		$query = "SHOW COLUMNS FROM #__customtables_table_youtubegalleryvideos";//SELECT * FROM #__youtubegallery_videos LIMIT 1";
 		$db->setQuery($query);
 		$all = $db->loadAssocList();
@@ -506,7 +508,7 @@ class YouTubeGalleryDB
 
 	protected static function prepareQuerySets(array $g, string $videoListId, ?int &$parent_id): array
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 		$fields = array();
 
 		if (isset($g['es_error']) and $g['es_error'] !== null)
@@ -672,9 +674,8 @@ class YouTubeGalleryDB
 			$alias = CTMiscHelper::slugify($title);
 
 			if ($alias != "") {
-				$db = Factory::getDBO();
+				$db = database::getDB();
 				$db->setQuery('SELECT ' . $db->quoteName('es_alias') . ' FROM #__customtables_table_youtubegalleryvideos WHERE ' . $db->quoteName('es_alias') . '=' . $db->quote($alias));
-
 				$rows = $db->loadObjectList();
 
 				if (count($rows) > 1)
@@ -692,7 +693,7 @@ class YouTubeGalleryDB
 
 	protected static function isVideo_record_exist($videosource, $listid, $videoid)
 	{
-		$db = Factory::getDBO();
+		$db = database::getDB();
 		$query = 'SELECT id, es_allowupdates FROM #__customtables_table_youtubegalleryvideos WHERE es_videolist=' . (int)$listid . ' AND ' . $db->quoteName('es_videosource') . '=' . $db->quote($videosource) . ' AND ' . $db->quoteName('es_videoid') . '=' . $db->quote($videoid) . ' LIMIT 1';
 		$db->setQuery($query);
 		$db->execute();

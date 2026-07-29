@@ -9,7 +9,7 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
-use Joomla\CMS\Factory;
+use CustomTables\database;
 
 function YouTubeGalleryBuildRoute(&$query)
 {
@@ -32,7 +32,7 @@ function YouTubeGalleryBuildRoute(&$query)
         if ($allowsef == 1) {
             $videoid = $query['videoid'];
 
-            $db = Factory::getDBO();
+			$db = database::getDB();
 
             $db->setQuery('SELECT alias FROM #__youtubegallery_videos WHERE videoid=' . $db->quote($videoid) . ' LIMIT 1');
 
@@ -63,10 +63,8 @@ function YouTubeGalleryParseRoute($segments)
         $alias = str_replace(':', '-', $segments[$sIndex]);
         $alias = preg_replace('/[^a-zA-Z0-9-_]+/', '', $alias);
 
-        $db = Factory::getDBO();
-
+		$db = database::getDB();
         $db->setQuery('SELECT videoid FROM #__youtubegallery_videos WHERE alias=' . $db->quote($alias) . ' LIMIT 1');
-
         $rows = $db->loadObjectList();
 
         if (count($rows) == 0)

@@ -14,6 +14,7 @@ use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Table\Table;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
+use CustomTables\database;
 
 class YoutubeGalleryModelLinksForm extends AdminModel
 {
@@ -132,7 +133,7 @@ class YoutubeGalleryModelLinksForm extends AdminModel
 
         // Create a new query object.
 
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = $db->getQuery(true);
         // Select some fields
         $query->select(array('*'));

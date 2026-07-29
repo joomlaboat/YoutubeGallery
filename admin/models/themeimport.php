@@ -12,11 +12,7 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\ListModel;
-
-//jimport('joomla.application.component.modellist');
-//jimport('joomla.filesystem.file');
-//jimport('joomla.filesystem.folder');
-//jimport('joomla.filesystem.archive');
+use CustomTables\database;
 
 /**
  * YouTubeGallery - Theme Import Model
@@ -188,7 +184,7 @@ class YoutubeGalleryModelThemeImport extends ListModel
 
     function checkIfThemenameExist($themename)
     {
-        $db = Factory::getDBO();
+		$db = database::getDB();
 
         $query = 'SELECT id FROM #__customtables_table_youtubegallerythemes WHERE ' . $db->quoteName('es_themename') . '=' . $db->quote($themename) . ' LIMIT 1';
         $db->setQuery($query);
@@ -250,7 +246,7 @@ class YoutubeGalleryModelThemeImport extends ListModel
     function saveTheme4(&$theme_row)
     {
         $fields = array();
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $fields[] = $db->quoteName('es_themename') . '=' . $db->quote($theme_row->es_themename);
         $fields[] = $db->quoteName('es_width') . '=' . $db->quote($theme_row->es_width);
         $fields[] = $db->quoteName('es_height') . '=' . $db->quote($theme_row->es_height);
@@ -297,7 +293,7 @@ class YoutubeGalleryModelThemeImport extends ListModel
 
         $query = 'INSERT #__customtables_table_youtubegallerythemes SET ' . implode(', ', $fields);
 
-        $db = Factory::getDBO();
+		$db = database::getDB();
 
         $db->setQuery($query);
         $db->execute();
@@ -306,7 +302,7 @@ class YoutubeGalleryModelThemeImport extends ListModel
     function saveTheme3(&$theme_row)
     {
         $fields = array();
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $fields[] = $db->quoteName('es_themename') . '=' . $db->quote($theme_row->themename);
         $fields[] = $db->quoteName('es_width') . '=' . $db->quote($theme_row->width);
         $fields[] = $db->quoteName('es_height') . '=' . $db->quote($theme_row->height);
@@ -353,27 +349,19 @@ class YoutubeGalleryModelThemeImport extends ListModel
             $fields[] = $db->quoteName('es_changepagetitle') . '=' . $db->quote($theme_row->changepagetitle);
 
         $query = 'INSERT #__customtables_table_youtubegallerythemes SET ' . implode(', ', $fields);
-
-        $db = Factory::getDBO();
-
         $db->setQuery($query);
         $db->execute();
     }
 
     function createTheme($themecode, &$msg)
     {
-
-
         $theme_row = unserialize($themecode);
         if ($theme_row === false) {
-
             $msg = 'Theme Code is corrupted.';
             return false;
         }
 
-
         if ($theme_row->es_themename == '') {
-
             $msg = 'Theme Code is incorrect.';
             return false;
         }
@@ -381,7 +369,6 @@ class YoutubeGalleryModelThemeImport extends ListModel
         //Add record to database
         $theme_row->es_themename = $this->getThemeName(str_replace('"', '', $theme_row->es_themename));
         echo 'Theme Name: ' . $theme_row->es_themename . '<br/>';
-
 
         $this->saveTheme($theme_row);
         echo 'Theme Imported<br/>';

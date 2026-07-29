@@ -7,17 +7,16 @@
  **/
 
 // Check to ensure this file is included in Joomla!
-use Joomla\CMS\Factory;
-use Joomla\CMS\HTML\HTMLHelper;
-
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\HTML\HTMLHelper;
+use CustomTables\database;
 
 class JHTMLTheme
 {
     public static function render($control_name, $value, $attribute)
     {
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = 'SELECT id, es_themename FROM #__customtables_table_youtubegallerythemes ORDER BY es_themename';
         $db->setQuery($query);
         $themes = $db->loadAssocList();

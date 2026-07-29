@@ -10,7 +10,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
-use Joomla\CMS\Factory;
+use CustomTables\database;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\Database\DatabaseQuery;
 use Joomla\Database\QueryInterface;
@@ -74,7 +74,7 @@ class YoutubeGalleryModelCategories extends ListModel
     protected function getListQuery()
     {
         // Create a new query object.
-        $db = Factory::getDBO();
+		$db = database::getDB();
         $query = $db->getQuery(true);
 
         // Select some fields

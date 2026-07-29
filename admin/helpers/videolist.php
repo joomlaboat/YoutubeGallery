@@ -12,13 +12,14 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use CustomTables\database;
 
 class JHTMLVideoList
 {
     public static function render($control_name, $value, $attribute)
     {
         $value = (int)$value;
-        $db = Factory::getDBO();
+        $db = database::getDB();
 
         $query = 'SELECT id, es_listname FROM #__customtables_table_youtubegalleryvideolists ORDER BY es_listname';
 
