@@ -105,7 +105,6 @@ class com_YoutubeGalleryInstallerScript
 			return true; //No need to do anything
 		}
 
-		self::enableButtonPlugin();
 		$path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'customtables' . DIRECTORY_SEPARATOR;
 		$loader_file = $path . 'loader.php';
 
@@ -122,6 +121,8 @@ class com_YoutubeGalleryInstallerScript
 		$params = ComponentHelper::getParams($component_name);
 		$loadTwig = $params->get('loadTwig') ?? true;
 		CustomTablesLoader($include_utilities = true, false, null, $component_name, $loadTwig);
+
+		self::enableButtonPlugin();
 
 		$ct = new CT([], true);
 
