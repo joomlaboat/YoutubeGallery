@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="2.5" method="upgrade">
 	<name>COM_YOUTUBEGALLERY</name>
-	<creationDate>July 2026</creationDate>
+	<creationDate>September 2026</creationDate>
 	<author>JoomlaBoat.com</author>
 	<authorEmail>support@joomlaboat.com</authorEmail>
 	<authorUrl>https://joomlaboat.com</authorUrl>
