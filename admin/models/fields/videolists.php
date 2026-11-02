@@ -19,6 +19,12 @@ use CustomTables\database;
 $versionObject = new Version;
 $version = (int)$versionObject->getShortVersion();
 
+if(!class_exists('database')){
+	$path = JPATH_SITE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_youtubegallery' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'youtubegallery' . DIRECTORY_SEPARATOR;
+	require_once($path . 'loader.php');
+	YGLoadClasses();
+}
+
 if ($version < 4) {
 
 // import the list field type
